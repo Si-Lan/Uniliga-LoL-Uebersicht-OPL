@@ -1,0 +1,40 @@
+RewriteEngine On
+RewriteBase /opl/uniliga
+
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_URI} /(.*)/$
+RewriteRule ^ /%1 [R,L]
+
+# redirect Pages
+## redirect team-list
+RewriteRule ^turnier/(.+)/teams$ ./pages/teams-list?tournament=$1 [NC,L,QSA]
+
+## redirect elo-overview
+RewriteRule ^turnier/(.+)/elo$ ./pages/elo-overview?tournament=$1 [NC,L,QSA]
+
+## redirect groups
+RewriteRule ^turnier/(.+)/gruppe$ ./pages/tournament-details?tournament=$1 [NC,L]
+RewriteRule ^turnier/(.+)/gruppe/(.+)$ ./pages/group-details?tournament=$1&group=$2 [NC,L,QSA]
+
+## redirect Tournaments
+RewriteRule ^turnier$ ./pages/tournament-details [NC,L]
+RewriteRule ^turnier/(.+)$ ./pages/tournament-details?tournament=$1 [NC,L]
+
+## redirect matchhistory
+RewriteRule ^team/(.+)/matchhistory$ ./pages/team-matchhistory?team=$1 [NC,L]
+
+## redirect statistics
+RewriteRule ^team/(.+)/stats$ ./pages/team-statistics?team=$1 [NC,L]
+
+## redirect teams
+RewriteRule ^team$ ./pages/team-details [NC,L]
+RewriteRule ^team/(.+)$ ./pages/team-details?team=$1 [NC,L,QSA]
+
+## redirect players
+RewriteRule ^spieler$ ./pages/player-page [NC,L]
+
+
+
+# enable opening php files without .php ending
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteRule ^([^.]+)$ $1.php [NC,L]
