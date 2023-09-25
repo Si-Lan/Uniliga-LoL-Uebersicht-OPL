@@ -392,9 +392,11 @@ div.home-content {
 	display: flex;
 	flex-direction: column;
 }
-input[type=text] {
+input[type=text],
+input[type=number] {
 	position: relative;
 	width: 100%;
+	height: 30px;
 	text-align: center;
 	color: var(--text-color);
 	background: var(--input-bg);
@@ -405,11 +407,16 @@ input[type=text] {
 	transition: border-bottom-color 0.1s, background-color 0.2s linear;
 	box-sizing: border-box;
 }
-input[type=text]:focus {
+input[type=text]:focus,
+input[type=number]:focus {
 	outline: none;
 	border-style: solid;
 	border-color: var(--input-focus-border) var(--input-focus-border) var(--input-bottom) var(--input-focus-border);
 	background-color: var(--input-bg-focus);
+}
+input[type=text][readonly]:focus,
+input[type=number][readonly]:focus {
+	background-color: var(--input-bg);
 }
 span.searchbar::after {
 	content: '';
@@ -940,11 +947,11 @@ div.team-filter-wrap {
 	margin-top: 25px;
 	gap: 20px;
 }
-div.team-filter-wrap h3{
+div.team-filter-wrap h3 {
 	margin: 0;
 }
-div.team-filter-wrap select{
-	width: 180px;
+.slct select {
+	width: 100%;
 	text-align: center;
 	cursor: pointer;
 	-webkit-appearance: none;
@@ -956,17 +963,17 @@ div.team-filter-wrap select{
 	transition: background-color 0.2s linear;
 	box-sizing: border-box;
 }
-div.team-filter-wrap select:hover, div.team-filter-wrap select:focus{
+.slct select:hover, .slct select:focus {
 	background-color: var(--main-button-hover);
 	outline: none;
 	border-style: solid;
 }
-div.slct {
+.slct {
 	position: relative;
 	display: inline-flex;
 	align-items: center;
 }
-div.slct span {
+.slct span {
 	position: absolute;
 	display: block;
 	right: 6px;
@@ -3042,12 +3049,110 @@ dialog.add-patch-popup .dialog-content {
 	}
 }
 
+body.admin .main-content {
+	flex-direction: column;
+	align-items: center;
+}
+#main-selection {
+	display: flex;
+	flex-direction: column;
+	align-items: stretch;
+	gap: 5px;
+}
+#main-selection .searchbar {
+	width: 100%;
+}
+button#turnier-button-get {
+	padding: 10px 30px;
+	background-color: #025928;
+}
+button#turnier-button-get:hover {
+	background-color: #03672f;
+}
+.refresh-button {
+	margin-bottom: 5px;
+	align-self: flex-start;
+}
+.admin-turnier-button {
+	background-color: var(--main-button-color);
+	padding: 15px 30px;
+	border-radius: 6px;
+}
 
+div.turnier-select {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+}
+
+div.turnier-select-list {
+	display: flex;
+	flex-direction: row;
+	gap: 10px;
+	flex-wrap: wrap;
+	max-width: 1350px;
+	justify-content: space-evenly;
+}
+
+div.tournament-write-data-wrapper {
+	display: flex;
+	flex-direction: column;
+	gap: 5px;
+}
+div.tournament-write-data {
+	display: flex;
+	flex-direction: column;
+	gap: 5px;
+	background-color: var(--main-button-color);
+	border-radius: 6px;
+	padding: 15px 25px;
+	min-width: 280px;
+}
+dialog#tournament-add div.tournament-write-data {
+	margin-bottom: 10px;
+}
+div.turnier-select div.tournament-write-data {
+	overflow: scroll;
+	max-height: 330px;
+}
+div.tournament-write-data input{
+	height: 35px;
+}
+div.tournament-write-data label {
+	display: flex;
+	flex-direction: column;
+}
+div.tournament-write-data select {
+	background-color: var(--input-bg);
+	box-sizing: border-box;
+	height: 35px;
+	padding: 0;
+}
+div.tournament-write-data select:hover,
+div.tournament-write-data select:focus {
+	background-color: var(--input-bg-focus);
+	border: solid 1px var(--input-focus-border);
+
+}
+input[type=date] {
+	border-radius: 6px;
+	border: none;
+	padding: 0 10px;
+	box-sizing: border-box;
+}
+.tournament-write-data input[type=checkbox] {
+	height: 25px;
+}
+.tournament-write-data label:has(input[type=checkbox]) {
+	flex-direction: row;
+	align-items: center;
+}
 
 dialog .dialog-content {
 	display: flex;
 	flex-direction: column;
 	padding: 25px;
+	min-width: 45px;
 }
 dialog {
 	padding: 0;

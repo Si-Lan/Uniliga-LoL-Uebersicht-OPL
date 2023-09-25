@@ -3,26 +3,6 @@ body {
     flex-direction:column;
     align-items: center;
 }
-h1 {
-    color: #e1e1e1;
-    text-align: center;
-}
-h2 {
-    color: #e1e1e1;
-    text-align: center;
-}
-#main-selection {
-    display: flex;
-    flex-direction: column;
-}
-#main-selection > input[type=number] {
-    width: auto;
-    text-align: center;
-    color: #000;
-    border-radius: 6px;
-    height: 30px;
-    box-sizing: border-box;
-}
 input::-webkit-outer-spin-button,
 input::-webkit-inner-spin-button {
     -webkit-appearance: none;
@@ -199,71 +179,4 @@ div.tbutton-act.close {
 }
 div.tbutton-act.open {
     display: flex;
-}
-
-.tooltip .tooltiptext {
-    visibility: hidden;
-    background-color: rgb(43,43,43);
-    color: #fff;
-    font-size: 16px;
-    font-weight: normal;
-    text-align: center;
-    border-radius: 6px;
-    padding: 5px;
-
-    /* Position the tooltip */
-    position: absolute;
-    z-index: 1;
-}
-.tooltip:hover .tooltiptext {
-    visibility: visible;
-}
-
-
-.lds-dual-ring {
-    display: inline-block;
-    position: relative;
-    bottom: 11px;
-    right: 5px;
-    width: 14px;
-    height: 14px;
-}
-.lds-dual-ring:after {
-    content: " ";
-    display: block;
-    width: 16px;
-    height: 16px;
-    margin: 8px;
-    border-radius: 50%;
-    border: 2px solid;
-    border-color: #000 transparent;
-    animation: lds-dual-ring 3s linear infinite;
-}
-@keyframes lds-dual-ring {
-    0% {
-        transform: rotate(0deg);
-    }
-    100% {
-        transform: rotate(360deg);
-    }
-}
-
-.nav-menu-login {
-    color: grey;
-    position: absolute;
-    top: 10px;
-    left: 10px;
-}
-.nav-menu-login.logged-in {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-}
-
-@media screen and (max-width: 1024px) {
-    .nav-menu-login {
-        position: static;
-        text-align: center;
-        margin-top: 10px;
-    }
 }

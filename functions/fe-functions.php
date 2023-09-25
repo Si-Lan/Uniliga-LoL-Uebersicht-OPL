@@ -41,7 +41,7 @@ function create_html_head_elements(array $css = [], array $js = [], string $titl
 	return $result;
 }
 
-function create_header(mysqli $dbcn = NULL, string $title = "home", string|int|NULL $tournament_id = NULL, bool $home_button = TRUE, bool $open_login = FALSE):string {
+function create_header(mysqli $dbcn = NULL, string $title = "home", string|int $tournament_id = NULL, bool $home_button = TRUE, bool $open_login = FALSE):string {
 	include_once(dirname(__FILE__) . "/../setup/data.php");
 	$password = get_admin_pass();
 	$loginforminfo = "";
@@ -80,17 +80,11 @@ function create_header(mysqli $dbcn = NULL, string $title = "home", string|int|N
 
 	$pageurl = $_SERVER['REQUEST_URI'];
 
-	// TODO: replace with opl link
-	$toor_tourn_url = "https://play.toornament.com/de/tournaments/";
+	$opl_event_url = "https://www.opleague.pro/event";
 	$outlinkicon = file_get_contents(dirname(__FILE__)."/../icons/material/open_in_new.svg");
-	if ($tournament_id != NULL) {
-		$tournament = $dbcn->execute_query("SELECT * FROM tournaments WHERE TournamentID = ?",[$tournament_id])->fetch_assoc();
-		$t_name_clean = explode("League of Legends",$tournament['Name']);
-		if (count($t_name_clean)>1) {
-			$tournament_name = $t_name_clean[0].$t_name_clean[1];
-		} else {
-			$tournament_name = $tournament['Name'];
-		}
+	if ($dbcn != NULL && $tournament_id != NULL) {
+		$tournament = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID = ?",[$tournament_id])->fetch_assoc();
+		$t_name_clean = preg_replace("/LoL/","",$tournament["name"]);
 	}
 
 	$loggedin = is_logged_in();
@@ -106,9 +100,9 @@ function create_header(mysqli $dbcn = NULL, string $title = "home", string|int|N
 	$result .= "<div class='title'>";
 	if ($title == "players") {
 		$result .= "<h1>Uniliga LoL - Spieler</h1>";
-	} elseif ($title == "tournament") {
-		$result .= "<h1>$tournament_name</h1>";
-		$result .= "<a href='$toor_tourn_url$tournament_id' target='_blank' class='toorlink'><div class='material-symbol'>$outlinkicon</div></a>";
+	} elseif ($title == "tournament" && $dbcn != NULL && $tournament_id != NULL) {
+		$result .= "<h1>$t_name_clean</h1>";
+		$result .= "<a href='$opl_event_url/$tournament_id' target='_blank' class='toorlink'><div class='material-symbol'>$outlinkicon</div></a>";
 	} elseif ($title == "admin_dd") {
 		$result .= "<h1>Uniliga LoL - DDragon Updates</h1>";
 	} elseif ($title == "admin") {
@@ -155,6 +149,65 @@ function create_header(mysqli $dbcn = NULL, string $title = "home", string|int|N
 				</div>
 			</div>
 		</dialog>";
+
+	return $result;
+}
+
+function create_tournament_nav_buttons(string|int $tournament_id, mysqli $dbcn = NULL, $active="",$division_id=NULL,$group_id=NULL):string {
+	$result = "";
+
+	$overview = $list = $elo = $group_a = "";
+	if ($active == "overview") {
+		$overview = " active";
+	} elseif ($active == "list") {
+		$list = " active";
+	} elseif ($active == "elo") {
+		$elo = " active";
+	} elseif ($active == "group") {
+		$group_a = " active";
+	}
+	$teamlink_addition = "";
+	if ($division_id != NULL) {
+		$teamlink_addition = "?liga=$division_id";
+		if ($group_id != NULL) {
+			$teamlink_addition .= "&gruppe=$group_id";
+		}
+	}
+	$result .= "
+		<div class='turnier-bonus-buttons'>
+			<div class='turnier-nav-buttons'>
+				<a href='turnier/{$tournament_id}' class='button$overview'>
+    	        	<div class='material-symbol'>". file_get_contents(__DIR__."/../icons/material/sports_esports.svg") ."</div>
+        		    Turnier
+            	</a>
+	            <a href='turnier/{$tournament_id}/teams$teamlink_addition' class='button$list'>
+    	        	<div class='material-symbol'>". file_get_contents(__DIR__."/../icons/material/group.svg") ."</div>
+        	        Teams
+            	</a>
+	            <a href='turnier/{$tournament_id}/elo' class='button$elo'>
+    	            <div class='material-symbol'>". file_get_contents(__DIR__."/../icons/material/stars.svg") ."</div>
+        	        Eloverteilung
+            	</a>
+            </div>";
+	/*
+	if ($group_id != NULL && $active != "group") {
+		$group = $dbcn->execute_query("SELECT * FROM `groups` WHERE GroupID = ?",[$group_id])->fetch_assoc();
+		$div = $dbcn->execute_query("SELECT * FROM divisions WHERE DivID = ?",[$group['DivID']])->fetch_assoc();
+		if ($div["format"] === "Swiss") {
+			$group_title = "Swiss-Gruppe";
+		} else {
+			$group_title = "Gruppe {$group['Number']}";
+		}
+		$result .= "
+			<div class='divider-vert'></div>
+			<a href='turnier/{$tournament_id}/gruppe/$group_id' class='button$group_a'>
+                <div class='material-symbol'>". file_get_contents(dirname(__FILE__)."/icons/material/table_rows.svg") ."</div>
+                Liga ".$div['Number']." - $group_title
+            </a>";
+	}
+	*/
+	$result .= "</div>";
+	$result .= "<div class='divider bot-space'></div>";
 
 	return $result;
 }

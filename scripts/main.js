@@ -6,9 +6,75 @@ $(document).ready(() => {
 		}
 	});
 	$("dialog.modalopen_auto").get().forEach(element => element.showModal());
+	$("dialog .close-popup").on("click", function() {this.closest("dialog").close()})
 });
 
-
+// allgemeine Funktionen der Seite
+async function open_settings_menu() {
+	event.preventDefault();
+	$('.settings-menu').toggleClass('shown');
+}
+async function toggle_darkmode() {
+	event.preventDefault();
+	document.getElementsByTagName("body")[0].style.transition = "none";
+	let tags = document.getElementsByTagName("body")[0].getElementsByTagName("*");
+	let tag_num = tags.length;
+	for (let i = 0; i < tag_num; i++) {
+		tags[i].style.transition = "none";
+	}
+	let cookie_expiry = new Date();
+	cookie_expiry.setFullYear(cookie_expiry.getFullYear()+1);
+	let body = $('body');
+	if (body.hasClass("light")) {
+		body.removeClass("light");
+		await new Promise(r => setTimeout(r, 1));
+		$('.settings-option.toggle-mode').html(get_material_icon("dark_mode"));
+		document.cookie = `lightmode=0; expires=${cookie_expiry}; path=/`;
+	} else {
+		body.addClass("light");
+		await new Promise(r => setTimeout(r, 1));
+		$('.settings-option.toggle-mode').html(get_material_icon("light_mode"));
+		document.cookie = `lightmode=1; expires=${cookie_expiry}; path=/`;
+	}
+	await new Promise(r => setTimeout(r, 10));
+	document.getElementsByTagName("body")[0].style.transition = null;
+	for (let i = 0; i < tag_num; i++) {
+		tags[i].style.transition = null;
+	}
+}
+function toggle_admin_buttons() {
+	event.preventDefault();
+	let cookie_expiry = new Date();
+	cookie_expiry.setFullYear(cookie_expiry.getFullYear()+1);
+	let body = $('body');
+	if (body.hasClass("admin_li")) {
+		body.removeClass("admin_li");
+		$('.settings-option.toggle-admin-b-vis').html(`Buttons${get_material_icon("visibility")}`);
+		document.cookie = `admin_btns=0; expires=${cookie_expiry}; path=/`;
+	} else {
+		body.addClass("admin_li");
+		$('.settings-option.toggle-admin-b-vis').html(`Buttons${get_material_icon("visibility_off")}`);
+		document.cookie = `admin_btns=1; expires=${cookie_expiry}; path=/`;
+	}
+}
+$(document).ready(function () {
+	$('header .settings-button').on("click",open_settings_menu);
+	$('header .settings-option.toggle-mode').on("click",toggle_darkmode);
+	let settings = $('.settings-menu');
+	let header = $('header');
+	window.addEventListener("click", (event) => {
+		if (settings.hasClass('shown')) {
+			if (!$.contains(header.get(0),$(event.target).get(0)) && event.target !== header[0]) {
+				settings.removeClass('shown');
+			}
+		}
+	});
+	$('header .settings-option.toggle-admin-b-vis').on("click",toggle_admin_buttons);
+});
+$(document).ready(function() {
+	let encMail = "aW5mb0BzaWxlbmNlLmxvbA==";
+	$(".settings-option.feedback").attr("href",`mailto:${atob(encMail)}`);
+});
 
 
 
@@ -765,6 +831,7 @@ async function hide_top_button() {
 
 window.onscroll= hide_top_button;
 
+// navigation buttons
 function tournament_nav_switch_active() {
 	if (user_update_running) {
 		return;
@@ -984,68 +1051,7 @@ $(document).ready(function () {
 	table_row.on("click",hard_mark_champ_in_table);
 });
 
-async function open_settings_menu() {
-	event.preventDefault();
-	$('.settings-menu').toggleClass('shown');
-}
-async function toggle_darkmode() {
-	event.preventDefault();
-	document.getElementsByTagName("body")[0].style.transition = "none";
-	let tags = document.getElementsByTagName("body")[0].getElementsByTagName("*");
-	let tag_num = tags.length;
-	for (let i = 0; i < tag_num; i++) {
-		tags[i].style.transition = "none";
-	}
-	let cookie_expiry = new Date();
-	cookie_expiry.setFullYear(cookie_expiry.getFullYear()+1);
-	let body = $('body');
-	if (body.hasClass("light")) {
-		body.removeClass("light");
-		await new Promise(r => setTimeout(r, 1));
-		$('.settings-option.toggle-mode').html(get_material_icon("dark_mode"));
-		document.cookie = `lightmode=0; expires=${cookie_expiry}; path=/`;
-	} else {
-		body.addClass("light");
-		await new Promise(r => setTimeout(r, 1));
-		$('.settings-option.toggle-mode').html(get_material_icon("light_mode"));
-		document.cookie = `lightmode=1; expires=${cookie_expiry}; path=/`;
-	}
-	await new Promise(r => setTimeout(r, 10));
-	document.getElementsByTagName("body")[0].style.transition = null;
-	for (let i = 0; i < tag_num; i++) {
-		tags[i].style.transition = null;
-	}
-}
-function toggle_admin_buttons() {
-	event.preventDefault();
-	let cookie_expiry = new Date();
-	cookie_expiry.setFullYear(cookie_expiry.getFullYear()+1);
-	let body = $('body');
-	if (body.hasClass("admin_li")) {
-		body.removeClass("admin_li");
-		$('.settings-option.toggle-admin-b-vis').html(`Buttons${get_material_icon("visibility")}`);
-		document.cookie = `admin_btns=0; expires=${cookie_expiry}; path=/`;
-	} else {
-		body.addClass("admin_li");
-		$('.settings-option.toggle-admin-b-vis').html(`Buttons${get_material_icon("visibility_off")}`);
-		document.cookie = `admin_btns=1; expires=${cookie_expiry}; path=/`;
-	}
-}
-$(document).ready(function () {
-	$('header .settings-button').on("click",open_settings_menu);
-	$('header .settings-option.toggle-mode').on("click",toggle_darkmode);
-	let settings = $('.settings-menu');
-	let header = $('header');
-	window.addEventListener("click", (event) => {
-		if (settings.hasClass('shown')) {
-			if (!$.contains(header.get(0),$(event.target).get(0)) && event.target !== header[0]) {
-				settings.removeClass('shown');
-			}
-		}
-	});
-	$('header .settings-option.toggle-admin-b-vis').on("click",toggle_admin_buttons);
-});
-
+// Funktionen für custom Dropdowns
 function open_dropdown_selection() {
 	event.preventDefault();
 	$(this).toggleClass('open-selection');
@@ -1105,6 +1111,7 @@ $(document).ready(function () {
 	$('.button-dropdown').on("click",open_dropdown_selection);
 });
 
+// stats toggle playertables
 function select_player_table() {
 	event.preventDefault();
 	let buttonJ = $(this);
@@ -1147,6 +1154,8 @@ function select_player_table() {
 $(document).ready(function () {
 	$('div.roleplayers a.role-playername').on("click",select_player_table);
 });
+
+// toggle summonercard expansion
 function expand_collapse_summonercard() {
 	event.preventDefault();
 	let sc = $(".summoner-card-wrapper .summoner-card");
@@ -1163,11 +1172,11 @@ function expand_collapse_summonercard() {
 		document.cookie = `preference_sccollapsed=1; expires=${cookie_expiry}; path=/`;
 	}
 }
-
 $(document).ready(function () {
 	$('.player-cards .exp_coll_sc').on("click",expand_collapse_summonercard);
 });
 
+// player page search
 let player_search_controller = null;
 function search_players() {
 	if (player_search_controller !== null) player_search_controller.abort();
@@ -1252,7 +1261,6 @@ function remove_recent_player(puuid) {
 		reload_recent_players();
 	}
 }
-
 $(document).ready(function () {
 	if ($("body.players").length === 0) {
 		return;
@@ -1266,6 +1274,7 @@ $(document).ready(function () {
 	}
 });
 
+// player history popup
 let current_player_in_popup = null;
 async function popup_player(PUUID, add_to_recents = false) {
 	event.preventDefault();
@@ -1389,6 +1398,7 @@ function expand_all_playercards(collapse=false) {
 	}
 }
 
+// user update
 function format_time_minsec(date) {
 	let format, trenner = "", min = "", nullausgleich = "";
 	if (date.getMinutes() === 0) {
@@ -2017,6 +2027,7 @@ $(document).ready(function () {
 	});
 });
 
+// ddragon update
 function sync_patches_to_db(button) {
 	$(button).addClass("patch-updating");
 	button.disabled = true;
@@ -2267,7 +2278,7 @@ $(document).ready(function () {
 	});
 });
 
-
+// allgemeine Helper
 function get_material_icon(name,nowrap=false) {
 	let res = "";
 	if (!nowrap) res = "<div class='material-symbol'>";
@@ -2305,8 +2316,3 @@ function getCookie(cname) {
 	}
 	return "";
 }
-
-$(document).ready(function() {
-	let encMail = "aW5mb0BzaWxlbmNlLmxvbA==";
-	$(".settings-option.feedback").attr("href",`mailto:${atob(encMail)}`);
-});

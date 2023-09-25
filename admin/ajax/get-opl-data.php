@@ -5,16 +5,21 @@ include_once $root."admin/functions/get-opl-data.php";
 $type = $_SERVER["HTTP_TYPE"] ?? NULL;
 if ($type == NULL) exit;
 
-// adds the given tournament to DB (1 Call to OPL-API)
-if ($type == "tournament") {
+// gets the given tournament from OPL (1 Call to OPL-API)
+if ($type == "get_tournament") {
 	$id = $_SERVER["HTTP_ID"] ?? NULL;
 	if (strlen($id) == 0) {
-		echo "";
+		echo "{}";
 		exit;
 	}
-	echo "<div class='turnier-get-result-content'>";
-	echo "<div class='clear-button' onclick=\"clear_tourn_res_info()\">clear</div>";
 	$result = get_tournament($id);
-	echo $result["echo"];
-	echo "</div>";
+	echo json_encode($result);
+}
+
+// adds the given tournament to DB
+if ($type == "write_tournament") {
+	$data = $_SERVER["HTTP_DATA"] ?? NULL;
+	$data = json_decode($data,true);
+	$result = write_tournament($data);
+	echo $result;
 }

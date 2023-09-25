@@ -3,8 +3,18 @@
 <?php
 include_once(dirname(__FILE__) . "/../setup/data.php");
 include_once(dirname(__FILE__)."/../functions/fe-functions.php");
-$dbcn = create_dbcn();
+
 $lightmode = is_light_mode(true);
+
+try {
+	$dbcn = create_dbcn();
+} catch (Exception $e) {
+	echo create_html_head_elements(title: "Error");
+	echo "<body class='$lightmode'>";
+	echo create_header(title: "error", home_button: false);
+	echo "<div style='text-align: center'>Database Connection failed</div></body>";
+	exit();
+}
 
 echo create_html_head_elements();
 
@@ -23,7 +33,7 @@ echo create_header($dbcn, home_button: FALSE);
 
 		<?php
 		$local_img_path = "img/tournament_logos";
-		$tournaments = $dbcn->execute_query("SELECT * FROM tournaments ORDER BY TournamentID DESC")->fetch_all(MYSQLI_ASSOC);
+		$tournaments = $dbcn->execute_query("SELECT * FROM tournaments WHERE eventType = 'tournament' AND deactivated = FALSE ORDER BY dateStart DESC")->fetch_all(MYSQLI_ASSOC);
 		foreach ($tournaments as $tournament) {
 			if ($tournament["OPL_ID_logo"] == NULL) {
 				$tournimg_url = "";
