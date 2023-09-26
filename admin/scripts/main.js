@@ -5,6 +5,8 @@ $(document).ready(() => {
 	});
 	$("#write_tournament").on("click", () => write_tournament());
 	$(".update_tournament").on("click", function () {write_tournament(this.previousSibling.getAttribute("data-id"))});
+
+	$(".open-tournament-data-popup").on("click", function() {$(`dialog.tournament-data-popup.${this.getAttribute("data-id")}`)[0].showModal()});
 });
 
 function create_tournament_buttons() {

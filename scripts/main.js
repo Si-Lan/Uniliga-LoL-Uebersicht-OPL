@@ -49,11 +49,11 @@ function toggle_admin_buttons() {
 	let body = $('body');
 	if (body.hasClass("admin_li")) {
 		body.removeClass("admin_li");
-		$('.settings-option.toggle-admin-b-vis').html(`Buttons${get_material_icon("visibility")}`);
+		$('.settings-option.toggle-admin-b-vis').html(`Buttons${get_material_icon("visibility_off")}`);
 		document.cookie = `admin_btns=0; expires=${cookie_expiry}; path=/`;
 	} else {
 		body.addClass("admin_li");
-		$('.settings-option.toggle-admin-b-vis').html(`Buttons${get_material_icon("visibility_off")}`);
+		$('.settings-option.toggle-admin-b-vis').html(`Buttons${get_material_icon("visibility")}`);
 		document.cookie = `admin_btns=1; expires=${cookie_expiry}; path=/`;
 	}
 }

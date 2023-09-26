@@ -113,7 +113,7 @@ function create_header(mysqli $dbcn = NULL, string $title = "home", string|int $
 	$result .= "</div>";
 	$result .= "<a class='settings-button' href='$pageurl'><div class='material-symbol'>". file_get_contents(dirname(__FILE__)."/../icons/material/tune.svg") ."</div></a>";
 	if ($loggedin) {
-		$admin_button_state = logged_in_buttons_hidden() ? "" : "_off";
+		$admin_button_state = admin_buttons_visible() ? "" : "_off";
 		$result .= "
 			<div class='settings-menu'>
 				<a class='settings-option toggle-mode' href='$pageurl'><div class='material-symbol'>". file_get_contents(dirname(__FILE__)."/../icons/material/{$colormode}_mode.svg") ."</div></a>

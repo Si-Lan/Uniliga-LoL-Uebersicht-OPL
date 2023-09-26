@@ -36,9 +36,9 @@ function get_tournament($id):array {
 	$split = NULL;
 	$season = NULL;
 	if (str_contains($name_lower,"sommer")){
-		$split = "Sommer";
-	} elseif (str_contains($name_lower,"Winter")){
-		$split = "Winter";
+		$split = "sommer";
+	} elseif (str_contains($name_lower,"winter")){
+		$split = "winter";
 	} else {
 		$returnArr["info"] .= "<span style='color: orangered'>Keine Sommer/Winterseason gefunden <br></span>";
 	}
@@ -73,15 +73,22 @@ function get_tournament($id):array {
 		$returnArr["info"] .= "<span style='color: orangered'>Keine Nummer gefunden <br></span>";
 	}
 
+	$groups_league_num = NULL;
+	if ($type == "group") {
+		if (preg_match("/(liga) ?([0-9]+)/",$name_lower,$group_leagues_matches)) {
+			$groups_league_num = $group_leagues_matches[2];
+		}
+	}
 
-
-
-	//TODO: über split/season mit anderen tournaments abgleichen
-	$parent = NULL;
+	if ($type == "group") {
+		$suggested_parent = $dbcn->execute_query("SELECT OPL_ID FROM tournaments WHERE eventType = 'league' AND season = ? AND split = ? AND number = ? ORDER BY OPL_ID", [$season, $split, $groups_league_num])->fetch_column();
+	} else {
+		$suggested_parent = $dbcn->execute_query("SELECT OPL_ID FROM tournaments WHERE eventType = 'tournament' AND season = ? AND split = ? ORDER BY OPL_ID", [$season, $split])->fetch_column();
+	}
 
 	$returnArr["data"] = [
 		"OPL_ID" => $id,
-		"OPL_ID_parent" => $parent,
+		"OPL_ID_parent" => $suggested_parent,
 		"name" => $name,
 		"split" => $split,
 		"season" => $season,
@@ -153,7 +160,7 @@ function write_tournament(array $data):string {
 		if (!is_dir("$local_img_folder_path/{$data["OPL_ID_logo"]}")) {
 			mkdir("$local_img_folder_path/{$data["OPL_ID_logo"]}");
 		}
-		$logo_url_trim = ltrim($data["OPL_ID_logo"],".");
+		$logo_url_trim = ltrim($data["OPL_logo_url"],".");
 
 		$user_agent = get_user_agent_for_api_calls();
 		$options = ["http" => [
@@ -162,6 +169,7 @@ function write_tournament(array $data):string {
 			]
 		]];
 		$context = stream_context_create($options);
+		var_dump("https://www.opleague.pro$logo_url_trim");
 		$img_response = imagecreatefromstring(file_get_contents("https://www.opleague.pro$logo_url_trim", false, $context));
 
 		$img = $img_response;
@@ -254,6 +262,16 @@ function create_tournament_get_button(array $data, bool $in_write_popup = false)
 	$result .= "</div>";
 	if ($in_write_popup) $result .= "<button id=\"write_tournament\" type=\"button\">Eintragen</button>";
 	if (!$in_write_popup) $result .= "<button class=\"update_tournament\" type=\"button\">Aktualisieren</button>";
+
+	if (!$in_write_popup) $result .= "
+			<dialog class='tournament-data-popup dismissable-popup $id_class'>
+				<div class='dialog-content'>
+					<h2>{$data["name"]} ({$data["eventType"]})</h2>
+					<button class='get-teams $id_class'>Teams im Turnier updaten</button>
+				</div>
+			</dialog>";
+	if (!$in_write_popup) $result .= "<button class=\"open-tournament-data-popup $id_class\" type=\"button\" data-id='$id_class'>weitere Daten holen</button>";
+
 	$result .= "</div>";
 	return $result;
 }
