@@ -5,6 +5,7 @@ $(document).ready(() => {
 	});
 	$("#write_tournament").on("click", () => write_tournament());
 	$(".update_tournament").on("click", function () {write_tournament(this.previousSibling.getAttribute("data-id"))});
+	$(".get-teams").on("click", function () {get_teams_for_tournament(this.getAttribute("data-id"))});
 
 	$(".open-tournament-data-popup").on("click", function() {$(`dialog.tournament-data-popup.${this.getAttribute("data-id")}`)[0].showModal()});
 });
@@ -21,6 +22,8 @@ function create_tournament_buttons() {
 		.then(content => {
 			document.getElementsByClassName("turnier-select")[0].innerHTML = content;
 			$(".update_tournament").on("click", function () {write_tournament(this.previousSibling.getAttribute("data-id"))});
+			$(".open-tournament-data-popup").on("click", function() {$(`dialog.tournament-data-popup.${this.getAttribute("data-id")}`)[0].showModal()});
+			$('dialog.dismissable-popup').on('click', function (event) {if (event.target === this) this.close()});
 		})
 		.catch(e => console.error(e));
 }
@@ -77,6 +80,21 @@ function write_tournament(tournamentID = null) {
 			dialog_content.html("");
 			dialog_content.append(result);
 			$("dialog.write-result-popup")[0].showModal();
+		})
+		.catch(e => console.error(e));
+}
+
+function get_teams_for_tournament(tournamentID) {
+	fetch(`./admin/ajax/get-opl-data.php`, {
+		method: "GET",
+		headers: {
+			"type": "get_teams_for_tournament",
+			"id": tournamentID,
+		}
+	})
+		.then(res => res.json())
+		.then(result => {
+			console.log(result);
 		})
 		.catch(e => console.error(e));
 }

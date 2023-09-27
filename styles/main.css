@@ -591,7 +591,7 @@ label.password-label {
 	flex-direction: row;
 	align-items: center;
 	justify-content: center;
-	gap: 5px;
+	gap: 10px;
 	box-shadow: 2px 2px 5px rgb(0 0 0 / 0.1);
 	transition: background-color 0.2s linear;
 }
@@ -601,6 +601,7 @@ label.password-label {
 .turnier-button img {
 	height: 64px;
 	width: 64px;
+	object-fit: contain;
 	border-radius: 6px;
 }
 div.turnier-actions {
@@ -689,6 +690,8 @@ div.team-button.team-selected {
 }
 div.team-button img {
 	height: 48px;
+	max-width: 48px;
+	object-fit: contain;
 	border-radius: 6px;
 }
 div.team-actions {
