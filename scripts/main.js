@@ -76,10 +76,6 @@ $(document).ready(function() {
 	$(".settings-option.feedback").attr("href",`mailto:${atob(encMail)}`);
 });
 
-
-
-// copied from previous project:
-
 function clear_searchbar() {
 	event.preventDefault();
 	$('.searchbar input').val('').trigger('keyup').trigger('input').focus();
@@ -95,19 +91,19 @@ function toggle_clear_search_x() {
 }
 $(document).ready(function() {
 	$('.searchbar input').on("input",toggle_clear_search_x);
+	$('.searchbar .clear-search').on("click",clear_searchbar);
 });
-
 
 // teamlist-filter
 function update_team_filter_groups(div_id) {
 	if (div_id === "all") {
 		$("select.groups").empty().append("<option value='all' selected='selected'>Alle Gruppen</option>");
 	} else {
-		fetch(`ajax-functions/get-DB-AJAX.php`, {
+		fetch(`ajax/get-data.php`, {
 			method: "GET",
 			headers: {
 				"type": "groups",
-				"divID": div_id,
+				"leagueID": div_id,
 			}
 		})
 			.then(res => res.json())
@@ -115,7 +111,7 @@ function update_team_filter_groups(div_id) {
 				let groupslist = $("select.groups");
 				groupslist.empty().append("<option value='all' selected='selected'>Alle Gruppen</option>")
 				for (let i = 0; i < groups.length; i++) {
-					groupslist.append(`<option value='${groups[i]["GroupID"]}'>Gruppe ${groups[i]["Number"]}</option>`);
+					groupslist.append(`<option value='${groups[i]["OPL_ID"]}'>Gruppe ${groups[i]["number"]}</option>`);
 				}
 			})
 			.catch(error => console.error(error));
@@ -267,19 +263,7 @@ function search_tourns() {
 	}
 }
 
-
-// Grouplist
-function toggle_group_nav(div_num) {
-	//$(".nav-group."+div_num).toggleClass("hidden");
-	let divisions = $(".nav-group");
-	for (let i = 0; i < divisions.length; i++) {
-		if (divisions.eq(i).hasClass(div_num)) {
-			divisions.eq(i).toggleClass("hidden");
-		} else {
-			divisions.eq(i).addClass("hidden");
-		}
-	}
-}
+// TODO: check code below this point for rewrite
 
 // OPGG on Summoner Cards
 function player_to_opgg_link(player_id, player_name) {

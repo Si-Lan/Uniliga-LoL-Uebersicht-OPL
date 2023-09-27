@@ -60,7 +60,7 @@ echo "<h2 class='pagetitle'>Team-Liste</h2>";
 echo "<div class='search-wrapper'>
                 <span class='searchbar'>
                     <input class=\"search-teams $tournamentID deletable-search\" onkeyup='search_teams(\"$tournamentID\")' placeholder=\"Teams durchsuchen\" type=\"text\">
-                    <a class='material-symbol' href='#' onclick='clear_searchbar()'>". file_get_contents("../icons/material/close.svg") ."</a>
+                    <a class='material-symbol clear-search' href='#'>". file_get_contents("../icons/material/close.svg") ."</a>
                 </span>
               </div>";
 
