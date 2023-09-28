@@ -189,10 +189,10 @@ function create_tournament_nav_buttons(string|int $tournament_id, mysqli $dbcn =
         	        Eloverteilung
             	</a>
             </div>";
-	/*
+
 	if ($group_id != NULL && $active != "group") {
-		$group = $dbcn->execute_query("SELECT * FROM `groups` WHERE GroupID = ?",[$group_id])->fetch_assoc();
-		$div = $dbcn->execute_query("SELECT * FROM divisions WHERE DivID = ?",[$group['DivID']])->fetch_assoc();
+		$group = $dbcn->execute_query("SELECT * FROM tournaments WHERE eventType = 'group' AND OPL_ID = ?",[$group_id])->fetch_assoc();
+		$div = $dbcn->execute_query("SELECT * FROM tournaments WHERE eventType = 'league' AND OPL_ID = ?",[$group['OPL_ID_parent']])->fetch_assoc();
 		if ($div["format"] === "Swiss") {
 			$group_title = "Swiss-Gruppe";
 		} else {
@@ -201,13 +201,94 @@ function create_tournament_nav_buttons(string|int $tournament_id, mysqli $dbcn =
 		$result .= "
 			<div class='divider-vert'></div>
 			<a href='turnier/{$tournament_id}/gruppe/$group_id' class='button$group_a'>
-                <div class='material-symbol'>". file_get_contents(dirname(__FILE__)."/icons/material/table_rows.svg") ."</div>
-                Liga ".$div['Number']." - $group_title
+                <div class='material-symbol'>". file_get_contents(__DIR__."/../icons/material/table_rows.svg") ."</div>
+                Liga ".$div['number']." - $group_title
             </a>";
 	}
-	*/
+
 	$result .= "</div>";
 	$result .= "<div class='divider bot-space'></div>";
+
+	return $result;
+}
+
+//
+function create_standings(mysqli $dbcn, $tournament_id, $group_id, $team_id=NULL):string {
+	$result = "";
+	$opgg_url = "https://www.op.gg/multisearch/euw?summoners=";
+	$local_img_path = "img/team_logos/";
+	$opgg_logo_svg = file_get_contents(__DIR__."/../img/opgglogo.svg");
+	$group = $dbcn->execute_query("SELECT * FROM tournaments WHERE eventType = 'group' AND OPL_ID = ?",[$group_id])->fetch_assoc();
+	$div = $dbcn->execute_query("SELECT * FROM tournaments WHERE eventType = 'league' AND OPL_ID = ?",[$group['OPL_ID']])->fetch_assoc();
+	$teams_from_groupDB = $dbcn->execute_query("SELECT * FROM teams JOIN teams_in_tournaments tit ON teams.OPL_ID = tit.OPL_ID_team  WHERE tit.OPL_ID_tournament = ? ORDER BY CASE WHEN standing=0 THEN 1 else 0 end, standing",[$group['OPL_ID']])->fetch_all(MYSQLI_ASSOC);
+
+	$result .= "<div class='standings'>";
+	if ($team_id == NULL) {
+		$result .= "<div class='title'><h3>Standings</h3></div>";
+	} else {
+		$result .= "<div class='title'><h3>Standings Liga {$div['number']} / Gruppe {$group['number']}</h3></div>";
+	}
+	$result .= "<div class='standings-table content'>
+			<div class='standing-row standing-header'>
+				<div class='standing-pre-header rank'>#</div>
+				<a class='standing-item-wrapper-header'>
+					<div class='standing-item team'>Team</div>
+					<div class='standing-item played'>Pl</div>
+					<div class='standing-item score'>W - D - L</div>
+					<div class='standing-item points'>Pt</div>
+					<a class='standing-after-header op-gg'><div class='svg-wrapper op-gg'></div></a>
+                </a>
+            </div>";
+	$last_rank = -1;
+	foreach ($teams_from_groupDB as $currteam) {
+		$curr_players = $dbcn->execute_query("SELECT * FROM players JOIN players_in_teams pit on players.OPL_ID = pit.OPL_ID_player WHERE OPL_ID_team = ?",[$currteam['OPL_ID']])->fetch_all(MYSQLI_ASSOC);
+		$curr_opgglink = $opgg_url;
+		foreach ($curr_players as $i_cop=>$curr_player) {
+			if ($i_cop != 0) {
+				$curr_opgglink .= urlencode(",");
+			}
+			$curr_opgglink .= urlencode($curr_player["summonerName"]);
+		}
+		if ($team_id != NULL) {
+			$current = ($currteam['OPL_ID'] == $team_id)? " current" : "";
+		} else {
+			$current = "";
+		}
+		$same_rank_class = "";
+		if ($last_rank == $currteam['standing']) {
+			$same_rank_class = " no-bg";
+		}
+		$result .= "<div class='standing-row standing-team$current'>
+				<div class='standing-pre rank$same_rank_class'>{$currteam['standing']}</div>
+				<a href='team/{$currteam['OPL_ID']}' class='standing-item-wrapper'>
+				<div class='standing-item team'>";
+		if ($currteam['OPL_ID_logo'] != NULL && file_exists(__DIR__."/../$local_img_path{$currteam['OPL_ID_logo']}/logo.webp")) {
+			$result .= "<img src='$local_img_path{$currteam['OPL_ID']}/logo.webp' alt=\"Teamlogo\">";
+		}
+		if ($currteam['avg_rank_tier'] != NULL) {
+			$team_tier = strtolower($currteam['avg_rank_tier']);
+			$team_tier_cap = ucfirst($team_tier);
+			$result .= "<div class='team-name-rank'>
+                        <span>{$currteam['name']}</span>
+                        <span class='rank'>
+                            <img class='rank-emblem-mini' src='ddragon/img/ranks/mini-crests/$team_tier.svg' alt='$team_tier_cap'>
+                            $team_tier_cap ".$currteam['avg_rank_div']."
+                        </span>
+                      </div>
+                  </div>";
+		} else {
+			$result .= "<span>{$currteam['name']}</span></div>";
+		}
+		$result .= "
+                    <div class='standing-item played'>{$currteam['played']}</div>
+                    <div class='standing-item score'>{$currteam['wins']} - {$currteam['draws']} - {$currteam['losses']}</div>
+                    <div class='standing-item points'>{$currteam['points']}</div>
+                    <a href='$curr_opgglink' target='_blank' class='standing-after op-gg'><div class='svg-wrapper op-gg'>$opgg_logo_svg</div></a>
+                </a>
+            </div>";
+		$last_rank = $currteam['standing'];
+	}
+	$result .= "</div></div>";
 
 	return $result;
 }
