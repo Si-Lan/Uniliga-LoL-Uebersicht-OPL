@@ -91,7 +91,7 @@ if (isset($_GET['match'])) {
 
 
 ?>
-<body class="teamlist <?php echo $lightmode?>">
+<body class="team <?php echo $lightmode?>">
 <?php
 
 $pageurl = $_SERVER['REQUEST_URI'];
