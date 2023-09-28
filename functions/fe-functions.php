@@ -196,7 +196,7 @@ function create_tournament_nav_buttons(string|int $tournament_id, mysqli $dbcn =
 		if ($div["format"] === "Swiss") {
 			$group_title = "Swiss-Gruppe";
 		} else {
-			$group_title = "Gruppe {$group['Number']}";
+			$group_title = "Gruppe {$group['number']}";
 		}
 		$result .= "
 			<div class='divider-vert'></div>
@@ -219,7 +219,7 @@ function create_standings(mysqli $dbcn, $tournament_id, $group_id, $team_id=NULL
 	$local_img_path = "img/team_logos/";
 	$opgg_logo_svg = file_get_contents(__DIR__."/../img/opgglogo.svg");
 	$group = $dbcn->execute_query("SELECT * FROM tournaments WHERE eventType = 'group' AND OPL_ID = ?",[$group_id])->fetch_assoc();
-	$div = $dbcn->execute_query("SELECT * FROM tournaments WHERE eventType = 'league' AND OPL_ID = ?",[$group['OPL_ID']])->fetch_assoc();
+	$div = $dbcn->execute_query("SELECT * FROM tournaments WHERE eventType = 'league' AND OPL_ID = ?",[$group['OPL_ID_parent']])->fetch_assoc();
 	$teams_from_groupDB = $dbcn->execute_query("SELECT * FROM teams JOIN teams_in_tournaments tit ON teams.OPL_ID = tit.OPL_ID_team  WHERE tit.OPL_ID_tournament = ? ORDER BY CASE WHEN standing=0 THEN 1 else 0 end, standing",[$group['OPL_ID']])->fetch_all(MYSQLI_ASSOC);
 
 	$result .= "<div class='standings'>";
@@ -260,7 +260,7 @@ function create_standings(mysqli $dbcn, $tournament_id, $group_id, $team_id=NULL
 		}
 		$result .= "<div class='standing-row standing-team$current'>
 				<div class='standing-pre rank$same_rank_class'>{$currteam['standing']}</div>
-				<a href='team/{$currteam['OPL_ID']}' class='standing-item-wrapper'>
+				<a href='turnier/$tournament_id/team/{$currteam['OPL_ID']}' class='standing-item-wrapper'>
 				<div class='standing-item team'>";
 		if ($currteam['OPL_ID_logo'] != NULL && file_exists(__DIR__."/../$local_img_path{$currteam['OPL_ID_logo']}/logo.webp")) {
 			$result .= "<img src='$local_img_path{$currteam['OPL_ID']}/logo.webp' alt=\"Teamlogo\">";
@@ -289,6 +289,47 @@ function create_standings(mysqli $dbcn, $tournament_id, $group_id, $team_id=NULL
 		$last_rank = $currteam['standing'];
 	}
 	$result .= "</div></div>";
+
+	return $result;
+}
+
+function create_team_nav_buttons($tournamentID,$team,$active,$updatediff="unbekannt"):string {
+	$result = "";
+	$details_a = $matchhistory_a = $stats_a = "";
+	if ($active == "details") {
+		$details_a = " active";
+	} elseif ($active == "matchhistory") {
+		$matchhistory_a = " active";
+	} elseif ($active == "stats") {
+		$stats_a = " active";
+	}
+	$local_team_img = "img/team_logos/";
+	$opl_team_url = "https://www.opleague.pro/team/";
+	$team_id = $team['OPL_ID'];
+	$result .= "<div class='team title'>
+			<div class='team-name'>";
+	if ($team['OPL_ID_logo'] != NULL && file_exists(__DIR__."/../$local_team_img{$team['OPL_ID_logo']}/logo.webp")) {
+		$result .= "<img alt src='$local_team_img{$team['OPL_ID_logo']}/logo.webp'>";
+	}
+	$result .= "
+			<div>
+				<h2>{$team['name']}</h2>
+				<a href=\"$opl_team_url$team_id\" class='toorlink' target='_blank'><div class='material-symbol'>". file_get_contents(__DIR__."/../icons/material/open_in_new.svg") ."</div></a>
+			</div>
+        </div>
+        <div class='team-titlebutton-wrapper'>
+           	<a href='turnier/$tournamentID/team/$team_id' class='button$details_a'><div class='material-symbol'>". file_get_contents(__DIR__."/../icons/material/info.svg") ."</div>Team-Übersicht</a>
+           	<a href='turnier/$tournamentID/team/$team_id/matchhistory' class='button$matchhistory_a'><div class='material-symbol'>". file_get_contents(__DIR__."/../icons/material/manage_search.svg") ."</div>Match-History</a>
+            <a href='turnier/$tournamentID/team/$team_id/stats' class='button$stats_a'><div class='material-symbol'>". file_get_contents(__DIR__."/../icons/material/monitoring.svg") ."</div>Statistiken</a>
+        </div>";
+	if ($active == "details") {
+		$result .= "
+				<div class='updatebuttonwrapper'>
+           			<button type='button' class='icononly user_update_team update_data' data-team='$team_id'><div class='material-symbol'>".file_get_contents(__DIR__."/../icons/material/sync.svg")."</div></button>
+					<span>letztes Update:<br>$updatediff</span>
+				</div>";
+	}
+	$result .= "</div>";
 
 	return $result;
 }
