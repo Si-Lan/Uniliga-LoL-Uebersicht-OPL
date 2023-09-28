@@ -103,7 +103,7 @@ function update_team_filter_groups(div_id) {
 			method: "GET",
 			headers: {
 				"type": "groups",
-				"leagueID": div_id,
+				"tournamentID": div_id,
 			}
 		})
 			.then(res => res.json())

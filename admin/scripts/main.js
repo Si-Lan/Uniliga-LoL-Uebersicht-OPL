@@ -6,6 +6,8 @@ $(document).ready(() => {
 	$("#write_tournament").on("click", () => write_tournament());
 	$(".update_tournament").on("click", function () {write_tournament(this.previousSibling.getAttribute("data-id"))});
 	$(".get-teams").on("click", function () {get_teams_for_tournament(this.getAttribute("data-id"))});
+	$(".get-players").on("click", function () {get_players_for_tournament(this.getAttribute("data-id"))});
+	$(".get-summoners").on("click", function () {get_summonerNames_for_tournament(this.getAttribute("data-id"))});
 
 	$(".open-tournament-data-popup").on("click", function() {$(`dialog.tournament-data-popup.${this.getAttribute("data-id")}`)[0].showModal()});
 });
@@ -24,6 +26,9 @@ function create_tournament_buttons() {
 			$(".update_tournament").on("click", function () {write_tournament(this.previousSibling.getAttribute("data-id"))});
 			$(".open-tournament-data-popup").on("click", function() {$(`dialog.tournament-data-popup.${this.getAttribute("data-id")}`)[0].showModal()});
 			$('dialog.dismissable-popup').on('click', function (event) {if (event.target === this) this.close()});
+			$(".get-teams").on("click", function () {get_teams_for_tournament(this.getAttribute("data-id"))});
+			$(".get-players").on("click", function () {get_players_for_tournament(this.getAttribute("data-id"))});
+			$(".get-summoners").on("click", function () {get_summonerNames_for_tournament(this.getAttribute("data-id"))});
 		})
 		.catch(e => console.error(e));
 }
@@ -95,6 +100,49 @@ function get_teams_for_tournament(tournamentID) {
 		.then(res => res.json())
 		.then(result => {
 			console.log(result);
+		})
+		.catch(e => console.error(e));
+}
+
+function get_players_for_tournament(tournamentID) {
+	fetch(`./admin/ajax/get-opl-data.php`, {
+		method: "GET",
+		headers: {
+			"type": "get_players_for_tournament",
+			"id": tournamentID,
+		}
+	})
+		.then(res => res.json())
+		.then(result => {
+			console.log(result);
+		})
+		.catch(e => console.error(e));
+}
+
+function get_summonerNames_for_tournament(tournamentID) {
+	fetch(`./ajax/get-data.php`, {
+		method: "GET",
+		headers: {
+			"type": "teams",
+			"tournamentid": tournamentID,
+		}
+	})
+		.then(res => res.json())
+		.then(async teams => {
+			for (const team of teams) {
+				await fetch(`./admin/ajax/get-opl-data.php`, {
+					method: "GET",
+					headers: {
+						"type": "get_summonerNames_for_team",
+						"id": team.OPL_ID,
+					}
+				})
+					.then(res => res.json())
+					.then(result => {
+						console.log(result);
+					})
+					.catch(e => console.error(e));
+			}
 		})
 		.catch(e => console.error(e));
 }

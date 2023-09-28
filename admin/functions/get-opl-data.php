@@ -267,6 +267,8 @@ function create_tournament_get_button(array $data, bool $in_write_popup = false)
 				<div class='dialog-content'>
 					<h2>{$data["name"]} ({$data["eventType"]})</h2>
 					<button class='get-teams $id_class' data-id='$id_class'>Teams im Turnier updaten</button>
+					<button class='get-players $id_class' data-id='$id_class'>Spieler im Turnier updaten</button>
+					<button class='get-summoners $id_class' data-id='$id_class'>Spieler-Accounts im Turnier updaten</button>
 				</div>
 			</dialog>";
 	if (!$in_write_popup) $result .= "<button class=\"open-tournament-data-popup $id_class\" type=\"button\" data-id='$id_class'>weitere Daten holen</button>";
@@ -336,7 +338,7 @@ function get_teams_for_tournament($tournamentID):array {
 					$updated[$key] = ["old"=>$teamDB[$key], "new"=>$item];
 				}
 			}
-			if ($updated) {
+			if (count($updated) > 0) {
 				$dbcn->execute_query("UPDATE teams SET name=?, shortName=?, OPL_ID_logo=?, OPL_logo_url=? WHERE OPL_ID = ?", [$team_data["name"], $team_data["shortName"], $team_data["OPL_ID_logo"], $team_data["OPL_logo_url"], $team_data["OPL_ID"]]);
 			}
 		}
@@ -385,4 +387,134 @@ function get_teams_for_tournament($tournamentID):array {
 	}
 
 	return $returnArr;
+}
+
+// works only for tournaments with eventType group
+function get_players_for_tournament($tournamentID):array {
+	$returnArr = [];
+	$dbcn = create_dbcn();
+
+	if ($dbcn -> connect_error){
+		return $returnArr;
+	}
+
+	$tournament = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID = ?", [$tournamentID])->fetch_assoc();
+
+	if ($tournament["eventType"] != "group") {
+		return [];
+	}
+
+	$teams = $dbcn->execute_query("SELECT * FROM teams_in_tournaments WHERE OPL_ID_tournament = ?", [$tournamentID])->fetch_all(MYSQLI_ASSOC);
+
+	foreach ($teams as $team) {
+		array_push($returnArr, ...get_players_for_team($team["OPL_ID_team"]));
+		sleep(1);
+	}
+
+	return $returnArr;
+}
+
+function get_players_for_team($teamID, bool $update_summoners = false):array {
+	$returnArr = [];
+	$dbcn = create_dbcn();
+	$bearer_token = get_opl_bearer_token();
+	$user_agent = get_user_agent_for_api_calls();
+
+	if ($dbcn -> connect_error){
+		return $returnArr;
+	}
+
+	$url = "https://www.opleague.pro/api/v4/team/$teamID/users";
+	$options = ["http" => [
+		"header" => [
+			"Authorization: Bearer $bearer_token",
+			"User-Agent: $user_agent",
+		]
+	]];
+	$context = stream_context_create($options);
+	$response = json_decode(file_get_contents($url, context: $context),true);
+
+	$data = $response["data"]["users"];
+
+	foreach ($data as $player) {
+		$player_data = [
+			"OPL_ID" => $player["ID"],
+			"name" => $player["username"],
+		];
+
+		$updated = [];
+		$written = false;
+
+		$playerDB = $dbcn->execute_query("SELECT * FROM players WHERE OPL_ID = ?", [$player_data["OPL_ID"]])->fetch_assoc();
+
+		if ($playerDB == NULL) {
+			$written = true;
+			$dbcn->execute_query("INSERT INTO players (OPL_ID, name) VALUES (?, ?)", [$player_data["OPL_ID"], $player_data["name"]]);
+		} else {
+			foreach ($player_data as $key=>$item) {
+				if ($playerDB[$key] != $item) {
+					$updated[$key] = ["old"=>$playerDB[$key], "new"=>$item];
+				}
+			}
+			if (count($updated) > 0) {
+				$dbcn->execute_query("UPDATE players SET name = ? WHERE OPL_ID = ?", [$player_data["name"], $player_data["OPL_ID"]]);
+			}
+		}
+
+		$player_in_team = $dbcn->execute_query("SELECT * FROM players_in_teams WHERE OPL_ID_team = ? AND OPL_ID_player = ?", [$teamID, $player_data["OPL_ID"]])->fetch_assoc();
+		if ($player_in_team == NULL) {
+			$updated["teamID"] = ["old"=>NULL, "new"=>$teamID];
+			$dbcn->execute_query("INSERT INTO players_in_teams (OPL_ID_player, OPL_ID_team) VALUES (?, ?)", [$player_data["OPL_ID"], $teamID]);
+		}
+
+		$returnArr[] = [
+			"player" => $player_data,
+			"written" => $written,
+			"updated" => $updated,
+		];
+	}
+
+	return $returnArr;
+}
+
+function get_summonerNames_for_player($playerID):array {
+	$dbcn = create_dbcn();
+	$bearer_token = get_opl_bearer_token();
+	$user_agent = get_user_agent_for_api_calls();
+
+	if ($dbcn -> connect_error){
+		return [];
+	}
+
+	$playerDB = $dbcn->execute_query("SELECT * FROM players WHERE OPL_ID = ?", [$playerID])->fetch_assoc();
+
+	if ($playerDB == NULL) {
+		return [];
+	}
+
+	$url = "https://www.opleague.pro/api/v4/user/$playerID/launcher";
+	$options = ["http" => [
+		"header" => [
+			"Authorization: Bearer $bearer_token",
+			"User-Agent: $user_agent",
+		]
+	]];
+	$context = stream_context_create($options);
+	$response = json_decode(file_get_contents($url, context: $context),true);
+
+	$data = $response["data"]["launcher"];
+
+	if (!array_key_exists("13", $data)) {
+		return ["updated"=>false, "old"=>$playerDB["summonerName"], "new"=>NULL];
+	}
+
+	$summonerName = $data["13"]["last_known_username"];
+
+	if ($playerDB["summonerName"] == $summonerName) {
+		return ["updated"=>false, "old"=>$playerDB["summonerName"], "new"=>$summonerName];
+	}
+
+	$dbcn->execute_query("UPDATE players SET summonerName = ? WHERE OPL_ID = ?", [$summonerName, $playerID]);
+
+	return ["updated"=>true, "old"=>$playerDB["summonerName"], "new"=>$summonerName];
 }

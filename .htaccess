@@ -6,6 +6,8 @@ RewriteCond %{REQUEST_URI} /(.*)/$
 RewriteRule ^ /%1 [R,L]
 
 # redirect Pages
+RewriteRule ^$ ./pages/startpage.php [NC,L]
+
 ## redirect team-list
 RewriteRule ^turnier/(.+)/teams$ ./pages/teams-list?tournament=$1 [NC,L,QSA]
 
