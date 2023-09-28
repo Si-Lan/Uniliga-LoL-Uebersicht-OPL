@@ -61,7 +61,7 @@ $opgg_url = "https://www.op.gg/multisearch/euw?summoners=";
 $matches = $dbcn->execute_query("SELECT * FROM matchups WHERE OPL_ID_tournament = ? ORDER BY playday",[$group['OPL_ID']])->fetch_all(MYSQLI_ASSOC);
 $matches_grouped = [];
 foreach ($matches as $match) {
-	$matches_grouped[$match['round']][] = $match;
+	$matches_grouped[$match['playday']][] = $match;
 }
 $teams_from_groupDB = $dbcn->execute_query("SELECT * FROM teams JOIN teams_in_tournaments tit ON teams.OPL_ID = tit.OPL_ID_team WHERE tit.OPL_ID_tournament = ? ORDER BY standing",[$group['OPL_ID']])->fetch_all(MYSQLI_ASSOC);
 $teams_from_group = [];
@@ -113,10 +113,11 @@ echo "<div class='main-content'>";
 
 echo create_standings($dbcn,$tournamentID,$groupID);
 
-// TODO: alles unter diesem Punkt validieren:
-
 echo "<div class='matches'>
                 <div class='title'><h3>Spiele</h3></div>";
+
+// TODO: matchpopup überarbeiten
+
 $curr_matchID = $_GET['match'] ?? NULL;
 if ($curr_matchID != NULL) {
 	$curr_matchData = $dbcn->execute_query("SELECT * FROM matchups WHERE OPL_ID = ?",[$curr_matchID])->fetch_assoc();
@@ -187,7 +188,7 @@ foreach ($matches_grouped as $roundNum=>$round) {
                     <div class='divider'></div>
                     <div class='match-wrapper'>";
 	foreach ($round as $match) {
-		create_matchbutton($dbcn,$tournamentID,$match['OPL_ID'],"groups");
+		echo create_matchbutton($dbcn,$tournamentID,$match['OPL_ID'],"groups");
 	}
 	echo "</div>";
 	echo "</div>"; // match-round

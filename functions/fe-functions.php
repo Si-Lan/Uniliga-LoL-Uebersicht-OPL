@@ -293,6 +293,90 @@ function create_standings(mysqli $dbcn, $tournament_id, $group_id, $team_id=NULL
 	return $result;
 }
 
+function create_matchbutton(mysqli $dbcn,$tournament_id,$match_id,$type,$team_id=NULL):string {
+	$result = "";
+	$pageurl = $_SERVER['REQUEST_URI'];
+	$opl_match_url = "https://www.opleague.pro/match/";
+	if ($type == "groups") {
+		$match = $dbcn->execute_query("SELECT * FROM matchups WHERE OPL_ID = ?",[$match_id])->fetch_assoc();
+	} elseif ($type == "playoffs") {
+		return "";
+		//$match = $dbcn->execute_query("SELECT * FROM playoffmatches WHERE MatchID = ?",[$match_id])->fetch_assoc();
+	} else {
+		return "";
+	}
+	$teams_from_DB = $dbcn->execute_query("SELECT * FROM teams")->fetch_all(MYSQLI_ASSOC);
+	$teams = [];
+	foreach ($teams_from_DB as $i=>$team) {
+		$teams[$team['OPL_ID']] = array("TeamName"=>$team['name'], "imgID"=>$team['OPL_ID']);
+	}
+
+	$current1 = "";
+	$current2 = "";
+	if ($team_id != NULL) {
+		if ($match['OPL_ID_team1'] == $team_id) {
+			$current1 = " current";
+		} elseif ($match['OPL_ID_team2'] == $team_id) {
+			$current2 = " current";
+		}
+	}
+
+	if ($match['played'] == 0) {
+		$datetime = date_create($match['plannedDate']);
+		$date = date_format($datetime, 'd M');
+		$time = date_format($datetime, 'H:i');
+		$result .= "<div class='match-button-wrapper' data-matchid='$match_id' data-matchtype='$type'>
+                            <a class='button match nolink sideext-right'>
+                                <div class='teams'>
+                                    <div class='team 1$current1'><div class='name'>{$teams[$match['OPL_ID_team1']]['TeamName']}</div></div>
+                                    <div class='team 2$current2'><div class='name'>{$teams[$match['OPL_ID_team2']]['TeamName']}</div></div>
+                                </div>";
+		if ($match['plannedDate'] == NULL || strtotime($match['plannedDate']) == 0) {
+			$result .= "<div>vs.</div>";
+		} else {
+			$result .= "<div class='date'>{$date}<br>{$time}</div>";
+		}
+		$result .= "</a>
+                          <a class='sidebutton-match' href='$opl_match_url{$match['OPL_ID']}' target='_blank'>
+                            <div class='material-symbol'>". file_get_contents(__DIR__."/../icons/material/open_in_new.svg") ."</div>
+                          </a>
+                        </div>";
+	} else {
+		$t1score = $match['OPL_ID_team1'];
+		$t2score = $match['OPL_ID_team2'];
+		if ($t1score == -1 || $t2score == -1) {
+			$t1score = ($t1score == -1) ? "L" : "W";
+			$t2score = ($t2score == -1) ? "L" : "W";
+		}
+		if ($match['winner'] == 0) {
+			$state1 = "win";
+			$state2 = "loss";
+		} else if ($match['winner'] == 1) {
+			$state1 = "loss";
+			$state2 = "win";
+		} else {
+			$state1 = "draw";
+			$state2 = "draw";
+		}
+		$result .= "<div class='match-button-wrapper' data-matchid='$match_id' data-matchtype='$type'>";
+		if ($team_id != NULL) {
+			$result .= "<a class='button match sideext-right' href='$pageurl' onclick='popup_match(\"{$match['OPL_ID']}\",\"{$team_id}\",\"$type\")'>";
+		} else {
+			$result .= "<a class='button match sideext-right' href='$pageurl' onclick='popup_match(\"{$match['OPL']}\",null,\"$type\")'>";
+		}
+		$result .= "<div class='teams score'>
+				<div class='team 1 $state1$current1'><div class='name'>{$teams[$match['OPL_ID_team1']]['TeamName']}</div><div class='score'>{$t1score}</div></div>
+				<div class='team 2 $state2$current2'><div class='name'>{$teams[$match['OPL_ID_team2']]['TeamName']}</div><div class='score'>{$t2score}</div></div>
+			  </div>
+			</a>
+			<a class='sidebutton-match' href='$opl_match_url{$match['OPL_ID']}' target='_blank'>
+				<div class='material-symbol'>". file_get_contents(__DIR__."/../icons/material/open_in_new.svg") ."</div>
+			</a>
+		</div>";
+	}
+	return $result;
+}
+
 function create_team_nav_buttons($tournamentID,$team,$active,$updatediff="unbekannt"):string {
 	$result = "";
 	$details_a = $matchhistory_a = $stats_a = "";

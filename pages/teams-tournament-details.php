@@ -190,6 +190,7 @@ echo create_standings($dbcn,$tournamentID,$group['OPL_ID'],$teamID);
 
 echo "<div class='matches'>
                      <div class='title'><h3>Spiele</h3></div>";
+/*
 if ($curr_matchID != NULL && $curr_matchData != NULL) {
 	$curr_games = $dbcn->execute_query("SELECT * FROM games WHERE MatchID = ? OR PLMatchID = ? ORDER BY RiotMatchID", [$curr_matchID,$curr_matchID])->fetch_all(MYSQLI_ASSOC);
 	$curr_team1 = $dbcn->execute_query("SELECT * FROM teams WHERE TeamID = ?", [$curr_matchData['Team1ID']])->fetch_assoc();
@@ -254,16 +255,11 @@ if ($curr_matchID != NULL && $curr_matchData != NULL) {
                             <div class='mh-popup'></div>
                      </div>";
 }
+*/
 
 echo "<div class='match-content content'>";
 foreach ($matches as $match) {
-	create_matchbutton($dbcn,$tournament['TournamentID'],$match['MatchID'],"groups",$teamID);
-}
-if (count($playoffmatches) > 0) {
-	echo "<h4>Playoffs</h4>";
-	foreach ($playoffmatches as $match) {
-		create_matchbutton($dbcn,$tournament['TournamentID'],$match['MatchID'],"playoffs",$teamID);
-	}
+	echo create_matchbutton($dbcn,$tournamentID,$match['OPL_ID'],"groups",$teamID);
 }
 echo "</div>";
 echo "</div>"; // matches
