@@ -8,6 +8,7 @@ $(document).ready(() => {
 	$(".get-teams").on("click", function () {get_teams_for_tournament(this.getAttribute("data-id"))});
 	$(".get-players").on("click", function () {get_players_for_tournament(this.getAttribute("data-id"))});
 	$(".get-summoners").on("click", function () {get_summonerNames_for_tournament(this.getAttribute("data-id"))});
+	$(".get-matchups").on("click", function () {get_matchups_for_tournament(this.getAttribute("data-id"))});
 
 	$(".open-tournament-data-popup").on("click", function() {$(`dialog.tournament-data-popup.${this.getAttribute("data-id")}`)[0].showModal()});
 });
@@ -29,6 +30,7 @@ function create_tournament_buttons() {
 			$(".get-teams").on("click", function () {get_teams_for_tournament(this.getAttribute("data-id"))});
 			$(".get-players").on("click", function () {get_players_for_tournament(this.getAttribute("data-id"))});
 			$(".get-summoners").on("click", function () {get_summonerNames_for_tournament(this.getAttribute("data-id"))});
+			$(".get-matchups").on("click", function () {get_matchups_for_tournament(this.getAttribute("data-id"))});
 		})
 		.catch(e => console.error(e));
 }
@@ -143,6 +145,21 @@ function get_summonerNames_for_tournament(tournamentID) {
 					})
 					.catch(e => console.error(e));
 			}
+		})
+		.catch(e => console.error(e));
+}
+
+function get_matchups_for_tournament(tournamentID) {
+	fetch(`./admin/ajax/get-opl-data.php`, {
+		method: "GET",
+		headers: {
+			"type": "get_matchups_for_tournament",
+			"id": tournamentID,
+		}
+	})
+		.then(res => res.json())
+		.then(result => {
+			console.log(result);
 		})
 		.catch(e => console.error(e));
 }

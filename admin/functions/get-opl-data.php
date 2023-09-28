@@ -269,6 +269,7 @@ function create_tournament_get_button(array $data, bool $in_write_popup = false)
 					<button class='get-teams $id_class' data-id='$id_class'>Teams im Turnier updaten</button>
 					<button class='get-players $id_class' data-id='$id_class'>Spieler im Turnier updaten</button>
 					<button class='get-summoners $id_class' data-id='$id_class'>Spieler-Accounts im Turnier updaten</button>
+					<button class='get-matchups $id_class' data-id='$id_class'>Matches im Turnier updaten</button>
 				</div>
 			</dialog>";
 	if (!$in_write_popup) $result .= "<button class=\"open-tournament-data-popup $id_class\" type=\"button\" data-id='$id_class'>weitere Daten holen</button>";
@@ -386,6 +387,7 @@ function get_teams_for_tournament($tournamentID):array {
 		];
 	}
 
+	$dbcn->close();
 	return $returnArr;
 }
 
@@ -516,5 +518,76 @@ function get_summonerNames_for_player($playerID):array {
 
 	$dbcn->execute_query("UPDATE players SET summonerName = ? WHERE OPL_ID = ?", [$summonerName, $playerID]);
 
+	$dbcn->close();
 	return ["updated"=>true, "old"=>$playerDB["summonerName"], "new"=>$summonerName];
+}
+
+function get_matchups_for_tournament($tournamentID):array {
+	$returnArr = [];
+	$dbcn = create_dbcn();
+	$bearer_token = get_opl_bearer_token();
+	$user_agent = get_user_agent_for_api_calls();
+
+	if ($dbcn -> connect_error){
+		return $returnArr;
+	}
+
+	$tournament = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID = ?", [$tournamentID])->fetch_assoc();
+
+	if ($tournament["eventType"] != "group") {
+		return [];
+	}
+
+	$url = "https://www.opleague.pro/api/v4/tournament/$tournamentID/matches";
+	$options = ["http" => [
+		"header" => [
+			"Authorization: Bearer $bearer_token",
+			"User-Agent: $user_agent",
+		]
+	]];
+	$context = stream_context_create($options);
+	$response = json_decode(file_get_contents($url, context: $context),true);
+
+	$data = $response["data"]["matches"];
+
+	foreach ($data as $match) {
+		$match_data = [
+			"OPL_ID" => $match["ID"],
+			"OPL_ID_tournament" => $tournamentID,
+			"OPL_ID_team1" => array_keys($match["teams"])[0],
+			"OPL_ID_team2" => array_keys($match["teams"])[1],
+			"plannedDate" => $match["to_be_played_on"]["date"],
+			"playday" => $match["playday"],
+			"bestOf" => $match["best_of"],
+		];
+
+		$updated = [];
+		$written = false;
+
+		$matchDB = $dbcn->execute_query("SELECT * FROM matchups WHERE OPL_ID = ?", [$match_data["OPL_ID"]])->fetch_assoc();
+
+		if ($matchDB == NULL) {
+			$written = true;
+			$dbcn->execute_query("INSERT INTO matchups (OPL_ID, OPL_ID_tournament, OPL_ID_team1, OPL_ID_team2, plannedDate, playday, bestOf, played)
+										VALUES (?, ?, ?, ?, ?, ?, ?, false)", [$match_data["OPL_ID"], $match_data["OPL_ID_tournament"], $match_data["OPL_ID_team1"], $match_data["OPL_ID_team2"], $match_data["plannedDate"], $match_data["playday"], $match_data["bestOf"]]);
+		} else {
+			foreach ($match_data as $key=>$item) {
+				if ($matchDB[$key] != $item) {
+					$updated[$key] = ["old"=>$matchDB[$key], "new"=>$item];
+				}
+			}
+			if (count($updated) > 0) {
+				$dbcn->execute_query("UPDATE matchups SET OPL_ID_tournament=?, OPL_ID_team1=?, OPL_ID_team2=?, plannedDate=?, playday=?, bestOf=? WHERE OPL_ID = ?", [$match_data["OPL_ID_tournament"], $match_data["OPL_ID_team1"], $match_data["OPL_ID_team2"], $match_data["plannedDate"], $match_data["playday"], $match_data["bestOf"], $match_data["OPL_ID"]]);
+			}
+		}
+
+		$returnArr[] = [
+			"team" => $match_data,
+			"written" => $written,
+			"updated" => $updated,
+		];
+	}
+
+	$dbcn->close();
+	return $returnArr;
 }

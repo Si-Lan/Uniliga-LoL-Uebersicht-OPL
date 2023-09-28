@@ -25,7 +25,7 @@ if ($type == "write_tournament") {
 	echo $result;
 }
 
-// adds the given tournament to DB (x Calls to OPL-API) (1 for groups / more for tournaments and leagues)
+// adds teams for the given tournament to DB (x Calls to OPL-API) (1 for groups / more for tournaments and leagues)
 if ($type == "get_teams_for_tournament") {
 	$result = [];
 	$dbcn = create_dbcn();
@@ -53,6 +53,7 @@ if ($type == "get_teams_for_tournament") {
 	$dbcn->close();
 }
 
+// adds the players for all teams in the given tournament to DB  (x API-Calls) (x = number of teams)
 if ($type == "get_players_for_tournament") {
 	$result = [];
 	$dbcn = create_dbcn();
@@ -88,6 +89,33 @@ if ($type == "get_summonerNames_for_team") {
 	foreach ($players as $player) {
 		$result[] = get_summonerNames_for_player($player["OPL_ID"]);
 		sleep(1);
+	}
+	echo json_encode($result);
+	$dbcn->close();
+}
+
+if ($type == "get_matchups_for_tournament") {
+	$result = [];
+	$dbcn = create_dbcn();
+	$id = $_SERVER["HTTP_ID"] ?? NULL;
+	$tournament = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID = ?", [$id])->fetch_assoc();
+	if ($tournament["eventType"] == "tournament") {
+		$leagues = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID_parent = ? AND eventType = 'league'", [$id])->fetch_all(MYSQLI_ASSOC);
+		foreach ($leagues as $league) {
+			$groups = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID_parent = ? AND eventType = 'group'", [$league["OPL_ID"]])->fetch_all(MYSQLI_ASSOC);
+			foreach ($groups as $group) {
+				array_push($result, ...get_matchups_for_tournament($group["OPL_ID"]));
+				sleep(1);
+			}
+		}
+	} elseif ($tournament["eventType"] == "league") {
+		$groups = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID_parent = ? AND eventType = 'group'", [$id])->fetch_all(MYSQLI_ASSOC);
+		foreach ($groups as $group) {
+			array_push($result, ...get_matchups_for_tournament($group["OPL_ID"]));
+			sleep(1);
+		}
+	} else {
+		array_push($result, ...get_matchups_for_tournament($id));
 	}
 	echo json_encode($result);
 	$dbcn->close();
