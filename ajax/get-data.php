@@ -45,4 +45,11 @@ if ($type == "teams") {
 	echo json_encode($teams);
 }
 
+if ($type == "team-and-players") {
+	$teamID = $_SERVER["HTTP_TEAMID"] ?? NULL;
+	$teamDB = $dbcn->execute_query("SELECT * FROM teams WHERE OPL_ID = ?", [$teamID])->fetch_assoc();
+	$playersDB = $dbcn->execute_query("SELECT * FROM players JOIN players_in_teams pit on players.OPL_ID = pit.OPL_ID_player WHERE pit.OPL_ID_team = ?", [$teamID])->fetch_all(MYSQLI_ASSOC);
+	echo json_encode(["team"=>$teamDB, "players"=>$playersDB]);
+}
+
 $dbcn->close();

@@ -170,7 +170,7 @@ foreach ($teams as $i_teams=>$team) {
 	}
 
 	echo "
-                <div class=\"team-button $tournamentID $currTeamID $currTeamGroupID $currTeamDivID$filterDClass$filterGClass\" onclick='popup_team(\"$currTeamID\")'>
+                <div class=\"team-button $tournamentID $currTeamID $currTeamGroupID $currTeamDivID$filterDClass$filterGClass\" onclick='popup_team(\"$currTeamID\",\"$tournamentID\")'>
                     <div class='team-name'>";
 	if ($img_url != NULL) {
 		echo "
