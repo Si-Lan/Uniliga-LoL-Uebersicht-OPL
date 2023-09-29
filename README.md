@@ -48,7 +48,7 @@ Wenn ihr mich unterstützen wollt, könnt ihr das gerne hier tun
 
 ## Wartungsaufwand:
 
-### Toornament-Updates:
+### Turnier-Updates:
 1. Möglichkeit: Manuell
    * Buttons im Backend (uniliga/admin)
 2. Möglichkeit: Automatisch
