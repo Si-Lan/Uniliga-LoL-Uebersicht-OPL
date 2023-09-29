@@ -192,7 +192,7 @@ function get_local_patches(mysqli $dbcn = NULL):array {
 		$patches = array();
 		$dir = new DirectoryIterator(__DIR__."/../../ddragon");
 		foreach ($dir as $fileinfo) {
-			if (!$fileinfo->isDot() && $fileinfo->getFilename() != "img") {
+			if (!$fileinfo->isDot() && $fileinfo->getFilename() != "img" && $fileinfo->isDir()) {
 				$patches[] = $fileinfo->getFilename();
 			}
 		}

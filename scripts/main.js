@@ -1074,7 +1074,7 @@ function handle_dropdown_selection(type, selection) {
 		loading_indicator.css("display","");
 		if (patch_view_fetch_control !== null) patch_view_fetch_control.abort();
 		patch_view_fetch_control = new AbortController();
-		fetch(`ajax-functions/ddragon-update-ajax.php`, {
+		fetch(`admin/ajax/ddragon-update.php`, {
 			method: "GET",
 			headers: {
 				type: "add-patch-view",

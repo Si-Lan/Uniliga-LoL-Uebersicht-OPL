@@ -73,9 +73,9 @@ function create_summonercard(mysqli $dbcn, $playerID, $tournamentID, bool $colla
 		}
 
 		$patches = [];
-		$dir = new DirectoryIterator(dirname(__FILE__) . "/ddragon");
+		$dir = new DirectoryIterator(__DIR__."/../ddragon");
 		foreach ($dir as $fileinfo) {
-			if (!$fileinfo->isDot() && $fileinfo->getFilename() != "img") {
+			if (!$fileinfo->isDot() && $fileinfo->getFilename() != "img" && $fileinfo->isDir()) {
 				$patches[] = $fileinfo->getFilename();
 			}
 		}
