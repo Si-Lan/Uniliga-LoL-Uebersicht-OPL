@@ -270,6 +270,7 @@ function create_tournament_get_button(array $data, bool $in_write_popup = false)
 					<button class='get-players $id_class' data-id='$id_class'>Spieler im Turnier updaten</button>
 					<button class='get-summoners $id_class' data-id='$id_class'>Spieler-Accounts im Turnier updaten</button>
 					<button class='get-matchups $id_class' data-id='$id_class'>Matches im Turnier updaten</button>
+					<button class='get-results $id_class' data-id='$id_class'>Match-Ergebnisse im Turnier updaten</button>
 				</div>
 			</dialog>";
 	if (!$in_write_popup) $result .= "<button class=\"open-tournament-data-popup $id_class\" type=\"button\" data-id='$id_class'>weitere Daten holen</button>";
@@ -590,4 +591,56 @@ function get_matchups_for_tournament($tournamentID):array {
 
 	$dbcn->close();
 	return $returnArr;
+}
+
+function get_results_for_matchup($matchID):array {
+	$dbcn = create_dbcn();
+	$bearer_token = get_opl_bearer_token();
+	$user_agent = get_user_agent_for_api_calls();
+
+	if ($dbcn -> connect_error){
+		return [];
+	}
+
+	$matchDB = $dbcn->execute_query("SELECT * FROM matchups WHERE OPL_ID = ?", [$matchID])->fetch_assoc();
+
+	if ($matchDB == NULL) {
+		return [];
+	}
+
+	$url = "https://www.opleague.pro/api/v4/matchup/$matchID/result";
+	$options = ["http" => [
+		"header" => [
+			"Authorization: Bearer $bearer_token",
+			"User-Agent: $user_agent",
+		]
+	]];
+	$context = stream_context_create($options);
+	$response = json_decode(file_get_contents($url, context: $context),true);
+
+	$data = $response["data"]["result"];
+
+	$match_data = [
+		"team1Score" => strval($data["scores"][$matchDB["OPL_ID_team1"]]) ?? null,
+		"team2Score" => strval($data["scores"][$matchDB["OPL_ID_team2"]]) ?? null,
+		"played" => intval($response["data"]["state_key"]) >= 6,
+		"winner" => (count($data["win_IDs"])>0) ? $data["win_IDs"][0] : null,
+		"loser" => (count($data["win_IDs"])>0) ? $data["loss_IDs"][0] : null,
+		"draw" => (intval($response["data"]["state_key"]) >= 6) ? count($data["draw_IDs"]) > 0 : null,
+		"def_win" => (intval($response["data"]["state_key"]) >= 6) ? count($data["defwin"]) > 0 : null,
+	];
+
+	$updated = [];
+
+	foreach ($match_data as $key=>$item) {
+		if ($matchDB[$key] != $item) {
+			$updated[$key] = ["old"=>$matchDB[$key], "new"=>$item];
+		}
+	}
+	if (count($updated) > 0) {
+		$dbcn->execute_query("UPDATE matchups SET team1Score = ?, team2Score = ?, played = ?, winner = ?, loser = ?, draw = ?, def_win = ? WHERE OPL_ID = ?", [$match_data["team1Score"], $match_data["team2Score"], $match_data["played"], $match_data["winner"], $match_data["loser"], $match_data["draw"], $match_data["def_win"], $matchID]);
+	}
+
+	$dbcn->close();
+	return $updated;
 }

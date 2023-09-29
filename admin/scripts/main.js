@@ -9,6 +9,7 @@ $(document).ready(() => {
 	$(".get-players").on("click", function () {get_players_for_tournament(this.getAttribute("data-id"))});
 	$(".get-summoners").on("click", function () {get_summonerNames_for_tournament(this.getAttribute("data-id"))});
 	$(".get-matchups").on("click", function () {get_matchups_for_tournament(this.getAttribute("data-id"))});
+	$(".get-results").on("click", function () {get_results_for_tournament(this.getAttribute("data-id"))});
 
 	$(".open-tournament-data-popup").on("click", function() {$(`dialog.tournament-data-popup.${this.getAttribute("data-id")}`)[0].showModal()});
 });
@@ -31,6 +32,7 @@ function create_tournament_buttons() {
 			$(".get-players").on("click", function () {get_players_for_tournament(this.getAttribute("data-id"))});
 			$(".get-summoners").on("click", function () {get_summonerNames_for_tournament(this.getAttribute("data-id"))});
 			$(".get-matchups").on("click", function () {get_matchups_for_tournament(this.getAttribute("data-id"))});
+			$(".get-results").on("click", function () {get_results_for_tournament(this.getAttribute("data-id"))});
 		})
 		.catch(e => console.error(e));
 }
@@ -144,6 +146,7 @@ function get_summonerNames_for_tournament(tournamentID) {
 						console.log(result);
 					})
 					.catch(e => console.error(e));
+				// no need to wait here, fetched php script sleeps for 1 sec at the end
 			}
 		})
 		.catch(e => console.error(e));
@@ -160,6 +163,35 @@ function get_matchups_for_tournament(tournamentID) {
 		.then(res => res.json())
 		.then(result => {
 			console.log(result);
+		})
+		.catch(e => console.error(e));
+}
+
+function get_results_for_tournament(tournamentID) {
+	fetch(`./ajax/get-data.php`, {
+		method: "GET",
+		headers: {
+			"type": "matchups",
+			"tournamentid": tournamentID,
+		}
+	})
+		.then(res => res.json())
+		.then(async matches => {
+			for (const match of matches) {
+				await fetch(`./admin/ajax/get-opl-data.php`, {
+					method: "GET",
+					headers: {
+						"type": "get_results_for_matchup",
+						"id": match.OPL_ID,
+					}
+				})
+					.then(res => res.json())
+					.then(result => {
+						console.log(result);
+					})
+					.catch(e => console.error(e));
+				await new Promise(r => setTimeout(r, 1000));
+			}
 		})
 		.catch(e => console.error(e));
 }

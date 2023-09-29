@@ -342,16 +342,16 @@ function create_matchbutton(mysqli $dbcn,$tournament_id,$match_id,$type,$team_id
                           </a>
                         </div>";
 	} else {
-		$t1score = $match['OPL_ID_team1'];
-		$t2score = $match['OPL_ID_team2'];
+		$t1score = $match['team1Score'];
+		$t2score = $match['team2Score'];
 		if ($t1score == -1 || $t2score == -1) {
 			$t1score = ($t1score == -1) ? "L" : "W";
 			$t2score = ($t2score == -1) ? "L" : "W";
 		}
-		if ($match['winner'] == 0) {
+		if ($match['winner'] == $match['OPL_ID_team1']) {
 			$state1 = "win";
 			$state2 = "loss";
-		} else if ($match['winner'] == 1) {
+		} else if ($match['winner'] == $match['OPL_ID_team2']) {
 			$state1 = "loss";
 			$state2 = "win";
 		} else {
@@ -362,7 +362,7 @@ function create_matchbutton(mysqli $dbcn,$tournament_id,$match_id,$type,$team_id
 		if ($team_id != NULL) {
 			$result .= "<a class='button match sideext-right' href='$pageurl' onclick='popup_match(\"{$match['OPL_ID']}\",\"{$team_id}\",\"$type\")'>";
 		} else {
-			$result .= "<a class='button match sideext-right' href='$pageurl' onclick='popup_match(\"{$match['OPL']}\",null,\"$type\")'>";
+			$result .= "<a class='button match sideext-right' href='$pageurl' onclick='popup_match(\"{$match['OPL_ID']}\",null,\"$type\")'>";
 		}
 		$result .= "<div class='teams score'>
 				<div class='team 1 $state1$current1'><div class='name'>{$teams[$match['OPL_ID_team1']]['TeamName']}</div><div class='score'>{$t1score}</div></div>

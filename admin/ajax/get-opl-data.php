@@ -81,6 +81,7 @@ if ($type == "get_players_for_tournament") {
 	$dbcn->close();
 }
 
+// (x API-Calls für x Spieler im Team)
 if ($type == "get_summonerNames_for_team") {
 	$result = [];
 	$dbcn = create_dbcn();
@@ -94,6 +95,7 @@ if ($type == "get_summonerNames_for_team") {
 	$dbcn->close();
 }
 
+// (x API-Calls für x (Sub)-Tournaments)
 if ($type == "get_matchups_for_tournament") {
 	$result = [];
 	$dbcn = create_dbcn();
@@ -119,4 +121,18 @@ if ($type == "get_matchups_for_tournament") {
 	}
 	echo json_encode($result);
 	$dbcn->close();
+}
+
+// (1 API-Call)
+if ($type == "get_results_for_matchup") {
+	$dbcn = create_dbcn();
+	$id = $_SERVER["HTTP_ID"] ?? NULL;
+	$result = get_results_for_matchup($id);
+	echo json_encode($result);
+	$dbcn->close();
+}
+
+// (x API-Calls für x Spiele im Tournament)
+if ($type == "get_results_for_tournament") {
+
 }
