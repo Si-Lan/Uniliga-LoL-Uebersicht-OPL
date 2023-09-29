@@ -39,7 +39,13 @@ if ($type == "teams") {
 	}
 	$teams = [];
 	foreach ($groups as $group) {
-		$teams_from_group = $dbcn->execute_query("SELECT * FROM teams t JOIN teams_in_tournaments tit on t.OPL_ID = tit.OPL_ID_team WHERE OPL_ID_tournament = ?", [$group["OPL_ID"]])->fetch_all(MYSQLI_ASSOC);
+		if (isset($_SERVER["HTTP_PLAYERCOUNT"]) && isset($_SERVER["HTTP_NOPUUID"])) {
+			$teams_from_group = $dbcn->execute_query("SELECT t.*, tit.*, COUNT(pit.OPL_ID_player) AS player_count FROM teams t JOIN teams_in_tournaments tit ON t.OPL_ID = tit.OPL_ID_team JOIN players_in_teams pit on t.OPL_ID = pit.OPL_ID_team JOIN players p on pit.OPL_ID_player = p.OPL_ID WHERE (p.PUUID IS NULL OR p.summonerID IS NULL) AND tit.OPL_ID_tournament = ? GROUP BY t.OPL_ID", [$group["OPL_ID"]])->fetch_all(MYSQLI_ASSOC);
+		} elseif (isset($_SERVER["HTTP_PLAYERCOUNT"])) {
+			$teams_from_group = $dbcn->execute_query("SELECT t.*, tit.*, COUNT(pit.OPL_ID_player) AS player_count FROM teams t JOIN teams_in_tournaments tit ON t.OPL_ID = tit.OPL_ID_team JOIN players_in_teams pit on t.OPL_ID = pit.OPL_ID_team WHERE tit.OPL_ID_tournament = ? GROUP BY t.OPL_ID", [$group["OPL_ID"]])->fetch_all(MYSQLI_ASSOC);
+		} else {
+			$teams_from_group = $dbcn->execute_query("SELECT * FROM teams t JOIN teams_in_tournaments tit on t.OPL_ID = tit.OPL_ID_team WHERE OPL_ID_tournament = ?", [$group["OPL_ID"]])->fetch_all(MYSQLI_ASSOC);
+		}
 		array_push($teams, ...$teams_from_group);
 	}
 	echo json_encode($teams);

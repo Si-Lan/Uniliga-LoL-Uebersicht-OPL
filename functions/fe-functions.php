@@ -25,9 +25,12 @@ function create_html_head_elements(array $css = [], array $js = [], string $titl
 	if (in_array("admin",$css)) {
 		$result .= "<link rel='stylesheet' href='admin/styles/style.css'>";
 	}
+	if (in_array("rgapi",$css)) {
+		$result .= "<link rel='stylesheet' href='admin/styles/rgapi.css'>";
+	}
 	// additional js
 	if (in_array("rgapi", $js) && $loggedin) {
-		$result .= "<script src='admin/riot-api-access/rgapi.js'></script>";
+		$result .= "<script src='admin/scripts/rgapi.js'></script>";
 	}
 	if (in_array("admin", $js) && $loggedin) {
 		$result .= "<script src='admin/scripts/main.js'></script>";
@@ -106,7 +109,9 @@ function create_header(mysqli $dbcn = NULL, string $title = "home", string|int $
 	} elseif ($title == "admin_dd") {
 		$result .= "<h1>Uniliga LoL - DDragon Updates</h1>";
 	} elseif ($title == "admin") {
-		$result .= "<h1>Uniliga LoL- Admin</h1>";
+		$result .= "<h1>Uniliga LoL - Admin</h1>";
+	} elseif ($title == "rgapi") {
+		$result .= "<h1>Uniliga LoL - Riot-API-Daten</h1>";
 	} else {
 		$result .= "<h1>Uniliga LoL - Übersicht</h1>";
 	}
@@ -119,7 +124,7 @@ function create_header(mysqli $dbcn = NULL, string $title = "home", string|int $
 				<a class='settings-option toggle-mode' href='$pageurl'><div class='material-symbol'>". file_get_contents(dirname(__FILE__)."/../icons/material/{$colormode}_mode.svg") ."</div></a>
 				<a class='settings-option toggle-admin-b-vis' href='$pageurl'>Buttons<div class='material-symbol'>". file_get_contents(dirname(__FILE__)."/../icons/material/visibility$admin_button_state.svg") ."</div></a>
 				<a class='settings-option toor-write' href='./admin'>Admin<div class='material-symbol'>". file_get_contents(dirname(__FILE__)."/../icons/material/edit_square.svg") ."</div></a>
-				<a class='settings-option rgapi-write' href='./admin/riot-api-access'>RGAPI<div class='material-symbol'>". file_get_contents(dirname(__FILE__)."/../icons/material/videogame_asset.svg") ."</div></a>
+				<a class='settings-option rgapi-write' href='./admin/rgapi'>RGAPI<div class='material-symbol'>". file_get_contents(dirname(__FILE__)."/../icons/material/videogame_asset.svg") ."</div></a>
 				<a class='settings-option ddragon-write' href='./admin/ddragon-updates'>DDragon</a>
 				<a class='settings-option logout' href='$pageurl?logout'>Logout<div class='material-symbol'>". file_get_contents(dirname(__FILE__)."/../icons/material/logout.svg") ."</div></a>
 			</div>";

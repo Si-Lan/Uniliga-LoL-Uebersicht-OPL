@@ -19,12 +19,12 @@ RewriteRule ^turnier/(.+)/gruppe$ ./pages/tournament-details?tournament=$1 [NC,L
 RewriteRule ^turnier/(.+)/gruppe/(.+)$ ./pages/group-details?tournament=$1&group=$2 [NC,L,QSA]
 
 ## redirect matchhistory
-RewriteRule ^turnier/(.+)/team/(.+)/matchhistory$ ./pages/team-matchhistory?team=$1 [NC,L]
-RewriteRule ^team/(.+)/turnier/(.+)/matchhistory$ ./pages/team-matchhistory?team=$1 [NC,L]
+RewriteRule ^turnier/(.+)/team/(.+)/matchhistory$ ./pages/teams-tournament-matchhistory?team=$1 [NC,L]
+RewriteRule ^team/(.+)/turnier/(.+)/matchhistory$ ./pages/teams-tournament-matchhistory?team=$1 [NC,L]
 
 ## redirect statistics
-RewriteRule ^turnier/(.+)/team/(.+)/stats$ ./pages/team-statistics?team=$1 [NC,L]
-RewriteRule ^team/(.+)/turnier/(.+)/stats$ ./pages/team-statistics?team=$1 [NC,L]
+RewriteRule ^turnier/(.+)/team/(.+)/stats$ ./pages/teams-tournament-statistics?team=$1 [NC,L]
+RewriteRule ^team/(.+)/turnier/(.+)/stats$ ./pages/teams-tournament-statistics?team=$1 [NC,L]
 
 ## redirect teams tournament details
 RewriteRule ^team/(.+)/turnier$ ./pages/teams-tournament-details?team=$1 [NC,L]
