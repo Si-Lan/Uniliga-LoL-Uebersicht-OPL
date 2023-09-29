@@ -75,4 +75,15 @@ if ($type == "matchups") {
 	echo json_encode($matchups);
 }
 
+
+if ($type == "local_patch_info") {
+	$patch = $_SERVER["HTTP_PATCH"] ?? NULL;
+	if ($patch == "all") {
+		$patch_data = $dbcn->execute_query("SELECT * FROM local_patches")->fetch_all(MYSQLI_ASSOC);
+	} else {
+		$patch_data = $dbcn->execute_query("SELECT * FROM local_patches WHERE patch = ?", [$patch])->fetch_all(MYSQLI_ASSOC);
+	}
+	echo json_encode($patch_data);
+}
+
 $dbcn->close();
