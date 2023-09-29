@@ -271,6 +271,7 @@ function create_tournament_get_button(array $data, bool $in_write_popup = false)
 					<button class='get-summoners $id_class' data-id='$id_class'>Spieler-Accounts im Turnier updaten</button>
 					<button class='get-matchups $id_class' data-id='$id_class'>Matches im Turnier updaten</button>
 					<button class='get-results $id_class' data-id='$id_class'>Match-Ergebnisse im Turnier updaten</button>
+					<button class='calculate-standings $id_class' data-id='$id_class'>Tabelle des Turniers aktualisieren</button>
 				</div>
 			</dialog>";
 	if (!$in_write_popup) $result .= "<button class=\"open-tournament-data-popup $id_class\" type=\"button\" data-id='$id_class'>weitere Daten holen</button>";
@@ -583,7 +584,7 @@ function get_matchups_for_tournament($tournamentID):array {
 		}
 
 		$returnArr[] = [
-			"team" => $match_data,
+			"match" => $match_data,
 			"written" => $written,
 			"updated" => $updated,
 		];
@@ -642,5 +643,117 @@ function get_results_for_matchup($matchID):array {
 	}
 
 	$dbcn->close();
+	return $updated;
+}
+
+function calculate_standings_from_matchups($tournamentID):array {
+	$dbcn = create_dbcn();
+	if ($dbcn -> connect_error){
+		return [];
+	}
+
+	$tournament = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID = ?", [$tournamentID])->fetch_assoc();
+
+	if ($tournament["eventType"] != "group") {
+		return [];
+	}
+
+	$teams = $dbcn->execute_query("SELECT * FROM teams JOIN teams_in_tournaments tit on teams.OPL_ID = tit.OPL_ID_team WHERE tit.OPL_ID_tournament = ?", [$tournamentID])->fetch_all(MYSQLI_ASSOC);
+
+	$teams_standings = [];
+
+	foreach ($teams as $team) {
+		$standing = [
+			"standing" => null,
+			"played" => 0,
+			"wins" => 0,
+			"draws" => 0,
+			"losses" => 0,
+			"points" => 0,
+		];
+		$matches = $dbcn->execute_query("SELECT * FROM matchups WHERE OPL_ID_tournament = ? AND (OPL_ID_team1 = ? OR OPL_ID_team2 = ?)", [$tournamentID, $team["OPL_ID"], $team["OPL_ID"]])->fetch_all(MYSQLI_ASSOC);
+		foreach ($matches as $match) {
+			if ($match["played"]) {
+				$standing["played"]++;
+				if ($match["winner"] == $team["OPL_ID"]) {
+					$standing["wins"]++;
+				}
+				if ($match["draw"]) {
+					$standing["draws"]++;
+				}
+				if ($match["loser"] == $team["OPL_ID"]) {
+					$standing["losses"]++;
+				}
+				if ($match["OPL_ID_team1"] == $team["OPL_ID"]) {
+					$standing["points"] += $match["team1Score"];
+				}
+				if ($match["OPL_ID_team2"] == $team["OPL_ID"]) {
+					$standing["points"] += $match["team2Score"];
+				}
+			}
+		}
+		$teams_standings[$team["OPL_ID"]] = $standing;
+	}
+
+
+	uasort($teams_standings, function ($a,$b) {
+		if ($a["points"] == $b["points"]) {
+			if ($a["wins"] == $b["wins"]) {
+				if ($a["losses"] == $b["losses"]) {
+					return 0;
+				}
+				return ($a["losses"] < $b["losses"]) ? -1 : 1;
+			}
+			return ($a["wins"] > $b["wins"]) ? -1 : 1;
+		};
+		return ($a["points"] > $b["points"]) ? -1 : 1;
+	});
+
+	$standing_counter = 1;
+	$prev_ID = null;
+	$prev_standing = null;
+	foreach ($teams_standings as $teamID=>$team) {
+		if ($team["played"] == 0) {
+			continue;
+		}
+		if ($standing_counter == 1) {
+			$teams_standings[$teamID]["standing"] = 1;
+			$prev_standing = 1;
+			$standing_counter++;
+			$prev_ID = $teamID;
+			continue;
+		}
+		if ($team["points"] == $teams_standings[$prev_ID]["points"] && $team["wins"] == $teams_standings[$prev_ID]["wins"] && $team["losses"] == $teams_standings[$prev_ID]["losses"]) {
+			$teams_standings[$teamID]["standing"] = $prev_standing;
+			$standing_counter++;
+			$prev_ID = $teamID;
+			continue;
+		}
+		$teams_standings[$teamID]["standing"] = $standing_counter;
+		$prev_standing = $standing_counter;
+		$standing_counter++;
+		$prev_ID = $teamID;
+	}
+
+	$updated = [];
+	foreach ($teams as $team) {
+		$team_updates = [];
+
+		foreach ($teams_standings[$team["OPL_ID"]] as $key=>$item) {
+			if ($team[$key] !== $item) {
+				$team_updates[$key] = ["old"=>$team[$key], "new"=>$item];
+			}
+		}
+
+		if (count($team_updates) > 0) {
+			$updated[$team["OPL_ID"]] = $team_updates;
+		}
+	}
+
+
+	foreach ($teams_standings as $teamID=>$team) {
+		$dbcn->execute_query("UPDATE teams_in_tournaments SET standing = ?, played = ?, wins = ?, draws = ?, losses = ?, points = ? WHERE OPL_ID_team = ? AND OPL_ID_tournament = ?", [$team["standing"], $team["played"], $team["wins"], $team["draws"], $team["losses"], $team["points"], $teamID, $tournamentID]);
+	}
+
 	return $updated;
 }

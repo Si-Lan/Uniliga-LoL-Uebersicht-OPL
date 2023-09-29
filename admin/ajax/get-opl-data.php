@@ -132,7 +132,27 @@ if ($type == "get_results_for_matchup") {
 	$dbcn->close();
 }
 
-// (x API-Calls für x Spiele im Tournament)
-if ($type == "get_results_for_tournament") {
-
+if ($type == "calculate_standings_from_matchups") {
+	$result = [];
+	$dbcn = create_dbcn();
+	$id = $_SERVER["HTTP_ID"] ?? NULL;
+	$tournament = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID = ?", [$id])->fetch_assoc();
+	if ($tournament["eventType"] == "tournament") {
+		$leagues = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID_parent = ? AND eventType = 'league'", [$id])->fetch_all(MYSQLI_ASSOC);
+		foreach ($leagues as $league) {
+			$groups = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID_parent = ? AND eventType = 'group'", [$league["OPL_ID"]])->fetch_all(MYSQLI_ASSOC);
+			foreach ($groups as $group) {
+				$result[] = ["group"=>$group, "updates"=>calculate_standings_from_matchups($group["OPL_ID"])];
+			}
+		}
+	} elseif ($tournament["eventType"] == "league") {
+		$groups = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID_parent = ? AND eventType = 'group'", [$id])->fetch_all(MYSQLI_ASSOC);
+		foreach ($groups as $group) {
+			$result[] = ["group"=>$group, "updates"=>calculate_standings_from_matchups($group["OPL_ID"])];
+		}
+	} else {
+		$result[] = ["group"=>$tournament, "updates"=>calculate_standings_from_matchups($id)];
+	}
+	echo json_encode($result);
+	$dbcn->close();
 }
