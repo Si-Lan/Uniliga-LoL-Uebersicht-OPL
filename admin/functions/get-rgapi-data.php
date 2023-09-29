@@ -77,26 +77,25 @@ function get_puuids_by_team($teamID, $all = FALSE) {
 	return $returnArr;
 }
 
-//TODO: validieren
-
 // sendet 1 Anfrage an Riot API (Match-V5)
-function get_games_by_player($playerID) {
+// tournamentID benötigt um Zeitrahmen einzugrenzen
+function get_games_by_player($playerID, $tournamentID) {
 	$returnArr = array("return"=>0, "echo"=>"", "writes"=>0, "already"=>0);
-	global $dbservername, $dbusername, $dbpassword, $dbdatabase, $dbport, $RGAPI_Key;
-	$dbcn = new mysqli($dbservername,$dbusername,$dbpassword,$dbdatabase,$dbport);
+	$dbcn = create_dbcn();
+	$RGAPI_Key = get_rgapi_key();
 	if ($dbcn -> connect_error){
 		$returnArr["return"] = 1;
 		$returnArr["echo"] .= "<span style='color: red'>Database Connection failed : " . $dbcn->connect_error . "<br><br></span>";
 		return $returnArr;
 	}
 
-	$player = $dbcn->query("SELECT * FROM players WHERE players.PlayerID = {$playerID}")->fetch_assoc();
-	$tournament = $dbcn->query("SELECT * FROM tournaments WHERE TournamentID = {$player['TournamentID']}")->fetch_assoc();
-	$returnArr["echo"] .= "<span style='color: royalblue'>writing Matches for {$player['PlayerName']} :<br></span>";
+	$player = $dbcn->query("SELECT p.* FROM players p JOIN players_in_teams pit ON p.OPL_ID = pit.OPL_ID_player WHERE OPL_ID = {$playerID}")->fetch_assoc();
+	$tournament = $dbcn->query("SELECT * FROM tournaments WHERE OPL_ID = {$tournamentID}")->fetch_assoc();
+	$returnArr["echo"] .= "<span style='color: royalblue'>writing Matches for {$player['name']} :<br></span>";
 	$matches_from_player = json_decode($player["matches_gotten"]);
 
-	$tournament_start = strtotime($tournament['DateStart'])-(86400*7); // eine woche puffer
-	$tournament_end = strtotime($tournament['DateEnd'])+86400; // ein Tag Puffer
+	$tournament_start = strtotime($tournament['dateStart'])-(86400*7); // eine woche puffer
+	$tournament_end = strtotime($tournament['dateEnd'])+86400; // ein Tag Puffer
 
 	$options = ["http" => ["header" => "X-Riot-Token: $RGAPI_Key"]];
 	$context = stream_context_create($options);
@@ -111,11 +110,16 @@ function get_games_by_player($playerID) {
 		$game_count = count($data);
 		$returnArr["echo"] .= "<span style='color: limegreen'>-got Games: $game_count<br></span>";
 		foreach ($data as $game) {
-			$game_in_DB = $dbcn->query("SELECT * FROM games WHERE RiotMatchID = '{$game}'")->fetch_assoc();
+			$game_in_DB = $dbcn->query("SELECT * FROM games WHERE RIOT_matchID = '{$game}'")->fetch_assoc();
 			if ($game_in_DB == NULL) {
 				$returnArr["echo"] .= "<span style='color: lawngreen'>--write Game $game to DB<br></span>";
 				$returnArr["writes"]++;
-				$dbcn->query("INSERT INTO games (RiotMatchID,TournamentID) VALUES ('$game',{$tournament['TournamentID']})");
+				// try catch block um abzufangen, dass eine anderer Spieler schneller war
+				try {
+					$dbcn->query("INSERT INTO games (RIOT_matchID) VALUES ('$game')");
+				} catch (Exception $e) {
+					$returnArr["echo"] .= "<span style='color: orangered'>----Game $game failed writing to DB (probably already written)<br></span>";
+				}
 			} else {
 				$returnArr["echo"] .= "<span style='color: orange'>--Game $game already in DB<br></span>";
 				$returnArr["already"]++;
@@ -130,10 +134,12 @@ function get_games_by_player($playerID) {
 	}
 
 	$matches_gotten = json_encode($matches_from_player);
-	$dbcn->execute_query("UPDATE players SET matches_gotten = '$matches_gotten' WHERE PlayerID = ?", [$playerID]);
+	$dbcn->execute_query("UPDATE players SET matches_gotten = '$matches_gotten' WHERE OPL_ID = ?", [$playerID]);
 
 	return $returnArr;
 }
+
+// TODO: validieren
 
 // sendet 1 Anfrage an Riot API (Match-V5)
 function add_match_data($RiotMatchID,$tournamentID) {
@@ -315,23 +321,25 @@ function get_teamID_by_puuids($PUUIDs,$tournamentID) {
 	return array("r"=>0, "TeamID"=>$TeamID);
 }
 
+// validated
 // sendet 1 Anfrage an Riot API (League-V4)
 function get_Rank_by_SummonerId($playerID) {
 	$returnArr = array("return"=>0, "echo"=>"", "writes"=>0);
-	global $dbservername, $dbusername, $dbpassword, $dbdatabase, $dbport, $RGAPI_Key;
-	$dbcn = new mysqli($dbservername,$dbusername,$dbpassword,$dbdatabase,$dbport);
+	$dbcn = create_dbcn();
+	$RGAPI_Key = get_rgapi_key();
+
 	if ($dbcn -> connect_error){
 		$returnArr["return"] = 1;
 		$returnArr["echo"] .= "<span style='color: red'>Database Connection failed : " . $dbcn->connect_error . "<br><br></span>";
 		return $returnArr;
 	}
 
-	$player = $dbcn->query("SELECT * FROM players WHERE players.PlayerID = {$playerID}")->fetch_assoc();
-	$returnArr["echo"] .= "<span style='color: royalblue'>writing Rank for {$player['PlayerName']} :<br></span>";
+	$player = $dbcn->query("SELECT * FROM players WHERE players.OPL_ID = {$playerID}")->fetch_assoc();
+	$returnArr["echo"] .= "<span style='color: royalblue'>writing Rank for {$player['name']} :<br></span>";
 
 	$options = ["http" => ["header" => "X-Riot-Token: $RGAPI_Key"]];
 	$context = stream_context_create($options);
-	$content = file_get_contents("https://euw1.api.riotgames.com/lol/league/v4/entries/by-summoner/{$player['SummonerID']}", false,$context);
+	$content = file_get_contents("https://euw1.api.riotgames.com/lol/league/v4/entries/by-summoner/{$player['summonerID']}", false,$context);
 
 	if ($content === FALSE) {
 		$returnArr["echo"] .= "<span style='color: orangered'>--could not get Rank, request failed: {$http_response_header[0]}<br></span>";
@@ -358,7 +366,7 @@ function get_Rank_by_SummonerId($playerID) {
 		}
 		$returnArr["echo"] .= "<span style='color: limegreen'>--got Rank: $tier $div ($league_points LP)<br></span>";
 
-		$dbcn->query("UPDATE players SET rank_tier = '{$tier}', rank_div = '{$div}', leaguePoints = '{$league_points}' WHERE PlayerID = {$playerID}");
+		$dbcn->query("UPDATE players SET rank_tier = '{$tier}', rank_div = '{$div}', rank_LP = '{$league_points}' WHERE OPL_ID = {$playerID}");
 		$returnArr["echo"] .= "<span style='color: lawngreen'>---write Rank to DB<br></span>";
 		$returnArr["writes"]++;
 	} else {
@@ -368,7 +376,7 @@ function get_Rank_by_SummonerId($playerID) {
 	return $returnArr;
 }
 
-
+// TODO: validieren
 function get_played_positions_for_players($teamID) {
 	$returnArr = array("return"=>0, "echo"=>"", "writes"=>0);
 	global $dbservername, $dbusername, $dbpassword, $dbdatabase, $dbport, $RGAPI_Key;
@@ -444,10 +452,10 @@ function get_played_champions_for_players($teamID) {
 	return $returnArr;
 }
 
+// validated
 function calculate_avg_team_rank($teamID) {
 	$returnArr = array("return"=>0, "echo"=>"", "writes"=>0);
-	global $dbservername, $dbusername, $dbpassword, $dbdatabase, $dbport, $RGAPI_Key;
-	$dbcn = new mysqli($dbservername,$dbusername,$dbpassword,$dbdatabase,$dbport);
+	$dbcn = create_dbcn();
 	if ($dbcn -> connect_error){
 		$returnArr["return"] = 1;
 		$returnArr["echo"] .= "<span style='color: red'>Database Connection failed : " . $dbcn->connect_error . "<br><br></span>";
@@ -528,7 +536,7 @@ function calculate_avg_team_rank($teamID) {
 		39 => ["CHALLENGER",""]
 	);
 
-	$players = $dbcn->query("SELECT * FROM players WHERE TeamID = $teamID")->fetch_all(MYSQLI_ASSOC);
+	$players = $dbcn->query("SELECT * FROM players p JOIN players_in_teams pit on p.OPL_ID = pit.OPL_ID_player WHERE OPL_ID_team = $teamID")->fetch_all(MYSQLI_ASSOC);
 	$rank_arr = [];
 	foreach ($players as $player) {
 		if ($player['rank_tier'] != NULL && $player['rank_tier'] != "UNRANKED") {
@@ -542,7 +550,7 @@ function calculate_avg_team_rank($teamID) {
 		}
 	}
 	if (count($rank_arr) == 0) {
-		$dbcn->query("UPDATE teams SET avg_rank_tier = NULL, avg_rank_div = NULL, avg_rank_num = NULL WHERE TeamID = {$teamID}");
+		$dbcn->query("UPDATE teams SET avg_rank_tier = NULL, avg_rank_div = NULL, avg_rank_num = NULL WHERE OPL_ID = {$teamID}");
 		$returnArr["echo"] .= "";
 	} else {
 		$rank = 0;
@@ -551,7 +559,7 @@ function calculate_avg_team_rank($teamID) {
 		}
 		$rank_num = $rank / count($rank_arr);
 		$rank = floor($rank_num);
-		$dbcn->query("UPDATE teams SET avg_rank_tier = '{$ranks_rev[$rank][0]}', avg_rank_div = '{$ranks_rev[$rank][1]}', avg_rank_num = {$rank_num} WHERE TeamID = {$teamID}");
+		$dbcn->query("UPDATE teams SET avg_rank_tier = '{$ranks_rev[$rank][0]}', avg_rank_div = '{$ranks_rev[$rank][1]}', avg_rank_num = {$rank_num} WHERE OPL_ID = {$teamID}");
 		$returnArr["writes"]++;
 		$returnArr["echo"] .= $ranks_rev[$rank][0] . $ranks_rev[$rank][1] . " " . $rank_num;
 	}

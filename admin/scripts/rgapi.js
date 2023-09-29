@@ -107,7 +107,6 @@ function get_puuids(tournID, only_without_puuid = true) {
 	teams_request.send();
 }
 
-// TODO: validieren
 function get_games_for_team(tournID,teamID) {
 	console.log("----- Start getting Games (by Team) -----");
 	let currButton = $("a.button.write.games-team."+ tournID);
@@ -160,7 +159,7 @@ function get_games_for_team(tournID,teamID) {
 					}
 					console.log("-- slept --");
 				}
-				games_request.open("GET","/uniliga/admin/riot-api-access/get-RGAPI-AJAX.php?type=games-by-player&player="+players[i]["PlayerID"], true);
+				games_request.open("GET",`./admin/ajax/get-rgapi-data.php?type=games-by-player&player=${players[i]["OPL_ID"]}&tournament=${tournID}`, true);
 				games_request.send();
 			}
 
@@ -175,7 +174,10 @@ function get_games_for_team(tournID,teamID) {
 			}
 		}
 	};
-	players_request.open("GET","/uniliga/ajax-functions/get-DB-AJAX.php?type=players-by-team&team="+teamID, true);
+	players_request.open("GET","./ajax/get-data.php", true);
+	players_request.setRequestHeader("type", "players");
+	players_request.setRequestHeader("teamID", teamID);
+	players_request.setRequestHeader("puuidset", "true");
 	players_request.send();
 }
 
@@ -233,10 +235,10 @@ function get_games_for_division(tournID,divID) {
 										t_loops_done++;
 									}
 									p_loops_done++;
-									console.log("Player "+(p+1)+" ready");
+									console.log(`Player ${(p+1)} ready`);
 									let result = this.responseText;
 									console.log(result);
-									container.append("Team "+(t+1)+" Spieler "+(p+1)+":<br>");
+									container.append(`Team ${(t+1)} Spieler ${(p+1)}:<br>`);
 									container.append(result);
 									container.scrollTop(container.prop("scrollHeight"));
 									$(".result-wrapper."+divID).removeClass("no-res");
@@ -246,11 +248,11 @@ function get_games_for_division(tournID,divID) {
 										container.scrollTop(container.prop("scrollHeight"));
 										$("a.button.write."+tournID).removeClass('loading-data');
 										currButton.children(".lds-dual-ring").remove();
-										currButton.attr("onClick","get_games_for_division(\""+divID+"\")");
+										currButton.attr("onClick",`get_games_for_division("${tournID}","${divID}")`);
 									}
 								}
 							};
-							games_request.open("GET","/uniliga/admin/riot-api-access/get-RGAPI-AJAX.php?type=games-by-player&player="+players[p]["PlayerID"], true);
+							games_request.open("GET",`./admin/ajax/get-rgapi-data.php?type=games-by-player&player=${players[p]["OPL_ID"]}&tournament=${tournID}`, true);
 							games_request.send();
 						}
 					}
@@ -264,12 +266,17 @@ function get_games_for_division(tournID,divID) {
 					}
 					console.log("-- slept --");
 				}
-				players_request.open("GET","/uniliga/ajax-functions/get-DB-AJAX.php?type=players-by-team-with-PUUID&team="+teams[t]['TeamID'], true);
+				players_request.open("GET","./ajax/get-data.php", true);
+				players_request.setRequestHeader("type", "players");
+				players_request.setRequestHeader("teamID", teams[t]['OPL_ID']);
+				players_request.setRequestHeader("puuidset", "true");
 				players_request.send();
 			}
 		}
 	};
-	teams_request.open("GET","/uniliga/ajax-functions/get-DB-AJAX.php?type=teams-by-div&divID="+divID, true);
+	teams_request.open("GET","./ajax/get-data.php", true);
+	teams_request.setRequestHeader("type", "teams");
+	teams_request.setRequestHeader("tournamentID", divID);
 	teams_request.send();
 }
 
@@ -340,11 +347,11 @@ function get_games_for_group(tournID, groupID) {
 										container.scrollTop(container.prop("scrollHeight"));
 										$("a.button.write."+tournID).removeClass('loading-data');
 										currButton.children(".lds-dual-ring").remove();
-										currButton.attr("onClick","get_games_for_group(\""+groupID+"\")");
+										currButton.attr("onClick",`get_games_for_group("${tournID}","${groupID}")`);
 									}
 								}
 							};
-							games_request.open("GET","/uniliga/admin/riot-api-access/get-RGAPI-AJAX.php?type=games-by-player&player="+players[p]["PlayerID"], true);
+							games_request.open("GET",`./admin/ajax/get-rgapi-data.php?type=games-by-player&player=${players[p]["OPL_ID"]}&tournament=${tournID}`, true);
 							games_request.send();
 						}
 					}
@@ -358,15 +365,22 @@ function get_games_for_group(tournID, groupID) {
 					}
 					console.log("-- slept --");
 				}
-				players_request.open("GET","/uniliga/ajax-functions/get-DB-AJAX.php?type=players-by-team-with-PUUID&team="+teams[t]['TeamID'], true);
+				players_request.open("GET","./ajax/get-data.php", true);
+				players_request.setRequestHeader("type", "players");
+				players_request.setRequestHeader("teamID", teams[t]['OPL_ID']);
+				players_request.setRequestHeader("puuidset", "true");
 				players_request.send();
 			}
 		}
 	};
-	teams_request.open("GET","/uniliga/ajax-functions/get-DB-AJAX.php?type=teams-by-group&groupID="+groupID, true);
+	teams_request.open("GET","./ajax/get-data.php", true);
+	teams_request.setRequestHeader("type", "teams");
+	teams_request.setRequestHeader("tournamentID", groupID);
 	teams_request.send();
 }
 
+// TODO: validieren
+// TODO: beim matchdata holen auch played_at (Spieldatum) eintragen
 function get_game_data(tournamentID, teamID = 0, all = 0) {
 	console.log("----- Start getting Gamedata -----");
 	let currButton;
@@ -530,6 +544,7 @@ function assign_and_filter_games(tournamentID,teamID = 0, all = 0) {
 	timerxhr.send();
 }
 
+// validated
 function get_ranks(tournamentID) {
 	console.log("----- Start getting Ranks -----");
 	let currButton  = $("a.button.write.get-ranks."+tournamentID);
@@ -582,7 +597,7 @@ function get_ranks(tournamentID) {
 					}
 					console.log("-- slept --");
 				}
-				rank_request.open("GET","/uniliga/admin/riot-api-access/get-RGAPI-AJAX.php?type=get-rank-for-player&player="+players[i]["PlayerID"], true);
+				rank_request.open("GET","./admin/ajax/get-rgapi-data.php?type=get-rank-for-player&player="+players[i]["OPL_ID"], true);
 				rank_request.send();
 			}
 
@@ -597,7 +612,10 @@ function get_ranks(tournamentID) {
 			}
 		}
 	};
-	players_request.open("GET","/uniliga/ajax-functions/get-DB-AJAX.php?type=players-by-tournament-with-SummonerID&tournament="+tournamentID, true);
+	players_request.open("GET","./ajax/get-data.php", true);
+	players_request.setRequestHeader("type", "players");
+	players_request.setRequestHeader("tournamentID", tournamentID);
+	players_request.setRequestHeader("summonerIDset", "true");
 	players_request.send();
 }
 
@@ -621,6 +639,7 @@ function set_all_buttons_onclick(set, tournamentID, teamID = 0) {
 	}
 }
 
+//validated
 function average_team_rank(team_id) {
 	let req = new XMLHttpRequest();
 	req.onreadystatechange = function () {
@@ -628,10 +647,11 @@ function average_team_rank(team_id) {
 			return this.responseText;
 		}
 	};
-	req.open("GET","/uniliga/admin/riot-api-access/AJAX-Functions.php?type=calculate-write-avg-rank&team="+team_id);
+	req.open("GET","./admin/ajax/get-rgapi-data.php?type=calculate-write-avg-rank&team="+team_id);
 	req.send();
 }
 
+//validated
 function get_average_team_ranks(tournament_id) {
 	console.log("----- Start calculating avg. Ranks -----");
 	let currButton  = $("a.button.write.calc-team-rank."+tournament_id);
@@ -659,8 +679,8 @@ function get_average_team_ranks(tournament_id) {
 						if (result === "") {
 							result = "kein Rang"
 						}
-						console.log(team['TeamName'] + ": " + result);
-						container.append(team['TeamName']+":<br>- "+result+"<br>");
+						console.log(team['name'] + ": " + result);
+						container.append(team['name']+":<br>- "+result+"<br>");
 						container.scrollTop(container.prop("scrollHeight"));
 						if (loops_done >= max_loops) {
 							console.log("----- Done with calculating avg. Ranks -----");
@@ -672,7 +692,7 @@ function get_average_team_ranks(tournament_id) {
 						}
 					}
 				};
-				req.open("GET", "/uniliga/admin/riot-api-access/AJAX-Functions.php?type=calculate-write-avg-rank&team=" + team['TeamID']);
+				req.open("GET", "./admin/ajax/get-rgapi-data.php?type=calculate-write-avg-rank&team=" + team['OPL_ID']);
 				req.send();
 			}
 			if (teams.length === 0) {
@@ -686,10 +706,13 @@ function get_average_team_ranks(tournament_id) {
 			}
 		}
 	};
-	teams_request.open("GET", "/uniliga/ajax-functions/get-DB-AJAX.php?type=teams&Tid="+tournament_id, true);
+	teams_request.open("GET", "./ajax/get-data.php", true);
+	teams_request.setRequestHeader("type", "teams");
+	teams_request.setRequestHeader("tournamentID", tournament_id);
 	teams_request.send();
 }
 
+// TODO: validieren
 function get_positions_for_players(tournament_id) {
 	console.log("----- Start getting played Positions -----");
 	let currButton  = $("a.button.write.get-pos."+tournament_id);

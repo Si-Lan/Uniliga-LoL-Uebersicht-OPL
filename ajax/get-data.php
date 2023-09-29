@@ -51,6 +51,48 @@ if ($type == "teams") {
 	echo json_encode($teams);
 }
 
+if ($type == "players") {
+	$players = [];
+	if (isset($_SERVER["HTTP_TEAMID"])) {
+		$teamID = $_SERVER["HTTP_TEAMID"];
+		if (isset($_SERVER["HTTP_SUMMONERIDSET"])) {
+			$players = $dbcn->execute_query("SELECT * FROM players JOIN players_in_teams pit on players.OPL_ID = pit.OPL_ID_player WHERE pit.OPL_ID_team = ? AND summonerID IS NOT NULL", [$teamID])->fetch_all(MYSQLI_ASSOC);
+		} elseif (isset($_SERVER["HTTP_PUUIDSET"])) {
+			$players = $dbcn->execute_query("SELECT * FROM players JOIN players_in_teams pit on players.OPL_ID = pit.OPL_ID_player WHERE pit.OPL_ID_team = ? AND PUUID IS NOT NULL", [$teamID])->fetch_all(MYSQLI_ASSOC);
+		} else {
+			$players = $dbcn->execute_query("SELECT * FROM players JOIN players_in_teams pit on players.OPL_ID = pit.OPL_ID_player WHERE pit.OPL_ID_team = ?", [$teamID])->fetch_all(MYSQLI_ASSOC);
+		}
+	} elseif (isset($_SERVER["HTTP_TOURNAMENTID"])) {
+		$tournamentID = $_SERVER["HTTP_TOURNAMENTID"];
+		$tournament = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID = ?", [$tournamentID])->fetch_assoc();
+		$groups = [];
+		if ($tournament["eventType"] == "tournament") {
+			$leagues = $dbcn->execute_query("SELECT * FROM tournaments WHERE eventType = 'league' AND OPL_ID_parent = ?", [$tournamentID])->fetch_all(MYSQLI_ASSOC);
+			foreach ($leagues as $league) {
+				$groups_from_league = $dbcn->execute_query("SELECT * FROM tournaments WHERE eventType = 'group' AND OPL_ID_parent = ?", [$league["OPL_ID"]])->fetch_all(MYSQLI_ASSOC);
+				array_push($groups, ...$groups_from_league);
+			}
+		} elseif ($tournament["eventType"] == "league") {
+			$groups = $dbcn->execute_query("SELECT * FROM tournaments WHERE eventType = 'group' AND OPL_ID_parent = ?", [$tournamentID])->fetch_all(MYSQLI_ASSOC);
+		} elseif ($tournament["eventType"] == "group") {
+			$groups[] = $tournament;
+		}
+		$players = [];
+		foreach ($groups as $group) {
+			if (isset($_SERVER["HTTP_SUMMONERIDSET"])) {
+				$players_from_group = $dbcn->execute_query("SELECT p.* FROM players AS p JOIN players_in_teams pit on p.OPL_ID = pit.OPL_ID_player JOIN teams_in_tournaments tit on pit.OPL_ID_team = tit.OPL_ID_team WHERE tit.OPL_ID_tournament = ? AND summonerID IS NOT NULL", [$group["OPL_ID"]])->fetch_all(MYSQLI_ASSOC);
+			} elseif (isset($_SERVER["HTTP_PUUIDSET"])) {
+				$players_from_group = $dbcn->execute_query("SELECT p.* FROM players AS p JOIN players_in_teams pit on p.OPL_ID = pit.OPL_ID_player JOIN teams_in_tournaments tit on pit.OPL_ID_team = tit.OPL_ID_team WHERE tit.OPL_ID_tournament = ? AND PUUID IS NOT NULL", [$group["OPL_ID"]])->fetch_all(MYSQLI_ASSOC);
+			} else {
+				$players_from_group = $dbcn->execute_query("SELECT p.* FROM players AS p JOIN players_in_teams pit on p.OPL_ID = pit.OPL_ID_player JOIN teams_in_tournaments tit on pit.OPL_ID_team = tit.OPL_ID_team WHERE tit.OPL_ID_tournament = ?", [$group["OPL_ID"]])->fetch_all(MYSQLI_ASSOC);
+			}
+			array_push($players, ...$players_from_group);
+		}
+	}
+
+	echo json_encode($players);
+}
+
 if ($type == "team-and-players") {
 	$teamID = $_SERVER["HTTP_TEAMID"] ?? NULL;
 	$teamDB = $dbcn->execute_query("SELECT * FROM teams WHERE OPL_ID = ?", [$teamID])->fetch_assoc();

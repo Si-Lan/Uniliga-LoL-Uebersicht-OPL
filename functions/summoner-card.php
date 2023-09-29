@@ -103,9 +103,12 @@ function create_summonercard(mysqli $dbcn, $playerID, $tournamentID, bool $colla
 	</div>"; // card-summoner
 	$return .= "
 	</div>"; // summoner-card
+	// TODO: hier muss eine andere Abfrage hin, Spielerübersicht muss komplett überdacht werden
+	/*
 	if ($player["PUUID"] != NULL) {
 		$return .= "<a href='javascript:void(0)' class='open-playerhistory' onclick='popup_player(\"{$player["PUUID"]}\")'><div class='material-symbol'>". file_get_contents(__DIR__."/../icons/material/history.svg") ."</div>Spieler-History</a>";
 	}
+	*/
 	$return .= "<a href='https://www.op.gg/summoners/euw/$enc_summoner' target='_blank' class='op-gg-single'><div class='svg-wrapper op-gg'>".file_get_contents(__DIR__."/../img/opgglogo.svg")."</div></a>";
 	$return .= "</div>"; // summoner-card-wrapper
 

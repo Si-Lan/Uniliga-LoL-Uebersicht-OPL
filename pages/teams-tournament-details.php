@@ -8,6 +8,7 @@ include_once __DIR__."/../functions/summoner-card.php";
 
 $lightmode = is_light_mode(true);
 $logged_in = is_logged_in();
+$admin_btns = admin_buttons_visible(true);
 
 try {
 	$dbcn = create_dbcn();
@@ -66,7 +67,7 @@ $group = $dbcn->execute_query("SELECT * FROM tournaments WHERE eventType='group'
 $league = $dbcn->execute_query("SELECT * FROM tournaments WHERE eventType='league' AND OPL_ID = ?", [$group["OPL_ID_parent"]])->fetch_assoc();
 
 $t_name_clean = preg_replace("/LoL/","",$tournament["name"]);
-echo create_html_head_elements(title: "{$team["name"]} | $t_name_clean");
+echo create_html_head_elements(js: ["rgapi"], title: "{$team["name"]} | $t_name_clean", loggedin: $logged_in);
 
 /* body overflow hidden when match opened
 if (isset($_GET['match'])) {
@@ -91,7 +92,7 @@ if (isset($_GET['match'])) {
 
 
 ?>
-<body class="team <?php echo $lightmode?>">
+<body class="team <?php echo $lightmode; echo $admin_btns;?>">
 <?php
 
 $pageurl = $_SERVER['REQUEST_URI'];
@@ -269,10 +270,10 @@ echo "</div>"; // main-content
 if ($logged_in) {
 	echo "<div class='writing-wrapper'>";
 	echo "<div class='divider big-space'></div>";
-	echo "<a class='button write games-team $teamID {$tournament['TournamentID']}' onclick='get_games_for_team(\"{$tournament['TournamentID']}\",\"$teamID\")'>Lade Spiele für {$team['TeamName']}</a>";
-	echo "<a class='button write gamedata {$tournament['TournamentID']}' onclick='get_game_data(\"{$tournament['TournamentID']}\",\"$teamID\")'>Lade Spiel-Daten für geladene Spiele</a>";
-	echo "<a class='button write assign-una {$tournament['TournamentID']}' onclick='assign_and_filter_games(\"{$tournament['TournamentID']}\",\"$teamID\")'>sortiere unsortierte Spiele</a>";
-	echo "<div class='result-wrapper no-res $teamID {$tournament['TournamentID']}'>
+	echo "<a class='button write games-team $teamID {$tournament['OPL_ID']}' onclick='get_games_for_team(\"{$tournament['OPL_ID']}\",\"$teamID\")'>Lade Spiele für {$team['name']}</a>";
+	echo "<a class='button write gamedata {$tournament['OPL_ID']}' onclick='get_game_data(\"{$tournament['OPL_ID']}\",\"$teamID\")'>Lade Spiel-Daten für geladene Spiele</a>";
+	echo "<a class='button write assign-una {$tournament['OPL_ID']}' onclick='assign_and_filter_games(\"{$tournament['OPL_ID']}\",\"$teamID\")'>sortiere unsortierte Spiele</a>";
+	echo "<div class='result-wrapper no-res $teamID {$tournament['OPL_ID']}'>
                         <div class='clear-button' onclick='clear_results(\"$teamID\")'>Clear</div>
                         <div class='result-content'></div>
                       </div>";
