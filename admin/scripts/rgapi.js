@@ -702,7 +702,6 @@ function get_average_team_ranks(tournament_id) {
 	teams_request.send();
 }
 
-// TODO: validieren
 function get_positions_for_players(tournament_id) {
 	console.log("----- Start getting played Positions -----");
 	let currButton  = $("a.button.write.get-pos."+tournament_id);
@@ -727,8 +726,8 @@ function get_positions_for_players(tournament_id) {
 						loops_done++;
 						$('.result-wrapper.'+tournament_id).removeClass('no-res');
 						let result = this.responseText;
-						console.log(team['TeamName'] + ": " + result);
-						container.append(team['TeamName']+":<br>"+result+"<br>");
+						console.log(team['name'] + ": " + result);
+						container.append(team['name']+":<br>"+result+"<br>");
 						container.scrollTop(container.prop("scrollHeight"));
 						if (loops_done >= max_loops) {
 							console.log("----- Done with getting played Positions -----");
@@ -740,7 +739,7 @@ function get_positions_for_players(tournament_id) {
 						}
 					}
 				};
-				req.open("GET", "/uniliga/admin/riot-api-access/AJAX-Functions.php?type=get-played-positions-for-players&team=" + team['TeamID']);
+				req.open("GET", `./admin/ajax/get-rgapi-data.php?type=get-played-positions-for-players&team=${team['OPL_ID']}&tournament=${tournament_id}`);
 				req.send();
 			}
 			if (teams.length === 0) {
@@ -754,7 +753,9 @@ function get_positions_for_players(tournament_id) {
 			}
 		}
 	};
-	teams_request.open("GET", "/uniliga/ajax-functions/get-DB-AJAX.php?type=teams&Tid="+tournament_id, true);
+	teams_request.open("GET", "./ajax/get-data.php", true);
+	teams_request.setRequestHeader("type", "teams");
+	teams_request.setRequestHeader("tournamentID", tournament_id);
 	teams_request.send();
 }
 
@@ -782,8 +783,8 @@ function get_champions_for_players(tournament_id) {
 						loops_done++;
 						$('.result-wrapper.'+tournament_id).removeClass('no-res');
 						let result = this.responseText;
-						console.log(team['TeamName'] + ": " + result);
-						container.append(team['TeamName']+":<br>"+result+"<br>");
+						console.log(team['name'] + ": " + result);
+						container.append(team['name']+":<br>"+result+"<br>");
 						container.scrollTop(container.prop("scrollHeight"));
 						if (loops_done >= max_loops) {
 							console.log("----- Done with getting played Champions -----");
@@ -795,7 +796,7 @@ function get_champions_for_players(tournament_id) {
 						}
 					}
 				};
-				req.open("GET", "/uniliga/admin/riot-api-access/AJAX-Functions.php?type=get-played-champions-for-players&team=" + team['TeamID']);
+				req.open("GET", `./admin/ajax/get-rgapi-data.php?type=get-played-champions-for-players&team=${team['OPL_ID']}&tournament=${tournament_id}`);
 				req.send();
 			}
 			if (teams.length === 0) {
@@ -809,10 +810,13 @@ function get_champions_for_players(tournament_id) {
 			}
 		}
 	};
-	teams_request.open("GET", "/uniliga/ajax-functions/get-DB-AJAX.php?type=teams&Tid="+tournament_id, true);
+	teams_request.open("GET", "./ajax/get-data.php", true);
+	teams_request.setRequestHeader("type", "teams");
+	teams_request.setRequestHeader("tournamentID", tournament_id);
 	teams_request.send();
 }
 
+// TODO: validieren
 function get_teamstats(tournament_id) {
 	console.log("----- Start getting played Champions -----");
 	let currButton  = $("a.button.write.teamstats."+tournament_id);

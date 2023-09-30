@@ -384,60 +384,62 @@ function get_Rank_by_SummonerId($playerID) {
 	return $returnArr;
 }
 
-// TODO: validieren
-function get_played_positions_for_players($teamID) {
+function get_played_positions_for_players($teamID, $tournamentID) {
 	$returnArr = array("return"=>0, "echo"=>"", "writes"=>0);
-	global $dbservername, $dbusername, $dbpassword, $dbdatabase, $dbport, $RGAPI_Key;
-	$dbcn = new mysqli($dbservername,$dbusername,$dbpassword,$dbdatabase,$dbport);
+	$dbcn = create_dbcn();
 	if ($dbcn -> connect_error){
 		$returnArr["return"] = 1;
 		$returnArr["echo"] .= "<span style='color: red'>Database Connection failed : " . $dbcn->connect_error . "<br><br></span>";
 		return $returnArr;
 	}
 
-	$players = $dbcn->query("SELECT * FROM players WHERE TeamID = $teamID")->fetch_all(MYSQLI_ASSOC);
+	$players = $dbcn->query("SELECT p.*, pit.OPL_ID_team FROM players p JOIN players_in_teams pit on p.OPL_ID = pit.OPL_ID_player WHERE OPL_ID_team = $teamID")->fetch_all(MYSQLI_ASSOC);
 
 	foreach ($players as $player) {
-		$games = $dbcn->query("SELECT MatchData FROM games WHERE (BlueTeamID = '{$player['TeamID']}' OR RedTeamID = '{$player['TeamID']}') AND `UL-Game` = TRUE")->fetch_all(MYSQLI_ASSOC);
+		$games = $dbcn->query("SELECT matchdata FROM games JOIN games_in_tournament git on games.RIOT_matchID = git.RIOT_matchID WHERE ((OPL_ID_blueTeam = {$player['OPL_ID_team']} AND OPL_ID_redTeam IS NOT NULL) OR (OPL_ID_redTeam = {$player['OPL_ID_team']} AND OPL_ID_blueTeam IS NOT NULL ))")->fetch_all(MYSQLI_ASSOC);
 		$roles = array("top"=>0,"jungle"=>0,"middle"=>0,"bottom"=>0,"utility"=>0);
 		foreach ($games as $game) {
-			$game_data = json_decode($game['MatchData'],true);
+			$game_data = json_decode($game['matchdata'],true);
 			if (in_array($player['PUUID'],$game_data['metadata']['participants'])) {
 				$index = array_search($player['PUUID'],$game_data['metadata']['participants']);
 				$position = strtolower($game_data['info']['participants'][$index]['teamPosition']);
 				$roles[$position]++;
 			}
 		}
-		$returnArr["echo"] .= "-{$player['SummonerName']}:<br>
+		$returnArr["echo"] .= "-{$player['summonerName']}:<br>
 					--- TOP: {$roles['top']}<br>
 					--- JGL: {$roles['jungle']}<br>
 					--- MID: {$roles['middle']}<br>
 					--- BOT: {$roles['bottom']}<br>
 					--- SUP: {$roles['utility']}<br>";
 		$roles = json_encode($roles);
-		$dbcn->query("UPDATE players SET roles = '$roles' WHERE PlayerID = {$player['PlayerID']}");
+		$player_stats_written = $dbcn->execute_query("SELECT * FROM stats_players_in_tournaments WHERE OPL_ID_player = ? AND OPL_ID_tournament = ?", [$player["OPL_ID"], $tournamentID])->fetch_assoc();
+		if ($player_stats_written != NULL) {
+			$dbcn->execute_query("UPDATE stats_players_in_tournaments SET roles = ? WHERE OPL_ID_player = ? AND OPL_ID_tournament = ?", [$roles, $player['OPL_ID'], $tournamentID]);
+		} else {
+			$dbcn->execute_query("INSERT INTO stats_players_in_tournaments (OPL_ID_player, OPL_ID_tournament, roles) VALUES (?, ?, ?)", [$player["OPL_ID"], $tournamentID, $roles]);
+		}
 		$returnArr["writes"]++;
 	}
 	return $returnArr;
 }
 
-function get_played_champions_for_players($teamID) {
+function get_played_champions_for_players($teamID, $tournamentID) {
 	$returnArr = array("return"=>0, "echo"=>"", "writes"=>0);
-	global $dbservername, $dbusername, $dbpassword, $dbdatabase, $dbport, $RGAPI_Key;
-	$dbcn = new mysqli($dbservername,$dbusername,$dbpassword,$dbdatabase,$dbport);
+	$dbcn = create_dbcn();
 	if ($dbcn -> connect_error){
 		$returnArr["return"] = 1;
 		$returnArr["echo"] .= "<span style='color: red'>Database Connection failed : " . $dbcn->connect_error . "<br><br></span>";
 		return $returnArr;
 	}
 
-	$players = $dbcn->query("SELECT * FROM players WHERE TeamID = $teamID")->fetch_all(MYSQLI_ASSOC);
+	$players = $dbcn->query("SELECT p.*, pit.OPL_ID_team FROM players p JOIN players_in_teams pit on p.OPL_ID = pit.OPL_ID_player WHERE OPL_ID_team = $teamID")->fetch_all(MYSQLI_ASSOC);
 
 	foreach ($players as $player) {
-		$games = $dbcn->query("SELECT MatchData FROM games WHERE (BlueTeamID = '{$player['TeamID']}' OR RedTeamID = '{$player['TeamID']}') AND `UL-Game` = TRUE")->fetch_all(MYSQLI_ASSOC);
+		$games = $dbcn->query("SELECT matchdata FROM games JOIN games_in_tournament git on games.RIOT_matchID = git.RIOT_matchID WHERE ((OPL_ID_blueTeam = {$player['OPL_ID_team']} AND OPL_ID_redTeam IS NOT NULL) OR (OPL_ID_redTeam = {$player['OPL_ID_team']} AND OPL_ID_blueTeam IS NOT NULL ))")->fetch_all(MYSQLI_ASSOC);
 		$champions = array();
 		foreach ($games as $game) {
-			$game_data = json_decode($game['MatchData'],true);
+			$game_data = json_decode($game['matchdata'],true);
 			if (in_array($player['PUUID'],$game_data['metadata']['participants'])) {
 				$index = array_search($player['PUUID'],$game_data['metadata']['participants']);
 				$champion = $game_data['info']['participants'][$index]['championName'];
@@ -451,16 +453,21 @@ function get_played_champions_for_players($teamID) {
 			}
 		}
 		$uniq = count($champions);
-		$returnArr["echo"] .= "-{$player['SummonerName']}: $uniq versch. Champs <br>";
 		$champions = json_encode($champions);
+		$returnArr["echo"] .= "-{$player['summonerName']}: $uniq versch. Champs <br>";
 		$returnArr["echo"] .= "--$champions<br>";
-		$dbcn->query("UPDATE players SET champions = '$champions' WHERE PlayerID = {$player['PlayerID']}");
+		$player_stats_written = $dbcn->execute_query("SELECT * FROM stats_players_in_tournaments WHERE OPL_ID_player = ? AND OPL_ID_tournament = ?", [$player["OPL_ID"], $tournamentID])->fetch_assoc();
+		if ($player_stats_written != NULL) {
+			$dbcn->execute_query("UPDATE stats_players_in_tournaments SET champions = ? WHERE OPL_ID_player = ? AND OPL_ID_tournament = ?", [$champions, $player['OPL_ID'], $tournamentID]);
+		} else {
+			$dbcn->execute_query("INSERT INTO stats_players_in_tournaments (OPL_ID_player, OPL_ID_tournament, champions) VALUES (?, ?, ?)", [$player["OPL_ID"], $tournamentID, $champions]);
+		}
+
 		$returnArr["writes"]++;
 	}
 	return $returnArr;
 }
 
-// validated
 function calculate_avg_team_rank($teamID) {
 	$returnArr = array("return"=>0, "echo"=>"", "writes"=>0);
 	$dbcn = create_dbcn();
@@ -574,7 +581,7 @@ function calculate_avg_team_rank($teamID) {
 	return $returnArr;
 }
 
-
+// TODO: validieren
 function calculate_teamstats($dbcn,$teamID) {
 	$returnArr = array("return"=>0, "echo"=>"", "writes"=>0, "updates"=>0, "without"=>0);
 	if ($dbcn -> connect_error){
