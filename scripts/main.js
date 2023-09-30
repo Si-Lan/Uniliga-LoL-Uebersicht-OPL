@@ -628,8 +628,6 @@ $(document).ready(function () {
 	}
 });
 
-// TODO: check code below this point for rewrite
-
 // Elo Overview Swap Views
 function switch_elo_view(tournamentID,view) {
 	event.preventDefault();
@@ -681,7 +679,7 @@ function add_elo_team_list(area,tournamentID,type) {
 	if (elo_list_fetch_control !== null) elo_list_fetch_control.abort();
 	elo_list_fetch_control = new AbortController();
 
-	fetch(`ajax-functions/elo-list-ajax.php`, {
+	fetch(`ajax/elo-list-ajax.php`, {
 		method: "GET",
 		headers: {
 			"TournamentID": tournamentID,
@@ -722,7 +720,6 @@ function color_elo_list() {
 }
 
 let acCurrentFocus = -1;
-
 function search_teams_elo() {
 	let searchbar = $('.search-wrapper .searchbar');
 	let input = $('.search-teams-elo')[0];
@@ -817,7 +814,6 @@ async function hide_top_button() {
 		button.css("pointer-events","none");
 	}
 }
-
 window.onscroll= hide_top_button;
 
 // navigation buttons
@@ -840,6 +836,7 @@ $(document).ready(function () {
 	$('.team-titlebutton-wrapper .button').on("click",team_nav_switch_active);
 });
 
+// TODO: check code below
 // teamstats table functions
 function sort_table() {
 	let element = this;
@@ -1039,6 +1036,7 @@ $(document).ready(function () {
 	table_row.on("mouseleave",stop_mark_champ_in_table);
 	table_row.on("click",hard_mark_champ_in_table);
 });
+// TODO: check code above
 
 // Funktionen für custom Dropdowns
 function open_dropdown_selection() {
@@ -1100,6 +1098,8 @@ $(document).ready(function () {
 	$('.button-dropdown').on("click",open_dropdown_selection);
 });
 
+// TODO: check code below
+
 // stats toggle playertables
 function select_player_table() {
 	event.preventDefault();
@@ -1143,6 +1143,7 @@ function select_player_table() {
 $(document).ready(function () {
 	$('div.roleplayers a.role-playername').on("click",select_player_table);
 });
+// TODO: check code above
 
 // toggle summonercard expansion
 function expand_collapse_summonercard() {
@@ -1164,6 +1165,8 @@ function expand_collapse_summonercard() {
 $(document).ready(function () {
 	$('.player-cards .exp_coll_sc').on("click",expand_collapse_summonercard);
 });
+
+// TODO: check code below
 
 // player page search
 let player_search_controller = null;

@@ -6,6 +6,8 @@ include_once(dirname(__FILE__)."/../functions/fe-functions.php");
 
 $lightmode = is_light_mode(true);
 
+$pageurl = $_SERVER['REQUEST_URI'];
+
 try {
 	$dbcn = create_dbcn();
 } catch (Exception $e) {
@@ -25,6 +27,7 @@ if (preg_match("/^(winter|sommer)([0-9]{2})$/",strtolower($tournamentID),$url_pa
 }
 
 $tournament = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID = ? AND eventType = 'tournament'", [$tournamentID])->fetch_assoc();
+$leagues = $dbcn->execute_query("SELECT * FROM tournaments WHERE eventType='league' AND OPL_ID_parent = ?", [$tournamentID])->fetch_all(MYSQLI_ASSOC);
 
 if ($tournament == NULL) {
 	echo create_html_head_elements(title: "Kein Turnier gefunden | Uniliga LoL - Übersicht");
@@ -35,15 +38,114 @@ if ($tournament == NULL) {
 }
 
 $t_name_clean = preg_replace("/LoL/","",$tournament["name"]);
-echo create_html_head_elements(title: "Elo-Übersicht - $t_name_clean | Uniliga LoL - Übersicht");
+echo create_html_head_elements(css: ["elo"], title: "Elo-Übersicht - $t_name_clean | Uniliga LoL - Übersicht");
 
 ?>
-<body class="teamlist <?php echo $lightmode?>">
+<body class="elo-overview <?php echo $lightmode?>">
 <?php
 
 echo create_header($dbcn, title: "tournament", tournament_id: $tournamentID);
 
 echo create_tournament_nav_buttons(tournament_id: $tournament_url_path, active: "elo");
+
+echo "<h2 class='pagetitle'>Elo/Rang-Übersicht</h2>";
+echo "<div class='search-wrapper'>
+                <span class='searchbar'>
+                    <input class=\"search-teams-elo $tournamentID deletable-search\" oninput='search_teams_elo()' placeholder='Team suchen' type='text'>
+                    <a class='material-symbol' href='#' onclick='clear_searchbar()'>". file_get_contents(__DIR__."/../icons/material/close.svg") ."</a>
+                </span>
+              </div>";
+$filtered = $_REQUEST['view'] ?? NULL;
+$active_all = "";
+$active_div = "";
+$active_group = "";
+if ($filtered === "liga") {
+	$active_div = " active";
+	$color_by = "Rang";
+} elseif ($filtered === "gruppe") {
+	$active_group = " active";
+	$color_by = "Rang";
+} else {
+	$active_all = " active";
+	$color_by = "Liga";
+}
+echo "
+            <div class='filter-button-wrapper'>
+                <a class='button filterb all-teams$active_all' onclick='switch_elo_view(\"{$tournamentID}\",\"all-teams\")' href='turnier/$tournament_url_path/elo'>Alle Ligen</a>
+                <a class='button filterb div-teams$active_div' onclick='switch_elo_view(\"{$tournamentID}\",\"div-teams\")' href='turnier/$tournament_url_path/elo?view=liga'>Pro Liga</a>
+                <a class='button filterb group-teams$active_group' onclick='switch_elo_view(\"{$tournamentID}\",\"group-teams\")' href='turnier/$tournament_url_path/elo?view=gruppe'>Pro Gruppe</a>
+            </div>";
+if (isset($_GET['colored'])) {
+	echo "
+            <div class='settings-button-wrapper'>
+                <a class='button' onclick='color_elo_list()' href='$pageurl'><input type='checkbox' name='coloring' checked class='color-checkbox'><span>Nach $color_by einfärben</span></a>
+            </div>";
+	$color = " colored-list";
+} else {
+	echo "
+            <div class='settings-button-wrapper'>
+                <a class='button' onclick='color_elo_list()' href='$pageurl'><input type='checkbox' name='coloring' class='color-checkbox'><span>Nach $color_by einfärben</span></a>
+            </div>";
+	$color = "";
+}
+if ($filtered == "liga" || $filtered == "gruppe") {
+	$jbutton_hide = "";
+} else {
+	$jbutton_hide = " style=\"display: none;\"";
+}
+echo "
+            <div class='jump-button-wrapper'$jbutton_hide>";
+foreach ($leagues as $league) {
+	$div_num = $league['number'];
+	echo "<a class='button' onclick='jump_to_league_elo(\"{$league['number']}\")' href='$pageurl'>Zu Liga {$league['number']}</a>";
+}
+echo "
+            </div>";
+echo "
+            <div class='team-popup-bg' onclick='close_popup_team(event)'>
+                            <div class='team-popup'></div>
+            </div>";
+echo "
+            <div class='main-content$color'>";
+if ($filtered == "liga") {
+	foreach ($leagues as $league) {
+		$teams_of_div = $dbcn->execute_query("SELECT t.*, g.OPL_ID AS OPL_ID_group, l.OPL_ID AS OPL_ID_league, g.number AS number_group, l.number AS number_league
+													FROM teams t 
+    													JOIN teams_in_tournaments tit ON t.OPL_ID = tit.OPL_ID_team
+    														JOIN tournaments g ON tit.OPL_ID_tournament = g.OPL_ID
+    															JOIN tournaments l ON g.OPL_ID_parent = l.OPL_ID
+    												WHERE l.OPL_ID = ?
+    												ORDER BY avg_rank_num DESC", [$league["OPL_ID"]])->fetch_all(MYSQLI_ASSOC);
+		echo generate_elo_list($dbcn,"div",$teams_of_div,$tournamentID,$league,NULL);
+	}
+} elseif ($filtered == "gruppe") {
+	foreach ($leagues as $league) {
+		$groups_of_div = $dbcn->execute_query("SELECT * FROM tournaments WHERE eventType='group' AND OPL_ID_parent = ? ORDER BY Number",[$league['OPL_ID']])->fetch_all(MYSQLI_ASSOC);
+		foreach ($groups_of_div as $group) {
+			$teams_of_group = $dbcn->execute_query("SELECT t.*, g.OPL_ID AS OPL_ID_group, l.OPL_ID AS OPL_ID_league, g.number AS number_group, l.number AS number_league
+													FROM teams t 
+    													JOIN teams_in_tournaments tit ON t.OPL_ID = tit.OPL_ID_team
+    														JOIN tournaments g ON tit.OPL_ID_tournament = g.OPL_ID
+    															JOIN tournaments l ON g.OPL_ID_parent = l.OPL_ID
+    												WHERE g.OPL_ID = ?
+    												ORDER BY avg_rank_num DESC", [$group["OPL_ID"]])->fetch_all(MYSQLI_ASSOC);
+			echo generate_elo_list($dbcn,"group",$teams_of_group,$tournamentID,$league,$group);
+		}
+	}
+} else {
+	$teams = $dbcn->execute_query("SELECT t.*, g.OPL_ID AS OPL_ID_group, l.OPL_ID AS OPL_ID_league, g.number AS number_group, l.number AS number_league
+											FROM teams t 
+    											JOIN teams_in_tournaments tit ON t.OPL_ID = tit.OPL_ID_team
+    												JOIN tournaments g ON tit.OPL_ID_tournament = g.OPL_ID
+    													JOIN tournaments l ON g.OPL_ID_parent = l.OPL_ID
+    										WHERE l.OPL_ID_parent = ?
+    										ORDER BY avg_rank_num DESC", [$tournamentID])->fetch_all(MYSQLI_ASSOC);
+	echo generate_elo_list($dbcn,"all",$teams,$tournamentID,NULL,NULL);
+}
+echo "
+            </div>"; // main-content
+echo "<a class='button totop' onclick='to_top()' style='opacity: 0; pointer-events: none;'><div class='material-symbol'>". file_get_contents(__DIR__."/../icons/material/expand_less.svg") ."</div></a>";
+
 
 ?>
 

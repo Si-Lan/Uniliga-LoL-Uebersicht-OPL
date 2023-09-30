@@ -217,7 +217,98 @@ function create_tournament_nav_buttons(string|int $tournament_id, mysqli $dbcn =
 	return $result;
 }
 
-//
+function generate_elo_list($dbcn,$view,$teams,$tournamentID,$division,$group):string {
+	$results = "";
+	$local_team_img = "img/team_logos/";
+	$opgg_logo_svg = file_get_contents(__DIR__."/../img/opgglogo.svg");
+	$opgg_url = "https://www.op.gg/multisearch/euw?summoners=";
+	$view_class = "";
+	if ($view != NULL) {
+		$view_class = " " . $view . "-teams";
+	}
+	$results .= "
+                <div class='teams-elo-list content$view_class'>";
+	if ($view == "all") {
+		$results .= "
+                    <h3>Alle Ligen</h3>";
+	} elseif ($view == "div") {
+		$results .= "
+                    <h3 class='liga{$division['number']}'>Liga {$division['number']}</h3>";
+	} elseif ($view == "group") {
+		if ($division["format"] === "Swiss") {
+			$results .= "
+                    <h3 class='liga{$division['number']}'>Liga {$division['number']} - Swiss-Gruppe</h3>";
+		} else {
+			$results .= "
+                    <h3 class='liga{$division['number']}'>Liga {$division['number']} - Gruppe {$group['number']}</h3>";
+		}
+	}
+	$results .= "
+                    <div class='elo-list-row elo-list-header'>
+                        <div class='elo-list-pre-header league'>Liga #</div>
+                        <a class='elo-list-item-wrapper-header'>
+                        <div class='elo-list-item team'>Team</div>
+                        <div class='elo-list-item rank'>avg. Rang</div>
+                        </a>
+                        <div class='elo-list-after-header elo-nr'>Elo</div>
+                        <a class='elo-list-after-header op-gg'><div class='svg-wrapper op-gg'></div></a>
+                    </div>";
+	foreach ($teams as $team) {
+		$curr_players = $dbcn->execute_query("SELECT p.* FROM players p JOIN players_in_teams pit on p.OPL_ID = pit.OPL_ID_player WHERE OPL_ID_team = ?",[$team['OPL_ID']])->fetch_all(MYSQLI_ASSOC);
+		$curr_opgglink = $opgg_url;
+		$color_class = "";
+		if ($view == "all") {
+			$color_class = " liga".$team['number_league'];
+		} elseif ($view == "div" || $view == "group") {
+			$color_class = " rank".floor($team['avg_rank_num']);
+		}
+		foreach ($curr_players as $i_cop => $curr_player) {
+			if ($i_cop != 0) {
+				$curr_opgglink .= urlencode(",");
+			}
+			$curr_opgglink .= urlencode($curr_player["summonerName"]);
+		}
+		$results .= "
+                    <div class='elo-list-row elo-list-team {$team['OPL_ID']}$color_class'>
+                        <div class='elo-list-pre league'>Liga {$team['number_league']}</div>
+                        <a href='./team/".$team['OPL_ID']."' onclick='popup_team(\"{$team['OPL_ID']}\")' class='elo-list-item-wrapper'>
+                            <div class='elo-list-item team'>";
+		if ($team['OPL_ID_logo'] != NULL && file_exists(__DIR__."/../$local_team_img{$team['OPL_ID_logo']}/logo.webp")) {
+			$results .= "
+                                <img src='$local_team_img{$team['OPL_ID_logo']}/logo.webp' alt='Teamlogo'>";
+		}
+		$results .= "
+                                <span>{$team['name']}</span>
+                            </div>
+                            <div class='elo-list-item rank'>";
+		if ($team['avg_rank_tier'] != NULL) {
+			$avg_rank = strtolower($team['avg_rank_tier']);
+			$avg_rank_cap = ucfirst($avg_rank);
+			$avg_rank_num = round($team['avg_rank_num'], 2);
+			$results .= "
+                                <img class='rank-emblem-mini' src='ddragon/img/ranks/mini-crests/{$avg_rank}.svg' alt='$avg_rank_cap'>
+                                <span>{$avg_rank_cap} {$team['avg_rank_div']}</span>";
+		} else {
+			$avg_rank_num = 0.00;
+		}
+		$results .= "
+                            </div>
+                        </a>
+                        <div class='elo-list-after elo-nr'>
+                            <span>({$avg_rank_num})</span>
+                        </div>
+                        <a href='$curr_opgglink' target='_blank' class='elo-list-after op-gg'>
+                            <div class='svg-wrapper op-gg'>$opgg_logo_svg</div>
+                        </a>
+                        
+                    </div>";
+	}
+	$results .= "
+                </div>"; // teams-elo-list
+
+	return $results;
+}
+
 function create_standings(mysqli $dbcn, $tournament_id, $group_id, $team_id=NULL):string {
 	$result = "";
 	$opgg_url = "https://www.op.gg/multisearch/euw?summoners=";
