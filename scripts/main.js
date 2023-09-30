@@ -325,7 +325,7 @@ async function popup_team(teamID, tournamentID = null) {
 		popupbg.css("display","block");
 		await new Promise(r => setTimeout(r, 10));
 		popupbg.css("opacity","1");
-		pagebody.css("overflow","hidden");
+		pagebody.addClass("popup_open");
 		return;
 	}
 
@@ -339,7 +339,7 @@ async function popup_team(teamID, tournamentID = null) {
 	popupbg.css("display","block");
 	await new Promise(r => setTimeout(r, 10));
 	popupbg.css("opacity","1");
-	pagebody.css("overflow","hidden");
+	pagebody.addClass("popup_open");
 
 	fetch(`ajax/get-data.php`, {
 		method: "GET",
@@ -421,7 +421,7 @@ async function close_popup_team(event) {
 	if (event.target === popupbg[0]) {
 		popupbg.css("opacity","0");
 		await new Promise(r => setTimeout(r, 250));
-		$("body").css("overflow","")
+		$("body").removeClass("popup_open")
 		popupbg.css("display","none");
 	}
 }
@@ -429,7 +429,7 @@ async function closex_popup_team() {
 	let popupbg = $('.team-popup-bg');
 	popupbg.css("opacity","0");
 	await new Promise(r => setTimeout(r, 250));
-	$("body").css("overflow","")
+	$("body").removeClass("popup_open")
 	popupbg.css("display","none");
 }
 $(document).ready(function () {
@@ -442,9 +442,6 @@ $(document).ready(function () {
 		})
 	}
 });
-
-
-// TODO: check code below this point for rewrite
 
 // open match popup
 let current_match_in_popup = null;
@@ -463,14 +460,14 @@ async function popup_match(matchID,teamID=null,matchtype="groups") {
 		popupbg.css("display","block");
 		await new Promise(r => setTimeout(r, 10));
 		popupbg.css("opacity","1");
-		pagebody.css("overflow","hidden");
+		pagebody.css("popup_open");
 		let url = new URL(window.location.href);
 		url.searchParams.set("match",matchID);
 		window.history.replaceState({}, '', url);
 		return;
 	}
 
-	current_match_in_popup = matchID;
+	current_match_in_popup = parseInt(matchID);
 	popup.empty();
 
 	popup.append(`<div class='close-button' onclick='closex_popup_match()'>${get_material_icon("close")}</div>`);
@@ -480,12 +477,12 @@ async function popup_match(matchID,teamID=null,matchtype="groups") {
 	popupbg.css("display","block");
 	await new Promise(r => setTimeout(r, 10));
 	popupbg.css("opacity","1");
-	pagebody.css("overflow","hidden");
+	pagebody.addClass("popup_open");
 	let url = new URL(window.location.href);
 	url.searchParams.set("match",matchID);
 	window.history.replaceState({}, '', url);
 
-	fetch(`ajax-functions/get-DB-AJAX.php`, {
+	fetch(`ajax/get-data.php`, {
 		method: "GET",
 		headers: {
 			type: "match-games-teams-by-matchid",
@@ -510,6 +507,8 @@ async function popup_match(matchID,teamID=null,matchtype="groups") {
 				user_update_match(this);
 			});
 
+			// TODO: user update integrieren
+			/*
 			fetch(`ajax-functions/get-DB-AJAX.php`, {
 				method: "GET",
 				headers: {
@@ -524,31 +523,32 @@ async function popup_match(matchID,teamID=null,matchtype="groups") {
 					$(".updatebuttonwrapper span").html(`letztes Update:<br>${time}`);
 				})
 				.catch(error => console.error(error));
+			 */
 
 			let team1score;
 			let team2score;
-			if (data['match']['Winner'] === 1) {
+			if (data['match']['winner'] === data["team1"]["OPL_ID"]) {
 				team1score = "win";
 				team2score = "loss";
-			} else if (data['match']['Winner'] === 2) {
+			} else if (data['match']['winner'] === data["team2"]["OPL_ID"]) {
 				team1score = "loss";
 				team2score = "win";
 			} else {
 				team1score = "draw";
 				team2score = "draw";
 			}
-			let team1wins = data['match']['Team1Score'];
-			let team2wins = data['match']['Team2Score'];
+			let team1wins = data['match']['team1Score'];
+			let team2wins = data['match']['team2Score'];
 			if (team1wins === -1 || team2wins === -1) {
 				team1wins = (team1wins === -1) ? "L" : "W";
 				team2wins = (team2wins === -1) ? "L" : "W";
 			}
-			if (current_match_in_popup === data['match']['MatchID']) {
+			if (current_match_in_popup === data['match']['OPL_ID']) {
 				popup.append(`<h2 class='round-title'>
-                                <span class='round'>Runde ${data['match']['round']}: &nbsp</span>
-                                <a href='team/${data['team1']['TeamID']}' class='team "+team1score+"'>${data['team1']['TeamName']}</a>
+                                <span class='round'>Runde ${data['match']['playday']}: &nbsp</span>
+                                <a href='team/${data['team1']['OPL_ID']}' class='team "+team1score+"'>${data['team1']['name']}</a>
                                 <span class='score'><span class='${team1score}'>${team1wins}</span>:<span class='${team2score}'>${team2wins}</span></span>
-                                <a href='team/${data['team2']['TeamID']}' class='team ${team2score}'>${data['team2']['TeamName']}</a>
+                                <a href='team/${data['team2']['OPL_ID']}' class='team ${team2score}'>${data['team2']['name']}</a>
                               </h2>`);
 			}
 			if (games.length === 0) {
@@ -560,10 +560,10 @@ async function popup_match(matchID,teamID=null,matchtype="groups") {
 			}
 			let game_counter = 0;
 			for (const [i, game] of games.entries()) {
-				if (current_match_in_popup === game['MatchID'] || current_match_in_popup === game['PLMatchID']) {
+				if (current_match_in_popup === game['OPL_ID_match']) {
 					popup.append(`<div class='game game${i}'></div>`);
 				}
-				let gameID = game['RiotMatchID'];
+				let gameID = game['RIOT_matchID'];
 
 				let fetchheaders = new Headers({
 					gameid: gameID
@@ -571,14 +571,14 @@ async function popup_match(matchID,teamID=null,matchtype="groups") {
 				if (teamID !== null) {
 					fetchheaders.append("teamid",teamID)
 				}
-				fetch(`ajax-functions/game-AJAX.php`, {
+				fetch(`ajax/game.php`, {
 					method: "GET",
 					headers: fetchheaders,
 				})
 					.then(res => res.text())
 					.then(async data => {
 						let game_wrap = popup.find(`.game${i}`);
-						if (current_match_in_popup === game['MatchID'] || current_match_in_popup === game['PLMatchID']) {
+						if (current_match_in_popup === game['OPL_ID_match']) {
 							game_wrap.empty();
 							game_wrap.append(data);
 							game_counter++;
@@ -603,7 +603,7 @@ async function close_popup_match(event) {
 		url.searchParams.delete("match");
 		window.history.replaceState({}, '', url);
 		await new Promise(r => setTimeout(r, 250));
-		$("body").css("overflow","")
+		$("body").removeClass("popup_open");
 		popupbg.css("display","none");
 	}
 }
@@ -614,7 +614,7 @@ async function closex_popup_match() {
 	url.searchParams.delete("match");
 	window.history.replaceState({}, '', url);
 	await new Promise(r => setTimeout(r, 250));
-	$("body").css("overflow","")
+	$("body").removeClass("popup_open");
 	popupbg.css("display","none");
 }
 $(document).ready(function () {
@@ -627,6 +627,8 @@ $(document).ready(function () {
 		})
 	}
 });
+
+// TODO: check code below this point for rewrite
 
 // Elo Overview Swap Views
 function switch_elo_view(tournamentID,view) {
@@ -1299,7 +1301,7 @@ async function popup_player(PUUID, add_to_recents = false) {
 		popupbg.css("display","block");
 		await new Promise(r => setTimeout(r, 10));
 		popupbg.css("opacity","1");
-		pagebody.css("overflow","hidden");
+		pagebody.addClass("popup_open");
 		return;
 	}
 
@@ -1313,7 +1315,7 @@ async function popup_player(PUUID, add_to_recents = false) {
 	popupbg.css("display","block");
 	await new Promise(r => setTimeout(r, 10));
 	popupbg.css("opacity","1");
-	pagebody.css("overflow","hidden");
+	pagebody.addClass("popup_open");
 
 	if (PUUID === "") {
 		popup.append("Für diesen Spieler wurden keine weiteren Profile gefunden")
@@ -1342,7 +1344,7 @@ async function close_popup_player(event) {
 	if (event.target === popupbg[0]) {
 		popupbg.css("opacity","0");
 		await new Promise(r => setTimeout(r, 250));
-		$("body").css("overflow","")
+		$("body").removeClass("popup_open")
 		popupbg.css("display","none");
 	}
 }
@@ -1350,7 +1352,7 @@ async function closex_popup_player() {
 	let popupbg = $('.player-popup-bg');
 	popupbg.css("opacity","0");
 	await new Promise(r => setTimeout(r, 250));
-	$("body").css("overflow","")
+	$("body").removeClass("popup_open")
 	popupbg.css("display","none");
 }
 $(document).ready(function () {

@@ -2454,6 +2454,10 @@ h2.round-title .team.loss {
 	color: var(--match-loss-name-grey);
 }
 
+body.popup_open {
+	overflow: hidden;
+}
+
 .mh-popup-bg {
 	display: none; /* Hidden by default */
 	position: fixed; /* Stay in place */
@@ -2471,7 +2475,7 @@ h2.round-title .team.loss {
 	background-color: var(--main-bg-color);
 	margin: 5% auto; /* 15% from the top and centered */
 	padding: 20px 10px 40px 10px;
-	width: 80%; /* Could be more or less, depending on screen size */
+	width: 90%; /* Could be more or less, depending on screen size */
 	max-width: 1230px;
 	min-height: 30px;
 	border-radius: 15px;

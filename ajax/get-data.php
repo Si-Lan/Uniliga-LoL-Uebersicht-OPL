@@ -152,6 +152,16 @@ if ($type == "games-in-tournaments-time") {
 	echo json_encode($games);
 }
 
+if ($type == "match-games-teams-by-matchid") {
+	$matchID = $_SERVER["HTTP_MATCHID"] ?? NULL;
+	$match = $dbcn->execute_query("SELECT * FROM matchups WHERE OPL_ID = ?",[$matchID])->fetch_assoc();
+
+	$games = $dbcn->execute_query("SELECT games.*, gtm.OPL_ID_matches AS OPL_ID_match FROM games JOIN games_to_matches gtm on games.RIOT_matchID = gtm.RIOT_matchID WHERE OPL_ID_matches = ? ORDER BY played_at",[$matchID])->fetch_all(MYSQLI_ASSOC);
+	$team1 = $dbcn->execute_query("SELECT * FROM teams WHERE OPL_ID = ?",[$match["OPL_ID_team1"]])->fetch_assoc();
+	$team2 = $dbcn->execute_query("SELECT * FROM teams WHERE OPL_ID = ?",[$match["OPL_ID_team2"]])->fetch_assoc();
+	$result = json_encode(array("match"=>$match, "games"=>$games, "team1"=>$team1, "team2"=>$team2));
+	echo $result;
+}
 
 if ($type == "local_patch_info") {
 	$patch = $_SERVER["HTTP_PATCH"] ?? NULL;

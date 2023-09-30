@@ -39,18 +39,15 @@ if ($tournament == NULL || $group == NULL) {
 }
 
 $t_name_clean = preg_replace("/LoL/","",$tournament["name"]);
-echo create_html_head_elements(title: "Liga {$league["number"]} - Gruppe {$group["number"]} | $t_name_clean | Uniliga LoL - Übersicht");
+echo create_html_head_elements(css: ["game"], title: "Liga {$league["number"]} - Gruppe {$group["number"]} | $t_name_clean | Uniliga LoL - Übersicht");
 
-/* body overflow hidden when match opened
+$open_popup = "";
 if (isset($_GET['match'])) {
-	echo "<body class='group$lightmode' style='overflow: hidden'>";
-} else {
-	echo "<body class='group$lightmode'>";
+	$open_popup = "popup_open";
 }
-*/
 
 ?>
-<body class="group <?php echo $lightmode?>">
+<body class="group <?php echo "$lightmode $open_popup"?>">
 <?php
 
 $pageurl = $_SERVER['REQUEST_URI'];
@@ -116,8 +113,6 @@ echo create_standings($dbcn,$tournamentID,$groupID);
 echo "<div class='matches'>
                 <div class='title'><h3>Spiele</h3></div>";
 
-// TODO: matchpopup überarbeiten
-
 $curr_matchID = $_GET['match'] ?? NULL;
 if ($curr_matchID != NULL) {
 	$curr_matchData = $dbcn->execute_query("SELECT * FROM matchups WHERE OPL_ID = ?",[$curr_matchID])->fetch_assoc();
@@ -150,10 +145,10 @@ if ($curr_matchID != NULL) {
                             <div class='mh-popup-buttons'>
 	                            <div class='updatebuttonwrapper'><button type='button' class='icononly user_update_match update_data' data-match='$curr_matchID' data-matchformat='groups'><div class='material-symbol'>". file_get_contents(__DIR__."/../icons/material/sync.svg") ."</div></button><span>letztes Update:<br>$updatediff_match</span></div>
 	                        </div>";
-	if ($curr_matchData['winner'] == 1) {
+	if ($curr_matchData['winner'] == $curr_matchData['OPL_ID_team1']) {
 		$team1score = "win";
 		$team2score = "loss";
-	} elseif ($curr_matchData['winner'] == 2) {
+	} elseif ($curr_matchData['winner'] == $curr_matchData['OPL_ID_team2']) {
 		$team1score = "loss";
 		$team2score = "win";
 	} else {
