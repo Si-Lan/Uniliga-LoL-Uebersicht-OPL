@@ -139,23 +139,21 @@ function get_games_by_player($playerID, $tournamentID) {
 	return $returnArr;
 }
 
-// TODO: validieren
-
 // sendet 1 Anfrage an Riot API (Match-V5)
 function add_match_data($RiotMatchID,$tournamentID) {
 	$returnArr = array("return"=>0, "echo"=>"", "writes"=>0, "response"=>NULL);
-	global $dbservername, $dbusername, $dbpassword, $dbdatabase, $dbport, $RGAPI_Key;
-	$dbcn = new mysqli($dbservername,$dbusername,$dbpassword,$dbdatabase,$dbport);
+	$dbcn = create_dbcn();
+	$RGAPI_Key = get_rgapi_key();
 	if ($dbcn -> connect_error){
 		$returnArr["return"] = 1;
 		$returnArr["echo"] .= "<span style='color: red'>Database Connection failed : " . $dbcn->connect_error . "<br><br></span>";
 		return $returnArr;
 	}
 
-	$matchDB = $dbcn->query("SELECT * FROM games WHERE RiotMatchID = '$RiotMatchID' AND TournamentID = $tournamentID")->fetch_assoc();
+	$matchDB = $dbcn->query("SELECT * FROM games WHERE RIOT_matchID = '$RiotMatchID'")->fetch_assoc();
 	$returnArr["echo"] .= "<span style='color: royalblue'>writing Matchdata for $RiotMatchID :<br></span>";
 
-	if ($matchDB['MatchData'] == NULL) {
+	if ($matchDB['matchdata'] == NULL) {
 		$options = ["http" => ["header" => "X-Riot-Token: $RGAPI_Key"]];
 		$context = stream_context_create($options);
 		$content = file_get_contents("https://europe.api.riotgames.com/lol/match/v5/matches/{$RiotMatchID}", false,$context);
@@ -166,10 +164,12 @@ function add_match_data($RiotMatchID,$tournamentID) {
 		}
 		if (str_contains($http_response_header[0], "200")) {
 			$data = json_decode($content, true);
+			$played_at = date('Y-m-d', $data["info"]["gameCreation"]/1000);
 			$returnArr["echo"] .= "<span style='color: limegreen'>-got MatchData<br></span>";
+			$returnArr["echo"] .= "<span style='color: limegreen'>-got time: $played_at<br></span>";
 			$returnArr["echo"] .= "<span style='color: lawngreen'>--write MatchData to DB<br></span>";
 			$returnArr["writes"]++;
-			$dbcn->query("UPDATE games SET MatchData = '$content' WHERE RiotMatchID = '$RiotMatchID' AND TournamentID = $tournamentID");
+			$dbcn->execute_query("UPDATE games SET matchdata = ?, played_at = ? WHERE RIOT_matchID = ?", [$content, $played_at, $RiotMatchID]);
 		} else {
 			$response = explode(" ", $http_response_header[0])[1];
 			$returnArr["echo"] .= "<span style='color: orangered'>-could not get MatchData, response-code: $response<br></span>";
@@ -183,145 +183,153 @@ function add_match_data($RiotMatchID,$tournamentID) {
 }
 
 // sendet keine Anfrage
-function assign_and_filter_game($RiotMatchID,$tournamentID) {
+function assign_and_filter_game($RiotMatchID,$tournamentID):array {
 	$returnArr = array("return"=>0, "echo"=>"", "notUL"=>0, "isUL"=>0, "sorted"=>0, "notsorted"=>0);
-	global $dbservername, $dbusername, $dbpassword, $dbdatabase, $dbport;
-	$dbcn = new mysqli($dbservername,$dbusername,$dbpassword,$dbdatabase,$dbport);
+	$dbcn = create_dbcn();
 	if ($dbcn -> connect_error){
 		$returnArr["return"] = 1;
 		$returnArr["echo"] .= "<span style='color: red'>Database Connection failed : " . $dbcn->connect_error . "<br><br></span>";
 		return $returnArr;
 	}
 
+	$tournament = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID = ?", [$tournamentID])->fetch_assoc();
+
 	// check for Data
 	$returnArr["echo"] .= "<span style='color: royalblue'>Sorting $RiotMatchID<br></span>";
-	$gameDB = $dbcn->query("SELECT * FROM games WHERE RiotMatchID = '$RiotMatchID' AND TournamentID = $tournamentID")->fetch_assoc();
-	$data = json_decode($gameDB['MatchData'], true);
+	$gameDB = $dbcn->execute_query("SELECT * FROM games WHERE RIOT_matchID = ? AND (played_at BETWEEN ? AND ?)", [$RiotMatchID, $tournament["dateStart"], $tournament["dateEnd"]])->fetch_assoc();
+	$data = json_decode($gameDB['matchdata'], true);
 	if ($data == NULL) {
 		$returnArr["echo"] .= "<span style='color: orange'>-Game has no Data<br></span>";
 		$returnArr["return"] = 1;
 		return $returnArr;
 	}
 
+	$game_in_tournament = $dbcn->execute_query("SELECT * FROM games_in_tournament WHERE RIOT_matchID = ? AND OPL_ID_tournament = ?", [$RiotMatchID, $tournamentID])->fetch_assoc();
+	$game_in_tournament_written = !($game_in_tournament == NULL);
+
 	// check to see if the players make a team in the tournament
 	$puuids = $data['metadata']['participants'];
 	$blueIDs = array_slice($puuids,0,5);
 	$redIDs = array_slice($puuids,5,10);
-	$BlueTeamID = get_teamID_by_puuids($blueIDs,$tournamentID);
-	$RedTeamID = get_teamID_by_puuids($redIDs,$tournamentID);
-	if ($BlueTeamID['r'] == 1 or $RedTeamID['r'] == 1) {
-		$returnArr["echo"] .= "<span style='color: red'>-Database Connection Error<br></span>";
-		return $returnArr;
-	}
-	if ($BlueTeamID['TeamID'] == NULL) {
+	$BlueTeamID = get_teamID_by_puuids($dbcn,$blueIDs,$tournamentID);
+	$RedTeamID = get_teamID_by_puuids($dbcn,$redIDs,$tournamentID);
+	if ($BlueTeamID == NULL) {
 		$returnArr["echo"] .= "<span style='color: orange'>-Blue Team is not a Team from Tournament<br></span>";
 		$returnArr["echo"] .= "<span style='color: lawngreen'>--write not UL-Game to DB<br></span>";
 		$returnArr["notUL"]++;
-		$dbcn->query("UPDATE games SET `UL-Game` = FALSE WHERE RiotMatchID = '$RiotMatchID' AND TournamentID = $tournamentID");
+		if ($game_in_tournament_written) {
+			$dbcn->execute_query("UPDATE games_in_tournament SET not_ul_game = TRUE WHERE RIOT_matchID = ? AND OPL_ID_tournament = ?", [$RiotMatchID, $tournamentID]);
+		} else {
+			$dbcn->execute_query("INSERT INTO games_in_tournament (RIOT_matchID, OPL_ID_tournament, not_ul_game) VALUES (?,?,true)", [$RiotMatchID, $tournamentID]);
+			$game_in_tournament = true;
+		}
 		return $returnArr;
 	} else {
-		$BlueTeamName = $dbcn->query("SELECT TeamName FROM teams WHERE TeamID = {$BlueTeamID['TeamID']}")->fetch_assoc()['TeamName'];
+		$BlueTeamName = $dbcn->query("SELECT name FROM teams WHERE OPL_ID = {$BlueTeamID}")->fetch_column();
 		$returnArr["echo"] .= "<span style='color: lightblue'>-Blue Team is $BlueTeamName<br></span>";
 		$returnArr["echo"] .= "<span style='color: lawngreen'>--write BLueTeamID to DB<br></span>";
-		$dbcn->query("UPDATE games SET BlueTeamID = {$BlueTeamID['TeamID']} WHERE RiotMatchID = '$RiotMatchID' AND TournamentID = $tournamentID");
+		if ($game_in_tournament_written) {
+			$dbcn->execute_query("UPDATE games_in_tournament SET OPL_ID_blueTeam = ? WHERE RIOT_matchID = ? AND OPL_ID_tournament = ?", [$BlueTeamID, $RiotMatchID, $tournamentID]);
+		} else {
+			$dbcn->execute_query("INSERT INTO games_in_tournament (RIOT_matchID, OPL_ID_tournament, OPL_ID_blueTeam) VALUES (?,?,?)", [$RiotMatchID, $tournamentID, $BlueTeamID]);
+			$game_in_tournament = true;
+		}
 	}
-	if ($RedTeamID['TeamID'] == NULL) {
+	if ($RedTeamID == NULL) {
 		$returnArr["echo"] .= "<span style='color: orange'>-Red Team is not a Team from Tournament<br></span>";
 		$returnArr["echo"] .= "<span style='color: lawngreen'>--write not an UL Game to DB<br></span>";
 		$returnArr["notUL"]++;
-		$dbcn->query("UPDATE games SET `UL-Game` = FALSE WHERE RiotMatchID = '$RiotMatchID' AND TournamentID = $tournamentID");
+		$dbcn->execute_query("UPDATE games_in_tournament SET not_ul_game = TRUE WHERE RIOT_matchID = ? AND OPL_ID_tournament = ?", [$RiotMatchID, $tournamentID]);
 		return $returnArr;
 	} else {
-		$RedTeamName = $dbcn->query("SELECT TeamName FROM teams WHERE TeamID = {$RedTeamID['TeamID']}")->fetch_assoc()['TeamName'];
+		$RedTeamName = $dbcn->query("SELECT name FROM teams WHERE OPL_ID = {$RedTeamID}")->fetch_column();
 		$returnArr["echo"] .= "<span style='color: lightblue'>-Red Team is $RedTeamName<br></span>";
 		$returnArr["echo"] .= "<span style='color: lawngreen'>--write RedTeamID to DB<br></span>";
-		$dbcn->query("UPDATE games SET RedTeamID = {$RedTeamID['TeamID']} WHERE RiotMatchID = '$RiotMatchID' AND TournamentID = $tournamentID");
+		$dbcn->execute_query("UPDATE games_in_tournament SET OPL_ID_redTeam = ? WHERE RIOT_matchID = ? AND OPL_ID_tournament = ?", [$RedTeamID, $RiotMatchID, $tournamentID]);
 	}
-	$dbcn->query("UPDATE games SET `UL-Game` = TRUE WHERE RiotMatchID = '$RiotMatchID' AND TournamentID = $tournamentID");
 	$returnArr["echo"] .= "<span style='color: limegreen'>-Game is from Tournament<br></span>";
-	$returnArr["echo"] .= "<span style='color: lawngreen'>--write UL-Game to DB<br></span>";
 	$returnArr["isUL"]++;
 
 	// check from which match the game is
-	$matchDB = $dbcn->query("SELECT * FROM matches WHERE (Team1ID = {$BlueTeamID['TeamID']} AND Team2ID = {$RedTeamID['TeamID']}) OR (Team1ID = {$RedTeamID['TeamID']} AND Team2ID = {$BlueTeamID['TeamID']})")->fetch_all(MYSQLI_ASSOC);
-	$matchDBPlayoffs = $dbcn->query("SELECT * FROM playoffmatches WHERE (Team1ID = {$BlueTeamID['TeamID']} AND Team2ID = {$RedTeamID['TeamID']}) OR (Team1ID = {$RedTeamID['TeamID']} AND Team2ID = {$BlueTeamID['TeamID']})")->fetch_all(MYSQLI_ASSOC);
-	if (count($matchDB) == 0 && count($matchDBPlayoffs) == 0) {
+	$matchDB = [];
+	if ($tournament["eventType"] == "group") {
+		$matchDB = $dbcn->execute_query("SELECT * FROM matchups WHERE ((OPL_ID_team1 = ? AND OPL_ID_team2 = ?) OR (OPL_ID_team1 = ? AND OPL_ID_team2 = ?)) AND OPL_ID_tournament = ?", [$BlueTeamID, $RedTeamID, $RedTeamID, $BlueTeamID, $tournamentID])->fetch_all(MYSQLI_ASSOC);
+	} elseif ($tournament["eventType"] == "league") {
+		$matchDB = $dbcn->execute_query("SELECT * FROM matchups WHERE ((OPL_ID_team1 = ? AND OPL_ID_team2 = ?) OR (OPL_ID_team1 = ? AND OPL_ID_team2 = ?)) AND OPL_ID_tournament IN (SELECT OPL_ID FROM tournaments WHERE eventType = 'group' AND OPL_ID_parent = ?)", [$BlueTeamID, $RedTeamID, $RedTeamID, $BlueTeamID, $tournamentID])->fetch_all(MYSQLI_ASSOC);
+	} elseif ($tournament["eventType"] == "tournament") {
+		$matchDB = $dbcn->execute_query("SELECT * FROM matchups WHERE ((OPL_ID_team1 = ? AND OPL_ID_team2 = ?) OR (OPL_ID_team1 = ? AND OPL_ID_team2 = ?)) AND OPL_ID_tournament IN (SELECT OPL_ID FROM tournaments WHERE eventType = 'group' AND OPL_ID_parent IN (SELECT OPL_ID FROM tournaments WHERE eventType = 'league' AND OPL_ID_parent = ?))", [$BlueTeamID, $RedTeamID, $RedTeamID, $BlueTeamID, $tournamentID])->fetch_all(MYSQLI_ASSOC);
+	}
+	if (count($matchDB) == 0) {
 		$returnArr["echo"] .= "<span style='color: orange'>-!no fitting Match found<br></span>";
 		$returnArr["notsorted"]++;
-	} elseif (count($matchDB) > 0 && count($matchDBPlayoffs) > 0) {
-		// TO-DO: wenn Teams in Groups und Playoffs treffen, prüfen an welchem Termin das Spiel näher war
-		$returnArr["echo"] .= "<span style='color: orange'>-Game has matches in Groups and Playoffs<br></span>";
 	} elseif (count($matchDB) > 0) {
-		// TO-DO: mit gespielter Zeit abstimmen, falls sich mehrfach getroffen wird
+		// TODO: mit gespielter Zeit abstimmen, falls sich mehrfach getroffen wird
 		if (count($matchDB) > 1) {
-			$returnArr["echo"] .= "<span style='color: orange'>-!more than one Match fits to Teams, taking the first one!<br></span>";
+			$returnArr["echo"] .= "<span style='color: orange'>-!more than one Match fits to Teams!<br></span>";
 		}
-		$matchID = $matchDB[0]['MatchID'];
-		$returnArr["echo"] .= "<span style='color: lightblue'>-Game is from Match $matchID<br></span>";
-		$returnArr["echo"] .= "<span style='color: lawngreen'>--write MatchID to DB<br></span>";
-		$returnArr["sorted"]++;
-		$dbcn->query("UPDATE games SET MatchID = $matchID WHERE RiotMatchID = '$RiotMatchID' AND TournamentID = $tournamentID");
-	} else {
-		// TO-DO: wenn Teams in Playoffs mehrfach treffen, prüfen an welchem Termin das Spiel näher war
-		if (count($matchDBPlayoffs) > 1) {
-			$returnArr["echo"] .= "<span style='color: orange'>-!more than one Match fits to Teams, taking the first one!<br></span>";
+		foreach ($matchDB as $match) {
+			$matchID = $match['OPL_ID'];
+			$returnArr["echo"] .= "<span style='color: lightblue'>-Game is from Match $matchID<br></span>";
+			$game_to_match = $dbcn->execute_query("SELECT * FROM games_to_matches WHERE RIOT_matchID = ? AND OPL_ID_matches = ?", [$RiotMatchID, $matchID])->fetch_assoc();
+			if ($game_to_match == NULL) {
+				$dbcn->execute_query("INSERT INTO games_to_matches (RIOT_matchID, OPL_ID_matches) VALUES (?, ?)", [$RiotMatchID, $matchID]);
+				$returnArr["echo"] .= "<span style='color: lawngreen'>--write MatchID to DB<br></span>";
+				$returnArr["sorted"]++;
+			} else {
+				$returnArr["echo"] .= "<span style='color: orange'>--MatchID is already assigned<br></span>";
+			}
 		}
-		$matchID = $matchDBPlayoffs[0]['MatchID'];
-		$returnArr["echo"] .= "<span style='color: lightblue'>-Game is from Playoff-Match $matchID<br></span>";
-		$returnArr["echo"] .= "<span style='color: lawngreen'>--write MatchID to DB<br></span>";
-		$returnArr["sorted"]++;
-		$dbcn->query("UPDATE games SET PLMatchID = $matchID WHERE RiotMatchID = '$RiotMatchID' AND TournamentID = $tournamentID");
 	}
 
 	// check which team won
 	if ($data['info']['teams'][0]['win']) {
-		$winner = 0;
+		$winner = $BlueTeamID;
 		$returnArr["echo"] .= "<span style='color: lightblue'>-Blue Team won<br></span>";
 	} else {
-		$winner = 1;
+		$winner = $RedTeamID;
 		$returnArr["echo"] .= "<span style='color: lightblue'>-Red Team won<br></span>";
 	}
-	$dbcn->query("UPDATE games SET winningTeam = $winner WHERE RiotMatchID = '$RiotMatchID' AND TournamentID = $tournamentID");
-
+	$dbcn->execute_query("UPDATE games_in_tournament SET winningTeam = ? WHERE RIOT_matchID = ? AND OPL_ID_tournament = ?", [$winner, $RiotMatchID, $tournamentID]);
 
 	return $returnArr;
 }
 
 // sendet keine Anfrage
-function get_teamID_by_puuids($PUUIDs,$tournamentID) {
-	global $dbservername, $dbusername, $dbpassword, $dbdatabase, $dbport, $RGAPI_Key;
-	$dbcn = new mysqli($dbservername,$dbusername,$dbpassword,$dbdatabase,$dbport);
-	if ($dbcn -> connect_error){
-		return array("r"=>1, "TeamID"=>"");
-	}
-
+function get_teamID_by_puuids(mysqli $dbcn, $PUUIDs, $tournamentID) {
+	$tournament = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID = ?", [$tournamentID])->fetch_assoc();
 	$teams = [];
 	$team_counts = [];
 	foreach ($PUUIDs as $player) {
-		$player_data = $dbcn->query("SELECT * FROM players WHERE PUUID = '$player' AND TournamentID = $tournamentID")->fetch_assoc();
+		$player_data = NULL;
+		if ($tournament["eventType"] == "group") {
+			$player_data = $dbcn->execute_query("SELECT p.*, pit.OPL_ID_team AS OPL_ID_team FROM players p JOIN players_in_teams pit ON p.OPL_ID = pit.OPL_ID_player JOIN teams_in_tournaments tit on pit.OPL_ID_team = tit.OPL_ID_team WHERE PUUID = ? AND tit.OPL_ID_tournament = ?", [$player, $tournamentID])->fetch_assoc();
+		} elseif ($tournament["eventType"] == "league") {
+			$player_data = $dbcn->execute_query("SELECT p.*, pit.OPL_ID_team AS OPL_ID_team FROM players p JOIN players_in_teams pit ON p.OPL_ID = pit.OPL_ID_player JOIN teams_in_tournaments tit on pit.OPL_ID_team = tit.OPL_ID_team WHERE PUUID = ? AND tit.OPL_ID_tournament IN (SELECT OPL_ID FROM tournaments WHERE eventType = 'group' AND OPL_ID_parent = ?)", [$player, $tournamentID])->fetch_assoc();
+		} elseif ($tournament["eventType"] == "tournament") {
+			$player_data = $dbcn->execute_query("SELECT p.*, pit.OPL_ID_team AS OPL_ID_team FROM players p JOIN players_in_teams pit ON p.OPL_ID = pit.OPL_ID_player JOIN teams_in_tournaments tit on pit.OPL_ID_team = tit.OPL_ID_team WHERE PUUID = ? AND tit.OPL_ID_tournament IN (SELECT OPL_ID FROM tournaments WHERE eventType = 'group' AND OPL_ID_parent IN (SELECT OPL_ID FROM tournaments WHERE eventType = 'league' AND OPL_ID_parent = ?))", [$player, $tournamentID])->fetch_assoc();
+		}
 		if ($player_data == NULL) {
 			continue;
 		}
-		$team = $dbcn->query("SELECT * FROM teams WHERE TeamID = {$player_data['TeamID']}")->fetch_assoc();
-		if (in_array($team['TeamID'],$teams)) {
-			$team_counts[$team['TeamID']] += 1;
+		$team = $dbcn->query("SELECT * FROM teams WHERE OPL_ID = {$player_data['OPL_ID_team']}")->fetch_assoc();
+		if (in_array($team['OPL_ID'],$teams)) {
+			$team_counts[$team['OPL_ID']] += 1;
 		} else {
-			$teams[] = $team['TeamID'];
-			$team_counts[$team['TeamID']] = 1;
+			$teams[] = $team['OPL_ID'];
+			$team_counts[$team['OPL_ID']] = 1;
 		}
 	}
 	if (count($teams) == 0) {
-		return array("r"=>0, "TeamID"=>NULL);
+		return NULL;
 	}
 	if (max($team_counts) >= 3) {
 		$TeamID = array_keys($team_counts, max($team_counts))[0];
 	} else {
 		$TeamID = NULL;
 	}
-	return array("r"=>0, "TeamID"=>$TeamID);
+	return $TeamID;
 }
 
-// validated
 // sendet 1 Anfrage an Riot API (League-V4)
 function get_Rank_by_SummonerId($playerID) {
 	$returnArr = array("return"=>0, "echo"=>"", "writes"=>0);
@@ -688,8 +696,3 @@ function calculate_teamstats($dbcn,$teamID) {
 
 	return $returnArr;
 }
-
-/*
-$dbcn = new mysqli($dbservername,$dbusername,$dbpassword,$dbdatabase,$dbport);
-echo calculate_teamstats($dbcn,'6146821358003044352')["echo"];
-*/

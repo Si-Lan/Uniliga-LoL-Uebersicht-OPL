@@ -379,8 +379,6 @@ function get_games_for_group(tournID, groupID) {
 	teams_request.send();
 }
 
-// TODO: validieren
-// TODO: beim matchdata holen auch played_at (Spieldatum) eintragen
 function get_game_data(tournamentID, teamID = 0, all = 0) {
 	console.log("----- Start getting Gamedata -----");
 	let currButton;
@@ -440,7 +438,7 @@ function get_game_data(tournamentID, teamID = 0, all = 0) {
 					}
 					console.log("-- slept --");
 				}
-				data_request.open("GET","/uniliga/admin/riot-api-access/get-RGAPI-AJAX.php?type=add-match-data&match="+games[i]['RiotMatchID']+"&tournament="+tournamentID, true);
+				data_request.open("GET",`./admin/ajax/get-rgapi-data.php?type=add-match-data&match=${games[i]['RIOT_matchID']}&tournament=${tournamentID}`, true);
 				data_request.send();
 			}
 
@@ -455,16 +453,11 @@ function get_game_data(tournamentID, teamID = 0, all = 0) {
 			}
 		}
 	};
-	if (all === 0) {
-		games_request.open("GET","/uniliga/ajax-functions/get-DB-AJAX.php?type=games-without-data&tournament="+tournamentID,true);
-	} else {
-		games_request.open("GET","/uniliga/ajax-functions/get-DB-AJAX.php?type=games&tournament="+tournamentID,true);
-	}
-	games_request.send();
 
-	const timerxhr = new XMLHttpRequest();
-	timerxhr.open("POST", "/uniliga/admin/scrapeToor-ajax.php?type=update-timers&Tid="+tournamentID+"&table=gamedata");
-	timerxhr.send();
+	games_request.open("GET","./ajax/get-data.php",true);
+	games_request.setRequestHeader("type", "all-games");
+	games_request.setRequestHeader("no-data-only", "true");
+	games_request.send();
 }
 
 function assign_and_filter_games(tournamentID,teamID = 0, all = 0) {
@@ -517,7 +510,7 @@ function assign_and_filter_games(tournamentID,teamID = 0, all = 0) {
 						}
 					}
 				};
-				sort_request.open("GET","/uniliga/admin/riot-api-access/get-RGAPI-AJAX.php?type=assign-and-filter&match="+games[i]['RiotMatchID']+"&tournament="+tournamentID,true);
+				sort_request.open("GET","./admin/ajax/get-rgapi-data.php?type=assign-and-filter&match="+games[i]['RIOT_matchID']+"&tournament="+tournamentID,true);
 				sort_request.send();
 			}
 
@@ -533,18 +526,18 @@ function assign_and_filter_games(tournamentID,teamID = 0, all = 0) {
 		}
 	};
 	if (all === 0) {
-		games_request.open("GET","/uniliga/ajax-functions/get-DB-AJAX.php?type=games-unassigned&tournament="+tournamentID,true);
+		games_request.open("GET","./ajax/get-data.php",true);
+		games_request.setRequestHeader("type", "games-in-tournaments-time");
+		games_request.setRequestHeader("tournamentID", tournamentID);
+		games_request.setRequestHeader("unassigned-only", "true");
 	} else {
-		games_request.open("GET","/uniliga/ajax-functions/get-DB-AJAX.php?type=games&tournament="+tournamentID,true);
+		games_request.open("GET","./ajax/get-data.php",true);
+		games_request.setRequestHeader("type", "games-in-tournaments-time");
+		games_request.setRequestHeader("tournamentID", tournamentID);
 	}
 	games_request.send();
-
-	const timerxhr = new XMLHttpRequest();
-	timerxhr.open("POST", "/uniliga/admin/scrapeToor-ajax.php?type=update-timers&Tid="+tournamentID+"&table=gamesort");
-	timerxhr.send();
 }
 
-// validated
 function get_ranks(tournamentID) {
 	console.log("----- Start getting Ranks -----");
 	let currButton  = $("a.button.write.get-ranks."+tournamentID);
@@ -626,7 +619,6 @@ function set_all_buttons_onclick(set, tournamentID, teamID = 0) {
 		$("a.button.write.puuids-all."+tournamentID).attr("onClick","get_puuids('"+tournamentID+"',false)");
 		$("a.button.write.games-team."+teamID).attr("onClick","get_games_for_team('"+tournamentID+"','"+teamID+"')");
 		$("a.button.write.gamedata."+tournamentID).attr("onClick","get_game_data('"+tournamentID+"','"+teamID+"')");
-		$("a.button.write.gamedata-all."+tournamentID).attr("onClick","get_game_data('"+tournamentID+"','"+teamID+"',1)");
 		$("a.button.write.assign-una."+tournamentID).attr("onClick","assign_and_filter_games('"+tournamentID+"','"+teamID+"')");
 		$("a.button.write.assign-all."+tournamentID).attr("onClick","assign_and_filter_games('"+tournamentID+"','"+teamID+"',1)");
 		$("a.button.write.get-ranks."+tournamentID).attr("onClick", "get_ranks('"+tournamentID+"')");
@@ -639,7 +631,6 @@ function set_all_buttons_onclick(set, tournamentID, teamID = 0) {
 	}
 }
 
-//validated
 function average_team_rank(team_id) {
 	let req = new XMLHttpRequest();
 	req.onreadystatechange = function () {
@@ -651,7 +642,6 @@ function average_team_rank(team_id) {
 	req.send();
 }
 
-//validated
 function get_average_team_ranks(tournament_id) {
 	console.log("----- Start calculating avg. Ranks -----");
 	let currButton  = $("a.button.write.calc-team-rank."+tournament_id);

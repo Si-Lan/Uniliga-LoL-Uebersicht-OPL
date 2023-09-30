@@ -123,6 +123,35 @@ if ($type == "matchups") {
 	echo json_encode($matchups);
 }
 
+if ($type == "all-games") {
+	if (isset($_SERVER["HTTP_NO_DATA_ONLY"])) {
+		$games = $dbcn->execute_query("SELECT * FROM games WHERE matchdata IS NULL")->fetch_all(MYSQLI_ASSOC);
+	} else {
+		$games = $dbcn->execute_query("SELECT * FROM games")->fetch_all(MYSQLI_ASSOC);
+	}
+	echo json_encode($games);
+}
+
+if ($type == "games-in-tournaments-time") {
+	$tournamentID = $_SERVER["HTTP_TOURNAMENTID"] ?? NULL;
+	$tournament = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID = ?", [$tournamentID])->fetch_assoc();
+	if (isset($_SERVER["HTTP_UNASSIGNED_ONLY"])) {
+		if ($tournament["eventType"] == 'tournament') {
+			$games = $dbcn->execute_query("SELECT * FROM games WHERE (played_at BETWEEN ? AND ?) AND RIOT_matchID NOT IN (SELECT RIOT_matchID FROM games_in_tournament WHERE OPL_ID_tournament = ?)", [$tournament["dateStart"], $tournament["dateEnd"], $tournamentID])->fetch_all(MYSQLI_ASSOC);
+		} elseif ($tournament["eventType"] == 'league') {
+			$games = $dbcn->execute_query("SELECT * FROM games WHERE (played_at BETWEEN ? AND ?) AND RIOT_matchID NOT IN (SELECT RIOT_matchID FROM games_in_tournament WHERE OPL_ID_tournament IN (SELECT OPL_ID_parent FROM tournaments WHERE eventType = 'league' AND OPL_ID = ?))", [$tournament["dateStart"], $tournament["dateEnd"], $tournamentID])->fetch_all(MYSQLI_ASSOC);
+		} elseif ($tournament["eventType"] == 'group') {
+			$games = $dbcn->execute_query("SELECT * FROM games WHERE (played_at BETWEEN ? AND ?) AND RIOT_matchID NOT IN (SELECT RIOT_matchID FROM games_in_tournament WHERE OPL_ID_tournament IN (SELECT OPL_ID_parent FROM tournaments WHERE eventType = 'league' AND OPL_ID IN (SELECT OPL_ID_parent FROM tournaments WHERE eventType = 'group' AND OPL_ID = ?)))", [$tournament["dateStart"], $tournament["dateEnd"], $tournamentID])->fetch_all(MYSQLI_ASSOC);
+		} else {
+			$games = [];
+		}
+
+	} else {
+		$games = $dbcn->execute_query("SELECT * FROM games WHERE (played_at BETWEEN ? AND ?)", [$tournament["dateStart"], $tournament["dateEnd"]])->fetch_all(MYSQLI_ASSOC);
+	}
+	echo json_encode($games);
+}
+
 
 if ($type == "local_patch_info") {
 	$patch = $_SERVER["HTTP_PATCH"] ?? NULL;
