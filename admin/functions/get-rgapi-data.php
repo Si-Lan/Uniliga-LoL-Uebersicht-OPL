@@ -581,15 +581,15 @@ function calculate_avg_team_rank($teamID) {
 	return $returnArr;
 }
 
-// TODO: validieren
-function calculate_teamstats($dbcn,$teamID) {
+function calculate_teamstats($teamID, $tournamentID) {
 	$returnArr = array("return"=>0, "echo"=>"", "writes"=>0, "updates"=>0, "without"=>0);
+	$dbcn = create_dbcn();
 	if ($dbcn -> connect_error){
 		$returnArr["return"] = 1;
 		$returnArr["echo"] .= "<span style='color: red'>Database Connection failed : " . $dbcn->connect_error . "<br><br></span>";
 		return $returnArr;
 	}
-	$games = $dbcn->query("SELECT MatchData, BlueTeamID, RedTeamID FROM games WHERE (BlueTeamID = '$teamID' OR RedTeamID = '$teamID') AND `UL-Game` = TRUE")->fetch_all(MYSQLI_ASSOC);
+	$games = $dbcn->execute_query("SELECT matchdata, OPL_ID_blueTeam, OPL_ID_redTeam FROM games JOIN games_in_tournament git on games.RIOT_matchID = git.RIOT_matchID WHERE (OPL_ID_blueTeam = ? AND OPL_ID_redTeam IS NOT NULL) OR (OPL_ID_blueTeam IS NOT NULL AND OPL_ID_redTeam = ?)", [$teamID, $teamID])->fetch_all(MYSQLI_ASSOC);
 	$games_played = count($games);
 
 	if ($games_played == 0) {
@@ -603,28 +603,28 @@ function calculate_teamstats($dbcn,$teamID) {
 	$wins = 0;
 	$win_time = 0;
 
-	$ddragon_dir = new DirectoryIterator(dirname(__FILE__)."/../../ddragon");
+	$ddragon_dir = new DirectoryIterator(__DIR__."/../../ddragon");
 	$patches = [];
 
 	foreach ($ddragon_dir as $patch_dir) {
-		if (!$patch_dir->isDot() && $patch_dir->getFilename() != "img") {
+		if (!$patch_dir->isDot() && $patch_dir->getFilename() != "img" && $patch_dir->isDir()) {
 			$patches[] = $patch_dir->getFilename();
 		}
 	}
 	usort($patches, "version_compare");
 	$latest_patch = end($patches);
-	$champion_data = json_decode(file_get_contents(dirname(__FILE__)."/../../ddragon/$latest_patch/data/champion.json"),true)['data'];
+	$champion_data = json_decode(file_get_contents(__DIR__."/../../ddragon/$latest_patch/data/champion.json"),true)['data'];
 	$champions_by_key = [];
 	foreach ($champion_data as $champ) {
 		$champions_by_key[$champ['key']] = $champ['id'];
 	}
 
 	foreach ($games as $gindex=>$game) {
-		$game_data = json_decode($game['MatchData'],true);
-		if ($game['BlueTeamID'] == $teamID) {
+		$game_data = json_decode($game['matchdata'],true);
+		if ($game['OPL_ID_blueTeam'] == $teamID) {
 			$side = 0;
 			$side_a = 1;
-		} elseif ($game['RedTeamID'] == $teamID) {
+		} elseif ($game['OPL_ID_redTeam'] == $teamID) {
 			$side = 1;
 			$side_a = 0;
 		} else {
@@ -687,17 +687,17 @@ function calculate_teamstats($dbcn,$teamID) {
 	$champs_played_against = json_encode($champs_played_against);
 	$bans_against = json_encode($bans_against);
 
-	$teamstats = $dbcn->query("SELECT * FROM teamstats WHERE TeamID = $teamID")->fetch_assoc();
+	$teamstats = $dbcn->query("SELECT * FROM stats_teams_in_tournaments WHERE OPL_ID_team = $teamID AND OPL_ID_tournament = $tournamentID")->fetch_assoc();
 	if ($teamstats == NULL) {
-		$dbcn->query("INSERT INTO teamstats
-    		(TeamID, champs_played, champs_banned, champs_played_against, champs_banned_against, games_played, games_won, avg_win_time)
+		$dbcn->query("INSERT INTO stats_teams_in_tournaments
+    		(OPL_ID_team, OPL_ID_tournament, champs_played, champs_banned, champs_played_against, champs_banned_against, games_played, games_won, avg_win_time)
 			VALUES 
-			($teamID, '$champs_played', '$bans', '$champs_played_against', '$bans_against', $games_played, $wins, $avg_win_time)");
+			($teamID, $tournamentID, '$champs_played', '$bans', '$champs_played_against', '$bans_against', $games_played, $wins, $avg_win_time)");
 		$returnArr["echo"] .= "writing Stats for Team ".$teamID."<br>";
 		$returnArr["writes"]++;
 	} else {
-		$dbcn->query("UPDATE teamstats SET champs_played='$champs_played', champs_banned='$bans', champs_banned_against='$champs_played_against', champs_banned_against='$bans_against', games_played=$games_played, games_won=$wins, avg_win_time=$avg_win_time WHERE TeamID = $teamID");
-		$returnArr["echo"] .= "updating Stats for Team ".$teamID."<br>";
+		$dbcn->query("UPDATE stats_teams_in_tournaments SET champs_played='$champs_played', champs_banned='$bans', champs_banned_against='$champs_played_against', champs_banned_against='$bans_against', games_played=$games_played, games_won=$wins, avg_win_time=$avg_win_time WHERE OPL_ID_team = $teamID AND OPL_ID_tournament = $tournamentID");
+		$returnArr["echo"] .= "updating Stats for Team $teamID in $tournamentID<br>";
 		$returnArr["updates"]++;
 	}
 

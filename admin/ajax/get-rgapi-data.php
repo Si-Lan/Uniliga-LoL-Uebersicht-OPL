@@ -168,7 +168,6 @@ if ($type == "get-played-positions-for-players") {
 	$result = get_played_positions_for_players($teamID, $tournamentID);
 	echo $result["echo"];
 }
-
 if ($type == "get-played-champions-for-players") {
 	$teamID = $_REQUEST["team"];
 	$tournamentID = $_REQUEST["tournament"];
@@ -177,6 +176,7 @@ if ($type == "get-played-champions-for-players") {
 }
 if ($type == "calculate-teamstats") {
 	$teamID = $_REQUEST["team"];
-	$result = calculate_teamstats($dbcn,$teamID);
+	$tournamentID = $_REQUEST["tournament"];
+	$result = calculate_teamstats($teamID, $tournamentID);
 	echo $result["echo"];
 }
