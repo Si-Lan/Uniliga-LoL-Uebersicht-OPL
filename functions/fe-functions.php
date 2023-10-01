@@ -528,8 +528,17 @@ function create_dropdown(string $type, array $items):string {
 	return $result;
 }
 
+function populate_th($maintext,$tooltiptext,$init=false) {
+	if ($init) {
+		$svg_code = file_get_contents(__DIR__."/../icons/material/expand_more.svg");
+	} else {
+		$svg_code = file_get_contents(__DIR__."/../icons/material/check_indeterminate_small.svg");
+	}
+	return "<span class='tooltip'>$maintext<span class='tooltiptext'>$tooltiptext</span><div class='material-symbol sort-direction'>".$svg_code."</div></span>";
+}
 
-function create_game($dbcn,$gameID,$curr_team=NULL) {
+function create_game($dbcn,$gameID,$curr_team=NULL):string {
+	$result = "";
 	// TODO: tournamentID integrieren, falls ein game in mehreren turnieren eingetragen ist (aktuell wird einfach das erste geholt)
 	$gameDB = $dbcn->execute_query("SELECT * FROM games JOIN games_in_tournament git on games.RIOT_matchID = git.RIOT_matchID WHERE games.RIOT_matchID = ?",[$gameID])->fetch_assoc();
 	$team_blue_ID = $gameDB['OPL_ID_blueTeam'];
@@ -721,7 +730,7 @@ function create_game($dbcn,$gameID,$curr_team=NULL) {
 
 	$gamedate = date("d.m.y",$info["gameCreation"]/1000);
 
-	echo "
+	$result .= "
     <div class='game-details'>
         <div class='game-row teams'>
             <a class='team 1 $blue_curr$score_blue_class' href='./turnier/$tournamentID/team/$team_blue_ID'>
@@ -765,7 +774,7 @@ function create_game($dbcn,$gameID,$curr_team=NULL) {
             </div>
         </div>";
 	for ($i = 0; $i < 5; $i++) {
-		echo "
+		$result .= "
         <div class='game-row summoners'>";
 		for ($p = 0; $p < 2; $p++) {
 			if ($p == 0) {
@@ -824,7 +833,7 @@ function create_game($dbcn,$gameID,$curr_team=NULL) {
 			$item4 = ($player['item4'] == 0)? 7050 : $player['item4'];
 			$item6 = ($player['item6'] == 0)? 7050 : $player['item6'];
 
-			echo "
+			$result .= "
             <div class='game-item summoner $team_side'>
                 <div class='runes'>
                     <img loading='lazy' alt='' src='$dd_img/$keystone_img' class='keystone'>
@@ -842,11 +851,11 @@ function create_game($dbcn,$gameID,$curr_team=NULL) {
                     <div>$summoner_name</div>";
 			if (array_key_exists($puuid, $players_PUUID)) {
 				if ($summoner_rank != NULL) {
-					echo "
+					$result .= "
                     <div class='summ-rank'><img loading='lazy' class='rank-emblem-mini' src='./ddragon/img/ranks/mini-crests/{$summoner_rank}.svg' alt=''> $summoner_rank_cap $summoner_rank_div</div>";
 				}
 			}
-			echo "
+			$result .= "
                 </div>
                 <div class='player-stats'>
                     <div class='player-stats-wrapper'>
@@ -868,36 +877,38 @@ function create_game($dbcn,$gameID,$curr_team=NULL) {
                 </div>
             </div>";
 			if ($p == 0) {
-				echo "<div class='game-row-divider'></div>";
+				$result .= "<div class='game-row-divider'></div>";
 			}
 		}
-		echo "
+		$result .= "
         </div>";
 	}
-	echo "
+	$result .= "
         <div class='game-row bans'>
             <div class='bans-wrapper'>";
 	foreach ($bans_blue as $ban) {
-		echo "
+		$result .= "
                 <span>
                     <img loading='lazy' src='$dd_img/champion/{$champions_by_key[$ban['championId']]}.webp' alt=''>
                     <i class='gg-block'></i>
                 </span>";
 	}
-	echo "
+	$result .= "
             </div>
             <div class='game-row-divider'></div>
             <div class='bans-wrapper'>";
 	foreach ($bans_red as $ban) {
-		echo "
+		$result .= "
                 <span>
                     <img loading='lazy' src='$dd_img/champion/{$champions_by_key[$ban['championId']]}.webp' alt=''>
                     <i class='gg-block'></i>
                 </span>";
 	}
-	echo "
+	$result .= "
             </div>
         </div>
     </div>
     ";
+
+	return $result;
 }

@@ -3,7 +3,6 @@
 <?php
 include_once __DIR__."/../setup/data.php";
 include_once __DIR__."/../functions/fe-functions.php";
-//include_once __DIR__."/../functions/game.php";
 
 $lightmode = is_light_mode(true);
 
@@ -165,7 +164,7 @@ if ($curr_matchID != NULL) {
 	foreach ($curr_games as $game_i=>$curr_game) {
 		echo "<div class='game game$game_i'>";
 		$gameID = $curr_game['RIOT_matchID'];
-		create_game($dbcn,$gameID);
+		echo create_game($dbcn,$gameID);
 		echo "</div>";
 	}
 	echo "

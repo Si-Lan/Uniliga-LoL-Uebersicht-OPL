@@ -1,9 +1,8 @@
 <!DOCTYPE html>
 <html lang="de">
 <?php
-include_once(dirname(__FILE__) . "/../setup/data.php");
-include_once(dirname(__FILE__)."/../functions/fe-functions.php");
-//include_once __DIR__."/../functions/game.php";
+include_once __DIR__."/../setup/data.php";
+include_once __DIR__."/../functions/fe-functions.php";
 include_once __DIR__."/../functions/summoner-card.php";
 
 $lightmode = is_light_mode(true);
@@ -84,7 +83,7 @@ $opl_tourn_url = "https://www.opleague.pro/event/";
 $opgg_logo_svg = file_get_contents(__DIR__."/../img/opgglogo.svg");
 $opgg_url = "https://www.op.gg/multisearch/euw?summoners=";
 
-$players = $dbcn->execute_query("SELECT * FROM players JOIN players_in_teams pit on players.OPL_ID = pit.OPL_ID_player LEFT JOIN stats_players_in_tournaments spit ON pit.OPL_ID_player = spit.OPL_ID_player AND spit.OPL_ID_tournament = ? WHERE pit.OPL_ID_team = ? ", [$group["OPL_ID"], $teamID])->fetch_all(MYSQLI_ASSOC);
+$players = $dbcn->execute_query("SELECT * FROM players JOIN players_in_teams pit on players.OPL_ID = pit.OPL_ID_player LEFT JOIN stats_players_in_tournaments spit ON pit.OPL_ID_player = spit.OPL_ID_player AND spit.OPL_ID_tournament = ? WHERE pit.OPL_ID_team = ? ", [$tournamentID, $teamID])->fetch_all(MYSQLI_ASSOC);
 $matches = $dbcn->execute_query("SELECT * FROM matchups WHERE OPL_ID_tournament = ? AND (OPL_ID_team1 = ? OR OPL_ID_team2 = ?)", [$group["OPL_ID"],$teamID,$teamID])->fetch_all(MYSQLI_ASSOC);
 
 $opgglink = $opgg_url;
@@ -232,7 +231,7 @@ if ($curr_matchID != NULL) {
 	foreach ($curr_games as $game_i=>$curr_game) {
 		echo "<div class='game game$game_i'>";
 		$gameID = $curr_game['RIOT_matchID'];
-		create_game($dbcn,$gameID,$teamID);
+		echo create_game($dbcn,$gameID,$teamID);
 		echo "</div>";
 	}
 	echo "

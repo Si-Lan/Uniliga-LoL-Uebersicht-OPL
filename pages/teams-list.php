@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="de">
 <?php
-include_once(__DIR__."/../setup/data.php");
-include_once(__DIR__."/../functions/fe-functions.php");
+include_once __DIR__."/../setup/data.php";
+include_once __DIR__."/../functions/fe-functions.php";
 
 $lightmode = is_light_mode(true);
 
