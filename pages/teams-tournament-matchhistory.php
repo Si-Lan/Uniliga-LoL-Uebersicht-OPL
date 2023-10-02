@@ -83,7 +83,7 @@ $opl_tourn_url = "https://www.opleague.pro/event/";
 
 echo create_header($dbcn,"tournament", $tournamentID);
 echo create_tournament_nav_buttons($tournamentID, $dbcn,"",$league['OPL_ID'],$group['OPL_ID']);
-echo create_team_nav_buttons($tournamentID,$team,"matchhistory");
+echo create_team_nav_buttons($tournamentID,$group["OPL_ID"],$team,"matchhistory");
 
 $matches = $dbcn->execute_query("SELECT * FROM matchups WHERE OPL_ID_tournament = ? AND (OPL_ID_team1 = ? OR OPL_ID_team2 = ?)", [$group["OPL_ID"],$teamID,$teamID])->fetch_all(MYSQLI_ASSOC);
 

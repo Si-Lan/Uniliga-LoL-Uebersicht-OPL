@@ -83,7 +83,7 @@ $opl_tourn_url = "https://www.opleague.pro/event/";
 
 echo create_header($dbcn,"tournament", $tournamentID);
 echo create_tournament_nav_buttons($tournamentID, $dbcn,"",$league['OPL_ID'],$group['OPL_ID']);
-echo create_team_nav_buttons($tournamentID,$team,"stats");
+echo create_team_nav_buttons($tournamentID,$group["OPL_ID"],$team,"stats");
 
 $players = $dbcn->execute_query("SELECT * FROM players JOIN players_in_teams pit on players.OPL_ID = pit.OPL_ID_player LEFT JOIN stats_players_in_tournaments spit ON pit.OPL_ID_player = spit.OPL_ID_player AND spit.OPL_ID_tournament = ? WHERE pit.OPL_ID_team = ? ", [$tournamentID, $teamID])->fetch_all(MYSQLI_ASSOC);
 $teamstats = $dbcn->execute_query("SELECT * FROM stats_teams_in_tournaments WHERE OPL_ID_team = ? AND OPL_ID_tournament = ?", [$teamID, $tournamentID])->fetch_assoc();

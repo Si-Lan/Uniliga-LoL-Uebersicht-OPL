@@ -74,12 +74,11 @@ echo create_header(dbcn: $dbcn, title: "tournament", tournament_id: $tournamentI
 
 echo create_tournament_nav_buttons($tournamentID, $dbcn,"group",$league['OPL_ID'],$groupID);
 
-/*
-$last_user_update = $dbcn->execute_query("SELECT last_update FROM userupdates WHERE ItemID = ? AND update_type=0", [$groupID])->fetch_column();
-$last_cron_update = $dbcn->execute_query("SELECT last_update FROM cron_updates WHERE TournamentID = ?", [$tournamentID])->fetch_column();
-$last_manual_updates  = $dbcn->execute_query("SELECT standings, matches, matchresults FROM manual_updates WHERE TournamentID = ?", [$tournamentID])->fetch_row();
 
-$last_update = latest_update($last_user_update,$last_cron_update,$last_manual_updates);
+$last_user_update = $dbcn->execute_query("SELECT last_update FROM updates_user_group WHERE OPL_ID_group = ?", [$groupID])->fetch_column();
+$last_cron_update = $dbcn->execute_query("SELECT last_update FROM updates_cron WHERE OPL_ID_tournament = ?", [$tournamentID])->fetch_column();
+
+$last_update = max($last_user_update,$last_cron_update);
 
 if ($last_update == NULL) {
 	$updatediff = "unbekannt";
@@ -88,20 +87,19 @@ if ($last_update == NULL) {
 	$currtime = time();
 	$updatediff = max_time_from_timestamp($currtime-$last_update);
 }
-*/
 
 echo "<div class='pagetitlewrapper withupdatebutton'>
 				<div class='pagetitle'>
 					<h2 class='pagetitle'>Liga {$league['number']} - $group_title</h2>
                 	<a href='$opl_tourn_url{$groupID}' target='_blank' class='toorlink'><div class='material-symbol'>".file_get_contents(__DIR__."/../icons/material/open_in_new.svg")."</div></a>
               	</div>";
-/*
+
 echo "
               	<div class='updatebuttonwrapper'>
-              		<button type='button' class='icononly user_update_group update_data' data-group='$groupID'><div class='material-symbol'>".file_get_contents(__DIr__."/../icons/material/sync.svg")."</div></button>
+              		<button type='button' class='icononly user_update_group update_data' data-group='$groupID'><div class='material-symbol'>".file_get_contents(__DIR__."/../icons/material/sync.svg")."</div></button>
 					<span>letztes Update:<br>$updatediff</span>
 				</div>";
-*/
+
 echo "
               </div>";
 
@@ -119,11 +117,10 @@ if ($curr_matchID != NULL) {
 	$curr_team1 = $dbcn->execute_query("SELECT * FROM teams WHERE OPL_ID = ?",[$curr_matchData['OPL_ID_team1']])->fetch_assoc();
 	$curr_team2 = $dbcn->execute_query("SELECT * FROM teams WHERE OPL_ID = ?",[$curr_matchData['OPL_ID_team2']])->fetch_assoc();
 
-	/*
-	$last_user_update_match = $dbcn->execute_query("SELECT last_update FROM userupdates WHERE ItemID = ? AND update_type=1", [$curr_matchID])->fetch_column();
-	$last_manual_updates_match  = $dbcn->execute_query("SELECT matchresults, gamedata, gamesort FROM manual_updates WHERE TournamentID = ?", [$tournamentID])->fetch_row();
 
-	$last_update_match = latest_update($last_user_update_match,$last_cron_update,$last_manual_updates_match);
+	$last_user_update_match = $dbcn->execute_query("SELECT last_update FROM updates_user_matchup WHERE OPL_ID_matchup = ?", [$curr_matchID])->fetch_column();
+
+	$last_update_match = max($last_user_update_match,$last_cron_update);
 
 	if ($last_update_match == NULL) {
 		$updatediff_match = "unbekannt";
@@ -132,9 +129,6 @@ if ($curr_matchID != NULL) {
 		$currtime = time();
 		$updatediff_match = max_time_from_timestamp($currtime-$last_update_match);
 	}
-	*/
-	// TODO: delete after update implementation
-	$updatediff_match = "";
 
 	echo "
                     <div class='mh-popup-bg' onclick='close_popup_match(event)' style='display: block; opacity: 1;'>
@@ -142,7 +136,7 @@ if ($curr_matchID != NULL) {
                             <div class='close-button' onclick='closex_popup_match()'><div class='material-symbol'>". file_get_contents(__DIR__."/../icons/material/close.svg") ."</div></div>
                             <div class='close-button-space'></div>
                             <div class='mh-popup-buttons'>
-	                            <div class='updatebuttonwrapper'><button type='button' class='icononly user_update_match update_data' data-match='$curr_matchID' data-matchformat='groups'><div class='material-symbol'>". file_get_contents(__DIR__."/../icons/material/sync.svg") ."</div></button><span>letztes Update:<br>$updatediff_match</span></div>
+	                            <div class='updatebuttonwrapper'><button type='button' class='icononly user_update_match update_data' data-match='$curr_matchID' data-matchformat='groups' data-group='$groupID'><div class='material-symbol'>". file_get_contents(__DIR__."/../icons/material/sync.svg") ."</div></button><span>letztes Update:<br>$updatediff_match</span></div>
 	                        </div>";
 	if ($curr_matchData['winner'] == $curr_matchData['OPL_ID_team1']) {
 		$team1score = "win";
@@ -182,7 +176,7 @@ foreach ($matches_grouped as $roundNum=>$round) {
                     <div class='divider'></div>
                     <div class='match-wrapper'>";
 	foreach ($round as $match) {
-		echo create_matchbutton($dbcn,$tournamentID,$match['OPL_ID'],"groups");
+		echo create_matchbutton($dbcn,$match['OPL_ID'],"groups");
 	}
 	echo "</div>";
 	echo "</div>"; // match-round

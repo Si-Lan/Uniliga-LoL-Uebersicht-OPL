@@ -1,5 +1,6 @@
 <?php
 include_once __DIR__."/../setup/data.php";
+include_once __DIR__."/../functions/helper.php";
 
 $dbcn = create_dbcn();
 
@@ -100,8 +101,54 @@ if ($type == "team-and-players") {
 	echo json_encode(["team"=>$teamDB, "players"=>$playersDB]);
 }
 
+if ($type == "players-in-match") {
+	$matchID = $_SERVER["HTTP_MATCHID"] ?? NULL;
+	$match = $dbcn->execute_query("SELECT * FROM matchups WHERE OPL_ID = ?", [$matchID])->fetch_assoc();
+	$teams = $dbcn->execute_query("SELECT OPL_ID_team1, OPL_ID_team2 FROM matchups WHERE OPL_ID = ?", [$matchID])->fetch_row();
+	$players1 = $dbcn->execute_query("SELECT OPL_ID FROM players JOIN players_in_teams pit on players.OPL_ID = pit.OPL_ID_player WHERE OPL_ID_team = ? AND PUUID IS NOT NULL", [$teams[0]])->fetch_all(MYSQLI_ASSOC);
+	$players2 = $dbcn->execute_query("SELECT OPL_ID FROM players JOIN players_in_teams pit on players.OPL_ID = pit.OPL_ID_player WHERE OPL_ID_team = ? AND PUUID IS NOT NULL", [$teams[1]])->fetch_all(MYSQLI_ASSOC);
+	function cut_players(array $playerlist):array {
+		$newlength = count($playerlist);
+		if (count($playerlist) >= 5) {
+			$newlength = ceil(count($playerlist) / 2)+1;
+		}
+		shuffle($playerlist);
+		return array_slice($playerlist,0,$newlength);
+	}
+	if (isset($_SERVER["HTTP_CUT_PLAYERS"])) {
+		$players1 = cut_players($players1);
+		$players2 = cut_players($players2);
+	}
+	$players = array_merge($players1,$players2);
+	$ids = [];
+	foreach ($players as $player) {
+		$ids[] = $player["OPL_ID"];
+	}
+	if (isset($_SERVER["HTTP_IDONLY"])) {
+		echo json_encode($ids);
+	} else {
+		echo json_encode($players);
+	}
+}
+
+if ($type == "matchup") {
+	$matchID = $_SERVER["HTTP_MATCHID"] ?? NULL;
+	$id_only = isset($_SERVER["HTTP_IDONLY"]);
+	$tournamentID_only = isset($_SERVER["HTTP_RETURNTOURNAMENTID"]);
+	$match = $dbcn->execute_query("SELECT * FROM matchups WHERE OPL_ID = ?", [$matchID])->fetch_assoc();
+	if ($id_only) {
+		echo $match["OPL_ID"];
+	} elseif ($tournamentID_only) {
+		echo $match["OPL_ID_tournament"];
+	} else {
+		echo json_encode($match);
+	}
+}
+
 if ($type == "matchups") {
 	$tournamentID = $_SERVER["HTTP_TOURNAMENTID"] ?? NULL;
+	$teamID = $_SERVER["HTTP_TEAMID"] ?? NULL;
+	$id_only = isset($_SERVER["HTTP_IDONLY"]);
 	$tournament = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID = ?", [$tournamentID])->fetch_assoc();
 	$groups = [];
 	if ($tournament["eventType"] == "tournament") {
@@ -117,7 +164,16 @@ if ($type == "matchups") {
 	}
 	$matchups = [];
 	foreach ($groups as $group) {
-		$matchup_from_group = $dbcn->execute_query("SELECT * FROM matchups WHERE OPL_ID_tournament = ?", [$group["OPL_ID"]])->fetch_all(MYSQLI_ASSOC);
+		if ($teamID == NULL) {
+			$matchup_from_group = $dbcn->execute_query("SELECT * FROM matchups WHERE OPL_ID_tournament = ?", [$group["OPL_ID"]])->fetch_all(MYSQLI_ASSOC);
+		} else {
+			$matchup_from_group = $dbcn->execute_query("SELECT * FROM matchups WHERE OPL_ID_tournament = ? AND (OPL_ID_team1 = ? OR OPL_ID_team2 = ?)", [$group["OPL_ID"],$teamID,$teamID])->fetch_all(MYSQLI_ASSOC);
+		}
+		if ($id_only) {
+			foreach ($matchup_from_group as $matchup) {
+				$matchups[] = $matchup["OPL_ID"];
+			}
+		}
 		array_push($matchups, ...$matchup_from_group);
 	}
 	echo json_encode($matchups);
@@ -171,6 +227,45 @@ if ($type == "local_patch_info") {
 		$patch_data = $dbcn->execute_query("SELECT * FROM local_patches WHERE patch = ?", [$patch])->fetch_all(MYSQLI_ASSOC);
 	}
 	echo json_encode($patch_data);
+}
+
+
+if ($type == "last-update-time") {
+	$update_type = $_SERVER['HTTP_UPDATETYPE'] ?? NULL;
+	$item_ID = $_SERVER['HTTP_ITEMID'] ?? NULL;
+	$tournamentID = $_SERVER["HTTP_TOURNAMENTID"] ?? $_REQUEST["t"] ?? NULL;
+	if ($item_ID == NULL || $update_type == NULL) exit;
+	if ($update_type == "group") {
+		$last_update = $dbcn->execute_query("SELECT last_update FROM updates_user_group WHERE OPL_ID_group = ?", [$item_ID])->fetch_column();
+	} elseif ($update_type == "team") {
+		$last_update = $dbcn->execute_query("SELECT last_update FROM updates_user_team WHERE OPL_ID_team = ?", [$item_ID])->fetch_column();
+	} elseif ($update_type == "match") {
+		$last_update = $dbcn->execute_query("SELECT last_update FROM updates_user_matchup WHERE OPL_ID_matchup = ?", [$item_ID])->fetch_column();
+	} else {
+		exit;
+	}
+	if ($tournamentID != NULL) {
+		$last_cron_update = $dbcn->execute_query("SELECT last_update FROM updates_cron WHERE OPL_ID_tournament = ?", [$tournamentID])->fetch_column();
+	} elseif ($update_type == "team") {
+		$last_cron_update = $dbcn->execute_query("SELECT last_update FROM updates_cron JOIN teams_in_tournaments tit on updates_cron.OPL_ID_tournament = tit.OPL_ID_tournament WHERE OPL_ID_team = ? ORDER BY last_update DESC", [$item_ID])->fetch_column();
+	} elseif ($update_type == "match") {
+		$last_cron_update = $dbcn->execute_query("SELECT last_update FROM updates_cron JOIN matchups m on updates_cron.OPL_ID_tournament = m.OPL_ID_tournament WHERE m.OPL_ID = ? ORDER BY last_update DESC", [$item_ID])->fetch_column();
+	} elseif ($update_type == "group") {
+		$last_cron_update = $dbcn->execute_query("SELECT last_update FROM updates_cron JOIN tournaments l ON eventType='league' AND l.OPL_ID_parent = updates_cron.OPL_ID_tournament JOIN tournaments g ON g.eventType = 'group' AND g.OPL_ID_parent = l.OPL_ID WHERE g.OPL_ID = ? ORDER BY last_update DESC", [$item_ID])->fetch_column();
+	} else {
+		$last_cron_update = 0;
+	}
+	$last_update = max($last_update,$last_cron_update);
+	$return_relative_time_string = $_SERVER["HTTP_RELATIVETIME"] ?? FALSE;
+	if ($return_relative_time_string) {
+		if ($last_update == NULL) {
+			echo "unbekannt";
+		} else {
+			echo max_time_from_timestamp(time() - strtotime($last_update));
+		}
+	} else {
+		echo $last_update;
+	}
 }
 
 $dbcn->close();

@@ -2,7 +2,7 @@
 include_once __DIR__.'/../functions/get-rgapi-data.php';
 include_once __DIR__."/../../setup/data.php";
 
-$type = $_REQUEST["type"];
+$type = $_SERVER["HTTP_TYPE"] ?? $_REQUEST["type"];
 
 if ($type == "puuids-by-team") {
 	$teamID = $_REQUEST['team'];
@@ -17,8 +17,8 @@ if ($type == "puuids-by-team") {
 }
 
 if ($type == "games-by-player") {
-	$playerID = $_REQUEST['player'] ?? NULL;
-	$tournamentID = $_REQUEST['tournament'] ?? NULL;
+	$playerID = $_SERVER["HTTP_PLAYERID"] ?? $_REQUEST['player'] ?? NULL;
+	$tournamentID = $_SERVER["HTTP_TOURNAMENTID"] ?? $_REQUEST['tournament'] ?? NULL;
 
 	$results = get_games_by_player($playerID, $tournamentID);
 

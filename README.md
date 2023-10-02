@@ -43,7 +43,7 @@ Wenn ihr mich unterstützen wollt, könnt ihr das gerne hier tun
 
 ### Datenbank:
 *MariaDB*-Datenbank:  
-[SQL-File mit Datenbank-Struktur]()
+[SQL-File mit Datenbank-Struktur](https://silence.lol/storage/uniliga_opl.sql.zip)
 
 
 ## Wartungsaufwand:

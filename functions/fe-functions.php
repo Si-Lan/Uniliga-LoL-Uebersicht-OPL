@@ -271,7 +271,7 @@ function generate_elo_list($dbcn,$view,$teams,$tournamentID,$division,$group):st
 		$results .= "
                     <div class='elo-list-row elo-list-team {$team['OPL_ID']}$color_class'>
                         <div class='elo-list-pre league'>Liga {$team['number_league']}</div>
-                        <a href='./team/".$team['OPL_ID']."' onclick='popup_team(\"{$team['OPL_ID']}\")' class='elo-list-item-wrapper'>
+                        <a href='./team/".$team['OPL_ID']."' onclick='popup_team(\"{$team['OPL_ID']}\",\"{$tournamentID}\")' class='elo-list-item-wrapper'>
                             <div class='elo-list-item team'>";
 		if ($team['OPL_ID_logo'] != NULL && file_exists(__DIR__."/../$local_team_img{$team['OPL_ID_logo']}/logo.webp")) {
 			$results .= "
@@ -389,7 +389,7 @@ function create_standings(mysqli $dbcn, $tournament_id, $group_id, $team_id=NULL
 	return $result;
 }
 
-function create_matchbutton(mysqli $dbcn,$tournament_id,$match_id,$type,$team_id=NULL):string {
+function create_matchbutton(mysqli $dbcn,$match_id,$type,$team_id=NULL):string {
 	$result = "";
 	$pageurl = $_SERVER['REQUEST_URI'];
 	$opl_match_url = "https://www.opleague.pro/match/";
@@ -473,7 +473,7 @@ function create_matchbutton(mysqli $dbcn,$tournament_id,$match_id,$type,$team_id
 	return $result;
 }
 
-function create_team_nav_buttons($tournamentID,$team,$active,$updatediff="unbekannt"):string {
+function create_team_nav_buttons($tournamentID,$groupID,$team,$active,$updatediff="unbekannt"):string {
 	$result = "";
 	$details_a = $matchhistory_a = $stats_a = "";
 	if ($active == "details") {
@@ -505,7 +505,7 @@ function create_team_nav_buttons($tournamentID,$team,$active,$updatediff="unbeka
 	if ($active == "details") {
 		$result .= "
 				<div class='updatebuttonwrapper'>
-           			<button type='button' class='icononly user_update_team update_data' data-team='$team_id'><div class='material-symbol'>".file_get_contents(__DIR__."/../icons/material/sync.svg")."</div></button>
+           			<button type='button' class='icononly user_update_team update_data' data-team='$team_id' data-tournament='$tournamentID' data-group='$groupID'><div class='material-symbol'>".file_get_contents(__DIR__."/../icons/material/sync.svg")."</div></button>
 					<span>letztes Update:<br>$updatediff</span>
 				</div>";
 	}
@@ -729,6 +729,7 @@ function create_game($dbcn,$gameID,$curr_team=NULL):string {
 	}
 
 	$gamedate = date("d.m.y",$info["gameCreation"]/1000);
+	$log_link = "https://www.leagueofgraphs.com/match/euw/".explode("_",$gameID)[1];
 
 	$result .= "
     <div class='game-details'>
