@@ -513,11 +513,12 @@ async function popup_match(matchID,teamID=null,matchtype="groups") {
 					type: "last-update-time",
 					itemid: matchID,
 					updatetype: "match",
+					relativetime: "true",
 				}
 			})
 				.then(res => res.text())
 				.then(time => {
-					$(".updatebuttonwrapper span").html(`letztes Update:<br>${time}`);
+					$(".mh-popup .updatebuttonwrapper span").html(`letztes Update:<br>${time}`);
 				})
 				.catch(error => console.error(error));
 
@@ -1879,7 +1880,7 @@ async function user_update_match(button) {
 	let current = Date.now();
 	let diff = new Date(current - last_update);
 
-	if (current - last_update < 600000) {
+	if (current - last_update < 6000) {
 		let rest = new Date(600000 - (current - last_update));
 		window.alert(`Das letzte Update wurde vor ${format_time_minsec(diff)} durchgeführt. Versuche es in ${format_time_minsec(rest)} noch einmal`);
 		await new Promise(r => setTimeout(r, 1000));
@@ -1919,7 +1920,7 @@ async function user_update_match(button) {
 
 	await fetch(`ajax/get-data.php`, {
 		method: "GET",
-		header: {
+		headers: {
 			type: "matchup",
 			matchid: match_ID,
 			returntournamentid: "true",
@@ -1931,7 +1932,7 @@ async function user_update_match(button) {
 
 	await fetch(`ajax/get-data.php`, {
 		method: "GET",
-		header: {
+		headers: {
 			type: "players-in-match",
 			matchid: match_ID,
 			cut_players: "true",
@@ -1964,7 +1965,7 @@ async function user_update_match(button) {
 
 	await fetch(`ajax/get-data.php`, {
 		method: "GET",
-		header: {
+		headers: {
 			type: "games-from-players-in-match",
 			matchid: match_ID,
 			withPUUIDonly: "true",
@@ -2032,7 +2033,7 @@ async function user_update_match(button) {
 			}
 			let game_counter = 0;
 			for (const [i, game] of games.entries()) {
-				if (current_match_in_popup === parseInt(game['OPL_ID'])) {
+				if (current_match_in_popup === parseInt(match_ID)) {
 					popup.append(`<div class='game game${i}'></div>`);
 				}
 				let gameID = game['RIOT_matchID'];
@@ -2050,7 +2051,7 @@ async function user_update_match(button) {
 					.then(res => res.text())
 					.then(data => {
 						let game_wrap = popup.find('.game' + i);
-						if (current_match_in_popup === parseInt(game['OPL_ID'])) {
+						if (current_match_in_popup === parseInt(match_ID)) {
 							game_wrap.empty();
 							game_wrap.append(data);
 							game_counter++;

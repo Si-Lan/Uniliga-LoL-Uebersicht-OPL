@@ -96,6 +96,10 @@ function write_tournament(tournamentID = null) {
 }
 
 function get_teams_for_tournament(tournamentID) {
+	let button = $(".get-teams");
+	button.addClass("button-updating");
+	button.prop("disabled", true);
+
 	fetch(`./admin/ajax/get-opl-data.php`, {
 		method: "GET",
 		headers: {
@@ -106,11 +110,17 @@ function get_teams_for_tournament(tournamentID) {
 		.then(res => res.json())
 		.then(result => {
 			console.log(result);
+			button.prop("disabled", false);
+			button.removeClass("button-updating");
 		})
 		.catch(e => console.error(e));
 }
 
 function get_players_for_tournament(tournamentID) {
+	let button = $(".get-players");
+	button.addClass("button-updating");
+	button.prop("disabled", true);
+
 	fetch(`./admin/ajax/get-opl-data.php`, {
 		method: "GET",
 		headers: {
@@ -121,11 +131,18 @@ function get_players_for_tournament(tournamentID) {
 		.then(res => res.json())
 		.then(result => {
 			console.log(result);
+			button.prop("disabled", false);
+			button.removeClass("button-updating");
 		})
 		.catch(e => console.error(e));
 }
 
 function get_summonerNames_for_tournament(tournamentID) {
+	let button = $(".get-summoners");
+	button.addClass("button-updating");
+	button.prop("disabled", true);
+	let loadingbar_width = 0;
+
 	fetch(`./ajax/get-data.php`, {
 		method: "GET",
 		headers: {
@@ -146,15 +163,23 @@ function get_summonerNames_for_tournament(tournamentID) {
 					.then(res => res.json())
 					.then(result => {
 						console.log(result);
+						loadingbar_width += 100/teams.length;
+						button.attr("style",`--loading-bar-width:${loadingbar_width}%`);
 					})
 					.catch(e => console.error(e));
 				// no need to wait here, fetched php script sleeps for 1 sec at the end
 			}
+			button.prop("disabled", false);
+			button.removeClass("button-updating");
 		})
 		.catch(e => console.error(e));
 }
 
 function get_matchups_for_tournament(tournamentID) {
+	let button = $(".get-matchups");
+	button.addClass("button-updating");
+	button.prop("disabled", true);
+
 	fetch(`./admin/ajax/get-opl-data.php`, {
 		method: "GET",
 		headers: {
@@ -165,11 +190,18 @@ function get_matchups_for_tournament(tournamentID) {
 		.then(res => res.json())
 		.then(result => {
 			console.log(result);
+			button.prop("disabled", false);
+			button.removeClass("button-updating");
 		})
 		.catch(e => console.error(e));
 }
 
 function get_results_for_tournament(tournamentID) {
+	let button = $(".get-results");
+	button.addClass("button-updating");
+	button.prop("disabled", true);
+	let loadingbar_width = 0;
+
 	fetch(`./ajax/get-data.php`, {
 		method: "GET",
 		headers: {
@@ -190,15 +222,23 @@ function get_results_for_tournament(tournamentID) {
 					.then(res => res.json())
 					.then(result => {
 						console.log(result);
+						loadingbar_width += 100/matches.length;
+						button.attr("style",`--loading-bar-width:${loadingbar_width}%`);
 					})
 					.catch(e => console.error(e));
 				await new Promise(r => setTimeout(r, 1000));
 			}
+			button.prop("disabled", false);
+			button.removeClass("button-updating");
 		})
 		.catch(e => console.error(e));
 }
 
 function calculate_standings_from_matchups(tournamentID) {
+	let button = $(".calculate-standings");
+	button.addClass("button-updating");
+	button.prop("disabled", true);
+
 	fetch(`./admin/ajax/get-opl-data.php`, {
 		method: "GET",
 		headers: {
@@ -209,6 +249,8 @@ function calculate_standings_from_matchups(tournamentID) {
 		.then(res => res.json())
 		.then(result => {
 			console.log(result);
+			button.prop("disabled", false);
+			button.removeClass("button-updating");
 		})
 		.catch(e => console.error(e));
 }
@@ -216,7 +258,7 @@ function calculate_standings_from_matchups(tournamentID) {
 
 // ddragon update
 function sync_patches_to_db(button) {
-	$(button).addClass("patch-updating");
+	$(button).addClass("button-updating");
 	button.disabled = true;
 	fetch(`admin/ajax/ddragon-update.php`, {
 		method: "POST",
@@ -226,7 +268,7 @@ function sync_patches_to_db(button) {
 	})
 		.then(res => res.json())
 		.then(updates => {
-			$(button).removeClass("patch-updating");
+			$(button).removeClass("button-updating");
 			button.disabled = false;
 			let added_patches = (updates["added"] === 0) ? "" : `<br>added Patches: ${updates["added"]}`;
 			$('dialog.patch-result-popup .dialog-content').html(`deleted Patches: ${updates["deleted"]}<br>changed Patches: ${updates["updated"].length}${added_patches}`);
@@ -242,7 +284,7 @@ $(document).ready(function () {
 });
 function download_ddragon_data(button) {
 	let patch = button.getAttribute("data-patch");
-	$(button).addClass("patch-updating");
+	$(button).addClass("button-updating");
 	button.disabled = true;
 	fetch(`admin/ajax/ddragon-update.php`, {
 		method: "POST",
@@ -253,7 +295,7 @@ function download_ddragon_data(button) {
 	})
 		.then(res => res.text())
 		.then(updates => {
-			$(button).removeClass("patch-updating");
+			$(button).removeClass("button-updating");
 			button.disabled = false;
 			update_patchdata_status(patch);
 		})
@@ -266,7 +308,7 @@ $(document).ready(function () {
 });
 function add_new_patch(button) {
 	let patch = button.getAttribute("data-patch");
-	$(button).addClass("patch-updating");
+	$(button).addClass("button-updating");
 	button.disabled = true;
 	fetch(`admin/ajax/ddragon-update.php`, {
 		method: "POST",
@@ -277,7 +319,7 @@ function add_new_patch(button) {
 	})
 		.then(res => res.text())
 		.then(updates => {
-			$(button).removeClass("patch-updating");
+			$(button).removeClass("button-updating");
 			button.disabled = false;
 			$(button).parent().remove();
 			regenerate_patch_rows();
@@ -293,7 +335,7 @@ function download_ddragon_images(button) {
 	let patch = button.getAttribute("data-patch");
 	let type = button.getAttribute("data-getimg");
 	let force = $('#force-overwrite-patch-img')[0].checked;
-	$(button).addClass("patch-updating");
+	$(button).addClass("button-updating");
 	button.disabled = true;
 	$(`button.patch-update[data-patch="${patch}"]`).prop("disabled","true");
 
@@ -311,7 +353,7 @@ function download_ddragon_images(button) {
 			let loadingbar_width = 0;
 			let imgs_gotten = 0;
 			if (images.length === 0) {
-				$(button).removeClass("patch-updating");
+				$(button).removeClass("button-updating");
 				button.disabled = false;
 				$(`button.patch-update[data-patch="${patch}"]`).prop("disabled","");
 			} else {
@@ -336,7 +378,7 @@ function download_ddragon_images(button) {
 						imgs_gotten++;
 						//console.log(location);
 						if (imgs_gotten >= images.length) {
-							$(button).removeClass("patch-updating");
+							$(button).removeClass("button-updating");
 							button.disabled = false;
 							$(`button.patch-update[data-patch="${patch}"]`).prop("disabled","");
 							loadingbar_width = 0;
@@ -367,7 +409,7 @@ $(document).ready(function () {
 });
 function delete_old_ddragon_pngs(button) {
 	let patch = button.parentElement.parentElement.parentElement.getAttribute("data-patch");
-	$(button).addClass("patch-updating");
+	$(button).addClass("button-updating");
 	button.disabled = true;
 
 	fetch(`admin/ajax/ddragon-update.php`, {
@@ -378,7 +420,7 @@ function delete_old_ddragon_pngs(button) {
 		}
 	})
 		.then(() => {
-			$(button).removeClass("patch-updating");
+			$(button).removeClass("button-updating");
 			button.disabled = false;
 		})
 		.catch(e => console.error(e));

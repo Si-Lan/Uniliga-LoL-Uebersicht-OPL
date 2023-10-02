@@ -266,12 +266,12 @@ function create_tournament_get_button(array $data, bool $in_write_popup = false)
 			<dialog class='tournament-data-popup dismissable-popup $id_class'>
 				<div class='dialog-content'>
 					<h2>{$data["name"]} ({$data["eventType"]})</h2>
-					<button class='get-teams $id_class' data-id='$id_class'>Teams im Turnier updaten</button>
-					<button class='get-players $id_class' data-id='$id_class'>Spieler im Turnier updaten</button>
-					<button class='get-summoners $id_class' data-id='$id_class'>Spieler-Accounts im Turnier updaten</button>
-					<button class='get-matchups $id_class' data-id='$id_class'>Matches im Turnier updaten</button>
-					<button class='get-results $id_class' data-id='$id_class'>Match-Ergebnisse im Turnier updaten</button>
-					<button class='calculate-standings $id_class' data-id='$id_class'>Tabelle des Turniers aktualisieren</button>
+					<button class='get-teams $id_class' data-id='$id_class'><span>Teams im Turnier updaten</span></button>
+					<button class='get-players $id_class' data-id='$id_class'><span>Spieler im Turnier updaten</span></button>
+					<button class='get-summoners $id_class' data-id='$id_class'><span>Spieler-Accounts im Turnier updaten</span></button>
+					<button class='get-matchups $id_class' data-id='$id_class'><span>Matches im Turnier updaten</span></button>
+					<button class='get-results $id_class' data-id='$id_class'><span>Match-Ergebnisse im Turnier updaten</span></button>
+					<button class='calculate-standings $id_class' data-id='$id_class'><span>Tabelle des Turniers aktualisieren</span></button>
 				</div>
 			</dialog>";
 	if (!$in_write_popup) $result .= "<button class=\"open-tournament-data-popup $id_class\" type=\"button\" data-id='$id_class'>weitere Daten holen</button>";

@@ -26,9 +26,9 @@ if ($type == "games-by-player") {
 	echo $returnArr;
 }
 
-if ($type == "add-match-data" || "matchdata-and-assign") {
-	$matchID = $_REQUEST['match'];
-	$tournamentID = $_REQUEST['tournament'];
+if ($type == "add-match-data" || $type == "matchdata-and-assign") {
+	$matchID = $_SERVER["HTTP_MATCHID"] ?? $_REQUEST['match'];
+	$tournamentID = $_SERVER["HTTP_TOURNAMENTID"] ?? $_REQUEST['tournament'];
 
 	$results = add_match_data($matchID, $tournamentID);
 
@@ -36,9 +36,9 @@ if ($type == "add-match-data" || "matchdata-and-assign") {
 	echo $returnArr;
 }
 
-if ($type == "assign-and-filter" || "matchdata-and-assign") {
-	$matchID = $_REQUEST['match'];
-	$tournamentID = $_REQUEST['tournament'];
+if ($type == "assign-and-filter" || $type == "matchdata-and-assign") {
+	$matchID = $_SERVER["HTTP_MATCHID"] ?? $_REQUEST['match'];
+	$tournamentID = $_SERVER["HTTP_TOURNAMENTID"] ?? $_REQUEST['tournament'];
 
 	$results = assign_and_filter_game($matchID, $tournamentID);
 

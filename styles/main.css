@@ -2957,10 +2957,10 @@ dialog.patch-more-popup .dialog-content {
 	text-align: center;
 }
 
-button.patch-updating[disabled]:hover {
+button.button-updating[disabled]:hover {
 	background-color: transparent;
 }
-button.patch-updating {
+button.button-updating {
 	position: relative;
 	background-color: transparent;
 	overflow: hidden;
@@ -2970,10 +2970,10 @@ button.patch-updating {
 			conic-gradient(from var(--border-angle), var(--main-button-color) 80%, #999, #999);
 	animation: bg-spin 3s linear infinite;
 }
-button.patch-updating>span {
+button.button-updating>span {
 	z-index: 2;
 }
-button.patch-updating::after {
+button.button-updating::after {
 	content: '';
 	position: absolute;
 	--border-size: 3px;
@@ -2986,7 +2986,7 @@ button.patch-updating::after {
 	box-shadow: 1px 0 3px 0 #1e6391;
 	transition: width 200ms ease;
 }
-button.patch-updating::before {
+button.button-updating::before {
 	position: absolute;
 	content: '';
 	--border-size: 3px;
