@@ -1,6 +1,6 @@
 <?php
 include_once __DIR__."/../../setup/data.php";
-function download_toornament_img(mysqli $dbcn, int|string $itemID, string $type, bool $echo_states = false):bool {
+function download_opl_img(int|string $itemID, string $type, bool $echo_states = false):bool {
 	$dbcn = create_dbcn();
 	$user_agent = get_user_agent_for_api_calls();
 	if ($type == "team_logo") {
@@ -16,8 +16,10 @@ function download_toornament_img(mysqli $dbcn, int|string $itemID, string $type,
 		return false;
 	}
 
+	if ($item["OPL_ID_logo"] == NULL) return false;
+
 	if (!is_dir("$imgfolder_path/{$item["OPL_ID_logo"]}")) {
-		if ($echo_states) echo "directory doesn't exist, creating it<br>";
+		if ($echo_states) echo "Logo-Directory erstellt<br>";
 		mkdir("$imgfolder_path/{$item["OPL_ID_logo"]}");
 	}
 
@@ -31,18 +33,16 @@ function download_toornament_img(mysqli $dbcn, int|string $itemID, string $type,
 		]
 	]];
 	$context = stream_context_create($options);
-	$img = imagecreatefromstring(file_get_contents("https://www.opleague.pro$opl_logo_url"));
+	$img = imagecreatefromstring(file_get_contents("https://www.opleague.pro$opl_logo_url", context: $context));
 	if ($img) {
 		imagepalettetotruecolor($img);
 		imagealphablending($img, false);
 		imagesavealpha($img, true);
 		imagewebp($img, "$local_tournament_directory_path/logo.webp", 100);
 		imagedestroy($img);
-		if ($echo_states) echo "--saved Logo<br>";
+		if ($echo_states) echo "--Logo heruntergeladen<br>";
 		$img_written = true;
 	}
-
-	if ($echo_states) echo "----added img_local to DB entry<br>";
 
 	$dbcn->close();
 	return $img_written;

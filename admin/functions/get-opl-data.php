@@ -1,6 +1,7 @@
 <?php
 $root = __DIR__."/../../";
 include_once $root."setup/data.php";
+include_once $root."admin/functions/img-download.php";
 
 function get_tournament($id):array {
 	$returnArr = ["info"=>"", "data"=>[], "button"=>""];
@@ -157,29 +158,7 @@ function write_tournament(array $data):string {
 
 	$local_img_folder_path = __DIR__."/../../img/tournament_logos";
 	if ($data["OPL_logo_url"] != NULL && !file_exists("$local_img_folder_path/{$data["OPL_ID_logo"]}/logo.webp")) {
-		if (!is_dir("$local_img_folder_path/{$data["OPL_ID_logo"]}")) {
-			mkdir("$local_img_folder_path/{$data["OPL_ID_logo"]}");
-		}
-		$opl_logo_url = "/styles/media/event/{$data["OPL_ID_logo"]}/Logo_100.webp";
-
-		$user_agent = get_user_agent_for_api_calls();
-		$options = ["http" => [
-			"header" => [
-				"User-Agent: $user_agent",
-			]
-		]];
-		$context = stream_context_create($options);
-		$img_response = imagecreatefromstring(file_get_contents("https://www.opleague.pro$opl_logo_url", false, $context));
-
-		$img = $img_response;
-		if ($img) {
-			imagepalettetotruecolor($img);
-			imagealphablending($img, false);
-			imagesavealpha($img, true);
-			imagewebp($img, "$local_img_folder_path/{$data["OPL_ID_logo"]}/logo.webp", 100);
-			imagedestroy($img);
-			$returnInfo .= "--Logo heruntergeladen<br>";
-		}
+		download_opl_img($data["OPL_ID"], "tournament_logo", true);
 	}
 
 	return $returnInfo;
@@ -356,29 +335,7 @@ function get_teams_for_tournament($tournamentID):array {
 		// Team Logo herunterladen, wenn es noch nicht existiert
 		$local_img_folder_path = __DIR__."/../../img/team_logos";
 		if ($team_data["OPL_logo_url"] != NULL && !file_exists("$local_img_folder_path/{$team_data["OPL_ID_logo"]}/logo.webp")) {
-			if (!is_dir("$local_img_folder_path/{$team_data["OPL_ID_logo"]}")) {
-				mkdir("$local_img_folder_path/{$team_data["OPL_ID_logo"]}");
-			}
-
-			$opl_logo_url = "/styles/media/team/{$team_data["OPL_ID_logo"]}/Logo_100.webp";
-
-			$options = ["http" => [
-				"header" => [
-					"User-Agent: $user_agent",
-				]
-			]];
-			$context = stream_context_create($options);
-			$img_response = imagecreatefromstring(file_get_contents("https://www.opleague.pro$opl_logo_url", false, $context));
-
-			$img = $img_response;
-			if ($img) {
-				imagepalettetotruecolor($img);
-				imagealphablending($img, false);
-				imagesavealpha($img, true);
-				imagewebp($img, "$local_img_folder_path/{$team_data["OPL_ID_logo"]}/logo.webp", 100);
-				imagedestroy($img);
-				$logo_dl = true;
-			}
+			$logo_dl = download_opl_img($team_data["OPL_ID"], "team_logo");
 		}
 
 		$returnArr[] = [
