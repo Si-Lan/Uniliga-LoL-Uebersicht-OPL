@@ -91,7 +91,15 @@ if ($type == "players") {
 		}
 	}
 
-	echo json_encode($players);
+	if (isset($_SERVER["HTTP_SUMMONERSONLY"])) {
+		$summoners = [];
+		foreach ($players as $player) {
+			$summoners[] = $player ["summonerName"];
+		}
+		echo json_encode($summoners);
+	} else {
+		echo json_encode($players);
+	}
 }
 
 if ($type == "team-and-players") {
@@ -177,6 +185,30 @@ if ($type == "matchups") {
 		array_push($matchups, ...$matchup_from_group);
 	}
 	echo json_encode($matchups);
+}
+
+if ($type == "games-from-players-in-match") {
+	$matchID = $_SERVER["HTTP_MATCHID"] ?? NULL;
+	$match = $dbcn->execute_query("SELECT * FROM matchups WHERE OPL_ID = ?",[$matchID])->fetch_assoc();
+	if (isset($_SERVER["HTTP_WITHPUUIDONLY"])) {
+		$players1 = $dbcn->execute_query("SELECT OPL_ID FROM players JOIN players_in_teams ON players.OPL_ID = players_in_teams.OPL_ID_player WHERE OPL_ID_team = ? AND PUUID IS NOT NULL", [$match["OPL_ID_team1"]])->fetch_assoc();
+		$players2 = $dbcn->execute_query("SELECT OPL_ID FROM players JOIN players_in_teams ON players.OPL_ID = players_in_teams.OPL_ID_player WHERE OPL_ID_team = ? AND PUUID IS NOT NULL", [$match["OPL_ID_team2"]])->fetch_assoc();
+	} else {
+		$players1 = $dbcn->execute_query("SELECT OPL_ID FROM players JOIN players_in_teams ON players.OPL_ID = players_in_teams.OPL_ID_player WHERE OPL_ID_team = ?", [$match["OPL_ID_team1"]])->fetch_assoc();
+		$players2 = $dbcn->execute_query("SELECT OPL_ID FROM players JOIN players_in_teams ON players.OPL_ID = players_in_teams.OPL_ID_player WHERE OPL_ID_team = ?", [$match["OPL_ID_team2"]])->fetch_assoc();
+	}
+	$players = array_merge($players1,$players2);
+	$games = array();
+	foreach ($players as $player) {
+		$games_from_player = $dbcn->execute_query("SELECT matches_gotten FROM players WHERE OPL_ID = ?", [$player["PlayerID"]])->fetch_column();
+		$games_from_player = json_decode($games_from_player);
+		foreach ($games_from_player as $game) {
+			if (!in_array($game,$games)) {
+				$games[] = $game;
+			}
+		}
+	}
+	echo json_encode($games);
 }
 
 if ($type == "all-games") {

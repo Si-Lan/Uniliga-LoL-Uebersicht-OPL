@@ -1432,7 +1432,7 @@ async function user_update_group(button) {
 	let current = Date.now();
 	let diff = new Date(current - last_update);
 
-	if (current - last_update < 600000) {
+	if (current - last_update < 6000) {
 		let rest = new Date(600000 - (current - last_update));
 		window.alert(`Das letzte Update wurde vor ${format_time_minsec(diff)} durchgeführt. Versuche es in ${format_time_minsec(rest)} noch einmal`);
 		await new Promise(r => setTimeout(r, 1000));
@@ -1502,9 +1502,8 @@ async function user_update_group(button) {
 						matchid: match,
 					}
 				})
-					.then(res => res.json())
-					.then(result => {
-						loading_width = loading_width + 60/matchids.length;
+					.then(() => {
+						loading_width = loading_width + 50/matchids.length;
 						button.style.setProperty("--update-loading-bar-width", `${loading_width}%`);
 					})
 					.catch(e => console.error(e));
@@ -1512,6 +1511,21 @@ async function user_update_group(button) {
 			}
 		})
 		.catch(error => console.error(error));
+
+	loading_width = 90;
+	button.style.setProperty("--update-loading-bar-width", `${loading_width}%`);
+
+	await fetch(`./admin/ajax/get-opl-data.php`, {
+		method: "GET",
+		headers: {
+			"type": "calculate_standings_from_matchups",
+			"id": group_ID,
+		}
+	})
+		.catch(e => console.error(e));
+
+	loading_width = 100;
+	button.style.setProperty("--update-loading-bar-width", `${loading_width}%`);
 
 	$(button).removeClass("user_updating");
 	button.disabled = false;
@@ -1623,6 +1637,36 @@ async function user_update_team(button) {
 	loading_width = 10;
 	button.style.setProperty("--update-loading-bar-width", `${loading_width}%`);
 
+	await fetch(`ajax/get-data.php`, {
+		method: "GET",
+		headers: {
+			type: "players",
+			teamid: team_ID,
+		}
+	})
+		.then(res => res.json())
+		.then(async players => {
+			for (const player of players) {
+				await fetch(`ajax/user-update-functions.php`, {
+					method: "GET",
+					headers: {
+						type: "summoner_for_player",
+						playerid: player.OPL_ID,
+					}
+				})
+					.then(() => {
+						loading_width = loading_width + 15/players.length;
+						button.style.setProperty("--update-loading-bar-width", `${loading_width}%`);
+					})
+					.catch(e => console.error(e));
+				await new Promise(r => setTimeout(r, 1000));
+			}
+		})
+		.catch(e => console.error(e));
+
+	loading_width = 25;
+	button.style.setProperty("--update-loading-bar-width", `${loading_width}%`);
+
 	await fetch(`admin/ajax/get-rgapi-data.php`, {
 		method: "GET",
 		headers: {
@@ -1634,7 +1678,7 @@ async function user_update_team(button) {
 
 	await new Promise(r => setTimeout(r, 1000));
 
-	loading_width = 15;
+	loading_width = 30;
 	button.style.setProperty("--update-loading-bar-width", `${loading_width}%`);
 
 	await fetch(`ajax/user-update-functions.php`, {
@@ -1647,7 +1691,7 @@ async function user_update_team(button) {
 	})
 		.catch(e => console.error(e));
 
-	loading_width = 30;
+	loading_width = 35;
 	button.style.setProperty("--update-loading-bar-width", `${loading_width}%`);
 
 	await fetch(`ajax/user-update-functions.php`, {
@@ -1675,7 +1719,7 @@ async function user_update_team(button) {
 
 	await new Promise(r => setTimeout(r, 1000));
 
-	loading_width = 75;
+	loading_width = 70;
 	button.style.setProperty("--update-loading-bar-width", `${loading_width}%`);
 
 	await fetch(`ajax/get-data.php`, {
@@ -1707,13 +1751,28 @@ async function user_update_team(button) {
 		})
 		.catch(e => console.error(e));
 
+	loading_width = 95;
+	button.style.setProperty("--update-loading-bar-width", `${loading_width}%`);
+
+	await fetch(`./admin/ajax/get-opl-data.php`, {
+		method: "GET",
+		headers: {
+			"type": "calculate_standings_from_matchups",
+			"id": groupID,
+		}
+	})
+		.catch(e => console.error(e));
+
+	loading_width = 100;
+	button.style.setProperty("--update-loading-bar-width", `${loading_width}%`);
+
 	$(button).removeClass("user_updating");
 	button.disabled = false;
 	user_update_running = false;
 	loading_width = 0;
 	button.style.setProperty("--update-loading-bar-width", "0");
 
-	await fetch(`ajax/create-page-elements.php`, {
+	fetch(`ajax/create-page-elements.php`, {
 		method: "GET",
 		headers: {
 			type: "summoner-card-container",
@@ -1727,7 +1786,30 @@ async function user_update_team(button) {
 		})
 		.catch(e => console.error(e));
 
-	await fetch(`ajax/create-page-elements.php`, {
+	fetch(`ajax/get-data.php`, {
+		method: "GET",
+		headers: {
+			type: "players",
+			teamid: team_ID,
+			summonersonly: "true",
+		}
+	})
+		.then(res => res.json())
+		.then(players => {
+			$(".title .op-gg .player-amount").replaceWith(`(${players.length} Spieler)`);
+			let summoners = "";
+			players.forEach((player,index) => {
+				if (index === 0) {
+					summoners = player
+				} else {
+					summoners = summoners.concat(",",encodeURIComponent(player));
+				}
+			});
+			$(".title .op-gg").attr("href",`https://www.op.gg/multisearch/euw?summoners=${summoners}`);
+		})
+		.catch(e => console.error(e));
+
+	fetch(`ajax/create-page-elements.php`, {
 		method: "GET",
 		headers: {
 			type: "standings",
@@ -1745,7 +1827,7 @@ async function user_update_team(button) {
 	for (const matchbutton of matchbuttons) {
 		let match_ID = matchbutton.getAttribute("data-matchid");
 		let matchtype = matchbutton.getAttribute("data-matchtype");
-		await fetch(`ajax/create-page-elements.php`, {
+		fetch(`ajax/create-page-elements.php`, {
 			method: "GET",
 			headers: {
 				type: "matchbutton",
@@ -1859,7 +1941,7 @@ async function user_update_match(button) {
 		.then(res => res.json())
 		.then(async playerids => {
 			for (const playerid of playerids) {
-				await fetch(`ajax/user-update-functions.php`, {
+				await fetch(`admin/ajax/get-rgapi-data.php`, {
 					method: "GET",
 					headers: {
 						type: "games-by-player",
@@ -1867,120 +1949,117 @@ async function user_update_match(button) {
 						tournamentID: tournamentID,
 					}
 				})
+					.then(() => {
+						loading_width = loading_width + 30/playerids.length;
+						button.style.setProperty("--update-loading-bar-width", `${loading_width}%`);
+					})
 					.catch(e => console.error(e));
 				await new Promise(r => setTimeout(r, 100));
 			}
 		})
 		.catch(e => console.error(e));
 
+	loading_width = 50;
+	button.style.setProperty("--update-loading-bar-width", `${loading_width}%`);
 
-	//TODO: hier weitermachen
-	async function uum_gamedata_sort() {
-		loading_width = 50;
-		button.style.setProperty("--update-loading-bar-width", `${loading_width}%`);
-
-		let gamedata_loading = true;
-
-		fetch(`ajax-functions/user-update-functions.php`, {
-			method: "GET",
-			headers: {
-				type: "gamedata_for_match",
-				matchID: match_ID,
-				format: format,
-				sort: "true",
-			}
-		})
-			.then(() => {
-				gamedata_loading = false;
-				uum_calc_stats();
-			})
-			.catch(e => {gamedata_loading = false; console.error(e);});
-
-		while (gamedata_loading && loading_width < 80) {
-			await new Promise(r => setTimeout(r, 6000));
-			if (loading_width === 0) break;
-			loading_width += 2;
-			button.style.setProperty("--update-loading-bar-width", `${loading_width}%`);
+	await fetch(`ajax/get-data.php`, {
+		method: "GET",
+		header: {
+			type: "games-from-players-in-match",
+			matchid: match_ID,
+			withPUUIDonly: "true",
 		}
-	}
-
-	function uum_calc_stats() {
-		loading_width = 90;
-		button.style.setProperty("--update-loading-bar-width", `${loading_width}%`);
-
-		fetch(`ajax-functions/user-update-functions.php`, {
-			method: "GET",
-			headers: {
-				type: "recalc_team_stats",
-				teamID: team_ID,
-			}
-		})
-			.then(() => {
-				uum_finished()
-			})
-			.catch(e => console.error(e));
-	}
-
-	function uum_finished() {
-		loading_width = 100;
-		button.style.setProperty("--update-loading-bar-width", `${loading_width}%`);
-
-		$(button).removeClass("user_updating");
-		button.disabled = false;
-		user_update_running = false;
-		update_page();
-		loading_width = 0;
-		button.style.setProperty("--update-loading-bar-width", "0");
-	}
-
-	function update_page() {
-		fetch(`ajax-functions/get-DB-AJAX.php`, {
-			method: "GET",
-			headers: {
-				type: "match-games-teams-by-matchid",
-				matchID: match_ID,
-			}
-		})
-			.then(res => res.json())
-			.then(data => {
-				let games = data['games'];
-				let popup = $('.mh-popup');
-
-				if (games.length > 0) {
-					$(".no-game-found").remove();
-					$(".game").remove();
-				}
-				let game_counter = 0;
-				for (const [i,game] of games.entries()) {
-					if (current_match_in_popup === game['MatchID'] || current_match_in_popup === game['PLMatchID']) {
-						popup.append(`<div class='game game${i}'></div>`);
+	})
+		.then(res => res.json())
+		.then(async gameids => {
+			for (const gameid of gameids) {
+				await fetch(`admin/ajax/get-rgapi-data.php`, {
+					method: "GET",
+					headers: {
+						type: "matchdata-and-assign",
+						matchID: gameid,
+						tournamentID: tournamentID,
 					}
-					let gameID = game['RiotMatchID'];
-
-					let fetchheaders = new Headers({
-						gameid: gameID
-					});
-					if (team_ID !== null) {
-						fetchheaders.append("teamid",team_ID)
-					}
-					fetch(`ajax-functions/game-AJAX.php`, {
-						method: "GET",
-						headers: fetchheaders,
+				})
+					.then(() => {
+						loading_width = loading_width + 35/gameids.length;
+						button.style.setProperty("--update-loading-bar-width", `${loading_width}%`);
 					})
-						.then(res => res.text())
-						.then(data => {
-							let game_wrap = popup.find('.game'+i);
-							if (current_match_in_popup === game['MatchID'] || current_match_in_popup === game['PLMatchID']) {
-								game_wrap.empty();
-								game_wrap.append(data);
-								game_counter++;
-							}
-						})
-						.catch(e => console.error(e));
+					.catch(e => console.error(e));
+				await new Promise(r => setTimeout(r, 100));
+			}
+		})
+		.catch(e => console.error(e));
+
+	loading_width = 90;
+	button.style.setProperty("--update-loading-bar-width", `${loading_width}%`);
+
+	await fetch(`ajax/user-update-functions.php`, {
+		method: "GET",
+		headers: {
+			type: "recalc_team_stats",
+			teamID: team_ID,
+			tournamentID: tournamentID,
+		}
+	})
+		.catch(e => console.error(e));
+
+	loading_width = 100;
+	button.style.setProperty("--update-loading-bar-width", `${loading_width}%`);
+
+	$(button).removeClass("user_updating");
+	button.disabled = false;
+	user_update_running = false;
+	loading_width = 0;
+	button.style.setProperty("--update-loading-bar-width", "0");
+
+
+	await fetch(`ajax/get-data.php`, {
+		method: "GET",
+		headers: {
+			type: "match-games-teams-by-matchid",
+			matchID: match_ID,
+		}
+	})
+		.then(res => res.json())
+		.then(data => {
+			let games = data['games'];
+			let popup = $('.mh-popup');
+
+			if (games.length > 0) {
+				$(".no-game-found").remove();
+				$(".game").remove();
+			}
+			let game_counter = 0;
+			for (const [i, game] of games.entries()) {
+				if (current_match_in_popup === parseInt(game['OPL_ID'])) {
+					popup.append(`<div class='game game${i}'></div>`);
 				}
-			})
-			.catch(e => console.error(e));
-	}
+				let gameID = game['RIOT_matchID'];
+
+				let fetchheaders = new Headers({
+					gameid: gameID
+				});
+				if (team_ID !== null) {
+					fetchheaders.append("teamid", team_ID)
+				}
+				fetch(`ajax/game.php`, {
+					method: "GET",
+					headers: fetchheaders,
+				})
+					.then(res => res.text())
+					.then(data => {
+						let game_wrap = popup.find('.game' + i);
+						if (current_match_in_popup === parseInt(game['OPL_ID'])) {
+							game_wrap.empty();
+							game_wrap.append(data);
+							game_counter++;
+						}
+					})
+					.catch(e => console.error(e));
+			}
+		})
+		.catch(e => console.error(e));
 }
 $(document).ready(function () {
 	$(".user_update_match").on("click", function () {

@@ -5,7 +5,7 @@ include_once __DIR__."/../../setup/data.php";
 $type = $_SERVER["HTTP_TYPE"] ?? $_REQUEST["type"];
 
 if ($type == "puuids-by-team") {
-	$teamID = $_REQUEST['team'];
+	$teamID = $_SERVER["HTTP_TEAM"] ?? $_REQUEST['team'];
 
 	if (isset($_REQUEST["all"])) {
 		$results = get_puuids_by_team($teamID,TRUE);
@@ -26,7 +26,7 @@ if ($type == "games-by-player") {
 	echo $returnArr;
 }
 
-if ($type == "add-match-data") {
+if ($type == "add-match-data" || "matchdata-and-assign") {
 	$matchID = $_REQUEST['match'];
 	$tournamentID = $_REQUEST['tournament'];
 
@@ -36,7 +36,7 @@ if ($type == "add-match-data") {
 	echo $returnArr;
 }
 
-if ($type == "assign-and-filter") {
+if ($type == "assign-and-filter" || "matchdata-and-assign") {
 	$matchID = $_REQUEST['match'];
 	$tournamentID = $_REQUEST['tournament'];
 
