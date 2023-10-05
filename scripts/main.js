@@ -2106,3 +2106,7 @@ function getCookie(cname) {
 	}
 	return "";
 }
+
+function close_warningheader() {
+	$(".warning-header").remove();
+}

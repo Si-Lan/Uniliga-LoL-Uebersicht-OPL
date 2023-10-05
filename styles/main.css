@@ -3189,6 +3189,26 @@ dialog .close-popup:hover {
 	box-shadow: 2px 2px 5px rgb(0 0 0 / 0.2);
 }
 
+.warning-header {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+.warning-header span {
+	width: 100%;
+	text-align: center;
+	padding: 20px 0;
+}
+.warning-header button {
+	margin-left: auto;
+	margin-right: 10px;
+	padding: 10px 15px;
+}
+.warning-header a {
+	text-decoration: underline;
+	word-break: break-word;
+}
+
 @media screen and (min-width: 1185px) {
 	a.button.totop {
 		right: calc((100vw - 900px) / 2 - 120px);
