@@ -12,7 +12,7 @@ if (!(isset($_GET['t']))) {
 }
 $tournament_id = $_GET['t'];
 
-echo "\n---- getting Players from Toornament \n";
+echo "\n---- getting Players from OPL \n";
 
 $results = [];
 $leagues = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID_parent = ? AND eventType = 'league'", [$tournament_id])->fetch_all(MYSQLI_ASSOC);
@@ -32,3 +32,4 @@ foreach ($results as $result) {
 
 echo "-------- $writes Players written\n";
 echo "-------- $updates Players updated\n";
+$dbcn->close();

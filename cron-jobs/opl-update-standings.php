@@ -12,26 +12,22 @@ if (!(isset($_GET['t']))) {
 }
 $tournament_id = $_GET['t'];
 
-echo "\n---- getting Teams from OPL\n";
+echo "\n---- updating Standings\n";
 
 $results = [];
 $leagues = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID_parent = ? AND eventType = 'league'", [$tournament_id])->fetch_all(MYSQLI_ASSOC);
 foreach ($leagues as $league) {
 	$groups = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID_parent = ? AND eventType = 'group'", [$league["OPL_ID"]])->fetch_all(MYSQLI_ASSOC);
 	foreach ($groups as $group) {
-		array_push($results, ...get_teams_for_tournament($group["OPL_ID"]));
-		sleep(1);
+		$results[] = calculate_standings_from_matchups($group["OPL_ID"]);
 	}
 }
 
-$writes = $updates = $dl = 0;
+
+$updates = 0;
 foreach ($results as $result) {
-	if ($result["written"]) $writes++;
-	if (count($result["updated"])) $updates++;
-	if ($result["logo_downloaded"]) $dl++;
+	if (count($result) > 0) $updates++;
 }
 
-echo "-------- $writes Teams written\n";
-echo "-------- $updates Teams updated\n";
-echo "-------- $dl Team-Logos downloaded\n>";
+echo "-------- $updates Standings updated\n";
 $dbcn->close();

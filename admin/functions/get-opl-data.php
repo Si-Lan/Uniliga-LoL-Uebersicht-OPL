@@ -531,6 +531,12 @@ function get_matchups_for_tournament($tournamentID):array {
 										VALUES (?, ?, ?, ?, ?, ?, ?, false)", [$match_data["OPL_ID"], $match_data["OPL_ID_tournament"], $match_data["OPL_ID_team1"], $match_data["OPL_ID_team2"], $match_data["plannedDate"], $match_data["playday"], $match_data["bestOf"]]);
 		} else {
 			foreach ($match_data as $key=>$item) {
+				if ($key == "plannedDate") {
+					if (strtotime($matchDB[$key]) != strtotime($item)) {
+						$updated[$key] = ["old"=>$matchDB[$key], "new"=>$item];
+					}
+					continue;
+				}
 				if ($matchDB[$key] != $item) {
 					$updated[$key] = ["old"=>$matchDB[$key], "new"=>$item];
 				}

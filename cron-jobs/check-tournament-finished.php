@@ -19,3 +19,4 @@ if (isset($_GET['t']) && isset($_GET['tn'])) {
 	}
 	*/
 }
+$dbcn->close();

@@ -8,7 +8,7 @@ $type = $_SERVER["HTTP_TYPE"] ?? $_REQUEST["type"] ?? NULL;
 if ($type == NULL) exit;
 
 if ($type == "groups") {
-	$tournamentID = $_SERVER["HTTP_TOURNAMENTID"] ?? NULL;
+	$tournamentID = $_SERVER["HTTP_TOURNAMENTID"] ?? $_GET["tournamentid"] ?? NULL;
 	$tournament = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID = ?", [$tournamentID])->fetch_assoc();
 	$groups = [];
 	if ($tournament["eventType"] == "tournament") {
@@ -20,7 +20,15 @@ if ($type == "groups") {
 	} elseif ($tournament["eventType"] == "league") {
 		$groups = $dbcn->execute_query("SELECT * FROM tournaments WHERE eventType = 'group' AND OPL_ID_parent = ?", [$tournamentID])->fetch_all(MYSQLI_ASSOC);
 	}
-	echo json_encode($groups);
+	if (isset($_SERVER["HTTP_IDONLY"]) || isset($_GET["idonly"])) {
+		$groupIDs = [];
+		foreach ($groups as $group) {
+			$groupIDs[] = $group['OPL_ID'];
+		}
+		echo json_encode($groupIDs);
+	} else {
+		echo json_encode($groups);
+	}
 }
 
 if ($type == "teams") {
@@ -249,6 +257,25 @@ if ($type == "match-games-teams-by-matchid") {
 	$team2 = $dbcn->execute_query("SELECT * FROM teams WHERE OPL_ID = ?",[$match["OPL_ID_team2"]])->fetch_assoc();
 	$result = json_encode(array("match"=>$match, "games"=>$games, "team1"=>$team1, "team2"=>$team2));
 	echo $result;
+}
+
+if ($type == "tournaments") {
+	if (isset($_SERVER["HTTP_ACTIVE"]) || isset($_GET["active"])) {
+		$tournaments = $dbcn->query("SELECT * FROM tournaments WHERE eventType = 'tournament' AND finished = false")->fetch_all(MYSQLI_ASSOC);
+	} else {
+		$tournaments = $dbcn->query("SELECT * FROM tournaments WHERE eventType = 'tournament'")->fetch_all(MYSQLI_ASSOC);
+	}
+	if (isset($_SERVER["HTTP_IDONLY"]) || isset($_GET["idonly"])) {
+		$tids = [];
+		foreach ($tournaments as $tournament) {
+			//TODO: remove exclusion
+			if ($tournament["OPL_ID"] == 2931) continue;
+			$tids[] = $tournament['OPL_ID'];
+		}
+		echo json_encode($tids);
+	} else {
+		echo json_encode($tournaments);
+	}
 }
 
 if ($type == "local_patch_info") {
