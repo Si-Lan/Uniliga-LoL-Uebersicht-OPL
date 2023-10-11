@@ -8,7 +8,7 @@ function create_html_head_elements(array $css = [], array $js = [], string $titl
 	}
 
 	// basic content
-	$result .= "<base href='/opl/uniliga/'>";
+	$result .= "<base href='/uniliga/'>";
 	$result .= "<meta name='viewport' content='width=device-width, initial-scale=1'>";
 	$result .= "<link rel='icon' href='https://silence.lol/favicon-dark.ico' media='(prefers-color-scheme: dark)'/>";
 	$result .= "<link rel='icon' href='https://silence.lol/favicon-light.ico' media='(prefers-color-scheme: light)'/>";
