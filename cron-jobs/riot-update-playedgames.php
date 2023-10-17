@@ -13,7 +13,7 @@ if (!(isset($_GET['t']))) {
 $tournament_id = $_GET['t'];
 
 echo "<br>---- all played Custom-Games from Players <br>";
-$players = $dbcn->execute_query("SELECT p.* FROM players p JOIN players_in_teams pit on p.OPL_ID = pit.OPL_ID_player JOIN teams_in_tournaments tit on pit.OPL_ID_team = tit.OPL_ID_team WHERE tit.OPL_ID_tournament IN (SELECT OPL_ID FROM tournaments WHERE eventType='group' AND OPL_ID_parent IN (SELECT OPL_ID FROM tournaments WHERE eventType='league' AND OPL_ID_parent = ?))", [$tournament_id])->fetch_all(MYSQLI_ASSOC);
+$players = $dbcn->execute_query("SELECT p.* FROM players p JOIN players_in_teams_in_tournament pit ON p.OPL_ID = pit.OPL_ID_player JOIN teams_in_tournaments tit ON pit.OPL_ID_team = tit.OPL_ID_team WHERE tit.OPL_ID_group IN (SELECT OPL_ID FROM tournaments WHERE eventType='group' AND OPL_ID_parent IN (SELECT OPL_ID FROM tournaments WHERE eventType='league' AND OPL_ID_parent = ?))", [$tournament_id])->fetch_all(MYSQLI_ASSOC);
 $games_gotten = array("already"=>0,"new"=>0);
 foreach ($players as $pindex=>$player) {
 	if (($pindex) % 50 === 0 && $pindex != 0) {

@@ -125,15 +125,15 @@ echo "<div class='team-list $tournamentID'>";
 echo "<div class='no-search-res-text $tournamentID' style='display: none'>Kein Team gefunden!</div>";
 
 
-$teams = $dbcn->execute_query("SELECT * FROM teams JOIN teams_in_tournaments tit on teams.OPL_ID = tit.OPL_ID_team WHERE tit.OPL_ID_tournament IN (SELECT OPL_ID FROM tournaments WHERE eventType = 'group' AND OPL_ID_parent IN (SELECT OPL_ID FROM tournaments WHERE eventType='league' AND OPL_ID_parent = ?))", [$tournamentID])->fetch_all(MYSQLI_ASSOC);
+$teams = $dbcn->execute_query("SELECT * FROM teams JOIN teams_in_tournaments tit on teams.OPL_ID = tit.OPL_ID_team WHERE tit.OPL_ID_group IN (SELECT OPL_ID FROM tournaments WHERE eventType = 'group' AND OPL_ID_parent IN (SELECT OPL_ID FROM tournaments WHERE eventType='league' AND OPL_ID_parent = ?))", [$tournamentID])->fetch_all(MYSQLI_ASSOC);
 
 $local_img_path = "img/team_logos/";
 
 foreach ($teams as $i_teams=>$team) {
 	$currTeam = $team["name"];
 	$currTeamID = $team["OPL_ID"];
-	$currTeamGroupID = $team["OPL_ID_tournament"];
-	$currTeamDivID = $groups[$team["OPL_ID_tournament"]]["OPL_ID_parent"];
+	$currTeamGroupID = $team["OPL_ID_group"];
+	$currTeamDivID = $groups[$team["OPL_ID_group"]]["OPL_ID_parent"];
 	$currTeamImgID = $team["OPL_ID_logo"];
 
 	$team_rank = "";

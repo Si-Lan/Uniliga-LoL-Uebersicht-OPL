@@ -85,8 +85,13 @@ if ($type == "get_players_for_tournament") {
 if ($type == "get_summonerNames_for_team") {
 	$result = [];
 	$dbcn = create_dbcn();
-	$id = $_SERVER["HTTP_ID"] ?? NULL;
-	$players = $dbcn->execute_query("SELECT * FROM players p JOIN players_in_teams pit on p.OPL_ID = pit.OPL_ID_player WHERE OPL_ID_team = ?", [$id])->fetch_all(MYSQLI_ASSOC);
+	$team_id = $_SERVER["HTTP_TEAMID"] ?? NULL;
+	$tournament_id = $_SERVER["HTTP_TOURNAMENTID"] ?? NULL;
+	if ($tournament_id != NULL){
+		$players = $dbcn->execute_query("SELECT * FROM players p JOIN players_in_teams_in_tournament pit on p.OPL_ID = pit.OPL_ID_player WHERE OPL_ID_team = ? AND (OPL_ID_tournament = ? OR OPL_ID_tournament IN (SELECT OPL_ID_parent FROM tournaments WHERE eventType='league' AND OPL_ID = ?) OR OPL_ID_tournament IN (SELECT OPL_ID_parent FROM tournaments WHERE eventType='league' AND OPL_ID IN (SELECT OPL_ID_parent FROM tournaments WHERE eventType='group' AND OPL_ID = ?)))", [$team_id, $tournament_id, $tournament_id, $tournament_id])->fetch_all(MYSQLI_ASSOC);
+	} else {
+		$players = $dbcn->execute_query("SELECT * FROM players p JOIN players_in_teams pit on p.OPL_ID = pit.OPL_ID_player WHERE OPL_ID_team = ?", [$team_id])->fetch_all(MYSQLI_ASSOC);
+	}
 	foreach ($players as $player) {
 		$result[] = get_summonerNames_for_player($player["OPL_ID"]);
 		sleep(1);

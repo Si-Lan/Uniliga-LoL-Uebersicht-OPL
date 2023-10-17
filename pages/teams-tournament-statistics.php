@@ -28,7 +28,7 @@ if (preg_match("/^(winter|sommer)([0-9]{2})$/",strtolower($tournamentID),$url_pa
 	$tournamentID = $dbcn->execute_query("SELECT OPL_ID FROM tournaments WHERE season = ? AND split = ? AND eventType = 'tournament'", [$season, $split])->fetch_column();
 }
 $tournament = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID = ? AND eventType = 'tournament'", [$tournamentID])->fetch_assoc();
-$team_groups = $dbcn->execute_query("SELECT * FROM teams JOIN teams_in_tournaments tit ON teams.OPL_ID = tit.OPL_ID_team WHERE OPL_ID = ? AND OPL_ID_tournament IN (SELECT OPL_ID FROM tournaments WHERE eventType='group' AND OPL_ID_parent IN (SELECT OPL_ID FROM tournaments WHERE eventType='league' AND OPL_ID_parent = ?))", [$teamID, $tournamentID])->fetch_all(MYSQLI_ASSOC);
+$team_groups = $dbcn->execute_query("SELECT * FROM teams JOIN teams_in_tournaments tit ON teams.OPL_ID = tit.OPL_ID_team WHERE OPL_ID = ? AND OPL_ID_group IN (SELECT OPL_ID FROM tournaments WHERE eventType='group' AND OPL_ID_parent IN (SELECT OPL_ID FROM tournaments WHERE eventType='league' AND OPL_ID_parent = ?))", [$teamID, $tournamentID])->fetch_all(MYSQLI_ASSOC);
 $team_solo = $dbcn->execute_query("SELECT * FROM teams WHERE OPL_ID = ?", [$teamID])->fetch_assoc();
 
 if ($tournament == NULL) {
@@ -61,10 +61,10 @@ if (count($team_groups) > 1) {
 	$team = $team_groups[0];
 }
 
-$group = $dbcn->execute_query("SELECT * FROM tournaments WHERE eventType='group' AND OPL_ID = ?", [$team["OPL_ID_tournament"]])->fetch_assoc();
+$group = $dbcn->execute_query("SELECT * FROM tournaments WHERE eventType='group' AND OPL_ID = ?", [$team["OPL_ID_group"]])->fetch_assoc();
 $league = $dbcn->execute_query("SELECT * FROM tournaments WHERE eventType='league' AND OPL_ID = ?", [$group["OPL_ID_parent"]])->fetch_assoc();
 
-$teams_from_groupDB = $dbcn->execute_query("SELECT * FROM teams JOIN teams_in_tournaments tit on teams.OPL_ID = tit.OPL_ID_team WHERE OPL_ID_tournament = ?", [$group["OPL_ID"]])->fetch_all(MYSQLI_ASSOC);
+$teams_from_groupDB = $dbcn->execute_query("SELECT * FROM teams JOIN teams_in_tournaments tit on teams.OPL_ID = tit.OPL_ID_team WHERE OPL_ID_group = ?", [$group["OPL_ID"]])->fetch_all(MYSQLI_ASSOC);
 $teams_from_group = [];
 foreach ($teams_from_groupDB as $i=>$team_from_group) {
 	$teams_from_group[$team_from_group['OPL_ID']] = $team_from_group;
@@ -85,7 +85,7 @@ echo create_header($dbcn,"tournament", $tournamentID);
 echo create_tournament_nav_buttons($tournamentID, $dbcn,"",$league['OPL_ID'],$group['OPL_ID']);
 echo create_team_nav_buttons($tournamentID,$group["OPL_ID"],$team,"stats");
 
-$players = $dbcn->execute_query("SELECT * FROM players JOIN players_in_teams pit on players.OPL_ID = pit.OPL_ID_player LEFT JOIN stats_players_in_tournaments spit ON pit.OPL_ID_player = spit.OPL_ID_player AND spit.OPL_ID_tournament = ? WHERE pit.OPL_ID_team = ? ", [$tournamentID, $teamID])->fetch_all(MYSQLI_ASSOC);
+$players = $dbcn->execute_query("SELECT * FROM players JOIN players_in_teams_in_tournament pit on players.OPL_ID = pit.OPL_ID_player AND pit.OPL_ID_tournament = ? LEFT JOIN stats_players_in_tournaments spit ON pit.OPL_ID_player = spit.OPL_ID_player AND spit.OPL_ID_tournament = ? WHERE pit.OPL_ID_team = ? ", [$tournamentID, $tournamentID, $teamID])->fetch_all(MYSQLI_ASSOC);
 $teamstats = $dbcn->execute_query("SELECT * FROM stats_teams_in_tournaments WHERE OPL_ID_team = ? AND OPL_ID_tournament = ?", [$teamID, $tournamentID])->fetch_assoc();
 
 

@@ -254,7 +254,15 @@ function generate_elo_list($dbcn,$view,$teams,$tournamentID,$division,$group):st
                         <a class='elo-list-after-header op-gg'><div class='svg-wrapper op-gg'></div></a>
                     </div>";
 	foreach ($teams as $team) {
-		$curr_players = $dbcn->execute_query("SELECT p.* FROM players p JOIN players_in_teams pit on p.OPL_ID = pit.OPL_ID_player WHERE OPL_ID_team = ?",[$team['OPL_ID']])->fetch_all(MYSQLI_ASSOC);
+		$curr_players = $dbcn->execute_query(
+			"SELECT p.*
+				FROM players p
+				    JOIN players_in_teams_in_tournament pit
+				        ON p.OPL_ID = pit.OPL_ID_player
+				               AND pit.OPL_ID_tournament = ?
+				WHERE OPL_ID_team = ?",
+			[$tournamentID, $team['OPL_ID']]
+		)->fetch_all(MYSQLI_ASSOC);
 		$curr_opgglink = $opgg_url;
 		$color_class = "";
 		if ($view == "all") {
@@ -316,7 +324,7 @@ function create_standings(mysqli $dbcn, $tournament_id, $group_id, $team_id=NULL
 	$opgg_logo_svg = file_get_contents(__DIR__."/../img/opgglogo.svg");
 	$group = $dbcn->execute_query("SELECT * FROM tournaments WHERE eventType = 'group' AND OPL_ID = ?",[$group_id])->fetch_assoc();
 	$div = $dbcn->execute_query("SELECT * FROM tournaments WHERE eventType = 'league' AND OPL_ID = ?",[$group['OPL_ID_parent']])->fetch_assoc();
-	$teams_from_groupDB = $dbcn->execute_query("SELECT * FROM teams JOIN teams_in_tournaments tit ON teams.OPL_ID = tit.OPL_ID_team  WHERE tit.OPL_ID_tournament = ? ORDER BY IF((standing=0 OR standing IS NULL), 1, 0), standing",[$group['OPL_ID']])->fetch_all(MYSQLI_ASSOC);
+	$teams_from_groupDB = $dbcn->execute_query("SELECT * FROM teams JOIN teams_in_tournaments tit ON teams.OPL_ID = tit.OPL_ID_team  WHERE tit.OPL_ID_group = ? ORDER BY IF((standing=0 OR standing IS NULL), 1, 0), standing",[$group['OPL_ID']])->fetch_all(MYSQLI_ASSOC);
 
 	$result .= "<div class='standings'>";
 	if ($team_id == NULL) {
@@ -337,7 +345,15 @@ function create_standings(mysqli $dbcn, $tournament_id, $group_id, $team_id=NULL
             </div>";
 	$last_rank = -1;
 	foreach ($teams_from_groupDB as $currteam) {
-		$curr_players = $dbcn->execute_query("SELECT * FROM players JOIN players_in_teams pit on players.OPL_ID = pit.OPL_ID_player WHERE OPL_ID_team = ?",[$currteam['OPL_ID']])->fetch_all(MYSQLI_ASSOC);
+		$curr_players = $dbcn->execute_query(
+			"SELECT *
+					FROM players
+					    JOIN players_in_teams_in_tournament pit
+					        on players.OPL_ID = pit.OPL_ID_player
+								AND pit.OPL_ID_tournament = ?
+					WHERE OPL_ID_team = ?",
+			[$tournament_id, $currteam['OPL_ID']]
+		)->fetch_all(MYSQLI_ASSOC);
 		$curr_opgglink = $opgg_url;
 		foreach ($curr_players as $i_cop=>$curr_player) {
 			if ($i_cop != 0) {
@@ -545,8 +561,8 @@ function create_game($dbcn,$gameID,$curr_team=NULL):string {
 	$team_red_ID = $gameDB['OPL_ID_redTeam'];
 	$team_blue = $dbcn->execute_query("SELECT * FROM teams WHERE OPL_ID = ?",[$team_blue_ID])->fetch_assoc();
 	$team_red = $dbcn->execute_query("SELECT * FROM teams WHERE OPL_ID = ?",[$team_red_ID])->fetch_assoc();
-	$players_blue_DB = $dbcn->execute_query("SELECT summonerName, rank_tier, rank_div, PUUID FROM players JOIN players_in_teams pit on players.OPL_ID = pit.OPL_ID_player WHERE OPL_ID_team = ?",[$team_blue['OPL_ID']])->fetch_all(MYSQLI_ASSOC);
-	$players_red_DB = $dbcn->execute_query("SELECT summonerName, rank_tier, rank_div, PUUID FROM players JOIN players_in_teams pit on players.OPL_ID = pit.OPL_ID_player WHERE OPL_ID_team = ?",[$team_red['OPL_ID']])->fetch_all(MYSQLI_ASSOC);
+	$players_blue_DB = $dbcn->execute_query("SELECT summonerName, rank_tier, rank_div, PUUID FROM players JOIN players_in_teams_in_tournament pit on players.OPL_ID = pit.OPL_ID_player WHERE OPL_ID_team = ?",[$team_blue['OPL_ID']])->fetch_all(MYSQLI_ASSOC);
+	$players_red_DB = $dbcn->execute_query("SELECT summonerName, rank_tier, rank_div, PUUID FROM players JOIN players_in_teams_in_tournament pit on players.OPL_ID = pit.OPL_ID_player WHERE OPL_ID_team = ?",[$team_red['OPL_ID']])->fetch_all(MYSQLI_ASSOC);
 
 	$tournamentID = $gameDB["OPL_ID_tournament"];
 

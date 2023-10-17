@@ -1069,6 +1069,7 @@ div.summoner-card-container {
 .summoner-card-wrapper {
 	display: flex;
 	flex-direction: column;
+	position: relative;
 }
 .summoner-card-wrapper.placeholder {
 	width: 230px;
@@ -1079,6 +1080,15 @@ div.summoner-card-container {
 }
 .summoner-card-wrapper.placeholder.collapsed {
 	height: 215px;
+}
+.summoner-card-wrapper:has(.player-removed)::before {
+	content: "";
+	position: absolute;
+	inset: 0;
+	border: 1px solid #6d2c2c;
+	pointer-events: none;
+	z-index: 2;
+	border-radius: 6px;
 }
 .summoner-card {
 	width: 230px;

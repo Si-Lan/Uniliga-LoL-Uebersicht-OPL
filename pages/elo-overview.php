@@ -112,7 +112,7 @@ if ($filtered == "liga") {
 		$teams_of_div = $dbcn->execute_query("SELECT t.*, g.OPL_ID AS OPL_ID_group, l.OPL_ID AS OPL_ID_league, g.number AS number_group, l.number AS number_league
 													FROM teams t 
     													JOIN teams_in_tournaments tit ON t.OPL_ID = tit.OPL_ID_team
-    														JOIN tournaments g ON tit.OPL_ID_tournament = g.OPL_ID
+    														JOIN tournaments g ON tit.OPL_ID_group = g.OPL_ID
     															JOIN tournaments l ON g.OPL_ID_parent = l.OPL_ID
     												WHERE l.OPL_ID = ?
     												ORDER BY avg_rank_num DESC", [$league["OPL_ID"]])->fetch_all(MYSQLI_ASSOC);
@@ -125,7 +125,7 @@ if ($filtered == "liga") {
 			$teams_of_group = $dbcn->execute_query("SELECT t.*, g.OPL_ID AS OPL_ID_group, l.OPL_ID AS OPL_ID_league, g.number AS number_group, l.number AS number_league
 													FROM teams t 
     													JOIN teams_in_tournaments tit ON t.OPL_ID = tit.OPL_ID_team
-    														JOIN tournaments g ON tit.OPL_ID_tournament = g.OPL_ID
+    														JOIN tournaments g ON tit.OPL_ID_group = g.OPL_ID
     															JOIN tournaments l ON g.OPL_ID_parent = l.OPL_ID
     												WHERE g.OPL_ID = ?
     												ORDER BY avg_rank_num DESC", [$group["OPL_ID"]])->fetch_all(MYSQLI_ASSOC);
@@ -136,7 +136,7 @@ if ($filtered == "liga") {
 	$teams = $dbcn->execute_query("SELECT t.*, g.OPL_ID AS OPL_ID_group, l.OPL_ID AS OPL_ID_league, g.number AS number_group, l.number AS number_league
 											FROM teams t 
     											JOIN teams_in_tournaments tit ON t.OPL_ID = tit.OPL_ID_team
-    												JOIN tournaments g ON tit.OPL_ID_tournament = g.OPL_ID
+    												JOIN tournaments g ON tit.OPL_ID_group = g.OPL_ID
     													JOIN tournaments l ON g.OPL_ID_parent = l.OPL_ID
     										WHERE l.OPL_ID_parent = ?
     										ORDER BY avg_rank_num DESC", [$tournamentID])->fetch_all(MYSQLI_ASSOC);

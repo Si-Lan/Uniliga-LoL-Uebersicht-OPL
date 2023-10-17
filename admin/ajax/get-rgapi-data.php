@@ -133,7 +133,12 @@ if ($type == "calculate-write-avg-rank") {
 	);
 
 	$teamID = $_REQUEST["team"];
-	$players = $dbcn->query("SELECT * FROM players p JOIN players_in_teams pit on p.OPL_ID = pit.OPL_ID_player WHERE OPL_ID_team = $teamID")->fetch_all(MYSQLI_ASSOC);
+	$tournamentID = $_REQUEST["tournament"] ?? NULL;
+	if ($tournamentID != NULL) {
+		$players = $dbcn->execute_query("SELECT * FROM players p JOIN players_in_teams_in_tournament pit on p.OPL_ID = pit.OPL_ID_player WHERE OPL_ID_team = ? AND OPL_ID_tournament = ?", [$teamID, $tournamentID])->fetch_all(MYSQLI_ASSOC);
+	} else {
+		$players = $dbcn->execute_query("SELECT * FROM players p JOIN players_in_teams pit on p.OPL_ID = pit.OPL_ID_player WHERE OPL_ID_team = ?", [$teamID])->fetch_all(MYSQLI_ASSOC);
+	}
 	$rank_arr = [];
 	foreach ($players as $player) {
 		if ($player['rank_tier'] != NULL && $player['rank_tier'] != "UNRANKED") {

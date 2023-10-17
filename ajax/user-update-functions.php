@@ -86,9 +86,10 @@ if ($type == "calculate_standings") {
 
 if ($type == "players_in_team") {
 	$dbcn = create_dbcn();
-	$team_ID = $_SERVER['HTTP_TEAMID'] ?? NULL;
+	$teamID = $_SERVER['HTTP_TEAMID'] ?? NULL;
+	$tournamentID = $_SERVER['HTTP_TOURNAMENTID'] ?? NULL;
 
-	$result = get_players_for_team($team_ID);
+	$result = get_players_for_team($teamID, $tournamentID);
 	echo json_encode($result);
 	$dbcn->close();
 }

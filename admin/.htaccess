@@ -1,5 +1,5 @@
 RewriteEngine On
-RewriteBase /opl/uniliga
+RewriteBase /uniliga
 
 RewriteRule ^$ ./admin/pages/admin.php [NC,L]
 RewriteRule ^ddragon$ ./admin/pages/ddragon-updates.php [NC,L]

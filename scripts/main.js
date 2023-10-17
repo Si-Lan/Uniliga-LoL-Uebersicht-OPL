@@ -346,6 +346,7 @@ async function popup_team(teamID, tournamentID = null) {
 		headers: {
 			type: "team-and-players",
 			teamid: teamID,
+			tournamentid: tournamentID,
 		}
 	})
 		.then(res => res.json())
@@ -1631,6 +1632,7 @@ async function user_update_team(button) {
 		headers: {
 			type: "players_in_team",
 			teamid: team_ID,
+			tournamentid: tournamentID,
 		}
 	})
 		.catch(e => console.error(e));
@@ -1643,6 +1645,7 @@ async function user_update_team(button) {
 		headers: {
 			type: "players",
 			teamid: team_ID,
+			tournamentid: tournamentID,
 		}
 	})
 		.then(res => res.json())
@@ -1792,6 +1795,7 @@ async function user_update_team(button) {
 		headers: {
 			type: "players",
 			teamid: team_ID,
+			tournamentid: tournamentID,
 			summonersonly: "true",
 		}
 	})

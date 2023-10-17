@@ -142,6 +142,7 @@ function get_summonerNames_for_tournament(tournamentID) {
 	button.addClass("button-updating");
 	button.prop("disabled", true);
 	let loadingbar_width = 0;
+	button.attr("style",`--loading-bar-width:${loadingbar_width}%`);
 
 	fetch(`./ajax/get-data.php`, {
 		method: "GET",
@@ -157,7 +158,8 @@ function get_summonerNames_for_tournament(tournamentID) {
 					method: "GET",
 					headers: {
 						"type": "get_summonerNames_for_team",
-						"id": team.OPL_ID,
+						"teamID": team.OPL_ID,
+						"tournamentID": tournamentID,
 					}
 				})
 					.then(res => res.json())

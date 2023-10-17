@@ -326,10 +326,10 @@ function get_teams_for_tournament($tournamentID):array {
 		}
 
 		// Team in Tournament Beziehung prüfen
-		$team_in_tournament = $dbcn->execute_query("SELECT * FROM teams_in_tournaments WHERE OPL_ID_team = ? AND OPL_ID_tournament = ?", [$team_data["OPL_ID"], $tournamentID])->fetch_assoc();
+		$team_in_tournament = $dbcn->execute_query("SELECT * FROM teams_in_tournaments WHERE OPL_ID_team = ? AND OPL_ID_group = ?", [$team_data["OPL_ID"], $tournamentID])->fetch_assoc();
 		if ($team_in_tournament == NULL) {
 			$updated["tournamentID"] = ["old"=>NULL, "new"=>$tournamentID];
-			$dbcn->execute_query("INSERT INTO teams_in_tournaments (OPL_ID_team, OPL_ID_tournament) VALUES (?, ?)", [$team_data["OPL_ID"], $tournamentID]);
+			$dbcn->execute_query("INSERT INTO teams_in_tournaments (OPL_ID_team, OPL_ID_group) VALUES (?, ?)", [$team_data["OPL_ID"], $tournamentID]);
 		}
 
 		// Team Logo herunterladen, wenn es noch nicht existiert
@@ -365,17 +365,17 @@ function get_players_for_tournament($tournamentID):array {
 		return [];
 	}
 
-	$teams = $dbcn->execute_query("SELECT * FROM teams_in_tournaments WHERE OPL_ID_tournament = ?", [$tournamentID])->fetch_all(MYSQLI_ASSOC);
+	$teams = $dbcn->execute_query("SELECT * FROM teams_in_tournaments WHERE OPL_ID_group = ?", [$tournamentID])->fetch_all(MYSQLI_ASSOC);
 
 	foreach ($teams as $team) {
-		array_push($returnArr, ...get_players_for_team($team["OPL_ID_team"]));
+		array_push($returnArr, ...get_players_for_team($team["OPL_ID_team"],$tournamentID));
 		sleep(1);
 	}
 
 	return $returnArr;
 }
 
-function get_players_for_team($teamID, bool $update_summoners = false):array {
+function get_players_for_team($teamID, $tournamentID):array {
 	$returnArr = [];
 	$dbcn = create_dbcn();
 	$bearer_token = get_opl_bearer_token();
@@ -384,6 +384,11 @@ function get_players_for_team($teamID, bool $update_summoners = false):array {
 	if ($dbcn -> connect_error){
 		return $returnArr;
 	}
+
+	$tournament_data = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID = ?", [$tournamentID])->fetch_assoc();
+	$current_time = time();
+	$tournament_end = strtotime($tournament_data["dateEnd"]);
+	$parent_tournamentID = $dbcn->execute_query("SELECT OPL_ID_parent FROM tournaments WHERE eventType='league' AND OPL_ID = (SELECT OPL_ID_parent FROM tournaments WHERE eventType= 'group' AND OPL_ID = ?)", [$tournamentID])->fetch_column();
 
 	$url = "https://www.opleague.pro/api/v4/team/$teamID/users";
 	$options = ["http" => [
@@ -396,6 +401,8 @@ function get_players_for_team($teamID, bool $update_summoners = false):array {
 	$response = json_decode(file_get_contents($url, context: $context),true);
 
 	$data = $response["data"]["users"];
+
+	$player_IDs = [];
 
 	foreach ($data as $player) {
 		$player_data = [
@@ -426,13 +433,43 @@ function get_players_for_team($teamID, bool $update_summoners = false):array {
 		if ($player_in_team == NULL) {
 			$updated["teamID"] = ["old"=>NULL, "new"=>$teamID];
 			$dbcn->execute_query("INSERT INTO players_in_teams (OPL_ID_player, OPL_ID_team) VALUES (?, ?)", [$player_data["OPL_ID"], $teamID]);
+		} else {
+			$dbcn->execute_query("UPDATE players_in_teams SET removed = FALSE WHERE OPL_ID_player = ? AND OPL_ID_team = ?", [$player_data["OPL_ID"], $teamID]);
 		}
+
+		if ($current_time - $tournament_end > 0) {
+			$player_in_team_in_tournament = $dbcn->execute_query("SELECT * FROM players_in_teams_in_tournament WHERE OPL_ID_team = ? AND OPL_ID_player = ? AND OPL_ID_tournament = ?", [$teamID, $player_data["OPL_ID"], $parent_tournamentID])->fetch_assoc();
+			if ($player_in_team_in_tournament == NULL) {
+				$updated["teamID_tournament"] = ["old"=>NULL, "new"=>$teamID];
+				$dbcn->execute_query("INSERT INTO players_in_teams_in_tournament (OPL_ID_player, OPL_ID_team, OPL_ID_tournament) VALUES (?, ?, ?)", [$player_data["OPL_ID"], $teamID, $parent_tournamentID]);
+			} else {
+				$dbcn->execute_query("UPDATE players_in_teams_in_tournament SET removed = FALSE WHERE OPL_ID_player = ? AND OPL_ID_team = ? AND OPL_ID_tournament = ?", [$player_data["OPL_ID"], $teamID, $parent_tournamentID]);
+			}
+		}
+
+		$player_IDs[] = $player_data["OPL_ID"];
 
 		$returnArr[] = [
 			"player" => $player_data,
 			"written" => $written,
 			"updated" => $updated,
 		];
+	}
+
+	$players_t = $dbcn->execute_query("SELECT * FROM players_in_teams WHERE OPL_ID_team = ?", [$teamID])->fetch_all(MYSQLI_ASSOC);
+	$players_tt = $dbcn->execute_query("SELECT * FROM players_in_teams_in_tournament WHERE OPL_ID_team = ? AND OPL_ID_tournament = ?", [$teamID, $parent_tournamentID])->fetch_all(MYSQLI_ASSOC);
+
+	foreach ($players_t as $player) {
+		if (!in_array($player["OPL_ID_player"], $player_IDs)) {
+			$dbcn->execute_query("UPDATE players_in_teams SET removed = FALSE WHERE OPL_ID_player = ? AND OPL_ID_team = ?", [$player["OPL_ID_player"], $teamID]);
+		}
+	}
+	if ($current_time - $tournament_end > 0) {
+		foreach ($players_tt as $player) {
+			if (!in_array($player["OPL_ID_player"], $player_IDs)) {
+				$dbcn->execute_query("UPDATE players_in_teams_in_tournament SET removed = TRUE WHERE OPL_ID_player = ? AND OPL_ID_team = ? AND OPL_ID_tournament = ?", [$player["OPL_ID_player"], $teamID, $parent_tournamentID]);
+			}
+		}
 	}
 
 	return $returnArr;
@@ -621,7 +658,7 @@ function calculate_standings_from_matchups($tournamentID):array {
 		return [];
 	}
 
-	$teams = $dbcn->execute_query("SELECT * FROM teams JOIN teams_in_tournaments tit on teams.OPL_ID = tit.OPL_ID_team WHERE tit.OPL_ID_tournament = ?", [$tournamentID])->fetch_all(MYSQLI_ASSOC);
+	$teams = $dbcn->execute_query("SELECT * FROM teams JOIN teams_in_tournaments tit on teams.OPL_ID = tit.OPL_ID_team WHERE tit.OPL_ID_group = ?", [$tournamentID])->fetch_all(MYSQLI_ASSOC);
 
 	$teams_standings = [];
 
@@ -715,7 +752,7 @@ function calculate_standings_from_matchups($tournamentID):array {
 
 
 	foreach ($teams_standings as $teamID=>$team) {
-		$dbcn->execute_query("UPDATE teams_in_tournaments SET standing = ?, played = ?, wins = ?, draws = ?, losses = ?, points = ? WHERE OPL_ID_team = ? AND OPL_ID_tournament = ?", [$team["standing"], $team["played"], $team["wins"], $team["draws"], $team["losses"], $team["points"], $teamID, $tournamentID]);
+		$dbcn->execute_query("UPDATE teams_in_tournaments SET standing = ?, played = ?, wins = ?, draws = ?, losses = ?, points = ? WHERE OPL_ID_team = ? AND OPL_ID_group = ?", [$team["standing"], $team["played"], $team["wins"], $team["draws"], $team["losses"], $team["points"], $teamID, $tournamentID]);
 	}
 
 	return $updated;

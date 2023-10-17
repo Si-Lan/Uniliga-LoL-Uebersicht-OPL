@@ -1,7 +1,8 @@
 <?php
-function create_summonercard(mysqli $dbcn, $playerID, $tournamentID, bool $collapsed=FALSE, bool $echo=FALSE):string {
-	$player = $dbcn->execute_query("SELECT * FROM players p LEFT JOIN stats_players_in_tournaments spit ON p.OPL_ID = spit.OPL_ID_player AND spit.OPL_ID_tournament = ? WHERE p.OPL_ID = ?", [$tournamentID, $playerID])->fetch_assoc();
+function create_summonercard(mysqli $dbcn, $playerID, $tournamentID, $teamID = NULL, bool $collapsed=FALSE, bool $echo=FALSE):string {
+	$player = $dbcn->execute_query("SELECT * FROM players p JOIN players_in_teams_in_tournament pitit on p.OPL_ID = pitit.OPL_ID_player AND OPL_ID_tournament = ? AND OPL_ID_team = ? LEFT JOIN stats_players_in_tournaments spit ON p.OPL_ID = spit.OPL_ID_player WHERE p.OPL_ID = ?", [$tournamentID, $teamID, $playerID])->fetch_assoc();
 	$return = "";
+	$player_removed_class =  ($player["removed"] == 1) ? "player-removed" : "";
     if ($collapsed) {
 		$sc_collapsed_state = "collapsed";
     } else {
@@ -17,7 +18,7 @@ function create_summonercard(mysqli $dbcn, $playerID, $tournamentID, bool $colla
 	}
 	$return .= "<div class='summoner-card-wrapper'>";
 	$return .= "
-	<div class='summoner-card {$player['OPL_ID']} $sc_collapsed_state' onclick='player_to_opgg_link(\"{$player['OPL_ID']}\",\"{$player['summonerName']}\")'>";
+	<div class='summoner-card {$player['OPL_ID']} $sc_collapsed_state $player_removed_class' onclick='player_to_opgg_link(\"{$player['OPL_ID']}\",\"{$player['summonerName']}\")'>";
 	$return .= "<input type='checkbox' name='OPGG' checked class='opgg-checkbox'>";
 	$return .= "
 	<span class='card-player'>
