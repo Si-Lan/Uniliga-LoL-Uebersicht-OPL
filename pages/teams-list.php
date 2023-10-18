@@ -29,6 +29,7 @@ $tournament = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID = ? A
 if ($tournament == NULL) {
 	echo create_html_head_elements(title: "Kein Turnier gefunden | Uniliga LoL - Übersicht");
 	echo "<body class='$lightmode'>";
+	echo show_old_url_warning($tournamentID);
 	echo create_header(title: "error");
 	echo "<div style='text-align: center'>Kein Turnier unter der angegebenen ID gefunden!</div></body>";
 	exit();

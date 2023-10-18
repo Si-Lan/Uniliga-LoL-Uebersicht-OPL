@@ -40,6 +40,12 @@ RewriteRule ^turnier/(.+)/team/(.+)$ ./pages/teams-tournament-details?team=$2&to
 RewriteRule ^turnier$ ./pages/tournament-details [NC,L]
 RewriteRule ^turnier/(.+)$ ./pages/tournament-details?tournament=$1 [NC,L]
 
+## redirect matchhistory
+RewriteRule ^team/(.+)/matchhistory$ ./pages/teams?team-details=$1 [NC,L]
+
+## redirect statistics
+RewriteRule ^team/(.+)/stats$ ./pages/team-details?team=$1 [NC,L]
+
 ## redirect teams
 RewriteRule ^team$ ./pages/team-details [NC,L]
 RewriteRule ^team/(.+)$ ./pages/team-details?team=$1 [NC,L,QSA]

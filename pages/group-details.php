@@ -27,15 +27,17 @@ if (preg_match("/^(winter|sommer)([0-9]{2})$/",strtolower($tournamentID),$url_pa
 }
 $tournament = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID = ? AND eventType = 'tournament'", [$tournamentID])->fetch_assoc();
 $group = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID = ? AND eventType = 'group'", [$groupID])->fetch_assoc();
-$league = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID = ? AND eventType = 'league'", [$group["OPL_ID_parent"]])->fetch_assoc();
 
 if ($tournament == NULL || $group == NULL) {
 	echo create_html_head_elements(title: "Gruppe nicht gefunden | Uniliga LoL - Übersicht");
 	echo "<body class='$lightmode'>";
+	echo show_old_url_warning($tournamentID);
 	echo create_header(title: "error");
 	echo "<div style='text-align: center'>Keine Gruppe unter der angegebenen ID gefunden!</div></body>";
 	exit();
 }
+
+$league = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID = ? AND eventType = 'league'", [$group["OPL_ID_parent"]])->fetch_assoc();
 
 $t_name_clean = preg_replace("/LoL/","",$tournament["name"]);
 echo create_html_head_elements(css: ["game"], title: "Liga {$league["number"]} - Gruppe {$group["number"]} | $t_name_clean | Uniliga LoL - Übersicht");

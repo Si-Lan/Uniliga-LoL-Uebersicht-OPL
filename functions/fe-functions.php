@@ -931,12 +931,13 @@ function create_game($dbcn,$gameID,$curr_team=NULL):string {
 }
 
 function show_old_url_warning($tournamentID):string {
+	$url_root = "https://silence.lol";
 	$url = $_SERVER["REQUEST_URI"];
 	$new_url = "/toornament$url";
 	if (strlen($tournamentID) > 15) {
 		return "
 			<div class='warning-header'>
-				<span>Der aufgerufene Link sieht nach einer ID von Toornament aus, seit dem Umzug der Uniliga auf OPLeague ist diese Seite hier zu finden: <a href='$new_url'>silence.lol$new_url</a></span>
+				<span>Meintest du <a href='$new_url'>$url_root$new_url</a>?</span>
 				<button onclick='close_warningheader()'><div class='material-symbol'>".file_get_contents(__DIR__."/../icons/material/close.svg")."</div></button>
 			</div>
 		";
