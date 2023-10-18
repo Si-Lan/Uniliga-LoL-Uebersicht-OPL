@@ -137,8 +137,8 @@ if ($type == "players-in-match") {
 	$matchID = $_SERVER["HTTP_MATCHID"] ?? NULL;
 	$match = $dbcn->execute_query("SELECT * FROM matchups WHERE OPL_ID = ?", [$matchID])->fetch_assoc();
 	$teams = $dbcn->execute_query("SELECT OPL_ID_team1, OPL_ID_team2 FROM matchups WHERE OPL_ID = ?", [$matchID])->fetch_row();
-	$players1 = $dbcn->execute_query("SELECT OPL_ID FROM players JOIN players_in_teams pit on players.OPL_ID = pit.OPL_ID_player WHERE OPL_ID_team = ? AND PUUID IS NOT NULL", [$teams[0]])->fetch_all(MYSQLI_ASSOC);
-	$players2 = $dbcn->execute_query("SELECT OPL_ID FROM players JOIN players_in_teams pit on players.OPL_ID = pit.OPL_ID_player WHERE OPL_ID_team = ? AND PUUID IS NOT NULL", [$teams[1]])->fetch_all(MYSQLI_ASSOC);
+	$players1 = $dbcn->execute_query("SELECT OPL_ID FROM players JOIN players_in_teams_in_tournament pit on players.OPL_ID = pit.OPL_ID_player WHERE OPL_ID_team = ? AND PUUID IS NOT NULL", [$teams[0]])->fetch_all(MYSQLI_ASSOC);
+	$players2 = $dbcn->execute_query("SELECT OPL_ID FROM players JOIN players_in_teams_in_tournament pit on players.OPL_ID = pit.OPL_ID_player WHERE OPL_ID_team = ? AND PUUID IS NOT NULL", [$teams[1]])->fetch_all(MYSQLI_ASSOC);
 	function cut_players(array $playerlist):array {
 		$newlength = count($playerlist);
 		if (count($playerlist) >= 5) {
