@@ -1,8 +1,12 @@
-<!DOCTYPE html>
-<html lang="de">
 <?php
 include_once __DIR__."/../setup/data.php";
 include_once __DIR__."/../functions/fe-functions.php";
+
+$pass = check_login();
+?>
+<!DOCTYPE html>
+<html lang="de">
+<?php
 
 $lightmode = is_light_mode(true);
 
@@ -45,7 +49,8 @@ echo create_html_head_elements(css: ["elo"], title: "Elo-Übersicht - $t_name_cl
 <body class="elo-overview <?php echo $lightmode?>">
 <?php
 
-echo create_header($dbcn, title: "tournament", tournament_id: $tournamentID);
+$pass_wrong = $pass ? "" : "Falsches Passwort";
+echo create_header($dbcn, title: "tournament", tournament_id: $tournamentID, open_login: !$pass, loginforminfo: $pass_wrong);
 
 echo create_tournament_nav_buttons(tournament_id: $tournament_url_path, active: "elo");
 

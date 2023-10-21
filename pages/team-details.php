@@ -1,9 +1,12 @@
-<!DOCTYPE html>
-<html lang="de">
 <?php
 include_once __DIR__."/../setup/data.php";
 include_once __DIR__."/../functions/fe-functions.php";
 
+$pass = check_login();
+?>
+<!DOCTYPE html>
+<html lang="de">
+<?php
 $lightmode = is_light_mode(true);
 $logged_in = is_logged_in();
 $admin_btns = admin_buttons_visible(true);
@@ -37,7 +40,8 @@ echo create_html_head_elements(title: "{$team["name"]} | Uniliga LoL - Übersich
 <body class="team <?php echo "$lightmode $admin_btns"?>">
 <?php
 
-echo create_header(dbcn: $dbcn, title: "team");
+$pass_wrong = $pass ? "" : "Falsches Passwort";
+echo create_header(dbcn: $dbcn, title: "team", open_login: !$pass, loginforminfo: $pass_wrong);
 
 ?>
 </body>

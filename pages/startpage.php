@@ -1,9 +1,12 @@
-<!DOCTYPE html>
-<html lang="de">
 <?php
 include_once __DIR__."/../setup/data.php";
 include_once __DIR__."/../functions/fe-functions.php";
 
+$pass = check_login();
+?>
+<!DOCTYPE html>
+<html lang="de">
+<?php
 $lightmode = is_light_mode(true);
 
 try {
@@ -22,13 +25,13 @@ echo create_html_head_elements();
 <body class="home <?php echo $lightmode?>">
 <?php
 
-echo create_header($dbcn, home_button: FALSE);
+$pass_wrong = $pass ? "" : "Falsches Passwort";
+echo create_header($dbcn, home_button: FALSE, open_login: !$pass, loginforminfo: $pass_wrong);
 
 ?>
 <div class="home-content">
 	<div id="turnier-select">
-		<h2>Spieler:</h2>
-		<a href='spieler' class="button player-button"><?php echo "<div class='material-symbol'>" . file_get_contents(__DIR__."/../icons/material/person.svg") . "</div>" ?>Spielerübersicht</a>
+
 		<h2>Turniere:</h2>
 
 		<?php

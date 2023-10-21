@@ -1,9 +1,12 @@
-<!DOCTYPE html>
-<html lang="de">
 <?php
 include_once __DIR__."/../setup/data.php";
 include_once __DIR__."/../functions/fe-functions.php";
 
+$pass = check_login();
+?>
+<!DOCTYPE html>
+<html lang="de">
+<?php
 $lightmode = is_light_mode(true);
 
 try {
@@ -72,7 +75,8 @@ if ($league["format"] === "Swiss") {
 	$group_title = "Gruppe {$group['number']}";
 }
 
-echo create_header(dbcn: $dbcn, title: "tournament", tournament_id: $tournamentID);
+$pass_wrong = $pass ? "" : "Falsches Passwort";
+echo create_header(dbcn: $dbcn, title: "tournament", tournament_id: $tournamentID, open_login: !$pass, loginforminfo: $pass_wrong);
 
 echo create_tournament_nav_buttons($tournamentID, $dbcn,"group",$league['OPL_ID'],$groupID);
 

@@ -44,25 +44,19 @@ function create_html_head_elements(array $css = [], array $js = [], string $titl
 	return $result;
 }
 
-function create_header(mysqli $dbcn = NULL, string $title = "home", string|int $tournament_id = NULL, bool $home_button = TRUE, bool $open_login = FALSE):string {
+function check_login():bool {
 	include_once(dirname(__FILE__) . "/../setup/data.php");
 	$password = get_admin_pass();
-	$loginforminfo = "";
-	$loginopen = $open_login ? "modalopen_auto" : "";
-
 	if (isset($_GET["login"])) {
 		if (isset($_POST["keypass"])) {
 			if ($_POST["keypass"] != $password) {
-				$loginforminfo = "Falsches Passwort";
-				$loginopen = "modalopen_auto";
+				return false;
 			} else {
 				setcookie('admin-login', password_hash($password, PASSWORD_BCRYPT),time()+31536000,'/');
 				$pageurl = preg_replace('~([?&])login(=*)[^&]*~', '$1', $_SERVER['REQUEST_URI']);
 				$pageurl = rtrim($pageurl, "?");
 				header("Location: $pageurl");
 			}
-		} else {
-			$loginopen = "modalopen_auto";
 		}
 	}
 	if (isset($_GET["logout"])) {
@@ -78,6 +72,12 @@ function create_header(mysqli $dbcn = NULL, string $title = "home", string|int $
 		$pageurl = rtrim($pageurl, "?");
 		header("Location: $pageurl");
 	}
+
+	return true;
+}
+
+function create_header(mysqli $dbcn = NULL, string $title = "home", string|int $tournament_id = NULL, bool $home_button = TRUE, bool $open_login = FALSE, string $loginforminfo = ""):string {
+	$loginopen = $open_login ? "modalopen_auto" : "";
 
 	$result = "";
 
