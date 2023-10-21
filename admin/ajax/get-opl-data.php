@@ -81,6 +81,15 @@ if ($type == "get_players_for_tournament") {
 	$dbcn->close();
 }
 
+if ($type == "get_players_for_team") {
+	$dbcn = create_dbcn();
+	$team_id = $_SERVER["HTTP_TEAMID"] ?? NULL;
+	$tournament_id = $_SERVER["HTTP_TOURNAMENTID"] ?? NULL;
+	$result = get_players_for_team($team_id, $tournament_id);
+	echo json_encode($result);
+	$dbcn->close();
+}
+
 // (x API-Calls für x Spieler im Team)
 if ($type == "get_summonerNames_for_team") {
 	$result = [];

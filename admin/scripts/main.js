@@ -120,17 +120,36 @@ function get_players_for_tournament(tournamentID) {
 	let button = $(".get-players");
 	button.addClass("button-updating");
 	button.prop("disabled", true);
+	let loadingbar_width = 0;
+	button.attr("style",`--loading-bar-width:${loadingbar_width}%`);
 
-	fetch(`./admin/ajax/get-opl-data.php`, {
+	fetch(`./ajax/get-data.php`, {
 		method: "GET",
 		headers: {
-			"type": "get_players_for_tournament",
-			"id": tournamentID,
+			"type": "teams",
+			"tournamentid": tournamentID,
 		}
 	})
 		.then(res => res.json())
-		.then(result => {
-			console.log(result);
+		.then(async teams => {
+			for (const team of teams) {
+				await fetch(`./admin/ajax/get-opl-data.php`, {
+					method: "GET",
+					headers: {
+						"type": "get_players_for_team",
+						"teamID": team.OPL_ID,
+						"tournamentID": tournamentID,
+					}
+				})
+					.then(res => res.json())
+					.then(result => {
+						console.log(result);
+						loadingbar_width += 100/teams.length;
+						button.attr("style",`--loading-bar-width:${loadingbar_width}%`);
+					})
+					.catch(e => console.error(e));
+				await new Promise(r => setTimeout(r, 1000));
+			}
 			button.prop("disabled", false);
 			button.removeClass("button-updating");
 		})

@@ -388,7 +388,36 @@ function get_players_for_team($teamID, $tournamentID):array {
 	$tournament_data = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID = ?", [$tournamentID])->fetch_assoc();
 	$current_time = time();
 	$tournament_end = strtotime($tournament_data["dateEnd"]);
-	$parent_tournamentID = $dbcn->execute_query("SELECT OPL_ID_parent FROM tournaments WHERE eventType='league' AND OPL_ID = (SELECT OPL_ID_parent FROM tournaments WHERE eventType= 'group' AND OPL_ID = ?)", [$tournamentID])->fetch_column();
+	$parent_tournamentID = $dbcn->execute_query("SELECT OPL_ID
+														FROM tournaments
+														WHERE (
+														    eventType='tournament'
+														        AND OPL_ID = (
+														        	SELECT OPL_ID_parent
+														        	FROM tournaments
+														        	WHERE eventType= 'league'
+														          		AND OPL_ID = (
+														          		    SELECT OPL_ID_parent
+														          		    FROM tournaments
+														          		    WHERE eventType='group'
+														          		    	AND OPL_ID = ?
+														          		)
+														        	)
+														    )
+														   OR (
+														    eventType='tournament'
+														        AND OPL_ID = (
+														        	SELECT OPL_ID_parent
+														        	FROM tournaments
+														        	WHERE eventType= 'league'
+														          		AND OPL_ID = ?
+														        	)
+														       )
+														    OR (
+														    eventType='tournament'
+														        AND OPL_ID = ?
+														       )",
+		[$tournamentID, $tournamentID, $tournamentID])->fetch_column();
 
 	$url = "https://www.opleague.pro/api/v4/team/$teamID/users";
 	$options = ["http" => [
