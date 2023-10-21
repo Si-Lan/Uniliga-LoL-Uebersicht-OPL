@@ -284,8 +284,6 @@ if ($type == "tournaments") {
 	if (isset($_SERVER["HTTP_IDONLY"]) || isset($_GET["idonly"])) {
 		$tids = [];
 		foreach ($tournaments as $tournament) {
-			//TODO: remove exclusion
-			if ($tournament["OPL_ID"] == 2931) continue;
 			$tids[] = $tournament['OPL_ID'];
 		}
 		echo json_encode($tids);
