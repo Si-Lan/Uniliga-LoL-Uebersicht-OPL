@@ -121,6 +121,7 @@ if ($filtered == "liga") {
     														JOIN tournaments g ON tit.OPL_ID_group = g.OPL_ID
     															JOIN tournaments l ON g.OPL_ID_parent = l.OPL_ID
     												WHERE l.OPL_ID = ?
+    												    AND t.OPL_ID <> -1
     												ORDER BY avg_rank_num DESC", [$league["OPL_ID"]])->fetch_all(MYSQLI_ASSOC);
 		echo generate_elo_list($dbcn,"div",$teams_of_div,$tournamentID,$league,NULL);
 	}
@@ -134,6 +135,7 @@ if ($filtered == "liga") {
     														JOIN tournaments g ON tit.OPL_ID_group = g.OPL_ID
     															JOIN tournaments l ON g.OPL_ID_parent = l.OPL_ID
     												WHERE g.OPL_ID = ?
+    												    AND t.OPL_ID <> -1
     												ORDER BY avg_rank_num DESC", [$group["OPL_ID"]])->fetch_all(MYSQLI_ASSOC);
 			echo generate_elo_list($dbcn,"group",$teams_of_group,$tournamentID,$league,$group);
 		}
@@ -145,6 +147,7 @@ if ($filtered == "liga") {
     												JOIN tournaments g ON tit.OPL_ID_group = g.OPL_ID
     													JOIN tournaments l ON g.OPL_ID_parent = l.OPL_ID
     										WHERE l.OPL_ID_parent = ?
+    										    AND t.OPL_ID <> -1
     										ORDER BY avg_rank_num DESC", [$tournamentID])->fetch_all(MYSQLI_ASSOC);
 	echo generate_elo_list($dbcn,"all",$teams,$tournamentID,NULL,NULL);
 }

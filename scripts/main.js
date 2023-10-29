@@ -1433,12 +1433,14 @@ async function user_update_group(button) {
 
 	let current = Date.now();
 	let diff = new Date(current - last_update);
+	console.log(current-last_update)
 
-	if (current - last_update < 6000) {
+	if (current - last_update < 600000) {
 		let rest = new Date(600000 - (current - last_update));
 		window.alert(`Das letzte Update wurde vor ${format_time_minsec(diff)} durchgeführt. Versuche es in ${format_time_minsec(rest)} noch einmal`);
 		await new Promise(r => setTimeout(r, 1000));
 		$(button).removeClass("user_updating");
+		$("div.updatebuttonwrapper span").html(`letztes Update:<br>vor ${format_time_minsec(diff)}`)
 		button.disabled = false;
 		user_update_running = false;
 		return;
@@ -1603,7 +1605,7 @@ async function user_update_team(button) {
 	let current = Date.now();
 	let diff = new Date(current - last_update);
 
-	if (current - last_update < 6000) {
+	if (current - last_update < 600000) {
 		let rest = new Date(600000 - (current - last_update));
 		window.alert(`Das letzte Update wurde vor ${format_time_minsec(diff)} durchgeführt. Versuche es in ${format_time_minsec(rest)} noch einmal`);
 		await new Promise(r => setTimeout(r, 1000));
@@ -1884,7 +1886,7 @@ async function user_update_match(button) {
 	let current = Date.now();
 	let diff = new Date(current - last_update);
 
-	if (current - last_update < 6000) {
+	if (current - last_update < 600000) {
 		let rest = new Date(600000 - (current - last_update));
 		window.alert(`Das letzte Update wurde vor ${format_time_minsec(diff)} durchgeführt. Versuche es in ${format_time_minsec(rest)} noch einmal`);
 		await new Promise(r => setTimeout(r, 1000));

@@ -126,7 +126,22 @@ echo "<div class='team-list $tournamentID'>";
 echo "<div class='no-search-res-text $tournamentID' style='display: none'>Kein Team gefunden!</div>";
 
 
-$teams = $dbcn->execute_query("SELECT * FROM teams JOIN teams_in_tournaments tit on teams.OPL_ID = tit.OPL_ID_team WHERE tit.OPL_ID_group IN (SELECT OPL_ID FROM tournaments WHERE eventType = 'group' AND OPL_ID_parent IN (SELECT OPL_ID FROM tournaments WHERE eventType='league' AND OPL_ID_parent = ?))", [$tournamentID])->fetch_all(MYSQLI_ASSOC);
+$teams = $dbcn->execute_query("SELECT *
+                                        FROM teams
+                                            JOIN teams_in_tournaments tit ON teams.OPL_ID = tit.OPL_ID_team
+                                        WHERE teams.OPL_ID <> -1
+                                            AND tit.OPL_ID_group IN (
+                                                SELECT OPL_ID
+                                                FROM tournaments
+                                                WHERE eventType = 'group'
+                                                    AND OPL_ID_parent IN (
+                                                        SELECT OPL_ID
+                                                        FROM tournaments
+                                                        WHERE eventType='league'
+                                                            AND OPL_ID_parent = ?
+                                                    )
+                                            )
+                                        ORDER BY teams.name", [$tournamentID])->fetch_all(MYSQLI_ASSOC);
 
 $local_img_path = "img/team_logos/";
 

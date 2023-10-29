@@ -6,9 +6,11 @@ $(document).ready(() => {
 	$("#write_tournament").on("click", () => write_tournament());
 	$(".update_tournament").on("click", function () {write_tournament(this.previousSibling.getAttribute("data-id"))});
 	$(".get-teams").on("click", function () {get_teams_for_tournament(this.getAttribute("data-id"))});
+	$(".get-teams-delete").on("click", function () {get_teams_for_tournament(this.getAttribute("data-id"),true)});
 	$(".get-players").on("click", function () {get_players_for_tournament(this.getAttribute("data-id"))});
 	$(".get-summoners").on("click", function () {get_summonerNames_for_tournament(this.getAttribute("data-id"))});
 	$(".get-matchups").on("click", function () {get_matchups_for_tournament(this.getAttribute("data-id"))});
+	$(".get-matchups-delete").on("click", function () {get_matchups_for_tournament(this.getAttribute("data-id"),true)});
 	$(".get-results").on("click", function () {get_results_for_tournament(this.getAttribute("data-id"))});
 	$(".calculate-standings").on("click", function () {calculate_standings_from_matchups(this.getAttribute("data-id"))});
 
@@ -30,9 +32,11 @@ function create_tournament_buttons() {
 			$(".open-tournament-data-popup").on("click", function() {$(`dialog.tournament-data-popup.${this.getAttribute("data-id")}`)[0].showModal()});
 			$('dialog.dismissable-popup').on('click', function (event) {if (event.target === this) this.close()});
 			$(".get-teams").on("click", function () {get_teams_for_tournament(this.getAttribute("data-id"))});
+			$(".get-teams-delete").on("click", function () {get_teams_for_tournament(this.getAttribute("data-id"),true)});
 			$(".get-players").on("click", function () {get_players_for_tournament(this.getAttribute("data-id"))});
 			$(".get-summoners").on("click", function () {get_summonerNames_for_tournament(this.getAttribute("data-id"))});
 			$(".get-matchups").on("click", function () {get_matchups_for_tournament(this.getAttribute("data-id"))});
+			$(".get-matchups-delete").on("click", function () {get_matchups_for_tournament(this.getAttribute("data-id"),true)});
 			$(".get-results").on("click", function () {get_results_for_tournament(this.getAttribute("data-id"))});
 			$(".calculate-standings").on("click", function () {calculate_standings_from_matchups(this.getAttribute("data-id"))});
 		})
@@ -95,16 +99,19 @@ function write_tournament(tournamentID = null) {
 		.catch(e => console.error(e));
 }
 
-function get_teams_for_tournament(tournamentID) {
-	let button = $(".get-teams");
+function get_teams_for_tournament(tournamentID, deletemissing = false) {
+	let button = deletemissing ? $(".get-teams-delete") : $(".get-teams");
 	button.addClass("button-updating");
 	button.prop("disabled", true);
+
+	let del = deletemissing ? "true" : "false";
 
 	fetch(`./admin/ajax/get-opl-data.php`, {
 		method: "GET",
 		headers: {
 			"type": "get_teams_for_tournament",
 			"id": tournamentID,
+			"deletemissing": del,
 		}
 	})
 		.then(res => res.json())
@@ -196,16 +203,19 @@ function get_summonerNames_for_tournament(tournamentID) {
 		.catch(e => console.error(e));
 }
 
-function get_matchups_for_tournament(tournamentID) {
-	let button = $(".get-matchups");
+function get_matchups_for_tournament(tournamentID, deletemissing = false) {
+	let button = deletemissing ? $(".get-matchups-delete") : $(".get-matchups");
 	button.addClass("button-updating");
 	button.prop("disabled", true);
+
+	let del = deletemissing ? "true" : "false";
 
 	fetch(`./admin/ajax/get-opl-data.php`, {
 		method: "GET",
 		headers: {
 			"type": "get_matchups_for_tournament",
 			"id": tournamentID,
+			"deletemissing": del,
 		}
 	})
 		.then(res => res.json())

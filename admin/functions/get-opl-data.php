@@ -53,7 +53,7 @@ function get_tournament($id):array {
 		$type = "wildcard";
 	} elseif (preg_match("/playoffs?/",$name_lower)) {
 		$type = "playoffs";
-	} elseif (str_contains($name_lower, "gruppe")) {
+	} elseif (str_contains($name_lower, "gruppe") || str_contains($name_lower, "group")) {
 		$type = "group";
 	} elseif (str_contains($name_lower, " liga")) {
 		$type = "league";
@@ -72,6 +72,9 @@ function get_tournament($id):array {
 		}
 	} else {
 		$returnArr["info"] .= "<span style='color: orangered'>Keine Nummer gefunden <br></span>";
+	}
+	if ($number == NULL && $type == "group" && preg_match("#[A-Z]$#",$name, $number_matches)) {
+		$number = $number_matches[0];
 	}
 
 	$groups_league_num = NULL;
@@ -228,8 +231,8 @@ function create_tournament_get_button(array $data, bool $in_write_popup = false)
 							<span class='material-symbol'>".file_get_contents(__DIR__."/../../icons/material/arrow_drop_down.svg")."</span>
 						</span>
 					</label>
-					<label class=\"write_tournament_number\">Nummer:<input type=\"number\" value=\"{$data["number"]}\"></label>
-					<label class=\"write_tournament_number2\">Nummer2:<input type=\"number\" value=\"{$data["numberRangeTo"]}\"></label>
+					<label class=\"write_tournament_number\">Nummer:<input type=\"text\" value=\"{$data["number"]}\"></label>
+					<label class=\"write_tournament_number2\">Nummer2:<input type=\"text\" value=\"{$data["numberRangeTo"]}\"></label>
 					<label class=\"write_tournament_startdate\">Start:<input type=\"date\" value=\"{$dateStart}\"></label>
 					<label class=\"write_tournament_enddate\">End:<input type=\"date\" value=\"{$dateEnd}\"></label>
 					<label class=\"write_tournament_show\">Anzeigen:<input type=\"checkbox\" $deactivated_check></label>
@@ -246,9 +249,11 @@ function create_tournament_get_button(array $data, bool $in_write_popup = false)
 				<div class='dialog-content'>
 					<h2>{$data["name"]} ({$data["eventType"]})</h2>
 					<button class='get-teams $id_class' data-id='$id_class'><span>Teams im Turnier updaten</span></button>
+					<button class='get-teams-delete $id_class' data-id='$id_class'><span>Teams im Turnier updaten (Alte entfernen)</span></button>
 					<button class='get-players $id_class' data-id='$id_class'><span>Spieler im Turnier updaten</span></button>
 					<button class='get-summoners $id_class' data-id='$id_class'><span>Spieler-Accounts im Turnier updaten</span></button>
 					<button class='get-matchups $id_class' data-id='$id_class'><span>Matches im Turnier updaten</span></button>
+					<button class='get-matchups-delete $id_class' data-id='$id_class'><span>Matches im Turnier updaten (Alte entfernen)</span></button>
 					<button class='get-results $id_class' data-id='$id_class'><span>Match-Ergebnisse im Turnier updaten</span></button>
 					<button class='calculate-standings $id_class' data-id='$id_class'><span>Tabelle des Turniers aktualisieren</span></button>
 				</div>
@@ -259,7 +264,7 @@ function create_tournament_get_button(array $data, bool $in_write_popup = false)
 	return $result;
 }
 
-function get_teams_for_tournament($tournamentID):array {
+function get_teams_for_tournament($tournamentID, bool $deletemissing = false):array {
 	$returnArr = [];
 	$dbcn = create_dbcn();
 	$bearer_token = get_opl_bearer_token();
@@ -287,6 +292,8 @@ function get_teams_for_tournament($tournamentID):array {
 
 	$data = $response["data"]["team_registrations"];
 
+	$team_ids = [];
+
 	// alle teams vom API-Ergebnis durchgehen
 	foreach ($data as $team) {
 		// Logo-ID aus url herausholen
@@ -302,6 +309,7 @@ function get_teams_for_tournament($tournamentID):array {
 			"OPL_logo_url" => $logo_url,
 			"OPL_ID_logo" => $logo_id,
 		];
+		$team_ids[] = $team["ID"];
 
 		$updated = [];
 		$written = $logo_dl = false;
@@ -334,7 +342,7 @@ function get_teams_for_tournament($tournamentID):array {
 
 		// Team Logo herunterladen, wenn es noch nicht existiert
 		$local_img_folder_path = __DIR__."/../../img/team_logos";
-		if ($team_data["OPL_logo_url"] != NULL && !file_exists("$local_img_folder_path/{$team_data["OPL_ID_logo"]}/logo.webp")) {
+		if ($team_data["OPL_logo_url"] != NULL && (!file_exists("$local_img_folder_path/{$team_data["OPL_ID_logo"]}/logo.webp") || !file_exists("$local_img_folder_path/{$team_data["OPL_ID_logo"]}/logo_dark.webp"))) {
 			$logo_dl = download_opl_img($team_data["OPL_ID"], "team_logo");
 		}
 
@@ -344,6 +352,28 @@ function get_teams_for_tournament($tournamentID):array {
 			"updated" => $updated,
 			"logo_downloaded" => $logo_dl,
 		];
+	}
+
+	if ($deletemissing) {
+		$teams_in_tournament = $dbcn->execute_query("SELECT * FROM teams_in_tournaments WHERE OPL_ID_group = ?", [$tournamentID])->fetch_all(MYSQLI_ASSOC);
+		foreach ($teams_in_tournament as $team) {
+			if (!in_array($team["OPL_ID_team"],$team_ids)) {
+				$dbcn->execute_query("DELETE FROM teams_in_tournaments WHERE OPL_ID_team = ? AND OPL_ID_group = ?", [$team["OPL_ID_team"],$tournamentID]);
+				$returnArr[] = [
+					"team" => [
+						"OPL_ID" => $team["OPL_ID_team"],
+						"OPL_ID_logo" => NULL,
+						"OPL_logo_url" => NULL,
+						"name" => NULL,
+						"shortName" => NULL,
+					],
+					"written" => false,
+					"updated" => [],
+					"logo_downloaded" => false,
+					"deleted" => true,
+				];
+			}
+		}
 	}
 
 	$dbcn->close();
@@ -466,7 +496,7 @@ function get_players_for_team($teamID, $tournamentID):array {
 			$dbcn->execute_query("UPDATE players_in_teams SET removed = FALSE WHERE OPL_ID_player = ? AND OPL_ID_team = ?", [$player_data["OPL_ID"], $teamID]);
 		}
 
-		if ($current_time - $tournament_end > 0) {
+		if ($current_time - $tournament_end < 0) {
 			$player_in_team_in_tournament = $dbcn->execute_query("SELECT * FROM players_in_teams_in_tournament WHERE OPL_ID_team = ? AND OPL_ID_player = ? AND OPL_ID_tournament = ?", [$teamID, $player_data["OPL_ID"], $parent_tournamentID])->fetch_assoc();
 			if ($player_in_team_in_tournament == NULL) {
 				$updated["teamID_tournament"] = ["old"=>NULL, "new"=>$teamID];
@@ -493,7 +523,7 @@ function get_players_for_team($teamID, $tournamentID):array {
 			$dbcn->execute_query("UPDATE players_in_teams SET removed = FALSE WHERE OPL_ID_player = ? AND OPL_ID_team = ?", [$player["OPL_ID_player"], $teamID]);
 		}
 	}
-	if ($current_time - $tournament_end > 0) {
+	if ($current_time - $tournament_end < 0) {
 		foreach ($players_tt as $player) {
 			if (!in_array($player["OPL_ID_player"], $player_IDs)) {
 				$dbcn->execute_query("UPDATE players_in_teams_in_tournament SET removed = TRUE WHERE OPL_ID_player = ? AND OPL_ID_team = ? AND OPL_ID_tournament = ?", [$player["OPL_ID_player"], $teamID, $parent_tournamentID]);
@@ -547,7 +577,7 @@ function get_summonerNames_for_player($playerID):array {
 	return ["updated"=>true, "old"=>$playerDB["summonerName"], "new"=>$summonerName];
 }
 
-function get_matchups_for_tournament($tournamentID):array {
+function get_matchups_for_tournament($tournamentID, bool $deletemissing = false):array {
 	$returnArr = [];
 	$dbcn = create_dbcn();
 	$bearer_token = get_opl_bearer_token();
@@ -575,6 +605,8 @@ function get_matchups_for_tournament($tournamentID):array {
 
 	$data = $response["data"]["matches"];
 
+	$match_ids = [];
+
 	foreach ($data as $match) {
 		$match_data = [
 			"OPL_ID" => $match["ID"],
@@ -585,6 +617,7 @@ function get_matchups_for_tournament($tournamentID):array {
 			"playday" => $match["playday"],
 			"bestOf" => $match["best_of"],
 		];
+		$match_ids[] = $match["ID"];
 
 		$updated = [];
 		$written = false;
@@ -617,6 +650,21 @@ function get_matchups_for_tournament($tournamentID):array {
 			"written" => $written,
 			"updated" => $updated,
 		];
+	}
+
+	if ($deletemissing) {
+		$matchups = $dbcn->execute_query("SELECT * FROM matchups WHERE OPL_ID_tournament = ?", [$tournamentID])->fetch_all(MYSQLI_ASSOC);
+		foreach ($matchups as $match) {
+			if (!in_array($match["OPL_ID"],$match_ids)) {
+				$dbcn->execute_query("DELETE FROM matchups WHERE OPL_ID = ?", [$match["OPL_ID"]]);
+				$returnArr[] = [
+					"match" => $match,
+					"written" => false,
+					"updated" => [],
+					"deleted" => true,
+				];
+			}
+		}
 	}
 
 	$dbcn->close();
@@ -687,7 +735,7 @@ function calculate_standings_from_matchups($tournamentID):array {
 		return [];
 	}
 
-	$teams = $dbcn->execute_query("SELECT * FROM teams JOIN teams_in_tournaments tit on teams.OPL_ID = tit.OPL_ID_team WHERE tit.OPL_ID_group = ?", [$tournamentID])->fetch_all(MYSQLI_ASSOC);
+	$teams = $dbcn->execute_query("SELECT * FROM teams JOIN teams_in_tournaments tit on teams.OPL_ID = tit.OPL_ID_team WHERE tit.OPL_ID_group = ? AND teams.OPL_ID <> -1", [$tournamentID])->fetch_all(MYSQLI_ASSOC);
 
 	$teams_standings = [];
 
@@ -714,10 +762,18 @@ function calculate_standings_from_matchups($tournamentID):array {
 					$standing["losses"]++;
 				}
 				if ($match["OPL_ID_team1"] == $team["OPL_ID"]) {
-					$standing["points"] += $match["team1Score"];
+					if (is_numeric($match["team1Score"])) {
+						$standing["points"] += $match["team1Score"];
+					} else {
+						$standing["points"] += ($match["team1Score"] == "W") ? $match["bestOf"] : 0;
+					}
 				}
 				if ($match["OPL_ID_team2"] == $team["OPL_ID"]) {
-					$standing["points"] += $match["team2Score"];
+					if (is_numeric($match["team2Score"])) {
+						$standing["points"] += $match["team2Score"];
+					} else {
+						$standing["points"] += ($match["team2Score"] == "W") ? $match["bestOf"] : 0;
+					}
 				}
 			}
 		}

@@ -324,7 +324,13 @@ function create_standings(mysqli $dbcn, $tournament_id, $group_id, $team_id=NULL
 	$opgg_logo_svg = file_get_contents(__DIR__."/../img/opgglogo.svg");
 	$group = $dbcn->execute_query("SELECT * FROM tournaments WHERE eventType = 'group' AND OPL_ID = ?",[$group_id])->fetch_assoc();
 	$div = $dbcn->execute_query("SELECT * FROM tournaments WHERE eventType = 'league' AND OPL_ID = ?",[$group['OPL_ID_parent']])->fetch_assoc();
-	$teams_from_groupDB = $dbcn->execute_query("SELECT * FROM teams JOIN teams_in_tournaments tit ON teams.OPL_ID = tit.OPL_ID_team  WHERE tit.OPL_ID_group = ? ORDER BY IF((standing=0 OR standing IS NULL), 1, 0), standing",[$group['OPL_ID']])->fetch_all(MYSQLI_ASSOC);
+	$teams_from_groupDB = $dbcn->execute_query("SELECT *
+														FROM teams
+														    JOIN teams_in_tournaments tit
+														        ON teams.OPL_ID = tit.OPL_ID_team
+														WHERE tit.OPL_ID_group = ?
+															AND teams.OPL_ID <> -1
+														ORDER BY IF((standing=0 OR standing IS NULL), 1, 0), standing",[$group['OPL_ID']])->fetch_all(MYSQLI_ASSOC);
 
 	$result .= "<div class='standings'>";
 	if ($team_id == NULL) {
