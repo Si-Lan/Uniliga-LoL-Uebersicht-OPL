@@ -1,4 +1,8 @@
 <?php
+set_time_limit(600);
+$day = date("d_m_y");
+ini_set("log_errors", 1);
+ini_set("error_log", "cron_logs/cron_errors/set_time_$day.log");
 include_once __DIR__.'/../setup/data.php';
 $dbcn = create_dbcn();
 
@@ -18,3 +22,5 @@ if ($lastupdate == NULL) {
 } else {
 	$dbcn->execute_query("UPDATE updates_cron SET last_update = ? WHERE OPL_ID_tournament = ?", [$time,$tournament_id]);
 }
+
+file_put_contents("cron_logs/cron_log_$day.log","\n".date("d.m.y H:i:s")." : Crontimer for $tournament_id updated\n", FILE_APPEND);

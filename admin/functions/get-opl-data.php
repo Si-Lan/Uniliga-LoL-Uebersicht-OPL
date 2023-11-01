@@ -518,15 +518,17 @@ function get_players_for_team($teamID, $tournamentID):array {
 	$players_t = $dbcn->execute_query("SELECT * FROM players_in_teams WHERE OPL_ID_team = ?", [$teamID])->fetch_all(MYSQLI_ASSOC);
 	$players_tt = $dbcn->execute_query("SELECT * FROM players_in_teams_in_tournament WHERE OPL_ID_team = ? AND OPL_ID_tournament = ?", [$teamID, $parent_tournamentID])->fetch_all(MYSQLI_ASSOC);
 
-	foreach ($players_t as $player) {
-		if (!in_array($player["OPL_ID_player"], $player_IDs)) {
-			$dbcn->execute_query("UPDATE players_in_teams SET removed = FALSE WHERE OPL_ID_player = ? AND OPL_ID_team = ?", [$player["OPL_ID_player"], $teamID]);
-		}
-	}
-	if ($current_time - $tournament_end < 0) {
-		foreach ($players_tt as $player) {
+	if (count($player_IDs) > 0) {
+		foreach ($players_t as $player) {
 			if (!in_array($player["OPL_ID_player"], $player_IDs)) {
-				$dbcn->execute_query("UPDATE players_in_teams_in_tournament SET removed = TRUE WHERE OPL_ID_player = ? AND OPL_ID_team = ? AND OPL_ID_tournament = ?", [$player["OPL_ID_player"], $teamID, $parent_tournamentID]);
+				$dbcn->execute_query("UPDATE players_in_teams SET removed = TRUE WHERE OPL_ID_player = ? AND OPL_ID_team = ?", [$player["OPL_ID_player"], $teamID]);
+			}
+		}
+		if ($current_time - $tournament_end < 0) {
+			foreach ($players_tt as $player) {
+				if (!in_array($player["OPL_ID_player"], $player_IDs)) {
+					$dbcn->execute_query("UPDATE players_in_teams_in_tournament SET removed = TRUE WHERE OPL_ID_player = ? AND OPL_ID_team = ? AND OPL_ID_tournament = ?", [$player["OPL_ID_player"], $teamID, $parent_tournamentID]);
+				}
 			}
 		}
 	}

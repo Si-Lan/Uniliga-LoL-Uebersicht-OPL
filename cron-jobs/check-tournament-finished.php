@@ -1,4 +1,8 @@
 <?php
+set_time_limit(600);
+$day = date("d_m_y");
+ini_set("log_errors", 1);
+ini_set("error_log", "cron_logs/cron_errors/check_finished_$day.log");
 include_once __DIR__.'/../setup/data.php';
 $dbcn = create_dbcn();
 
