@@ -322,7 +322,9 @@ if ($type == "last-update-time") {
 	} elseif ($update_type == "team") {
 		$last_cron_update = $dbcn->execute_query("SELECT last_update FROM updates_cron JOIN teams_in_tournaments tit on updates_cron.OPL_ID_tournament = tit.OPL_ID_group WHERE OPL_ID_team = ? ORDER BY last_update DESC", [$item_ID])->fetch_column();
 	} elseif ($update_type == "match") {
-		$last_cron_update = $dbcn->execute_query("SELECT last_update FROM updates_cron JOIN matchups m on updates_cron.OPL_ID_tournament = m.OPL_ID_tournament WHERE m.OPL_ID = ? ORDER BY last_update DESC", [$item_ID])->fetch_column();
+		$match_tournament_id = $dbcn->execute_query("SELECT OPL_ID_tournament FROM matchups WHERE OPL_ID = ?", [$item_ID])->fetch_column();
+		$parent_tournament_id = get_top_parent_tournament($dbcn, $match_tournament_id);
+		$last_cron_update = $dbcn->execute_query("SELECT last_update FROM updates_cron WHERE OPL_ID_tournament = ? ORDER BY last_update DESC", [$parent_tournament_id])->fetch_column();
 	} elseif ($update_type == "group") {
 		$last_cron_update = $dbcn->execute_query("SELECT last_update FROM updates_cron JOIN tournaments l ON eventType='league' AND l.OPL_ID_parent = updates_cron.OPL_ID_tournament JOIN tournaments g ON g.eventType = 'group' AND g.OPL_ID_parent = l.OPL_ID WHERE g.OPL_ID = ? ORDER BY last_update DESC", [$item_ID])->fetch_column();
 	} else {

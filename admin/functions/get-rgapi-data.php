@@ -1,5 +1,6 @@
 <?php
 include_once __DIR__."/../../setup/data.php";
+include_once __DIR__."/../../functions/helper.php";
 
 // sendet X Anfragen an Riot API (Summoner-V4)  (X = Anzahl Spieler im Team)
 function get_puuids_by_team($teamID, $all = FALSE) {
@@ -192,6 +193,8 @@ function assign_and_filter_game($RiotMatchID,$tournamentID):array {
 		return $returnArr;
 	}
 
+	$top_tournamentID = get_top_parent_tournament($dbcn, $tournamentID);
+
 	$tournament = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID = ?", [$tournamentID])->fetch_assoc();
 
 	// check for Data
@@ -204,7 +207,7 @@ function assign_and_filter_game($RiotMatchID,$tournamentID):array {
 		return $returnArr;
 	}
 
-	$game_in_tournament = $dbcn->execute_query("SELECT * FROM games_in_tournament WHERE RIOT_matchID = ? AND OPL_ID_tournament = ?", [$RiotMatchID, $tournamentID])->fetch_assoc();
+	$game_in_tournament = $dbcn->execute_query("SELECT * FROM games_in_tournament WHERE RIOT_matchID = ? AND OPL_ID_tournament = ?", [$RiotMatchID, $top_tournamentID])->fetch_assoc();
 	$game_in_tournament_written = !($game_in_tournament == NULL);
 
 	// check to see if the players make a team in the tournament
@@ -218,9 +221,9 @@ function assign_and_filter_game($RiotMatchID,$tournamentID):array {
 		$returnArr["echo"] .= "<span style='color: lawngreen'>--write not UL-Game to DB<br></span>";
 		$returnArr["notUL"]++;
 		if ($game_in_tournament_written) {
-			$dbcn->execute_query("UPDATE games_in_tournament SET not_ul_game = TRUE WHERE RIOT_matchID = ? AND OPL_ID_tournament = ?", [$RiotMatchID, $tournamentID]);
+			$dbcn->execute_query("UPDATE games_in_tournament SET not_ul_game = TRUE WHERE RIOT_matchID = ? AND OPL_ID_tournament = ?", [$RiotMatchID, $top_tournamentID]);
 		} else {
-			$dbcn->execute_query("INSERT INTO games_in_tournament (RIOT_matchID, OPL_ID_tournament, not_ul_game) VALUES (?,?,true)", [$RiotMatchID, $tournamentID]);
+			$dbcn->execute_query("INSERT INTO games_in_tournament (RIOT_matchID, OPL_ID_tournament, not_ul_game) VALUES (?,?,true)", [$RiotMatchID, $top_tournamentID]);
 			$game_in_tournament = true;
 		}
 		return $returnArr;
@@ -229,9 +232,9 @@ function assign_and_filter_game($RiotMatchID,$tournamentID):array {
 		$returnArr["echo"] .= "<span style='color: lightblue'>-Blue Team is $BlueTeamName<br></span>";
 		$returnArr["echo"] .= "<span style='color: lawngreen'>--write BLueTeamID to DB<br></span>";
 		if ($game_in_tournament_written) {
-			$dbcn->execute_query("UPDATE games_in_tournament SET OPL_ID_blueTeam = ? WHERE RIOT_matchID = ? AND OPL_ID_tournament = ?", [$BlueTeamID, $RiotMatchID, $tournamentID]);
+			$dbcn->execute_query("UPDATE games_in_tournament SET OPL_ID_blueTeam = ? WHERE RIOT_matchID = ? AND OPL_ID_tournament = ?", [$BlueTeamID, $RiotMatchID, $top_tournamentID]);
 		} else {
-			$dbcn->execute_query("INSERT INTO games_in_tournament (RIOT_matchID, OPL_ID_tournament, OPL_ID_blueTeam) VALUES (?,?,?)", [$RiotMatchID, $tournamentID, $BlueTeamID]);
+			$dbcn->execute_query("INSERT INTO games_in_tournament (RIOT_matchID, OPL_ID_tournament, OPL_ID_blueTeam) VALUES (?,?,?)", [$RiotMatchID, $top_tournamentID, $BlueTeamID]);
 			$game_in_tournament = true;
 		}
 	}
@@ -239,13 +242,13 @@ function assign_and_filter_game($RiotMatchID,$tournamentID):array {
 		$returnArr["echo"] .= "<span style='color: orange'>-Red Team is not a Team from Tournament<br></span>";
 		$returnArr["echo"] .= "<span style='color: lawngreen'>--write not an UL Game to DB<br></span>";
 		$returnArr["notUL"]++;
-		$dbcn->execute_query("UPDATE games_in_tournament SET not_ul_game = TRUE WHERE RIOT_matchID = ? AND OPL_ID_tournament = ?", [$RiotMatchID, $tournamentID]);
+		$dbcn->execute_query("UPDATE games_in_tournament SET not_ul_game = TRUE WHERE RIOT_matchID = ? AND OPL_ID_tournament = ?", [$RiotMatchID, $top_tournamentID]);
 		return $returnArr;
 	} else {
 		$RedTeamName = $dbcn->query("SELECT name FROM teams WHERE OPL_ID = {$RedTeamID}")->fetch_column();
 		$returnArr["echo"] .= "<span style='color: lightblue'>-Red Team is $RedTeamName<br></span>";
 		$returnArr["echo"] .= "<span style='color: lawngreen'>--write RedTeamID to DB<br></span>";
-		$dbcn->execute_query("UPDATE games_in_tournament SET OPL_ID_redTeam = ? WHERE RIOT_matchID = ? AND OPL_ID_tournament = ?", [$RedTeamID, $RiotMatchID, $tournamentID]);
+		$dbcn->execute_query("UPDATE games_in_tournament SET OPL_ID_redTeam = ? WHERE RIOT_matchID = ? AND OPL_ID_tournament = ?", [$RedTeamID, $RiotMatchID, $top_tournamentID]);
 	}
 	$returnArr["echo"] .= "<span style='color: limegreen'>-Game is from Tournament<br></span>";
 	$returnArr["isUL"]++;
