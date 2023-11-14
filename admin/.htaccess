@@ -4,3 +4,4 @@ RewriteBase /uniliga
 RewriteRule ^$ ./admin/pages/admin.php [NC,L]
 RewriteRule ^ddragon$ ./admin/pages/ddragon-updates.php [NC,L]
 RewriteRule ^rgapi$ ./admin/pages/rgapi.php [NC,L]
+RewriteRule ^updates$ ./admin/pages/update-logs.php [NC,L]

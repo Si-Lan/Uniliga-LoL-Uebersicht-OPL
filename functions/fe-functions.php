@@ -108,6 +108,8 @@ function create_header(mysqli $dbcn = NULL, string $title = "home", string|int $
 		$result .= "<a href='$opl_event_url/$tournament_id' target='_blank' class='toorlink'><div class='material-symbol'>$outlinkicon</div></a>";
 	} elseif ($title == "admin_dd") {
 		$result .= "<h1>Uniliga LoL - DDragon Updates</h1>";
+	} elseif ($title == "admin_update_log") {
+		$result .= "<h1>Uniliga LoL - Update Logs</h1>";
 	} elseif ($title == "admin") {
 		$result .= "<h1>Uniliga LoL - Admin</h1>";
 	} elseif ($title == "rgapi") {
@@ -126,6 +128,7 @@ function create_header(mysqli $dbcn = NULL, string $title = "home", string|int $
 				<a class='settings-option toor-write' href='./admin'>Admin<div class='material-symbol'>". file_get_contents(dirname(__FILE__)."/../icons/material/edit_square.svg") ."</div></a>
 				<a class='settings-option rgapi-write' href='./admin/rgapi'>RGAPI<div class='material-symbol'>". file_get_contents(dirname(__FILE__)."/../icons/material/videogame_asset.svg") ."</div></a>
 				<a class='settings-option ddragon-write' href='./admin/ddragon'>DDragon</a>
+				<a class='settings-option update-log' href='./admin/updates'>Updates</a>
 				<a class='settings-option logout' href='$pageurl?logout'>Logout<div class='material-symbol'>". file_get_contents(dirname(__FILE__)."/../icons/material/logout.svg") ."</div></a>
 			</div>";
 	} else {
