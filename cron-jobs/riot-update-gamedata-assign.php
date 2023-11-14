@@ -29,10 +29,10 @@ foreach ($games as $gindex=>$game) {
 	$result = add_match_data($game["RIOT_matchID"],$tournament_id);
 	$resultA = assign_and_filter_game($game["RIOT_matchID"],$tournament_id);
 	$gamedata_gotten += $result["writes"];
-	$notinT += $result["notUL"];
-	$inT += $result["isUL"];
-	$sorted += $result["sorted"];
-	$notsorted += $result["notsorted"];
+	$notinT += $resultA["notUL"];
+	$inT += $resultA["isUL"];
+	$sorted += $resultA["sorted"];
+	$notsorted += $resultA["notsorted"];
 }
 
 file_put_contents("cron_logs/cron_log_$day.log","\nGamedata for $gamedata_gotten Games written\n$notinT Games not from Tournament\n$inT Games from the Tournament\n$sorted Games matched with Tournament-Games\n$notsorted Games found no match\n"."----- Gamedata for Games without Data done -----\n", FILE_APPEND);
