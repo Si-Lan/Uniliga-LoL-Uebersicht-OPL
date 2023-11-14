@@ -596,6 +596,7 @@ function create_game($dbcn,$gameID,$curr_team=NULL):string {
 		$blue_curr = "";
 		$red_curr = "";
 	}
+	/*
 	if ($gameDB['winningTeam'] == $team_blue_ID) {
 		$score_blue = "Victory";
 		$score_red = "Defeat";
@@ -607,6 +608,7 @@ function create_game($dbcn,$gameID,$curr_team=NULL):string {
 		$score_blue_class = " loss";
 		$score_red_class = " win";
 	}
+	*/
 
 	//$obj_icon_url = "https://raw.communitydragon.org/12.1/plugins/rcp-fe-lol-match-history/global/default/";
 	$obj_icon_url = "ddragon/img/";
@@ -633,6 +635,20 @@ function create_game($dbcn,$gameID,$curr_team=NULL):string {
 		}
 	}
 	$teams = $info['teams'];
+
+
+	if ($info['teams'][0]['win']) {
+		$score_blue = "Victory";
+		$score_red = "Defeat";
+		$score_blue_class = " win";
+		$score_red_class = " loss";
+	} else {
+		$score_blue = "Defeat";
+		$score_red = "Victory";
+		$score_blue_class = " loss";
+		$score_red_class = " win";
+	}
+
 
 	$towers_blue = $teams[0]['objectives']['tower']['kills'];
 	$towers_red = $teams[1]['objectives']['tower']['kills'];
