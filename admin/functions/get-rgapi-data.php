@@ -23,6 +23,7 @@ function get_puuids_by_team($teamID, $all = FALSE) {
 	}
 
 	foreach ($playersDB as $player) {
+		if ($player["summonerName"] == null) continue;
 		$SummonerName_safe = urlencode($player['summonerName']);
 		$returnArr['echo'] .= "<span style='color: lightskyblue'>-writing PUUID for {$player['summonerName']} :<br></span>";
 
@@ -98,6 +99,11 @@ function get_games_by_player($playerID, $tournamentID) {
 	$tournament_start = strtotime($tournament['dateStart'])-(86400*7); // eine woche puffer
 	$tournament_end = strtotime($tournament['dateEnd'])+86400; // ein Tag Puffer
 
+	if ($player["PUUID"] == NULL) {
+		$returnArr["echo"] .= "<span style='color: orangered'>--could not get Games, PUUID is missing<br></span>";
+		return $returnArr;
+	}
+
 	$options = ["http" => ["header" => "X-Riot-Token: $RGAPI_Key"]];
 	$context = stream_context_create($options);
 	$content = file_get_contents("https://europe.api.riotgames.com/lol/match/v5/matches/by-puuid/{$player['PUUID']}/ids?startTime={$tournament_start}&endTime={$tournament_end}&type=tourney&start=0&count=40", false,$context);
@@ -165,7 +171,7 @@ function add_match_data($RiotMatchID,$tournamentID) {
 		}
 		if (str_contains($http_response_header[0], "200")) {
 			$data = json_decode($content, true);
-			$played_at = date('Y-m-d', $data["info"]["gameCreation"]/1000);
+			$played_at = date('Y-m-d', intval($data["info"]["gameCreation"]/1000));
 			$returnArr["echo"] .= "<span style='color: limegreen'>-got MatchData<br></span>";
 			$returnArr["echo"] .= "<span style='color: limegreen'>-got time: $played_at<br></span>";
 			$returnArr["echo"] .= "<span style='color: lawngreen'>--write MatchData to DB<br></span>";
@@ -347,6 +353,11 @@ function get_Rank_by_SummonerId($playerID) {
 
 	$player = $dbcn->query("SELECT * FROM players WHERE players.OPL_ID = {$playerID}")->fetch_assoc();
 	$returnArr["echo"] .= "<span style='color: royalblue'>writing Rank for {$player['name']} :<br></span>";
+
+	if ($player["summonerID"] == NULL) {
+		$returnArr["echo"] .= "<span style='color: orangered'>--could not get Rank, SummonerID is missing<br></span>";
+		return $returnArr;
+	}
 
 	$options = ["http" => ["header" => "X-Riot-Token: $RGAPI_Key"]];
 	$context = stream_context_create($options);

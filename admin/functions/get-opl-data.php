@@ -407,6 +407,7 @@ function get_players_for_tournament($tournamentID):array {
 
 function get_players_for_team($teamID, $tournamentID):array {
 	$returnArr = [];
+	if ($teamID == -1) return $returnArr;
 	$dbcn = create_dbcn();
 	$bearer_token = get_opl_bearer_token();
 	$user_agent = get_user_agent_for_api_calls();
