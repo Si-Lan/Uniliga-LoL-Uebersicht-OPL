@@ -107,6 +107,92 @@ function get_puuids(tournID, only_without_puuid = true) {
 	teams_request.send();
 }
 
+async function get_riotids_by_puuids(tournamentID) {
+	console.log("----- Start getting RiotIDs -----");
+	let currButton = $(`a.button.write.riotids-puuids.${tournamentID}`);
+	let allButtons = $(`a.button.write.${tournamentID}`);
+	let container = $(`.result-wrapper.${tournamentID} .result-content`);
+	let wrapper = $(`.result-wrapper.${tournamentID}`);
+
+	if (!currButton.hasClass("loading-data")) {
+		allButtons.addClass("loading-data");
+		currButton.append("<div class='lds-dual-ring'></div>");
+		set_all_buttons_onclick(0,tournamentID);
+	}
+
+	await fetch(`./ajax/get-data.php`, {
+		method: "GET",
+		headers: {
+			"type": "players",
+			"tournamentid": tournamentID,
+			"puuidset": "true",
+		}
+	})
+		.then(res => res.json())
+		.then(async player_data => {
+			container.append("----- "+player_data.length+" Spieler gefunden -----<br>");
+			wrapper.removeClass('no-res');
+			let waiting = false;
+			let calls_made = {0: 0};
+			for (let i = 0; i < player_data.length; i++) {
+				if (i % 50 === 0 && i !== 0) {
+					calls_made[i] = 0;
+					console.log("-- sleep (before #"+ (i+1) +") --");
+					for (let t = 0; t <= 10; t++) {
+						if (waiting) {
+							wrapper.removeClass('no-res');
+							container.append(`----- waiting ${10-t+1} -----<br>`);
+							container.scrollTop(container.prop("scrollHeight"));
+						}
+						await new Promise(r => setTimeout(r, 1000));
+					}
+					wrapper.removeClass('no-res');
+					container.append(`----- starting next batch (${i+1}-${i+50}) -----<br>`);
+					container.scrollTop(container.prop("scrollHeight"));
+					console.log("-- slept --");
+					waiting = false;
+				}
+				console.log("Starting with Player " + (i + 1));
+				fetch(`./admin/ajax/get-rgapi-data.php`, {
+					method: "GET",
+					headers: {
+						"type": "riotid_for_player",
+						"player": player_data[i]["OPL_ID"]
+					}
+				})
+					.then(res => res.json())
+					.then(result => {
+						console.log("Player "+(i+1)+" ready");
+						wrapper.removeClass('no-res');
+						console.log(result["echo"]);
+						container.append("#"+(i+1)+"<br>");
+						container.append(result["echo"]);
+						container.scrollTop(container.prop("scrollHeight"));
+						calls_made[i - (i%50)]++;
+						if (calls_made[i - (i%50)] >= 50) {
+							waiting = true;
+						}
+						if (i + calls_made[i - (i%50)] >= player_data.length) {
+							wrapper.removeClass('no-res');
+							console.log("----- Done with getting RiotIDs -----");
+							container.append("----- Done with getting RiotIDs -----<br>");
+						}
+					})
+					.catch(error => console.error(error));
+			}
+			if (player_data.length === 0) {
+				wrapper.removeClass('no-res');
+				console.log("----- Done with getting RiotIDs -----");
+				container.append("----- Done with getting RiotIDs -----<br>");
+			}
+		})
+		.catch(error => console.error(error));
+
+	allButtons.removeClass("loading-data");
+	currButton.children(".lds-dual-ring").remove();
+	set_all_buttons_onclick(1,tournamentID);
+}
+
 function get_games_for_team(tournID,teamID) {
 	console.log("----- Start getting Games (by Team) -----");
 	let currButton = $("a.button.write.games-team."+ tournID);
@@ -617,6 +703,7 @@ function set_all_buttons_onclick(set, tournamentID, teamID = 0) {
 	if (set === 1) {
 		$("a.button.write.puuids."+tournamentID).attr("onClick","get_puuids('"+tournamentID+"')");
 		$("a.button.write.puuids-all."+tournamentID).attr("onClick","get_puuids('"+tournamentID+"',false)");
+		$("a.button.write.riotids-puuids."+tournamentID).attr("onClick","get_riotids_by_puuids('"+tournamentID+"')");
 		$("a.button.write.games-team."+teamID).attr("onClick","get_games_for_team('"+tournamentID+"','"+teamID+"')");
 		$("a.button.write.gamedata."+tournamentID).attr("onClick","get_game_data('"+tournamentID+"','"+teamID+"')");
 		$("a.button.write.assign-una."+tournamentID).attr("onClick","assign_and_filter_games('"+tournamentID+"','"+teamID+"')");

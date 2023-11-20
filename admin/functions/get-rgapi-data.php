@@ -79,6 +79,57 @@ function get_puuids_by_team($teamID, $all = FALSE) {
 	return $returnArr;
 }
 
+function get_riotid_for_player($playerID) {
+	$returnArr = array("return"=>0, "echo"=>"", "writes"=>0, "updates"=>0);
+	$dbcn = create_dbcn();
+	$RGAPI_Key = get_rgapi_key();
+	if ($dbcn -> connect_error){
+		$returnArr["return"] = 1;
+		$returnArr["echo"] .= "<span style='color: red'>Database Connection failed : " . $dbcn->connect_error . "<br><br></span>";
+		return $returnArr;
+	}
+
+	$player = $dbcn->execute_query("SELECT * FROM players WHERE OPL_ID = ?", [$playerID])->fetch_assoc();
+	$returnArr["echo"] .= "<span style='color: royalblue'>writing RiotID for {$player['name']} :<br></span>";
+
+	if ($player["PUUID"] == NULL) {
+		$returnArr["echo"] .= "<span style='color: orangered'>--could not get RiotID, PUUID is missing<br></span>";
+		return $returnArr;
+	}
+
+	$options = ["http" => ["header" => "X-Riot-Token: $RGAPI_Key"]];
+	$context = stream_context_create($options);
+	$content = file_get_contents("https://europe.api.riotgames.com/riot/account/v1/accounts/by-puuid/{$player['PUUID']}", false,$context);
+
+	if ($content === FALSE || !str_contains($http_response_header[0], "200")) {
+		$returnArr["echo"] .= "<span style='color: orangered'>--could not get RiotID, request failed: {$http_response_header[0]}<br></span>";
+		return $returnArr;
+	}
+
+	$data = json_decode($content, true);
+	$gameName = $data["gameName"];
+	$tagLine = $data["tagLine"];
+
+	$returnArr["echo"] .= "<span style='color: limegreen'>--got RiotID: $gameName#$tagLine<br></span>";
+
+	if ($player["riotID_name"] == $gameName && $player["riotID_tag"] == $tagLine) {
+		$returnArr["echo"] .= "<span style='color: orangered'>----RiotID unchanged<br></span>";
+		return $returnArr;
+	}
+
+	$dbcn->execute_query("UPDATE players SET riotID_name = ?, riotID_tag = ? WHERE OPL_ID = ?", [$gameName, $tagLine, $playerID]);
+
+	if ($player["riotID_name"] == null || $player["riotID_tag"] == null) {
+		$returnArr["echo"] .= "<span style='color: limegreen'>----RiotID written<br></span>";
+		$returnArr["writes"] = 1;
+	} else {
+		$returnArr["echo"] .= "<span style='color: limegreen'>----RiotID updated<br>------{$player["riotID_name"]}#{$player["riotID_tag"]} zu $gameName#$tagLine<br></span>";
+		$returnArr["updates"] = 1;
+	}
+
+	return $returnArr;
+}
+
 // sendet 1 Anfrage an Riot API (Match-V5)
 // tournamentID benötigt um Zeitrahmen einzugrenzen
 function get_games_by_player($playerID, $tournamentID) {

@@ -36,6 +36,7 @@ if ($loggedin) {
 		echo "<h2>{$tournament["name"]}</h2>";
 		echo "<a class='button write puuids {$tournament['OPL_ID']}' onclick='get_puuids(\"{$tournament['OPL_ID']}\")'>get PUUIDs for Players without ID</a>";
 		echo "<a class='button write puuids-all {$tournament['OPL_ID']}' onclick='get_puuids(\"{$tournament['OPL_ID']}\",false)'>get PUUIDs for all Players</a>";
+		echo "<a class='button write riotids-puuids {$tournament['OPL_ID']}' onclick='get_riotids_by_puuids(\"{$tournament['OPL_ID']}\")'>get RiotIDs for all Players</a>";
 		echo "<a class='button write get-ranks {$tournament['OPL_ID']}' onclick='get_ranks(\"{$tournament['OPL_ID']}\")'>get Ranks for Players</a>";
 		echo "<a class='button write calc-team-rank {$tournament['OPL_ID']}' onclick='get_average_team_ranks(\"{$tournament['OPL_ID']}\")'>calculate average Ranks for Teams</a>";
 		echo "<a class='button write games {$tournament['OPL_ID']}' onclick='' style='color: #ff6161'>get all Games (API-Calls)</a>";

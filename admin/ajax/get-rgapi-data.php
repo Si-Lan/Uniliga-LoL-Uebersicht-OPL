@@ -16,6 +16,14 @@ if ($type == "puuids-by-team") {
 	echo json_encode($results, JSON_UNESCAPED_SLASHES);
 }
 
+if ($type == "riotid_for_player") {
+	$playerID = $_SERVER["HTTP_PLAYER"] ?? $_REQUEST['player'];
+
+	$results = get_riotid_for_player($playerID);
+
+	echo json_encode($results, JSON_UNESCAPED_SLASHES);
+}
+
 if ($type == "games-by-player") {
 	$playerID = $_SERVER["HTTP_PLAYERID"] ?? $_REQUEST['player'] ?? NULL;
 	$tournamentID = $_SERVER["HTTP_TOURNAMENTID"] ?? $_REQUEST['tournament'] ?? NULL;
