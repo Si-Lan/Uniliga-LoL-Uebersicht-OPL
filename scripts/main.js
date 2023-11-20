@@ -1099,12 +1099,10 @@ function select_player_table() {
 	event.preventDefault();
 	let buttonJ = $(this);
 	let current_is = buttonJ.hasClass('selected-player-table');
-	let summoner = this.innerText.split(" ");
-	summoner.pop();
-	summoner = summoner.join(" ");
-	let table = $(`.playerstable h4:contains(${summoner})`).parent();
+	let summoner = $(this).attr("data-name");
+	let table = $(`.playerstable h4[data-name="${summoner}"]`).parent();
 	if (!current_is){
-		let marked_elsewhere = buttonJ.parent().parent().parent().find(`.role-playername.selected-player-table:contains(${summoner})`);
+		let marked_elsewhere = buttonJ.parent().parent().parent().find(`.role-playername.selected-player-table[data-name="${summoner}"]`);
 		marked_elsewhere.removeClass('selected-player-table');
 		buttonJ.addClass('selected-player-table');
 		let ind = 0;
@@ -1652,6 +1650,7 @@ async function user_update_team(button) {
 	})
 		.then(res => res.json())
 		.then(async players => {
+			/*
 			for (const player of players) {
 				await fetch(`ajax/user-update-functions.php`, {
 					method: "GET",
@@ -1667,6 +1666,7 @@ async function user_update_team(button) {
 					.catch(e => console.error(e));
 				await new Promise(r => setTimeout(r, 1000));
 			}
+			*/
 		})
 		.catch(e => console.error(e));
 

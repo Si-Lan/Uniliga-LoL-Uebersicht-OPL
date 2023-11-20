@@ -6,6 +6,7 @@
 	--main-button-active-border: #626262;
 	--nav-button-divider: #404040;
 	--sec-bg-color: #404040;
+	--sec-bg-color-st: rgba(64, 64, 64, 0.91);
 	--input-bg: #323232;
 	--hover-bg-transparent: #7E7E7E50;
 	--main-button-show-color: #373737;
@@ -43,6 +44,7 @@ body.light {
 	--main-button-active-border: #818181;
 	--nav-button-divider: #9a9a9a;
 	--sec-bg-color: #c1c1c1;
+	--sec-bg-color-st: #c1c1c1e0;
 	--input-bg: #e0e0e0;
 	--hover-bg-transparent: #7E7E7E50;
 	--main-button-show-color: #a9a9a9;
@@ -284,10 +286,10 @@ header div.settings-menu a.settings-option:hover {
 		top: 35px;
 	}
 }
-span.tooltip {
+.tooltip {
 	position: relative;
 }
-span.tooltip span.tooltiptext {
+.tooltip span.tooltiptext {
 	position: absolute;
 	visibility: hidden;
 	text-align: center;
@@ -301,11 +303,21 @@ span.tooltip span.tooltiptext {
 	opacity: 0;
 	transition: visibility 200ms, opacity 200ms;
 	pointer-events: none;
+	min-width: max-content;
+	font-weight: 400;
+	font-size: 1rem;
+}
+.tooltip span.tooltiptext.interactable {
+	pointer-events: auto;
 }
 th:hover span.tooltip span.tooltiptext,
-span.tooltip:hover span.tooltiptext {
+.tooltip:hover span.tooltiptext {
 	visibility: visible;
 	opacity: 1;
+}
+span.tooltiptext.riot-id {
+	bottom: 104%;
+	background-color: var(--sec-bg-color-st);
 }
 h2.pagetitle {
 	font-size: 2em;
@@ -1222,6 +1234,9 @@ div.summoner-card-container {
 .summoner-card-wrapper .open-playerhistory:hover {
 	background-color: var(--main-button-hover);
 }
+.riot-id-tag {
+	color: var(--text-secondary);
+}
 
 .summoner-card-wrapper .open-playerhistory {
 	display: flex;
@@ -1549,6 +1564,9 @@ body.statistics div.main-content h3 {
 body.statistics div.main-content h4 {
 	font-size: 18px;
 	margin: 5px 0 10px 0;
+}
+.playertable h4 {
+	text-align: center;
 }
 div.main-content .player-cards {
 	max-width: 95%;

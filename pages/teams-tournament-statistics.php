@@ -111,7 +111,6 @@ if ($games_played == 0) {
 	echo "<span>Spiele: ".$games_played." | Siege: ".$teamstats['games_won']." (".round($teamstats['games_won']/$games_played*100,2)."%)</span>";
 	echo "<span>durchschn. Zeit zum Sieg: ".date("i:s",$teamstats['avg_win_time'])."</span>";
 
-	$playername_to_summoner = array();
 	$players_by_name = array();
 	$team_roles = array("top"=>array(),"jungle"=>array(),"middle"=>array(),"bottom"=>array(),"utility"=>array());
 	foreach ($players as $player) {
@@ -153,7 +152,7 @@ if ($games_played == 0) {
 					}
 				}
 			}
-			echo "<a href='$pageurl' class='role-playername$selected'>".$players_by_name[$role_player]["summonerName"]." ({$role_player_num}x)</a>";
+            echo "<a href='$pageurl' class='role-playername$selected tooltip' data-name='{$players_by_name[$role_player]["riotID_name"]}#{$players_by_name[$role_player]["riotID_tag"]}'>".$players_by_name[$role_player]["riotID_name"]." ({$role_player_num}x) <span class='tooltiptext riot-id'>{$players_by_name[$role_player]["riotID_name"]}#{$players_by_name[$role_player]["riotID_tag"]}</span></a>";
 			$count_role_players++;
 		}
 		echo "</div>";
@@ -237,7 +236,7 @@ if ($games_played == 0) {
 		}
 		echo "<div class='playertable$dontshow$roleclass'>";
 		arsort($player_champs);
-		echo "<h4>".$player['summonerName']."</h4>";
+		echo "<h4 class='tooltip' data-name='{$player["riotID_name"]}#{$player["riotID_tag"]}'>".$player['riotID_name']."<span class='tooltiptext riot-id'>{$player["riotID_name"]}#{$player["riotID_tag"]}</span></h4>";
 		if (count($player_champs) > 5) {
 			echo "<table class='collapsed'>";
 		} else {

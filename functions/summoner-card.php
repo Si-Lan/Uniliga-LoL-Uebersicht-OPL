@@ -9,6 +9,7 @@ function create_summonercard(mysqli $dbcn, $playerID, $tournamentID, $teamID = N
 		$sc_collapsed_state = "";
     }
 	$enc_summoner = urlencode($player['summonerName']);
+	$riot_tag = ($player['riotID_tag'] != NULL && $player['riotID_tag'] != "") ? "#".$player['riotID_tag'] : "";
 	$player_tier = $player['rank_tier'];
 	$player_div = $player['rank_div'];
 	$player_LP = NULL;
@@ -26,9 +27,7 @@ function create_summonercard(mysqli $dbcn, $playerID, $tournamentID, $teamID = N
 	</span>
 	<div class='divider'></div>
 	<div class='card-summoner'>
-		<span>
-			{$player['summonerName']}
-		</span>";
+		<span>{$player['riotID_name']}</span><span class='riot-id-tag'>$riot_tag</span>";
 
 	if ($player_tier != NULL) {
 		$player_tier = strtolower($player_tier);

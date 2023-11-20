@@ -562,7 +562,7 @@ function populate_th($maintext,$tooltiptext,$init=false) {
 	return "<span class='tooltip'>$maintext<span class='tooltiptext'>$tooltiptext</span><div class='material-symbol sort-direction'>".$svg_code."</div></span>";
 }
 
-function create_game($dbcn,$gameID,$curr_team=NULL):string {
+function create_game(mysqli $dbcn,$gameID,$curr_team=NULL):string {
 	$result = "";
 	// TODO: tournamentID integrieren, falls ein game in mehreren turnieren eingetragen ist (aktuell wird einfach das erste geholt)
 	$gameDB = $dbcn->execute_query("SELECT * FROM games JOIN games_in_tournament git on games.RIOT_matchID = git.RIOT_matchID WHERE games.RIOT_matchID = ?",[$gameID])->fetch_assoc();
@@ -840,9 +840,18 @@ function create_game($dbcn,$gameID,$curr_team=NULL):string {
 			$championId = $player['championName'];
 			$champ_lvl = $player['champLevel'];
 
+
+			if ($player["riotIdName"] != "") {
+				$riotIdName = $player["riotIdName"];
+				$riotIdTag = $player["riotIdTagline"];
+			} else {
+				$player_DB = $dbcn->execute_query("SELECT * FROM players WHERE PUUID = ?", [$player["puuid"]])->fetch_assoc();
+				$riotIdName = $player_DB['riotID_name'];
+				$riotIdTag = $player_DB['riotID_tag'];
+			}
+
 			$summoner_rank = "";
 			$summoner_rank_div = "";
-			$summoner_name = $player['summonerName'];
 			$puuid = $player['puuid'];
 			if (array_key_exists($puuid, $players_PUUID)) {
 				$summoner_rank = strtolower($players_PUUID[$puuid]['rank_tier']);
@@ -889,8 +898,12 @@ function create_game($dbcn,$gameID,$curr_team=NULL):string {
                     <img loading='lazy' alt='' src='$dd_img/champion/{$championId}.webp' class='champ'>
                     <div class='champ-lvl'>$champ_lvl</div>
                 </div>
-                <div class='summoner-name'>
-                    <div>$summoner_name</div>";
+                <div class='summoner-name'>";
+			if ($riotIdTag != "") {
+				$result .= "<div class='tooltip'>$riotIdName<span class='tooltiptext interactable riot-id'>$riotIdName#$riotIdTag</span></div>";
+			} else {
+				$result .= "<div>$riotIdName</div>";
+			}
 			if (array_key_exists($puuid, $players_PUUID)) {
 				if ($summoner_rank != NULL) {
 					$result .= "
