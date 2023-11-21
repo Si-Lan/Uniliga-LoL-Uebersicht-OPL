@@ -223,6 +223,7 @@ function create_tournament_nav_buttons(string|int $tournament_id, mysqli $dbcn =
 function generate_elo_list($dbcn,$view,$teams,$tournamentID,$division,$group):string {
 	$results = "";
 	$local_team_img = "img/team_logos/";
+    $logo_filename = is_light_mode() ? "logo_light.webp" : "logo.webp";
 	$opgg_logo_svg = file_get_contents(__DIR__."/../img/opgglogo.svg");
 	$opgg_url = "https://www.op.gg/multisearch/euw?summoners=";
 	$view_class = "";
@@ -286,7 +287,7 @@ function generate_elo_list($dbcn,$view,$teams,$tournamentID,$division,$group):st
                             <div class='elo-list-item team'>";
 		if ($team['OPL_ID_logo'] != NULL && file_exists(__DIR__."/../$local_team_img{$team['OPL_ID_logo']}/logo.webp")) {
 			$results .= "
-                                <img src='$local_team_img{$team['OPL_ID_logo']}/logo.webp' alt='Teamlogo'>";
+                                <img class='color-switch' src='$local_team_img{$team['OPL_ID_logo']}/$logo_filename' alt='Teamlogo'>";
 		}
 		$results .= "
                                 <span>{$team['name']}</span>
@@ -324,6 +325,7 @@ function create_standings(mysqli $dbcn, $tournament_id, $group_id, $team_id=NULL
 	$result = "";
 	$opgg_url = "https://www.op.gg/multisearch/euw?summoners=";
 	$local_img_path = "img/team_logos/";
+    $logo_filename = is_light_mode() ? "logo_light.webp" : "logo.webp";
 	$opgg_logo_svg = file_get_contents(__DIR__."/../img/opgglogo.svg");
 	$group = $dbcn->execute_query("SELECT * FROM tournaments WHERE eventType = 'group' AND OPL_ID = ?",[$group_id])->fetch_assoc();
 	$div = $dbcn->execute_query("SELECT * FROM tournaments WHERE eventType = 'league' AND OPL_ID = ?",[$group['OPL_ID_parent']])->fetch_assoc();
@@ -384,7 +386,7 @@ function create_standings(mysqli $dbcn, $tournament_id, $group_id, $team_id=NULL
 				<a href='turnier/$tournament_id/team/{$currteam['OPL_ID']}' class='standing-item-wrapper'>
 				<div class='standing-item team'>";
 		if ($currteam['OPL_ID_logo'] != NULL && file_exists(__DIR__."/../$local_img_path{$currteam['OPL_ID_logo']}/logo.webp")) {
-			$result .= "<img src='$local_img_path{$currteam['OPL_ID']}/logo.webp' alt=\"Teamlogo\">";
+			$result .= "<img class='color-switch' src='$local_img_path{$currteam['OPL_ID']}/$logo_filename' alt=\"Teamlogo\">";
 		}
 		if ($currteam['avg_rank_tier'] != NULL) {
 			$team_tier = strtolower($currteam['avg_rank_tier']);
@@ -509,12 +511,13 @@ function create_team_nav_buttons($tournamentID,$groupID,$team,$active,$updatedif
 		$stats_a = " active";
 	}
 	$local_team_img = "img/team_logos/";
+    $logo_filename = is_light_mode() ? "logo_light.webp" : "logo.webp";
 	$opl_team_url = "https://www.opleague.pro/team/";
 	$team_id = $team['OPL_ID'];
 	$result .= "<div class='team title'>
 			<div class='team-name'>";
 	if ($team['OPL_ID_logo'] != NULL && file_exists(__DIR__."/../$local_team_img{$team['OPL_ID_logo']}/logo.webp")) {
-		$result .= "<img alt src='$local_team_img{$team['OPL_ID_logo']}/logo.webp'>";
+		$result .= "<img class='color-switch' alt src='$local_team_img{$team['OPL_ID_logo']}/$logo_filename'>";
 	}
 	$result .= "
 			<div>
@@ -755,15 +758,16 @@ function create_game(mysqli $dbcn,$gameID,$curr_team=NULL):string {
 	}
 
 	$local_team_img = "img/team_logos/";
+    $logo_filename = is_light_mode() ? "logo_light.webp" : "logo.webp";
 	if ($team_blue['OPL_ID_logo'] == NULL || !file_exists(__DIR__."/../$local_team_img{$team_blue['OPL_ID_logo']}/logo.webp")) {
 		$logo_blue = "";
 	} else {
-		$logo_blue = "<img alt='' src='$local_team_img{$team_blue['OPL_ID_logo']}/logo.webp'>";
+		$logo_blue = "<img class='color-switch' alt='' src='$local_team_img{$team_blue['OPL_ID_logo']}/$logo_filename'>";
 	}
 	if ($team_red['OPL_ID_logo'] == NULL || !file_exists(__DIR__."/../$local_team_img{$team_red['OPL_ID_logo']}/logo.webp")) {
 		$logo_red = "";
 	} else {
-		$logo_red = "<img alt='' src='$local_team_img{$team_red['OPL_ID_logo']}/logo.webp'>";
+		$logo_red = "<img class='color-switch' alt='' src='$local_team_img{$team_red['OPL_ID_logo']}/$logo_filename'>";
 	}
 
 	$gamedate = date("d.m.y",$info["gameCreation"]/1000);

@@ -160,7 +160,7 @@ function write_tournament(array $data):string {
 	}
 
 	$local_img_folder_path = __DIR__."/../../img/tournament_logos";
-	if ($data["OPL_logo_url"] != NULL && !file_exists("$local_img_folder_path/{$data["OPL_ID_logo"]}/logo.webp")) {
+	if ($data["OPL_logo_url"] != NULL && (!file_exists("$local_img_folder_path/{$data["OPL_ID_logo"]}/logo.webp") || !file_exists("$local_img_folder_path/{$data["OPL_ID_logo"]}/logo_light.webp"))) {
 		download_opl_img($data["OPL_ID"], "tournament_logo", true);
 	}
 
@@ -183,9 +183,9 @@ function create_tournament_get_button(array $data, bool $in_write_popup = false)
 	$typeselect_wildcard = (strtolower($data["eventType"]) == "wildcard") ? "selected" : "";
 	$typeselect_playoffs = (strtolower($data["eventType"]) == "playoffs") ? "selected" : "";
 
-	$formatselect_round_robin = (strtolower($data["format"]) == "round-robin") ? "selected" : "";
-	$formatselect_single_elim = (strtolower($data["format"]) == "single-elimination") ? "selected" : "";
-	$formatselect_double_elim = (strtolower($data["format"]) == "double-elimination") ? "selected" : "";
+	$formatselect_round_robin = (strtolower($data["format"]??"") == "round-robin") ? "selected" : "";
+	$formatselect_single_elim = (strtolower($data["format"]??"") == "single-elimination") ? "selected" : "";
+	$formatselect_double_elim = (strtolower($data["format"]??"") == "double-elimination") ? "selected" : "";
 
 	$dateStart = explode(" ",$data["dateStart"])[0];
 	$dateEnd = explode(" ",$data["dateEnd"])[0];
