@@ -87,11 +87,11 @@ $players = $dbcn->execute_query("SELECT * FROM players JOIN players_in_teams_in_
 $matches = $dbcn->execute_query("SELECT * FROM matchups WHERE OPL_ID_tournament = ? AND (OPL_ID_team1 = ? OR OPL_ID_team2 = ?)", [$group["OPL_ID"],$teamID,$teamID])->fetch_all(MYSQLI_ASSOC);
 
 $opgglink = $opgg_url;
-for ($i_opgg = 0; $i_opgg < count($players); $i_opgg++) {
-	if ($i_opgg != 0) {
+for ($i = 0; $i < count($players); $i++) {
+	if ($i != 0) {
 		$opgglink .= urlencode(",");
 	}
-	$opgglink .= urlencode($players[$i_opgg]["summonerName"]);
+	$opgglink .= urlencode($players[$i]["riotID_name"]."#".$players[$i]["riotID_tag"]);
 }
 $player_amount = count($players);
 //$players_by_id = array();

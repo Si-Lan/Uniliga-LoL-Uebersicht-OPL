@@ -277,7 +277,7 @@ function generate_elo_list($dbcn,$view,$teams,$tournamentID,$division,$group):st
 			if ($i_cop != 0) {
 				$curr_opgglink .= urlencode(",");
 			}
-			$curr_opgglink .= urlencode($curr_player["summonerName"]);
+			$curr_opgglink .= urlencode($curr_player["riotID_name"]."#".$curr_player["riotID_tag"]);
 		}
 		$results .= "
                     <div class='elo-list-row elo-list-team {$team['OPL_ID']}$color_class'>
@@ -368,7 +368,7 @@ function create_standings(mysqli $dbcn, $tournament_id, $group_id, $team_id=NULL
 			if ($i_cop != 0) {
 				$curr_opgglink .= urlencode(",");
 			}
-			$curr_opgglink .= urlencode($curr_player["summonerName"]);
+			$curr_opgglink .= urlencode($curr_player["riotID_name"]."#".$curr_player["riotID_tag"]);
 		}
 		if ($team_id != NULL) {
 			$current = ($currteam['OPL_ID'] == $team_id)? " current" : "";
@@ -576,13 +576,10 @@ function create_game(mysqli $dbcn,$gameID,$curr_team=NULL):string {
 	$tournamentID = $gameDB["OPL_ID_tournament"];
 
 	$players_PUUID = [];
-	$players = [];
 	for ($i = 0; $i < count($players_blue_DB); $i++)  {
-		$players[$players_blue_DB[$i]["summonerName"]] = $players_blue_DB[$i];
 		$players_PUUID[$players_blue_DB[$i]['PUUID']] = $players_blue_DB[$i];
 	}
 	for ($i = 0; $i < count($players_red_DB); $i++)  {
-		$players[$players_red_DB[$i]["summonerName"]] = $players_red_DB[$i];
 		$players_PUUID[$players_red_DB[$i]['PUUID']] = $players_red_DB[$i];
 	}
 

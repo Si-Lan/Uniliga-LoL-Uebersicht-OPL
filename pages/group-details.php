@@ -56,8 +56,6 @@ if (isset($_GET['match'])) {
 
 $pageurl = $_SERVER['REQUEST_URI'];
 $opl_tourn_url = "https://www.opleague.pro/event/";
-$opgg_logo_svg = file_get_contents(__DIR__."/../img/opgglogo.svg");
-$opgg_url = "https://www.op.gg/multisearch/euw?summoners=";
 
 $matches = $dbcn->execute_query("SELECT * FROM matchups WHERE OPL_ID_tournament = ? ORDER BY playday",[$group['OPL_ID']])->fetch_all(MYSQLI_ASSOC);
 $matches_grouped = [];

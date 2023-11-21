@@ -358,7 +358,7 @@ async function popup_team(teamID, tournamentID = null) {
 					if (i !== 0) {
 						players_string += encodeURIComponent(",");
 					}
-					players_string += encodeURIComponent(team_data["players"][i]['summonerName']);
+					players_string += encodeURIComponent(team_data["players"][i]['riotID_name']+"#"+team_data["players"][i]['riotID_tag']);
 				}
 
 				popup.append("<div class='team-buttons opgg-cards'></div>");

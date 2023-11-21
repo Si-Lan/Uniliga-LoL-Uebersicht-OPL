@@ -8,7 +8,8 @@ function create_summonercard(mysqli $dbcn, $playerID, $tournamentID, $teamID = N
     } else {
 		$sc_collapsed_state = "";
     }
-	$enc_summoner = urlencode($player['summonerName']);
+	$enc_riotid = urlencode($player['riotID_name'])."-".urlencode($player['riotID_tag']);
+	$riotid_full = $player['riotID_name']."#".$player['riotID_tag'];
 	$riot_tag = ($player['riotID_tag'] != NULL && $player['riotID_tag'] != "") ? "#".$player['riotID_tag'] : "";
 	$player_tier = $player['rank_tier'];
 	$player_div = $player['rank_div'];
@@ -19,7 +20,7 @@ function create_summonercard(mysqli $dbcn, $playerID, $tournamentID, $teamID = N
 	}
 	$return .= "<div class='summoner-card-wrapper'>";
 	$return .= "
-	<div class='summoner-card {$player['OPL_ID']} $sc_collapsed_state $player_removed_class' onclick='player_to_opgg_link(\"{$player['OPL_ID']}\",\"{$player['summonerName']}\")'>";
+	<div class='summoner-card {$player['OPL_ID']} $sc_collapsed_state $player_removed_class' onclick='player_to_opgg_link(\"{$player['OPL_ID']}\",\"{$riotid_full}\")'>";
 	$return .= "<input type='checkbox' name='OPGG' checked class='opgg-checkbox'>";
 	$return .= "
 	<span class='card-player'>
@@ -109,7 +110,7 @@ function create_summonercard(mysqli $dbcn, $playerID, $tournamentID, $teamID = N
 		$return .= "<a href='javascript:void(0)' class='open-playerhistory' onclick='popup_player(\"{$player["PUUID"]}\")'><div class='material-symbol'>". file_get_contents(__DIR__."/../icons/material/history.svg") ."</div>Spieler-History</a>";
 	}
 	*/
-	$return .= "<a href='https://www.op.gg/summoners/euw/$enc_summoner' target='_blank' class='op-gg-single'><div class='svg-wrapper op-gg'>".file_get_contents(__DIR__."/../img/opgglogo.svg")."</div></a>";
+	$return .= "<a href='https://www.op.gg/summoners/euw/$enc_riotid' target='_blank' class='op-gg-single'><div class='svg-wrapper op-gg'>".file_get_contents(__DIR__."/../img/opgglogo.svg")."</div></a>";
 	$return .= "</div>"; // summoner-card-wrapper
 
 	if ($echo) {
