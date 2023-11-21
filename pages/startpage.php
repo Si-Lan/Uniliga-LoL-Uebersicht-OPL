@@ -36,19 +36,20 @@ echo create_header($dbcn, home_button: FALSE, open_login: !$pass, loginforminfo:
 
 		<?php
 		$local_img_path = "img/tournament_logos";
+		$logo_filename = is_light_mode() ? "logo_light.webp" : "logo.webp";
 		$tournaments = $dbcn->execute_query("SELECT * FROM tournaments WHERE eventType = 'tournament' AND deactivated = FALSE ORDER BY dateStart DESC")->fetch_all(MYSQLI_ASSOC);
 		foreach ($tournaments as $tournament) {
 			if ($tournament["OPL_ID_logo"] == NULL) {
 				$tournimg_url = "";
 			} else {
-				$tournimg_url = $local_img_path."/". $tournament['OPL_ID_logo']."/logo.webp";
+				$tournimg_url = $local_img_path."/". $tournament['OPL_ID_logo']."/".$logo_filename;
 			}
 
 			$t_name_clean = preg_replace("/LoL/","",$tournament["name"]);
 
 			echo "
 				<a href='turnier/{$tournament["OPL_ID"]}' class=\"turnier-button {$tournament["OPL_ID"]}\">
-					<img alt src='$tournimg_url'>
+					<img class='color-switch' alt src='$tournimg_url'>
 					<span>$t_name_clean</span>
 				</a>";
 		}

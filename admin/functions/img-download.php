@@ -12,7 +12,8 @@ function download_opl_img(int|string $itemID, string $type, bool $echo_states = 
 	} elseif ($type == "tournament_logo") {
 		$imgfolder_path = __DIR__."/../../img/tournament_logos";
 		$item = $dbcn->execute_query("SELECT name, OPL_ID_logo FROM tournaments WHERE OPL_ID = ?", [$itemID])->fetch_assoc();
-		$opl_logo_url = "/styles/media/event/{$item["OPL_ID_logo"]}/Logo_100.webp";
+		$opl_logo_url_light = "/styles/media/event/{$item["OPL_ID_logo"]}/Logo_100.webp";
+        $opl_logo_url = "/styles/media/event/{$item["OPL_ID_logo"]}/Logo_on_black_100.webp";
 	} else {
 		$dbcn->close();
 		return false;

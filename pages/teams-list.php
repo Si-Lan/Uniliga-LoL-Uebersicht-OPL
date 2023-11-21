@@ -144,6 +144,7 @@ $teams = $dbcn->execute_query("SELECT *
                                         ORDER BY teams.name", [$tournamentID])->fetch_all(MYSQLI_ASSOC);
 
 $local_img_path = "img/team_logos/";
+$logo_filename = is_light_mode() ? "logo_light.webp" : "logo.webp";
 
 foreach ($teams as $i_teams=>$team) {
 	$currTeam = $team["name"];
@@ -170,7 +171,7 @@ foreach ($teams as $i_teams=>$team) {
 		$currTeamImgID = "";
 		$img_url = "";
 	} else {
-		$img_url = $local_img_path . $currTeamImgID . "/logo.webp";
+		$img_url = $local_img_path . $currTeamImgID ."/". $logo_filename;
 	}
 
 
@@ -190,7 +191,7 @@ foreach ($teams as $i_teams=>$team) {
                     <div class='team-name'>";
 	if ($img_url != NULL) {
 		echo "
-                        <img alt src='$img_url'>";
+                        <img class='color-switch' alt src='$img_url'>";
 	}
 	echo "
                         <span>$currTeam</span>

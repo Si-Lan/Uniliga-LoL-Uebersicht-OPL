@@ -26,14 +26,26 @@ async function toggle_darkmode() {
 	cookie_expiry.setFullYear(cookie_expiry.getFullYear()+1);
 	let body = $('body');
 	if (body.hasClass("light")) {
+		// switch to darkmode
 		body.removeClass("light");
 		await new Promise(r => setTimeout(r, 1));
 		$('.settings-option.toggle-mode').html(get_material_icon("dark_mode"));
+		$('img.color-switch').each(function() {
+			let img = $(this);
+			let logo_url = img.attr("src");
+			$(this).attr('src',logo_url.replace("logo_light.webp","logo.webp"));
+		});
 		document.cookie = `lightmode=0; expires=${cookie_expiry}; path=/`;
 	} else {
+		// switch to lightmode
 		body.addClass("light");
 		await new Promise(r => setTimeout(r, 1));
 		$('.settings-option.toggle-mode').html(get_material_icon("light_mode"));
+		$('img.color-switch').each(function() {
+			let img = $(this);
+			let logo_url = img.attr("src");
+			$(this).attr('src',logo_url.replace("logo.webp","logo_light.webp"));
+		});
 		document.cookie = `lightmode=1; expires=${cookie_expiry}; path=/`;
 	}
 	await new Promise(r => setTimeout(r, 10));
