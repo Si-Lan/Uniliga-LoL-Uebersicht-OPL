@@ -704,11 +704,11 @@ function get_results_for_matchup($matchID):array {
 	$match_data = [
 		"team1Score" => strval($data["scores"][$matchDB["OPL_ID_team1"]]) ?? null,
 		"team2Score" => strval($data["scores"][$matchDB["OPL_ID_team2"]]) ?? null,
-		"played" => intval($response["data"]["state_key"]) >= 6,
+		"played" => intval($response["data"]["state_key"]) >= 4,
 		"winner" => (count($data["win_IDs"])>0) ? $data["win_IDs"][0] : null,
 		"loser" => (count($data["win_IDs"])>0) ? $data["loss_IDs"][0] : null,
-		"draw" => (intval($response["data"]["state_key"]) >= 6) ? count($data["draw_IDs"]) > 0 : null,
-		"def_win" => (intval($response["data"]["state_key"]) >= 6) ? count($data["defwin"]) > 0 : null,
+		"draw" => (intval($response["data"]["state_key"]) >= 4) ? count($data["draw_IDs"]) > 0 : null,
+		"def_win" => (intval($response["data"]["state_key"]) >= 4) ? count($data["defwin"]) > 0 : null,
 	];
 
 	$updated = [];
