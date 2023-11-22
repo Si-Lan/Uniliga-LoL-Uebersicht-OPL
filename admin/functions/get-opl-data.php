@@ -342,7 +342,7 @@ function get_teams_for_tournament($tournamentID, bool $deletemissing = false):ar
 
 		// Team Logo herunterladen, wenn es noch nicht existiert
 		$local_img_folder_path = __DIR__."/../../img/team_logos";
-		if ($team_data["OPL_logo_url"] != NULL && (!file_exists("$local_img_folder_path/{$team_data["OPL_ID_logo"]}/logo.webp") || !file_exists("$local_img_folder_path/{$team_data["OPL_ID_logo"]}/logo_dark.webp"))) {
+		if ($team_data["OPL_logo_url"] != NULL && (!file_exists("$local_img_folder_path/{$team_data["OPL_ID_logo"]}/logo.webp") || !file_exists("$local_img_folder_path/{$team_data["OPL_ID_logo"]}/logo_light.webp"))) {
 			$logo_dl = download_opl_img($team_data["OPL_ID"], "team_logo");
 		}
 

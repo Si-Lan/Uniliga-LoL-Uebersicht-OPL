@@ -36,29 +36,44 @@ function download_opl_img(int|string $itemID, string $type, bool $echo_states = 
 		]
 	]];
 	$context = stream_context_create($options);
-	$img = imagecreatefromstring(file_get_contents("https://www.opleague.pro$opl_logo_url", context: $context));
-	if ($img) {
-		imagepalettetotruecolor($img);
-		imagealphablending($img, false);
-		imagesavealpha($img, true);
-		imagewebp($img, "$local_tournament_directory_path/logo.webp", 100);
-		imagedestroy($img);
-		if ($echo_states) echo "--Logo heruntergeladen<br>";
-		$img_written = true;
-	}
 
-	if ($opl_logo_url_light != NULL) {
-		$img = imagecreatefromstring(file_get_contents("https://www.opleague.pro$opl_logo_url_light", context: $context));
-		if ($img) {
-			imagepalettetotruecolor($img);
-			imagealphablending($img, false);
-			imagesavealpha($img, true);
-			imagewebp($img, "$local_tournament_directory_path/logo_light.webp", 100);
-			imagedestroy($img);
-			if ($echo_states) echo "--Logo dark heruntergeladen<br>";
+	$imgdata_dark = @file_get_contents("https://www.opleague.pro$opl_logo_url", context: $context);
+	if (str_contains($http_response_header[0], "200")) {
+		$img_dark = imagecreatefromstring($imgdata_dark);
+		if ($img_dark) {
+			imagepalettetotruecolor($img_dark);
+			imagealphablending($img_dark, false);
+			imagesavealpha($img_dark, true);
+			imagewebp($img_dark, "$local_tournament_directory_path/logo.webp", 100);
+			if ($echo_states) echo "--Logo heruntergeladen<br>";
 			$img_written = true;
 		}
 	}
+
+	$imgdata_light = @file_get_contents("https://www.opleague.pro$opl_logo_url_light", context: $context);
+	if (str_contains($http_response_header[0], "200")) {
+		$img_light = imagecreatefromstring($imgdata_light);
+		if ($img_light) {
+			imagepalettetotruecolor($img_light);
+			imagealphablending($img_light, false);
+			imagesavealpha($img_light, true);
+			imagewebp($img_light, "$local_tournament_directory_path/logo_light.webp", 100);
+			if ($echo_states) echo "--Logo für lightmode heruntergeladen<br>";
+			$img_written = true;
+		}
+		if (!($img_dark??false)) {
+			imagewebp($img_light, "$local_tournament_directory_path/logo.webp", 100);
+			if ($echo_states) echo "--Logo light für logo dark eingesetzt<br>";
+		}
+	} else {
+		if ($img_dark??false) {
+			imagewebp($img_dark, "$local_tournament_directory_path/logo_light.webp", 100);
+			if ($echo_states) echo "--Logo dark für logo light eingesetzt<br>";
+		}
+	}
+
+	if ($img_dark ?? false) imagedestroy($img_dark);
+	if ($img_light ?? false) imagedestroy($img_light);
 
 	$dbcn->close();
 	return $img_written;
