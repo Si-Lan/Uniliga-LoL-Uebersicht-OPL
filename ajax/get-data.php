@@ -205,8 +205,9 @@ if ($type == "matchups") {
 			foreach ($matchup_from_group as $matchup) {
 				$matchups[] = $matchup["OPL_ID"];
 			}
+		} else {
+			array_push($matchups, ...$matchup_from_group);
 		}
-		array_push($matchups, ...$matchup_from_group);
 	}
 	echo json_encode($matchups);
 }

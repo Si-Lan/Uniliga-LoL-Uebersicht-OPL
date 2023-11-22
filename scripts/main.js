@@ -1443,7 +1443,6 @@ async function user_update_group(button) {
 
 	let current = Date.now();
 	let diff = new Date(current - last_update);
-	console.log(current-last_update)
 
 	if (current - last_update < 600000) {
 		let rest = new Date(600000 - (current - last_update));
