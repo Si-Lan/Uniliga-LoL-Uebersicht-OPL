@@ -842,8 +842,8 @@ function create_game(mysqli $dbcn,$gameID,$curr_team=NULL):string {
 			$champ_lvl = $player['champLevel'];
 
 
-			if ($player["riotIdName"] != "") {
-				$riotIdName = $player["riotIdName"];
+			if ($player["riotIdGameName"] != "") {
+				$riotIdName = $player["riotIdGameName"];
 				$riotIdTag = $player["riotIdTagline"];
 			} else {
 				$player_DB = $dbcn->execute_query("SELECT * FROM players WHERE PUUID = ?", [$player["puuid"]])->fetch_assoc();
