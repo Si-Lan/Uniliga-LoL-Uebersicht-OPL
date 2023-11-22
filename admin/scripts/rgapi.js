@@ -1,3 +1,11 @@
+let scroll_on_write = true;
+function write_result(wrapper, container, input) {
+	wrapper.removeClass('no-res');
+	scroll_on_write = container.scrollTop() + wrapper.height() > container.prop("scrollHeight") - 50;
+	container.append(input);
+	if (scroll_on_write) container.scrollTop(container.prop("scrollHeight"));
+}
+
 function clear_results(ID,num=0) {
 	let results = $(".result-wrapper."+ID);
 	if (num>0) {
@@ -140,15 +148,11 @@ async function get_riotids_by_puuids(tournamentID) {
 					console.log("-- sleep (before #"+ (i+1) +") --");
 					for (let t = 0; t <= 10; t++) {
 						if (waiting) {
-							wrapper.removeClass('no-res');
-							container.append(`----- waiting ${10-t+1} -----<br>`);
-							container.scrollTop(container.prop("scrollHeight"));
+							write_result(wrapper,container, `----- waiting ${10-t+1} -----<br>`);
 						}
 						await new Promise(r => setTimeout(r, 1000));
 					}
-					wrapper.removeClass('no-res');
-					container.append(`----- starting next batch (${i+1}-${i+50}) -----<br>`);
-					container.scrollTop(container.prop("scrollHeight"));
+					write_result(wrapper,container, `----- starting next batch (${i+1}-${i+50}) -----<br>`);
 					console.log("-- slept --");
 					waiting = false;
 				}
@@ -163,11 +167,8 @@ async function get_riotids_by_puuids(tournamentID) {
 					.then(res => res.json())
 					.then(result => {
 						console.log("Player "+(i+1)+" ready");
-						wrapper.removeClass('no-res');
 						console.log(result["echo"]);
-						container.append("#"+(i+1)+"<br>");
-						container.append(result["echo"]);
-						container.scrollTop(container.prop("scrollHeight"));
+						write_result(wrapper,container, `#${i+1}<br>${result["echo"]}`);
 						calls_made[i - (i%50)]++;
 						if (calls_made[i - (i%50)] >= 50) {
 							waiting = true;
