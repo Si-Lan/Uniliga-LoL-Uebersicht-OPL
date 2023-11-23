@@ -1,20 +1,23 @@
+function set_button_listeners() {
+	$(".update_tournament").on("click", function () {write_tournament(this.previousSibling.getAttribute("data-id"))});
+	$(".get-teams").on("click", function () {get_teams_for_tournament(this.getAttribute("data-id"))});
+	$(".get-teams-delete").on("click", function () {get_teams_for_tournament(this.getAttribute("data-id"),true)});
+	$(".get-players").on("click", function () {get_players_for_tournament(this.getAttribute("data-id"))});
+	$(".get-riotids").on("click", function () {get_riotids_for_tournament(this.getAttribute("data-id"))});
+	$(".get-matchups").on("click", function () {get_matchups_for_tournament(this.getAttribute("data-id"))});
+	$(".get-matchups-delete").on("click", function () {get_matchups_for_tournament(this.getAttribute("data-id"),true)});
+	$(".get-results").on("click", function () {get_results_for_tournament(this.getAttribute("data-id"))});
+	$(".calculate-standings").on("click", function () {calculate_standings_from_matchups(this.getAttribute("data-id"))});
+	$(".open-tournament-data-popup").on("click", function() {$(`dialog.tournament-data-popup.${this.getAttribute("data-id")}`)[0].showModal()});
+}
+
 $(document).ready(() => {
 	$("#turnier-button-get").on("click", get_tournament);
 	$("#input-tournament-id").on("keydown", (event) => {
 		if (event.key === "Enter") get_tournament();
 	});
 	$("#write_tournament").on("click", () => write_tournament());
-	$(".update_tournament").on("click", function () {write_tournament(this.previousSibling.getAttribute("data-id"))});
-	$(".get-teams").on("click", function () {get_teams_for_tournament(this.getAttribute("data-id"))});
-	$(".get-teams-delete").on("click", function () {get_teams_for_tournament(this.getAttribute("data-id"),true)});
-	$(".get-players").on("click", function () {get_players_for_tournament(this.getAttribute("data-id"))});
-	$(".get-summoners").on("click", function () {get_summonerNames_for_tournament(this.getAttribute("data-id"))});
-	$(".get-matchups").on("click", function () {get_matchups_for_tournament(this.getAttribute("data-id"))});
-	$(".get-matchups-delete").on("click", function () {get_matchups_for_tournament(this.getAttribute("data-id"),true)});
-	$(".get-results").on("click", function () {get_results_for_tournament(this.getAttribute("data-id"))});
-	$(".calculate-standings").on("click", function () {calculate_standings_from_matchups(this.getAttribute("data-id"))});
-
-	$(".open-tournament-data-popup").on("click", function() {$(`dialog.tournament-data-popup.${this.getAttribute("data-id")}`)[0].showModal()});
+	set_button_listeners();
 });
 
 function create_tournament_buttons() {
@@ -28,17 +31,8 @@ function create_tournament_buttons() {
 		.then(res => res.text())
 		.then(content => {
 			document.getElementsByClassName("turnier-select")[0].innerHTML = content;
-			$(".update_tournament").on("click", function () {write_tournament(this.previousSibling.getAttribute("data-id"))});
-			$(".open-tournament-data-popup").on("click", function() {$(`dialog.tournament-data-popup.${this.getAttribute("data-id")}`)[0].showModal()});
 			$('dialog.dismissable-popup').on('click', function (event) {if (event.target === this) this.close()});
-			$(".get-teams").on("click", function () {get_teams_for_tournament(this.getAttribute("data-id"))});
-			$(".get-teams-delete").on("click", function () {get_teams_for_tournament(this.getAttribute("data-id"),true)});
-			$(".get-players").on("click", function () {get_players_for_tournament(this.getAttribute("data-id"))});
-			$(".get-summoners").on("click", function () {get_summonerNames_for_tournament(this.getAttribute("data-id"))});
-			$(".get-matchups").on("click", function () {get_matchups_for_tournament(this.getAttribute("data-id"))});
-			$(".get-matchups-delete").on("click", function () {get_matchups_for_tournament(this.getAttribute("data-id"),true)});
-			$(".get-results").on("click", function () {get_results_for_tournament(this.getAttribute("data-id"))});
-			$(".calculate-standings").on("click", function () {calculate_standings_from_matchups(this.getAttribute("data-id"))});
+			set_button_listeners();
 		})
 		.catch(e => console.error(e));
 }
@@ -184,6 +178,45 @@ function get_summonerNames_for_tournament(tournamentID) {
 					method: "GET",
 					headers: {
 						"type": "get_summonerNames_for_team",
+						"teamID": team.OPL_ID,
+						"tournamentID": tournamentID,
+					}
+				})
+					.then(res => res.json())
+					.then(result => {
+						console.log(result);
+						loadingbar_width += 100/teams.length;
+						button.attr("style",`--loading-bar-width:${loadingbar_width}%`);
+					})
+					.catch(e => console.error(e));
+				// no need to wait here, fetched php script sleeps for 1 sec at the end
+			}
+			button.prop("disabled", false);
+			button.removeClass("button-updating");
+		})
+		.catch(e => console.error(e));
+}
+function get_riotids_for_tournament(tournamentID) {
+	let button = $(".get-riotids");
+	button.addClass("button-updating");
+	button.prop("disabled", true);
+	let loadingbar_width = 0;
+	button.attr("style",`--loading-bar-width:${loadingbar_width}%`);
+
+	fetch(`./ajax/get-data.php`, {
+		method: "GET",
+		headers: {
+			"type": "teams",
+			"tournamentid": tournamentID,
+		}
+	})
+		.then(res => res.json())
+		.then(async teams => {
+			for (const team of teams) {
+				await fetch(`./admin/ajax/get-opl-data.php`, {
+					method: "GET",
+					headers: {
+						"type": "get_riotids_for_team",
 						"teamID": team.OPL_ID,
 						"tournamentID": tournamentID,
 					}

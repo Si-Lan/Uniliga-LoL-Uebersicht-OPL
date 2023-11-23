@@ -251,7 +251,7 @@ function create_tournament_get_button(array $data, bool $in_write_popup = false)
 					<button class='get-teams $id_class' data-id='$id_class'><span>Teams im Turnier updaten</span></button>
 					<button class='get-teams-delete $id_class' data-id='$id_class'><span>Teams im Turnier updaten (Alte entfernen)</span></button>
 					<button class='get-players $id_class' data-id='$id_class'><span>Spieler im Turnier updaten</span></button>
-					<button class='get-summoners $id_class' data-id='$id_class'><span>Spieler-Accounts im Turnier updaten</span></button>
+					<button class='get-riotids $id_class' data-id='$id_class'><span>Spieler-Accounts im Turnier updaten</span></button>
 					<button class='get-matchups $id_class' data-id='$id_class'><span>Matches im Turnier updaten</span></button>
 					<button class='get-matchups-delete $id_class' data-id='$id_class'><span>Matches im Turnier updaten (Alte entfernen)</span></button>
 					<button class='get-results $id_class' data-id='$id_class'><span>Match-Ergebnisse im Turnier updaten</span></button>
@@ -578,6 +578,51 @@ function get_summonerNames_for_player($playerID):array {
 
 	$dbcn->close();
 	return ["updated"=>true, "old"=>$playerDB["summonerName"], "new"=>$summonerName];
+}
+function get_riotid_for_player($playerID):array {
+	$dbcn = create_dbcn();
+	$bearer_token = get_opl_bearer_token();
+	$user_agent = get_user_agent_for_api_calls();
+
+	if ($dbcn -> connect_error){
+		return [];
+	}
+
+	$playerDB = $dbcn->execute_query("SELECT * FROM players WHERE OPL_ID = ?", [$playerID])->fetch_assoc();
+
+	if ($playerDB == NULL) {
+		return [];
+	}
+
+	$url = "https://www.opleague.pro/api/v4/user/$playerID/launcher";
+	$options = ["http" => [
+		"header" => [
+			"Authorization: Bearer $bearer_token",
+			"User-Agent: $user_agent",
+		]
+	]];
+	$context = stream_context_create($options);
+	$response = json_decode(file_get_contents($url, context: $context),true);
+
+	$data = $response["data"]["launcher"];
+
+	// benutze übergangsweise launcher-id 6 (valorant) bis für alle accounts riot-id für LoL (launcher-id 13) aktualisiert wurde
+	if (!array_key_exists("6", $data)) {
+		return ["updated"=>false, "old"=>[$playerDB["riotID_name"], $playerDB["riotID_tag"]], "new"=>NULL];
+	}
+
+	$riotID = explode("#",$data["6"]["last_known_username"]);
+	$riotID_name = $riotID[0];
+	$riotID_tag = $riotID[1];
+
+	if ($playerDB["riotID_name"] == $riotID_name && $playerDB["riotID_tag"] == $riotID_tag) {
+		return ["updated"=>false, "old"=>[$playerDB["riotID_name"], $playerDB["riotID_tag"]], "new"=>[$riotID_name, $riotID_tag]];
+	}
+
+	$dbcn->execute_query("UPDATE players SET riotID_name = ?, riotID_tag = ? WHERE OPL_ID = ?", [$riotID_name, $riotID_tag, $playerID]);
+
+	$dbcn->close();
+	return ["updated"=>true, "old"=>[$playerDB["riotID_name"], $playerDB["riotID_tag"]], "new"=>[$riotID_name, $riotID_tag]];
 }
 
 function get_matchups_for_tournament($tournamentID, bool $deletemissing = false):array {
