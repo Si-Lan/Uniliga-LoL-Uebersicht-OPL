@@ -845,14 +845,18 @@ function create_game(mysqli $dbcn,$gameID,$curr_team=NULL):string {
 			$championId = $player['championName'];
 			$champ_lvl = $player['champLevel'];
 
+			$riotIdName = "";
+			$riotIdTag = "";
 
-			if (array_key_exists("riotIdGameName", $player) && $player["riotIdGameName"] != "") {
-				$riotIdName = $player["riotIdGameName"];
+			if (array_key_exists("riotIdName", $player) && $player["riotIdName"] != "") {
+				$riotIdName = $player["riotIdName"];
 				$riotIdTag = $player["riotIdTagline"];
 			} else {
 				$player_DB = $dbcn->execute_query("SELECT * FROM players WHERE PUUID = ?", [$player["puuid"]])->fetch_assoc();
-				$riotIdName = $player_DB['riotID_name'];
-				$riotIdTag = $player_DB['riotID_tag'];
+				if ($player_DB != NULL) {
+					$riotIdName = $player_DB['riotID_name'];
+					$riotIdTag = $player_DB['riotID_tag'];
+				}
 			}
 
 			$summoner_rank = "";
