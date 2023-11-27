@@ -842,7 +842,7 @@ function create_game(mysqli $dbcn,$gameID,$curr_team=NULL):string {
 			$champ_lvl = $player['champLevel'];
 
 
-			if ($player["riotIdGameName"] != "") {
+			if (array_key_exists("riotIdGameName", $player) && $player["riotIdGameName"] != "") {
 				$riotIdName = $player["riotIdGameName"];
 				$riotIdTag = $player["riotIdTagline"];
 			} else {
