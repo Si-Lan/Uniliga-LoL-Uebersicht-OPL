@@ -255,8 +255,8 @@ if ($games_played == 0) {
                     <th class='sortable kda_col customsort $hidden_pt_columns'>".populate_th("KDA","Kills/Deaths/Assists")."</th>
                 </tr>";
 		foreach ($player_champs as $champ_name => $champ) {
-            if ($champ["deaths"] == 0) $champ["deaths"] = 1;
-            $kda_ratio = round(($champ["kills"] + $champ["assists"]) / $champ["deaths"], 2);
+            $divisionsafe_deaths = ($champ["deaths"] == 0) ? 1 : $champ["deaths"];
+            $kda_ratio = round(($champ["kills"] + $champ["assists"]) / $divisionsafe_deaths, 2);
             $kills_ratio = round($champ['kills'] / $champ['games'], 1);
             $deaths_ratio = round($champ['deaths'] / $champ['games'], 1);
             $assists_ratio = round($champ['assists'] / $champ['games'], 1);
