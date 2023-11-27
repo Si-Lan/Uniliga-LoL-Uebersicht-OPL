@@ -101,25 +101,38 @@ function create_header(mysqli $dbcn = NULL, string $title = "home", string|int $
 	</a>";
 	}
 	$result .= "<div class='title'>";
-	if ($title == "players") {
-		$result .= "<h1>Uniliga LoL - Spieler</h1>";
-	} elseif ($title == "tournament" && $dbcn != NULL && $tournament_id != NULL) {
-		$result .= "<h1>$t_name_clean</h1>";
-		$result .= "<a href='$opl_event_url/$tournament_id' target='_blank' class='toorlink'><div class='material-symbol'>$outlinkicon</div></a>";
-	} elseif ($title == "admin_dd") {
-		$result .= "<h1>Uniliga LoL - DDragon Updates</h1>";
-	} elseif ($title == "admin_update_log") {
-		$result .= "<h1>Uniliga LoL - Update Logs</h1>";
-	} elseif ($title == "admin") {
-		$result .= "<h1>Uniliga LoL - Admin</h1>";
-	} elseif ($title == "rgapi") {
-		$result .= "<h1>Uniliga LoL - Riot-API-Daten</h1>";
-	} elseif ($title == "404") {
-		$result.= "<h1>404 - Seite nicht gefunden</h1>";
-	} elseif ("error") {
-		$result.= "<h1>Fehler</h1>";
-	} else {
-		$result .= "<h1>Uniliga LoL - Übersicht</h1>";
+	switch ($title) {
+		case "players":
+			$result .= "<h1>Uniliga LoL - Spieler</h1>";
+			break;
+		case "tournament":
+			if ($dbcn != NULL && $tournament_id != NULL) {
+				$result .= "<h1>$t_name_clean</h1>";
+				$result .= "<a href='$opl_event_url/$tournament_id' target='_blank' class='toorlink'><div class='material-symbol'>$outlinkicon</div></a>";
+			} else {
+				$result .= "<h1>Uniliga LoL - Übersicht</h1>";
+			}
+			break;
+		case "admin_dd":
+			$result .= "<h1>Uniliga LoL - DDragon Updates</h1>";
+			break;
+		case "admin_update_log":
+			$result .= "<h1>Uniliga LoL - Update Logs</h1>";
+			break;
+		case "admin":
+			$result .= "<h1>Uniliga LoL - Admin</h1>";
+			break;
+		case "rgapi":
+			$result .= "<h1>Uniliga LoL - Riot-API-Daten</h1>";
+			break;
+		case "404":
+			$result.= "<h1>404 - Seite nicht gefunden</h1>";
+			break;
+		case "error":
+			$result.= "<h1>Fehler</h1>";
+			break;
+		default:
+			$result .= "<h1>Uniliga LoL - Übersicht</h1>";
 	}
 	$result .= "</div>";
 	$result .= "<a class='settings-button' href='$pageurl'><div class='material-symbol'>". file_get_contents(dirname(__FILE__)."/../icons/material/tune.svg") ."</div></a>";
