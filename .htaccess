@@ -58,3 +58,6 @@ RewriteRule ^spieler$ ./pages/player-page [NC,L]
 # enable opening php files without .php ending
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteRule ^([^.]+)$ $1.php [NC,L]
+
+
+ErrorDocument 404 /uniliga/pages/error.php?error=404

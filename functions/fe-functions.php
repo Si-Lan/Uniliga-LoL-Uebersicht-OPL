@@ -114,6 +114,10 @@ function create_header(mysqli $dbcn = NULL, string $title = "home", string|int $
 		$result .= "<h1>Uniliga LoL - Admin</h1>";
 	} elseif ($title == "rgapi") {
 		$result .= "<h1>Uniliga LoL - Riot-API-Daten</h1>";
+	} elseif ($title == "404") {
+		$result.= "<h1>404 - Seite nicht gefunden</h1>";
+	} elseif ("error") {
+		$result.= "<h1>Fehler</h1>";
 	} else {
 		$result .= "<h1>Uniliga LoL - Übersicht</h1>";
 	}
