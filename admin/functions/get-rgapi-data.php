@@ -79,7 +79,7 @@ function get_puuids_by_team($teamID, $all = FALSE) {
 	return $returnArr;
 }
 
-function get_riotid_for_player($playerID) {
+function get_riotid_for_player_by_puuid($playerID) {
 	$returnArr = array("return"=>0, "echo"=>"", "writes"=>0, "updates"=>0);
 	$dbcn = create_dbcn();
 	$RGAPI_Key = get_rgapi_key();

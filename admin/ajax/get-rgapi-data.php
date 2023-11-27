@@ -19,7 +19,7 @@ if ($type == "puuids-by-team") {
 if ($type == "riotid_for_player") {
 	$playerID = $_SERVER["HTTP_PLAYER"] ?? $_REQUEST['player'];
 
-	$results = get_riotid_for_player($playerID);
+	$results = get_riotid_for_player_by_puuid($playerID);
 
 	echo json_encode($results, JSON_UNESCAPED_SLASHES);
 }
