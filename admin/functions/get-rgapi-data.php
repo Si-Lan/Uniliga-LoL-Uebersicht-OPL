@@ -3,7 +3,7 @@ include_once __DIR__."/../../setup/data.php";
 include_once __DIR__."/../../functions/helper.php";
 
 // sendet X Anfragen an Riot API (Summoner-V4)  (X = Anzahl Spieler im Team)
-function get_puuids_by_team($teamID, $all = FALSE) {
+function get_puuids_by_team($teamID, $all = FALSE):array {
 	$returnArr = array("return"=>0, "echo"=>"", "writesP"=>0, "writesS"=>0, "changes"=>[0,[]], "RGAPI-Calls"=>0,"404"=>0);
 	$dbcn = create_dbcn();
 	$RGAPI_Key = get_rgapi_key();
@@ -23,16 +23,18 @@ function get_puuids_by_team($teamID, $all = FALSE) {
 	}
 
 	foreach ($playersDB as $player) {
-		if ($player["summonerName"] == null) continue;
-		$SummonerName_safe = urlencode($player['summonerName']);
-		$returnArr['echo'] .= "<span style='color: lightskyblue'>-writing PUUID for {$player['summonerName']} :<br></span>";
+		if ($player["riotID_name"] == null) continue;
+		$name_safe = urlencode($player['riotID_name']);
+		$tag_safe = urlencode($player['riotID_tag']);
+		$returnArr['echo'] .= "<span style='color: lightskyblue'>-writing PUUID for {$player['riotID_name']}#{$player['riotID_tag']} :<br></span>";
 
 		$options = ["http" => ["header" => "X-Riot-Token: $RGAPI_Key"]];
 		$context = stream_context_create($options);
 
-		$content = @file_get_contents("https://euw1.api.riotgames.com/lol/summoner/v4/summoners/by-name/{$SummonerName_safe}", false, $context);
+		$content_riot = @file_get_contents("https://europe.api.riotgames.com/riot/account/v1/accounts/by-riot-id/$name_safe/$tag_safe", false, $context);
+
 		$returnArr["RGAPI-Calls"] += 1;
-		if ($content === FALSE) {
+		if ($content_riot === FALSE) {
 			$returnArr["echo"] .= "<span style='color: orangered'>--could not get PUUID, request failed: {$http_response_header[0]}<br></span>";
 			if (str_contains($http_response_header[0], "404")) {
 				$returnArr["404"]++;
@@ -40,7 +42,7 @@ function get_puuids_by_team($teamID, $all = FALSE) {
 			continue;
 		}
 		if (str_contains($http_response_header[0], "200")) {
-			$data = json_decode($content, true);
+			$data = json_decode($content_riot, true);
 			$returnArr["echo"] .= "<span style='color: limegreen'>--got PUUID: {$data['puuid']}<br></span>";
 
 			$playerinDB = $dbcn->query("SELECT * FROM players WHERE OPL_ID = {$player['OPL_ID']}")->fetch_assoc();
@@ -57,18 +59,34 @@ function get_puuids_by_team($teamID, $all = FALSE) {
 					$dbcn->query("UPDATE players SET PUUID = '{$data['puuid']}' WHERE OPL_ID = {$player['OPL_ID']}");
 				}
 			}
-			if ($playerinDB['summonerID'] == NULL) {
-				$returnArr["echo"] .= "<span style='color: lawngreen'>---write SummonerID to DB<br></span>";
-				$returnArr["writesS"]++;
-				$dbcn->query("UPDATE players SET summonerID = '{$data['id']}' WHERE OPL_ID = {$player['OPL_ID']}");
-			} else {
-				$returnArr["echo"] .= "<span style='color: orange'>---Player already has a SummonerID in DB<br></span>";
-				if ($playerinDB['summonerID'] == $data['id']) {
-					$returnArr["echo"] .= "<span style='color: yellow'>----SummonerID unchanged<br></span>";
-				} else {
-					$returnArr["echo"] .= "<span style='color: lawngreen'>----SummonerID changed, update DB<br></span>";
-					$dbcn->query("UPDATE players SET summonerID = '{$data['id']}' WHERE OPL_ID = {$player['OPL_ID']}");
+
+			$content_summoner = @file_get_contents("https://euw1.api.riotgames.com/lol/summoner/v4/summoners/by-puuid/{$data['puuid']}", false, $context);
+
+			if ($content_summoner === FALSE) {
+				$returnArr["echo"] .= "<span style='color: orangered'>--could not get SummonerID, request failed: {$http_response_header[0]}<br></span>";
+				if (str_contains($http_response_header[0], "404")) {
+					$returnArr["404"]++;
 				}
+				continue;
+			}
+			if (str_contains($http_response_header[0], "200")) {
+				$data_summoner = json_decode($content_summoner, true);
+				if ($playerinDB['summonerID'] == NULL) {
+					$returnArr["echo"] .= "<span style='color: lawngreen'>---write SummonerID to DB<br></span>";
+					$returnArr["writesS"]++;
+					$dbcn->query("UPDATE players SET summonerID = '{$data_summoner['id']}' WHERE OPL_ID = {$player['OPL_ID']}");
+				} else {
+					$returnArr["echo"] .= "<span style='color: orange'>---Player already has a SummonerID in DB<br></span>";
+					if ($playerinDB['summonerID'] == $data_summoner['id']) {
+						$returnArr["echo"] .= "<span style='color: yellow'>----SummonerID unchanged<br></span>";
+					} else {
+						$returnArr["echo"] .= "<span style='color: lawngreen'>----SummonerID changed, update DB<br></span>";
+						$dbcn->query("UPDATE players SET summonerID = '{$data_summoner['id']}' WHERE OPL_ID = {$player['OPL_ID']}");
+					}
+				}
+			} else {
+				$response = explode(" ", $http_response_header[0])[1];
+				$returnArr["echo"] .= "<span style='color: orangered'>--could not get SummonerID, response-code: $response<br></span>";
 			}
 		} else {
 			$response = explode(" ", $http_response_header[0])[1];

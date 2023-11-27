@@ -94,11 +94,11 @@ if ($type == "players_in_team") {
 	$dbcn->close();
 }
 
-if ($type == "summoner_for_player") {
+if ($type == "riotid_for_player") {
 	$dbcn = create_dbcn();
 	$playerID = $_SERVER['HTTP_PLAYERID'] ?? NULL;
 
-	$result = get_summonerNames_for_player($playerID);
+	$result = get_riotid_for_player($playerID);
 	echo json_encode($result);
 	$dbcn->close();
 }

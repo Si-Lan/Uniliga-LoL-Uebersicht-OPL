@@ -1685,12 +1685,11 @@ async function user_update_team(button) {
 	})
 		.then(res => res.json())
 		.then(async players => {
-			/*
 			for (const player of players) {
 				await fetch(`ajax/user-update-functions.php`, {
 					method: "GET",
 					headers: {
-						type: "summoner_for_player",
+						type: "riotid_for_player",
 						playerid: player.OPL_ID,
 					}
 				})
@@ -1701,7 +1700,6 @@ async function user_update_team(button) {
 					.catch(e => console.error(e));
 				await new Promise(r => setTimeout(r, 1000));
 			}
-			*/
 		})
 		.catch(e => console.error(e));
 
