@@ -349,7 +349,7 @@ function assign_and_filter_game($RiotMatchID,$tournamentID):array {
 		$winner = $RedTeamID;
 		$returnArr["echo"] .= "<span style='color: lightblue'>-Red Team won<br></span>";
 	}
-	$dbcn->execute_query("UPDATE games_in_tournament SET winningTeam = ? WHERE RIOT_matchID = ? AND OPL_ID_tournament = ?", [$winner, $RiotMatchID, $tournamentID]);
+	$dbcn->execute_query("UPDATE games_in_tournament SET winningTeam = ? WHERE RIOT_matchID = ? AND OPL_ID_tournament = ?", [$winner, $RiotMatchID, $top_tournamentID]);
 
 	return $returnArr;
 }
