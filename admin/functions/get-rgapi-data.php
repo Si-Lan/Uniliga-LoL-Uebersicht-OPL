@@ -745,7 +745,7 @@ function calculate_teamstats($teamID, $tournamentID) {
 		$returnArr["echo"] .= "writing Stats for Team ".$teamID."<br>";
 		$returnArr["writes"]++;
 	} else {
-		$dbcn->query("UPDATE stats_teams_in_tournaments SET champs_played='$champs_played', champs_banned='$bans', champs_banned_against='$champs_played_against', champs_banned_against='$bans_against', games_played=$games_played, games_won=$wins, avg_win_time=$avg_win_time WHERE OPL_ID_team = $teamID AND OPL_ID_tournament = $tournamentID");
+		$dbcn->query("UPDATE stats_teams_in_tournaments SET champs_played='$champs_played', champs_banned='$bans', champs_played_against='$champs_played_against', champs_banned_against='$bans_against', games_played=$games_played, games_won=$wins, avg_win_time=$avg_win_time WHERE OPL_ID_team = $teamID AND OPL_ID_tournament = $tournamentID");
 		$returnArr["echo"] .= "updating Stats for Team $teamID in $tournamentID<br>";
 		$returnArr["updates"]++;
 	}
