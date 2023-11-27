@@ -712,8 +712,7 @@ function set_all_buttons_onclick(set, tournamentID, teamID = 0) {
 		$("a.button.write.assign-all."+tournamentID).attr("onClick","assign_and_filter_games('"+tournamentID+"','"+teamID+"',1)");
 		$("a.button.write.get-ranks."+tournamentID).attr("onClick", "get_ranks('"+tournamentID+"')");
 		$("a.button.write.calc-team-rank."+tournamentID).attr("onClick", "get_average_team_ranks('"+tournamentID+"')");
-		$("a.button.write.get-pos."+tournamentID).attr("onClick", "get_positions_for_players('"+tournamentID+"')");
-		$("a.button.write.get-champs."+tournamentID).attr("onClick", "get_champions_for_players('"+tournamentID+"')");
+		$("a.button.write.get-pstats."+tournamentID).attr("onClick", "get_stats_for_players('"+tournamentID+"')");
 		$("a.button.write.teamstats."+tournamentID).attr("onClick", "get_teamstats('"+tournamentID+"')");
 	} else if (set === 0) {
 		$("a.button.write."+tournamentID).attr("onClick","");
