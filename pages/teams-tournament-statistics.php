@@ -206,11 +206,15 @@ if ($games_played == 0) {
 	}
 	arsort($champs_presence_only);
 
+    $hidden_pt_columns = playertables_extended() ? "" : "hidden";
+    $checked_pt_columns = playertables_extended() ? "checked" : "";
+
 	echo "<div class='stattables'>";
 	echo "<div class='playertable-header'>
 		        <h3>Spieler</h3>
-                <a class='button pt-expand-all'><div class='material-symbol'>".file_get_contents(__DIR__."/../icons/material/unfold_more.svg")."</div></a>
-                <a class='button pt-collapse-all'><div class='material-symbol'>".file_get_contents(__DIR__."/../icons/material/unfold_less.svg")."</div></a>
+                <button title='Tabellen erweitern' class='pt-expand-all'><div class='material-symbol'>".file_get_contents(__DIR__."/../icons/material/unfold_more.svg")."</div></button>
+                <button title='Tabellen reduzieren' class='pt-collapse-all'><div class='material-symbol'>".file_get_contents(__DIR__."/../icons/material/unfold_less.svg")."</div></button>
+                <button class='button pt-moreinfo'><input type='checkbox' name='moreinfo' $checked_pt_columns class='controlled pt-moreinfo-checkbox'><span>erweiterte Statistiken</span></button>
               </div>";
 	echo "<div class='table playerstable'>";
 	for ($index=0; $index < count($players); $index++) {
@@ -245,23 +249,29 @@ if ($games_played == 0) {
 		echo "
                 <tr>
                     <th></th>
-                    <th class='sortable sortedby desc'>".populate_th("P","Picks",true)."</th>
-                    <th class='sortable'>".populate_th("W","Wins")."</th>
-                    <th class='sortable'>".populate_th("W%","Winrate")."</th>
+                    <th class='sortable picks_col sortedby desc'>".populate_th("P","Picks",true)."</th>
+                    <th class='sortable wins_col'>".populate_th("W","Wins")."</th>
+                    <th class='sortable winrate_col'>".populate_th("W%","Winrate")."</th>
+                    <th class='sortable kda_col customsort $hidden_pt_columns'>".populate_th("KDA","Kills/Deaths/Assists")."</th>
                 </tr>";
 		foreach ($player_champs as $champ_name => $champ) {
+            $kda_ratio = round(($champ["kills"] + $champ["assists"]) / $champ["deaths"], 2);
+            $kills_ratio = round($champ['kills'] / $champ['games'], 1);
+            $deaths_ratio = round($champ['deaths'] / $champ['games'], 1);
+            $assists_ratio = round($champ['assists'] / $champ['games'], 1);
 			echo "
                 <tr>
                     <td class='champion'><img src='./ddragon/$latest_patch/img/champion/$champ_name.webp' alt='$champ_name'></td>
-                    <td>".$champ['games']."</td>
-                    <td>".$champ['wins']."</td>
-                    <td>".round(($champ['wins'] / $champ['games']) * 100, 2)."%</td>
+                    <td class='picks_col'>".$champ['games']."</td>
+                    <td class='wins_col'>".$champ['wins']."</td>
+                    <td class='winrate_col'>".round(($champ['wins'] / $champ['games']) * 100, 2)."%</td>
+                    <td class='kda_col $hidden_pt_columns' data-customsort = '$kda_ratio'>".$kills_ratio." / ".$deaths_ratio." / ".$assists_ratio."</td>
                 </tr>";
 		}
 		if (count($player_champs) > 5) {
 			echo "
                 <tr class='expand-table'>
-                    <td colspan='4'><div class='material-symbol'>".file_get_contents(__DIR__."/../icons/material/expand_less.svg")."</div></td>
+                    <td colspan='5'><div class='material-symbol'>".file_get_contents(__DIR__."/../icons/material/expand_less.svg")."</div></td>
                 </tr>";
 		}
 		echo "</table>";

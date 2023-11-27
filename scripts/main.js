@@ -863,6 +863,7 @@ function sort_table() {
 	let header_cells = header_row.find("th");
 	let header_cell_prev = header_row.find('th.sortedby').first();
 	let header_cell_current = header_row.find("th").eq(column);
+	let customsort_attribute = header_cell_current.hasClass("customsort");
 	let newcolumn = !header_cell_current.hasClass("sortedby");
 	if (newcolumn) {
 		header_cells.removeClass("sortedby");
@@ -876,22 +877,26 @@ function sort_table() {
 	let rows = table.find("tr:not(.expand-table):not(:first)");
 	let sorting_array = [];
 	for (let i=0; i<rows.length; i++) {
-		sorting_array.unshift([rows.eq(i),rows.eq(i).find("td").eq(column).text()]);
+		if (customsort_attribute) {
+			sorting_array.unshift([rows.eq(i),rows.eq(i).find("td").eq(column).attr('data-customsort')]);
+		} else {
+			sorting_array.unshift([rows.eq(i),rows.eq(i).find("td").eq(column).text()]);
+		}
 	}
-	function custom_parseInt(int) {
+	function custom_parseFloat(int) {
 		if (int === "-") {
 			return -1;
 		} else {
-			return parseInt(int);
+			return parseFloat(int);
 		}
 	}
 	if (direction === "asc") {
 		sorting_array.sort(function (a, b) {
-			return custom_parseInt(b[1]) - custom_parseInt(a[1]);
+			return custom_parseFloat(b[1]) - custom_parseFloat(a[1]);
 		});
 	} else {
 		sorting_array.sort(function (a, b) {
-			return custom_parseInt(a[1]) - custom_parseInt(b[1]);
+			return custom_parseFloat(a[1]) - custom_parseFloat(b[1]);
 		});
 	}
 	rows.remove();
@@ -936,6 +941,25 @@ async function set_current_sorticon(header_cell_current) {
 	header_cell_current.find("div.sort-direction").css("transform","");
 	header_cell_current.find("div.sort-direction").css("transition","");
 }
+
+function toggle_pt_table_columns() {
+	event.preventDefault();
+	let checkbox = $('input.pt-moreinfo-checkbox');
+	let cookie_expiry = new Date();
+	cookie_expiry.setFullYear(cookie_expiry.getFullYear()+1);
+	if (checkbox.prop('checked')) {
+		$('.playertable .kda_col').addClass("hidden");
+		checkbox.prop('checked', false);
+		document.cookie = `preference_ptextended=0; expires=${cookie_expiry}; path=/`;
+	} else {
+		$('.playertable .kda_col').removeClass("hidden");
+		checkbox.prop('checked', true);
+		document.cookie = `preference_ptextended=1; expires=${cookie_expiry}; path=/`;
+	}
+}
+$(document).ready(function () {
+	$('.playertable-header button.pt-moreinfo').on("click",toggle_pt_table_columns);
+});
 
 function expand_collapse_table() {
 	let expand_button = $(this);
@@ -993,8 +1017,8 @@ function expand_all_tables() {
 	}
 }
 $(document).ready(function () {
-	$('div.playertable-header a.pt-collapse-all').on("click",collapse_all_tables);
-	$('div.playertable-header a.pt-expand-all').on("click",expand_all_tables);
+	$('div.playertable-header button.pt-collapse-all').on("click",collapse_all_tables);
+	$('div.playertable-header button.pt-expand-all').on("click",expand_all_tables);
 });
 
 function mark_champ_in_table() {

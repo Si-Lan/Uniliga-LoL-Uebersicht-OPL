@@ -29,6 +29,13 @@ function summonercards_collapsed(): bool {
 		return FALSE;
 	}
 }
+function playertables_extended(): bool {
+	if (isset($_COOKIE["preference_ptextended"]) && $_COOKIE["preference_ptextended"] === "0") {
+		return FALSE;
+	} else {
+		return TRUE;
+	}
+}
 
 function max_time_from_timestamp($timestamp):string {
 	$days = floor($timestamp/86400);

@@ -43,8 +43,7 @@ if ($loggedin) {
 		echo "<a class='button write gamedata {$tournament['OPL_ID']}' onclick='get_game_data(\"{$tournament['OPL_ID']}\")'>get Gamedata for Games without Data</a>";
 		echo "<a class='button write assign-una {$tournament['OPL_ID']}' onclick='assign_and_filter_games(\"{$tournament['OPL_ID']}\")'>sort all unsorted Games</a>";
 		echo "<a class='button write assign-all {$tournament['OPL_ID']}' onclick='assign_and_filter_games(\"{$tournament['OPL_ID']}\",0,1)'>sort all Games</a>";
-		echo "<a class='button write get-pos {$tournament['OPL_ID']}' onclick='get_positions_for_players(\"{$tournament['OPL_ID']}\")'>calculate Positions of Players</a>";
-		echo "<a class='button write get-champs {$tournament['OPL_ID']}' onclick='get_champions_for_players(\"{$tournament['OPL_ID']}\")'>calculate Champions of Players</a>";
+		echo "<a class='button write get-pstats {$tournament['OPL_ID']}' onclick='get_stats_for_players(\"{$tournament['OPL_ID']}\")'>calculate Playerstats</a>";
 		echo "<a class='button write teamstats {$tournament['OPL_ID']}' onclick='get_teamstats(\"{$tournament['OPL_ID']}\")'>calculate Teamstats</a>";
 		echo "<div class='result-wrapper no-res {$tournament['OPL_ID']}'>
                         <div class='clear-button' onclick='clear_results(\"{$tournament['OPL_ID']}\")'>Clear</div>

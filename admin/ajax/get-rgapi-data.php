@@ -175,16 +175,10 @@ if ($type == "calculate-write-avg-rank") {
 }
 
 
-if ($type == "get-played-positions-for-players") {
-	$teamID = $_REQUEST["team"];
-	$tournamentID = $_REQUEST["tournament"];
-	$result = get_played_positions_for_players($teamID, $tournamentID);
-	echo $result["echo"];
-}
-if ($type == "get-played-champions-for-players") {
-	$teamID = $_REQUEST["team"];
-	$tournamentID = $_REQUEST["tournament"];
-	$result = get_played_champions_for_players($teamID, $tournamentID);
+if ($type == "get-stats-for-players") {
+	$teamID = $_SERVER["HTTP_TEAM"] ?? $_REQUEST["team"];
+	$tournamentID = $_SERVER["HTTP_TOURNAMENT"] ?? $_REQUEST["tournament"];
+	$result = get_stats_for_players($teamID, $tournamentID);
 	echo $result["echo"];
 }
 if ($type == "calculate-teamstats") {

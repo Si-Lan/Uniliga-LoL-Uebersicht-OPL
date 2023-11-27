@@ -1,7 +1,6 @@
-let scroll_on_write = true;
 function write_result(wrapper, container, input) {
 	wrapper.removeClass('no-res');
-	scroll_on_write = container.scrollTop() + wrapper.height() > container.prop("scrollHeight") - 50;
+	let scroll_on_write = container.scrollTop() + wrapper.height() > container.prop("scrollHeight") - 50;
 	container.append(input);
 	if (scroll_on_write) container.scrollTop(container.prop("scrollHeight"));
 }
@@ -121,6 +120,7 @@ async function get_riotids_by_puuids(tournamentID) {
 	let allButtons = $(`a.button.write.${tournamentID}`);
 	let container = $(`.result-wrapper.${tournamentID} .result-content`);
 	let wrapper = $(`.result-wrapper.${tournamentID}`);
+	let date = Date.now();
 
 	if (!currButton.hasClass("loading-data")) {
 		allButtons.addClass("loading-data");
@@ -140,51 +140,49 @@ async function get_riotids_by_puuids(tournamentID) {
 		.then(async player_data => {
 			container.append("----- "+player_data.length+" Spieler gefunden -----<br>");
 			wrapper.removeClass('no-res');
-			let waiting = false;
-			let calls_made = {0: 0};
+			let limit = 50;
+			let fetches = [];
 			for (let i = 0; i < player_data.length; i++) {
-				if (i % 50 === 0 && i !== 0) {
-					calls_made[i] = 0;
-					console.log("-- sleep (before #"+ (i+1) +") --");
-					for (let t = 0; t <= 10; t++) {
-						if (waiting) {
-							write_result(wrapper,container, `----- waiting ${10-t+1} -----<br>`);
-						}
-						await new Promise(r => setTimeout(r, 1000));
-					}
-					write_result(wrapper,container, `----- starting next batch (${i+1}-${i+50}) -----<br>`);
-					console.log("-- slept --");
-					waiting = false;
-				}
 				console.log("Starting with Player " + (i + 1));
-				fetch(`./admin/ajax/get-rgapi-data.php`, {
-					method: "GET",
-					headers: {
-						"type": "riotid_for_player",
-						"player": player_data[i]["OPL_ID"]
-					}
-				})
-					.then(res => res.json())
-					.then(result => {
-						console.log("Player "+(i+1)+" ready");
-						console.log(result["echo"]);
-						write_result(wrapper,container, `#${i+1}<br>${result["echo"]}`);
-						calls_made[i - (i%50)]++;
-						if (calls_made[i - (i%50)] >= 50) {
-							waiting = true;
-						}
-						if (i + calls_made[i - (i%50)] >= player_data.length) {
-							wrapper.removeClass('no-res');
-							console.log("----- Done with getting RiotIDs -----");
-							container.append("----- Done with getting RiotIDs -----<br>");
+				fetches.push(
+					fetch(`./admin/ajax/get-rgapi-data.php`, {
+						method: "GET",
+						headers: {
+							"type": "riotid_for_player",
+							"player": player_data[i]["OPL_ID"]
 						}
 					})
-					.catch(error => console.error(error));
+						.then(res => res.json())
+						.then(result => {
+							console.log("Player " + (i + 1) + " ready");
+							console.log(result["echo"]);
+							write_result(wrapper, container, `#${i + 1}<br>${result["echo"]}`);
+							if ((Date.now()-date)/1000 > 10) {
+								date = Date.now();
+							}
+						})
+						.catch(error => console.error(error))
+				);
+
+				if (i % (limit-1) === 0 && i !== 0) {
+					date = Date.now();
+					await Promise.all(fetches);
+					fetches = [];
+					let time_passed = Math.ceil((Date.now()-date)/1000);
+					if (time_passed < 10) {
+						console.log("-- sleep (before #"+ (i+1) +") --");
+						for (let t = 0; t <= 10-time_passed; t++) {
+							write_result(wrapper,container, `----- waiting ${10-time_passed-t+1} -----<br>`);
+							await new Promise(r => setTimeout(r, 1000));
+						}
+						write_result(wrapper,container, `----- starting next batch (${i+1}-${i+limit}) -----<br>`);
+						console.log("-- slept --");
+					}
+				}
 			}
-			if (player_data.length === 0) {
-				wrapper.removeClass('no-res');
-				console.log("----- Done with getting RiotIDs -----");
-				container.append("----- Done with getting RiotIDs -----<br>");
+			if (fetches.length !== 0) {
+				await Promise.all(fetches);
+				fetches = [];
 			}
 		})
 		.catch(error => console.error(error));
@@ -192,6 +190,9 @@ async function get_riotids_by_puuids(tournamentID) {
 	allButtons.removeClass("loading-data");
 	currButton.children(".lds-dual-ring").remove();
 	set_all_buttons_onclick(1,tournamentID);
+	wrapper.removeClass('no-res');
+	console.log("----- Done with getting RiotIDs -----");
+	write_result(wrapper,container,"----- Done with getting RiotIDs -----<br>");
 }
 
 function get_games_for_team(tournID,teamID) {
@@ -790,118 +791,57 @@ function get_average_team_ranks(tournament_id) {
 	teams_request.send();
 }
 
-function get_positions_for_players(tournament_id) {
-	console.log("----- Start getting played Positions -----");
-	let currButton  = $("a.button.write.get-pos."+tournament_id);
+async function get_stats_for_players(tournament_id) {
+	console.log("----- Start getting Player-Stats -----");
+	let currButton  = $("a.button.write.get-pstats."+tournament_id);
+	let container = $(`.result-wrapper.${tournament_id} .result-content`);
+	let wrapper = $(`.result-wrapper.${tournament_id}`);
+	let allButtons = $(`a.button.write.${tournament_id}`);
+
 	if (!currButton.hasClass("loading-data")) {
 		$("a.button.write."+tournament_id).addClass("loading-data");
 		currButton.append("<div class='lds-dual-ring'></div>");
 		set_all_buttons_onclick(0,tournament_id);
 	}
 
-	let teams_request = new XMLHttpRequest();
-	teams_request.onreadystatechange = function () {
-		if (this.readyState === 4 && this.status === 200) {
-			let teams = JSON.parse(this.responseText);
-			let loops_done = 0;
-			let max_loops = teams.length;
-			let container = $(".result-wrapper."+tournament_id+" .result-content");
-			container.append("----- Positions for Players of "+teams.length+" Teams -----<br>");
-			for (const team of teams) {
-				let req = new XMLHttpRequest();
-				req.onreadystatechange = function () {
-					if (this.readyState === 4 && this.status === 200) {
-						loops_done++;
-						$('.result-wrapper.'+tournament_id).removeClass('no-res');
-						let result = this.responseText;
-						console.log(team['name'] + ": " + result);
-						container.append(team['name']+":<br>"+result+"<br>");
-						container.scrollTop(container.prop("scrollHeight"));
-						if (loops_done >= max_loops) {
-							console.log("----- Done with getting played Positions -----");
-							container.append("<br>----- Done with getting played Positions -----<br>");
-							container.scrollTop(container.prop("scrollHeight"));
-							$("a.button.write."+tournament_id).removeClass('loading-data');
-							currButton.children(".lds-dual-ring").remove();
-							set_all_buttons_onclick(1,tournament_id);
-						}
-					}
-				};
-				req.open("GET", `./admin/ajax/get-rgapi-data.php?type=get-played-positions-for-players&team=${team['OPL_ID']}&tournament=${tournament_id}`);
-				req.send();
-			}
-			if (teams.length === 0) {
-				$('.result-wrapper.'+tournament_id).removeClass('no-res');
-				console.log("----- Done with getting played Positions -----");
-				container.append("----- Done with getting played Positions -----<br>");
-				container.scrollTop(container.prop("scrollHeight"));
-				$("a.button.write."+tournament_id).removeClass("loading-data");
-				currButton.children(".lds-dual-ring").remove();
-				set_all_buttons_onclick(1,tournament_id);
-			}
+	await fetch(`./ajax/get-data.php`, {
+		method: "GET",
+		headers: {
+			"type": "teams",
+			"tournamentID": tournament_id,
 		}
-	};
-	teams_request.open("GET", "./ajax/get-data.php", true);
-	teams_request.setRequestHeader("type", "teams");
-	teams_request.setRequestHeader("tournamentID", tournament_id);
-	teams_request.send();
-}
-
-function get_champions_for_players(tournament_id) {
-	console.log("----- Start getting played Champions -----");
-	let currButton  = $("a.button.write.get-champs."+tournament_id);
-	if (!currButton.hasClass("loading-data")) {
-		$("a.button.write."+tournament_id).addClass("loading-data");
-		currButton.append("<div class='lds-dual-ring'></div>");
-		set_all_buttons_onclick(0,tournament_id);
-	}
-
-	let teams_request = new XMLHttpRequest();
-	teams_request.onreadystatechange = function () {
-		if (this.readyState === 4 && this.status === 200) {
-			let teams = JSON.parse(this.responseText);
-			let loops_done = 0;
-			let max_loops = teams.length;
-			let container = $(".result-wrapper."+tournament_id+" .result-content");
-			container.append("----- Champions for Players of "+teams.length+" Teams -----<br>");
+	})
+		.then(res => res.json())
+		.then(async teams => {
+			container.append(`----- Stats for Players of ${teams.length} Teams ----- <br>`);
 			for (const team of teams) {
-				let req = new XMLHttpRequest();
-				req.onreadystatechange = function () {
-					if (this.readyState === 4 && this.status === 200) {
-						loops_done++;
-						$('.result-wrapper.'+tournament_id).removeClass('no-res');
-						let result = this.responseText;
-						console.log(team['name'] + ": " + result);
-						container.append(team['name']+":<br>"+result+"<br>");
-						container.scrollTop(container.prop("scrollHeight"));
-						if (loops_done >= max_loops) {
-							console.log("----- Done with getting played Champions -----");
-							container.append("<br>----- Done with getting played Champions -----<br>");
-							container.scrollTop(container.prop("scrollHeight"));
-							$("a.button.write."+tournament_id).removeClass('loading-data');
-							currButton.children(".lds-dual-ring").remove();
-							set_all_buttons_onclick(1,tournament_id);
-						}
+				await fetch(`./admin/ajax/get-rgapi-data.php`, {
+					method: "GET",
+					headers: {
+						"type": "get-stats-for-players",
+						"team": team.OPL_ID,
+						"tournament": tournament_id,
 					}
-				};
-				req.open("GET", `./admin/ajax/get-rgapi-data.php?type=get-played-champions-for-players&team=${team['OPL_ID']}&tournament=${tournament_id}`);
-				req.send();
+				})
+					.then(res => res.text())
+					.then(result => {
+						wrapper.removeClass('no-res');
+						write_result(wrapper,container,`${team.name}:<br> ${result}<br>`);
+						console.log(`${team.name}: ${result}`);
+					})
+					.catch(e => console.error(e));
 			}
-			if (teams.length === 0) {
-				$('.result-wrapper.'+tournament_id).removeClass('no-res');
-				console.log("----- Done with getting played Champions -----");
-				container.append("----- Done with getting played Champions -----<br>");
-				container.scrollTop(container.prop("scrollHeight"));
-				$("a.button.write."+tournament_id).removeClass("loading-data");
-				currButton.children(".lds-dual-ring").remove();
-				set_all_buttons_onclick(1,tournament_id);
-			}
-		}
-	};
-	teams_request.open("GET", "./ajax/get-data.php", true);
-	teams_request.setRequestHeader("type", "teams");
-	teams_request.setRequestHeader("tournamentID", tournament_id);
-	teams_request.send();
+		})
+		.catch(e => console.error(e));
+
+	wrapper.removeClass('no-res');
+	write_result(wrapper,container,`----- Done with getting Player-Stats -----<br>`);
+	console.log("----- Done with getting Player-Stats -----");
+
+	allButtons.removeClass("loading-data");
+	currButton.children(".lds-dual-ring").remove();
+	set_all_buttons_onclick(1,tournament_id);
+
 }
 
 function get_teamstats(tournament_id) {

@@ -84,13 +84,13 @@ echo "
 if (isset($_GET['colored'])) {
 	echo "
             <div class='settings-button-wrapper'>
-                <a class='button' onclick='color_elo_list()' href='$pageurl'><input type='checkbox' name='coloring' checked class='color-checkbox'><span>Nach $color_by einfärben</span></a>
+                <a class='button' onclick='color_elo_list()' href='$pageurl'><input type='checkbox' name='coloring' checked class='controlled color-checkbox'><span>Nach $color_by einfärben</span></a>
             </div>";
 	$color = " colored-list";
 } else {
 	echo "
             <div class='settings-button-wrapper'>
-                <a class='button' onclick='color_elo_list()' href='$pageurl'><input type='checkbox' name='coloring' class='color-checkbox'><span>Nach $color_by einfärben</span></a>
+                <a class='button' onclick='color_elo_list()' href='$pageurl'><input type='checkbox' name='coloring' class='controlled color-checkbox'><span>Nach $color_by einfärben</span></a>
             </div>";
 	$color = "";
 }

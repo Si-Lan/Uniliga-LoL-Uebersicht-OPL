@@ -311,7 +311,8 @@ header div.settings-menu a.settings-option:hover {
 	pointer-events: auto;
 }
 th:hover span.tooltip span.tooltiptext,
-.tooltip:hover span.tooltiptext {
+.tooltip:hover span.tooltiptext,
+.tooltip:focus-visible span.tooltiptext {
 	visibility: visible;
 	opacity: 1;
 }
@@ -761,7 +762,7 @@ div.settings-button-wrapper {
 	gap: 20px;
 	margin-top: 15px;
 }
-input[type='checkbox'].color-checkbox {
+input[type='checkbox'].controlled {
 	pointer-events: none;
 	cursor: pointer;
 }
@@ -1446,8 +1447,10 @@ body.statistics div.main-content div.playertable-header h3 {
 	font-size: 28px;
 	margin: 0;
 }
-div.playertable-header a.button {
-	padding: 10px 12px;
+div.playertable-header a.button,
+div.playertable-header button {
+	height: 48px;
+	padding: 10px 13px;
 }
 div.table.playerstable {
 	display: flex;
@@ -1518,6 +1521,10 @@ div.playerstable table.collapsed tr.expand-table td .material-symbol {
 	transform: rotateX(180deg);
 }
 div.playerstable table.collapsed tr:nth-child(n+7):not(:last-child) {
+	display: none;
+}
+td.hidden,
+th.hidden {
 	display: none;
 }
 

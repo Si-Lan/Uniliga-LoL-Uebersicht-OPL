@@ -99,7 +99,7 @@ function get_riotid_for_player($playerID) {
 
 	$options = ["http" => ["header" => "X-Riot-Token: $RGAPI_Key"]];
 	$context = stream_context_create($options);
-	$content = file_get_contents("https://europe.api.riotgames.com/riot/account/v1/accounts/by-puuid/{$player['PUUID']}", false,$context);
+	$content = @file_get_contents("https://europe.api.riotgames.com/riot/account/v1/accounts/by-puuid/{$player['PUUID']}", false,$context);
 
 	if ($content === FALSE || !str_contains($http_response_header[0], "200")) {
 		$returnArr["echo"] .= "<span style='color: orangered'>--could not get RiotID, request failed: {$http_response_header[0]}<br></span>";
@@ -449,7 +449,7 @@ function get_Rank_by_SummonerId($playerID) {
 	return $returnArr;
 }
 
-function get_played_positions_for_players($teamID, $tournamentID) {
+function get_stats_for_players($teamID, $tournamentID) {
 	$returnArr = array("return"=>0, "echo"=>"", "writes"=>0);
 	$dbcn = create_dbcn();
 	if ($dbcn -> connect_error){
@@ -463,14 +463,30 @@ function get_played_positions_for_players($teamID, $tournamentID) {
 	foreach ($players as $player) {
 		$games = $dbcn->query("SELECT matchdata FROM games JOIN games_in_tournament git on games.RIOT_matchID = git.RIOT_matchID WHERE ((OPL_ID_blueTeam = {$player['OPL_ID_team']} AND OPL_ID_redTeam IS NOT NULL) OR (OPL_ID_redTeam = {$player['OPL_ID_team']} AND OPL_ID_blueTeam IS NOT NULL ))")->fetch_all(MYSQLI_ASSOC);
 		$roles = array("top"=>0,"jungle"=>0,"middle"=>0,"bottom"=>0,"utility"=>0);
+		$champions = array();
 		foreach ($games as $game) {
 			$game_data = json_decode($game['matchdata'],true);
 			if (in_array($player['PUUID'],$game_data['metadata']['participants'])) {
 				$index = array_search($player['PUUID'],$game_data['metadata']['participants']);
 				$position = strtolower($game_data['info']['participants'][$index]['teamPosition']);
 				$roles[$position]++;
+				$champion = $game_data['info']['participants'][$index]['championName'];
+				$win = $game_data['info']['participants'][$index]['win'] ? 1 : 0;
+				$kills = $game_data['info']['participants'][$index]['kills'];
+				$deaths = $game_data['info']['participants'][$index]['deaths'];
+				$assists = $game_data['info']['participants'][$index]['assists'];
+				if (array_key_exists($champion,$champions)) {
+					$champions[$champion]["games"]++;
+					$champions[$champion]["wins"] += $win;
+					$champions[$champion]["kills"] += $kills;
+					$champions[$champion]["deaths"] += $deaths;
+					$champions[$champion]["assists"] += $assists;
+				} else {
+					$champions[$champion] = array("games"=>1,"wins"=>$win,"kills"=>$kills,"deaths"=>$deaths,"assists"=>$assists);
+				}
 			}
 		}
+
 		$returnArr["echo"] .= "-{$player['summonerName']}:<br>
 					--- TOP: {$roles['top']}<br>
 					--- JGL: {$roles['jungle']}<br>
@@ -484,39 +500,7 @@ function get_played_positions_for_players($teamID, $tournamentID) {
 		} else {
 			$dbcn->execute_query("INSERT INTO stats_players_in_tournaments (OPL_ID_player, OPL_ID_tournament, roles) VALUES (?, ?, ?)", [$player["OPL_ID"], $tournamentID, $roles]);
 		}
-		$returnArr["writes"]++;
-	}
-	return $returnArr;
-}
 
-function get_played_champions_for_players($teamID, $tournamentID) {
-	$returnArr = array("return"=>0, "echo"=>"", "writes"=>0);
-	$dbcn = create_dbcn();
-	if ($dbcn -> connect_error){
-		$returnArr["return"] = 1;
-		$returnArr["echo"] .= "<span style='color: red'>Database Connection failed : " . $dbcn->connect_error . "<br><br></span>";
-		return $returnArr;
-	}
-
-	$players = $dbcn->query("SELECT p.*, pit.OPL_ID_team FROM players p JOIN players_in_teams pit on p.OPL_ID = pit.OPL_ID_player WHERE OPL_ID_team = $teamID")->fetch_all(MYSQLI_ASSOC);
-
-	foreach ($players as $player) {
-		$games = $dbcn->query("SELECT matchdata FROM games JOIN games_in_tournament git on games.RIOT_matchID = git.RIOT_matchID WHERE ((OPL_ID_blueTeam = {$player['OPL_ID_team']} AND OPL_ID_redTeam IS NOT NULL) OR (OPL_ID_redTeam = {$player['OPL_ID_team']} AND OPL_ID_blueTeam IS NOT NULL ))")->fetch_all(MYSQLI_ASSOC);
-		$champions = array();
-		foreach ($games as $game) {
-			$game_data = json_decode($game['matchdata'],true);
-			if (in_array($player['PUUID'],$game_data['metadata']['participants'])) {
-				$index = array_search($player['PUUID'],$game_data['metadata']['participants']);
-				$champion = $game_data['info']['participants'][$index]['championName'];
-				$win = $game_data['info']['participants'][$index]['win'] ? 1 : 0;
-				if (array_key_exists($champion,$champions)) {
-					$champions[$champion]["games"]++;
-					$champions[$champion]["wins"] += $win;
-				} else {
-					$champions[$champion] = array("games"=>1,"wins"=>$win);
-				}
-			}
-		}
 		$uniq = count($champions);
 		$champions = json_encode($champions);
 		$returnArr["echo"] .= "-{$player['summonerName']}: $uniq versch. Champs <br>";

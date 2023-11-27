@@ -108,8 +108,7 @@ if ($type == "recalc_team_stats") {
 	$teamID = $_SERVER['HTTP_TEAMID'] ?? NULL;
 	$tournamentID = $_SERVER['HTTP_TOURNAMENTID'] ?? NULL;
 
-	get_played_champions_for_players($teamID,$tournamentID);
-	get_played_positions_for_players($teamID,$tournamentID);
+	get_stats_for_players($teamID,$tournamentID);
 	calculate_teamstats($teamID,$tournamentID);
 
 	echo "1";
