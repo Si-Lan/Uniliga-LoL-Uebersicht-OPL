@@ -32,6 +32,8 @@ echo create_header($dbcn, home_button: FALSE, open_login: !$pass, loginforminfo:
 <div class="home-content">
 	<div id="turnier-select">
 
+		<h2>Spieler:</h2>
+		<a href='spieler' class="button player-button"><?php echo "<div class='material-symbol'>" . file_get_contents(dirname(__FILE__) . "/../icons/material/person.svg") . "</div>" ?>Spielersuche</a>
 		<h2>Turniere:</h2>
 
 		<?php

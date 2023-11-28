@@ -1219,7 +1219,7 @@ function search_players() {
 	}
 	searchbar.append("<div class='search-loading-indicator'></div>");
 
-	fetch(`ajax-functions/player-overview-card-ajax.php`, {
+	fetch(`ajax/player-search-cards.php`, {
 		method: "GET",
 		signal: player_search_controller.signal,
 		headers: {
@@ -1242,16 +1242,16 @@ function search_players() {
 }
 async function reload_recent_players(initial=false) {
 	let player_list = $('.recent-players-list');
-	let recents = localStorage.getItem("searched_players_PUUIDS");
+	let recents = localStorage.getItem("searched_players_IDs");
 	if (JSON.parse(recents) == null || JSON.parse(recents).length === 0) {
 		player_list.html("");
 		return;
 	}
 
-	fetch(`ajax-functions/player-overview-card-ajax.php`, {
+	fetch(`ajax/player-search-cards.php`, {
 		method: "GET",
 		headers: {
-			"puuids": localStorage.getItem("searched_players_PUUIDS"),
+			"players": localStorage.getItem("searched_players_IDs"),
 		},
 	})
 		.then(res => res.text())
@@ -1269,13 +1269,13 @@ async function reload_recent_players(initial=false) {
 }
 function remove_recent_player(puuid) {
 	event.preventDefault();
-	let recents = JSON.parse(localStorage.getItem("searched_players_PUUIDS"));
+	let recents = JSON.parse(localStorage.getItem("searched_players_IDs"));
 	if (recents === null) {
 		return;
 	}
 	let index = recents.indexOf(puuid);
 	recents.splice(index,1);
-	localStorage.setItem("searched_players_PUUIDS",JSON.stringify(recents));
+	localStorage.setItem("searched_players_IDs",JSON.stringify(recents));
 	if ($("body.players").length > 0) {
 		reload_recent_players();
 	}
@@ -1295,7 +1295,7 @@ $(document).ready(function () {
 
 // player history popup
 let current_player_in_popup = null;
-async function popup_player(PUUID, add_to_recents = false) {
+async function popup_player(playerID, add_to_recents = false) {
 	event.preventDefault();
 	let popup = $('.player-popup');
 
@@ -1308,25 +1308,25 @@ async function popup_player(PUUID, add_to_recents = false) {
 	let pagebody = $("body");
 
 	if (add_to_recents) {
-		let recents = JSON.parse(localStorage.getItem("searched_players_PUUIDS"));
+		let recents = JSON.parse(localStorage.getItem("searched_players_IDs"));
 		if (recents === null) {
-			recents = [PUUID];
+			recents = [playerID];
 		}
-		if (recents.includes(PUUID)) {
-			let index = recents.indexOf(PUUID);
+		if (recents.includes(playerID)) {
+			let index = recents.indexOf(playerID);
 			recents.splice(index,1);
 		}
-		recents.unshift(PUUID);
+		recents.unshift(playerID);
 		while (recents.length > 5) {
 			recents = recents.slice(0,5);
 		}
-		localStorage.setItem("searched_players_PUUIDS",JSON.stringify(recents));
+		localStorage.setItem("searched_players_IDs",JSON.stringify(recents));
 		if ($("body.players").length > 0) {
 			reload_recent_players();
 		}
 	}
 
-	if (current_player_in_popup === PUUID) {
+	if (current_player_in_popup === playerID) {
 		popupbg.css("opacity","0");
 		popupbg.css("display","block");
 		await new Promise(r => setTimeout(r, 10));
@@ -1335,7 +1335,7 @@ async function popup_player(PUUID, add_to_recents = false) {
 		return;
 	}
 
-	current_player_in_popup = PUUID;
+	current_player_in_popup = playerID;
 	popup.empty();
 
 	popup.append(`<div class='close-button' onclick='closex_popup_player()'>${get_material_icon("close")}</div>`);
@@ -1347,19 +1347,15 @@ async function popup_player(PUUID, add_to_recents = false) {
 	popupbg.css("opacity","1");
 	pagebody.addClass("popup_open");
 
-	if (PUUID === "") {
-		popup.append("Für diesen Spieler wurden keine weiteren Profile gefunden")
-	}
-
-	fetch(`ajax-functions/player-overview-ajax.php`, {
+	fetch(`ajax/player-overview.php`, {
 		method: "GET",
 		headers: {
-			puuid: PUUID,
+			playerid: playerID,
 		}
 	})
 		.then(res => res.text())
 		.then(async content => {
-			if (current_player_in_popup === PUUID) {
+			if (current_player_in_popup === playerID) {
 				popup.append(content);
 				let popup_loader = $('.popup-loading-indicator');
 				popup_loader.css("opacity","0");
