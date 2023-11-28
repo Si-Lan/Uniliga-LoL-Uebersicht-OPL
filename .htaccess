@@ -51,7 +51,8 @@ RewriteRule ^team$ ./pages/team-details [NC,L]
 RewriteRule ^team/(.+)$ ./pages/team-details?team=$1 [NC,L,QSA]
 
 ## redirect players
-RewriteRule ^spieler$ ./pages/player-page [NC,L]
+RewriteRule ^spieler$ ./pages/player-search [NC,L]
+RewriteRule ^spieler/(.+)$ ./pages/player-details?player=$1 [NC,L]
 
 
 

@@ -1004,3 +1004,136 @@ function show_old_url_warning($tournamentID):string {
 	}
 	return "";
 }
+
+// copied from old toornament version
+// TODO: rewrite for new DB
+// idea: parameter: dbcn, playerid, tournamentid, teamid, bool detailstats
+// get needed data from dbcn directly
+//needed data:
+// tournamentIMG
+// playername
+// split and season
+// riotid (summonername)
+// teamid
+// teamname
+// teamlogo
+//
+// rank etc
+// roles
+// champions
+function create_playercard($player_data, $detail_stats=NULL) {
+	if ($detail_stats != NULL) {
+		$roles = json_decode($detail_stats['roles'], true);
+		$champions = json_decode($detail_stats['champions'], true);
+		$rendered_rows = 0;
+		if (array_sum($roles)>0 && count($champions)>0) {
+			$rendered_rows = 2;
+		} elseif (array_sum($roles)>0 || count($champions)>0) {
+			$rendered_rows = 1;
+		}
+		$result = "<div class='player-card' data-details='$rendered_rows'>";
+	} else {
+		$result = "<div class='player-card'>";
+	}
+
+	// Turnier-Titel
+	$result .= "<a class='player-card-div player-card-tournament' href='turnier/{$player_data["TournamentID"]}'>";
+	if ($player_data["TimgID"] != NULL) {
+		$result .= "<img alt='Turnier Logo' src='img/tournament_logos/{$player_data["TimgID"]}/logo_medium.webp'>";
+	}
+	$result .= "{$player_data["Split"]} {$player_data["Season"]}";
+	$result .= "</a>";
+	// Spielername und Summonername
+	$result .= "<div class='player-card-div player-card-name'>
+					<span>{$player_data["PlayerName"]}</span>
+					<a href='https://op.gg/summoners/euw/{$player_data["SummonerName"]}' target='_blank'><div class='material-symbol'>".file_get_contents(dirname(__FILE__)."/icons/material/person.svg")."</div>{$player_data["SummonerName"]}</a>
+				</div>";
+	// Teamname
+	$result .= "<a class='player-card-div player-card-team' href='team/{$player_data["TeamID"]}'>";
+	if ($player_data["imgID"] != NULL && file_exists(dirname(__FILE__)."/img/team_logos/{$player_data["imgID"]}/logo_medium.webp")) {
+		$result .= "<img alt='{$player_data["TeamName"]} Logo' src='img/team_logos/{$player_data["imgID"]}/logo_medium.webp'>";
+		$result .= "<span>{$player_data["TeamName"]}</span>";
+	} else {
+		$result .= "<span class='player-card-nologo'>{$player_data["TeamName"]}</span>";
+
+	}
+	$result .= "</a>";
+	// detailed Stats
+	if ($detail_stats != NULL) {
+		$rank_tier = strtolower($detail_stats["rank_tier"]);
+		$rank_div = $detail_stats["rank_div"];
+		$LP = NULL;
+		if ($rank_tier == "CHALLENGER" || $rank_tier == "GRANDMASTER" || $rank_tier == "MASTER") {
+			$rank_div = "";
+			$LP = $detail_stats["leaguePoints"];
+		}
+		if ($LP != NULL) {
+			$LP = "(".$LP." LP)";
+		} else {
+			$LP = "";
+		}
+
+		// Rang
+		if ($detail_stats["rank_tier"] != NULL) {
+			$result .= "<div class='player-card-div player-card-rank'><img class='rank-emblem-mini' src='ddragon/img/ranks/mini-crests/$rank_tier.svg' alt='".ucfirst($rank_tier)."'>".ucfirst($rank_tier)." $rank_div $LP</div>";
+		} else {
+			$result .= "<div class='player-card-div player-card-rank'>kein Rang</div>";
+		}
+
+		// roles
+		if (array_sum($roles) > 0) {
+			$result .= "<div class='player-card-div player-card-roles'>";
+			foreach ($roles as $role => $role_amount) {
+				if ($role_amount != 0) {
+					$result .= "
+				<div class='role-single'>
+					<div class='svg-wrapper role'>" . file_get_contents(dirname(__FILE__) . "/ddragon/img/positions/position-$role-light.svg") . "</div>
+					<span class='played-amount'>$role_amount</span>
+				</div>";
+				}
+			}
+			$result .= "</div>";
+		}
+
+		// champs
+		if (count($champions) > 0) {
+			$result .= "<div class='player-card-div player-card-roles'>";
+			arsort($champions);
+			$champs_cut = FALSE;
+			if (count($champions) > 5) {
+				$champions = array_slice($champions, 0, 5);
+				$champs_cut = TRUE;
+			}
+
+			$patches = [];
+			$dir = new DirectoryIterator(dirname(__FILE__) . "/ddragon");
+			foreach ($dir as $fileinfo) {
+				if (!$fileinfo->isDot() && $fileinfo->getFilename() != "img") {
+					$patches[] = $fileinfo->getFilename();
+				}
+			}
+			usort($patches, "version_compare");
+			$patch = end($patches);
+
+			foreach ($champions as $champion => $champion_amount) {
+				$result .= "
+			<div class='champ-single'>
+				<img src='./ddragon/{$patch}/img/champion/{$champion}.webp' alt='$champion'>
+				<span class='played-amount'>" . $champion_amount['games'] . "</span>
+			</div>";
+			}
+			if ($champs_cut) {
+				$result .= "
+		<div class='champ-single'>
+			<div class='material-symbol'>" . file_get_contents(dirname(__FILE__) . "/icons/material/more_horiz.svg") . "</div>
+		</div>";
+			}
+			$result .= "</div>";
+		}
+		// erweiterungs button
+		$result .= "<a class='player-card-div player-card-more' href='#' onclick='expand_playercard(this)'><div class='material-symbol'>".file_get_contents(dirname(__FILE__)."/icons/material/expand_more.svg")."</div> mehr Infos</a>";
+	}
+
+	$result .= "</div>";
+	return $result;
+}
