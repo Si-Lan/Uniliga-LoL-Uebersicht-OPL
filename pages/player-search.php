@@ -31,7 +31,7 @@ $pass_wrong = $pass ? "" : "Falsches Passwort";
 echo create_header(dbcn: $dbcn, title: "players", open_login: !$pass, loginforminfo: $pass_wrong);
 
 echo "<div class='main-content'>";
-echo "<div><h2>Spielersuche</h2>Suche nach Spielernamen oder Summonernamen</div>";
+echo "<div><h2>Spielersuche</h2>Suche nach Spielernamen oder RiotID</div>";
 echo "<div class='search-wrapper'>
                 <span class='searchbar'>
                     <input class=\"search-players deletable-search\" placeholder='Spieler suchen' type='text'>

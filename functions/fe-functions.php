@@ -1010,7 +1010,10 @@ function create_playercard(mysqli $dbcn, $playerID, $teamID, $tournamentID, $det
 	$player = $dbcn->execute_query("SELECT * FROM players_in_teams_in_tournament ptt LEFT JOIN players p on p.OPL_ID = ptt.OPL_ID_player LEFT JOIN stats_players_in_tournaments spit on ptt.OPL_ID_player = spit.OPL_ID_player AND ptt.OPL_ID_tournament = spit.OPL_ID_tournament WHERE ptt.OPL_ID_player = ? AND ptt.OPL_ID_team = ? AND ptt.OPL_ID_tournament = ?", [$playerID, $teamID, $tournamentID])->fetch_assoc();
     $tournament = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID = ?", [$tournamentID])->fetch_assoc();
     $team = $dbcn->execute_query("SELECT * FROM teams WHERE OPL_ID = ?", [$teamID])->fetch_assoc();
-    if ($detail_stats) {
+	$team_in_tournament = $dbcn->execute_query("SELECT * FROM teams_in_tournaments WHERE OPL_ID_team = ? AND OPL_ID_group IN (SELECT OPL_ID FROM tournaments WHERE eventType = 'group' AND OPL_ID_parent IN (SELECT OPL_ID FROM tournaments WHERE eventType = 'league' AND OPL_ID_parent = ?))", [$teamID, $tournamentID])->fetch_assoc();
+    $group = $dbcn->execute_query("SELECT * FROM tournaments WHERE eventType='group' AND OPL_ID = ?", [$team_in_tournament["OPL_ID_group"]])->fetch_assoc();
+	$league = $dbcn->execute_query("SELECT * FROM tournaments WHERE eventType='league' AND OPL_ID = ?", [$group["OPL_ID_parent"]])->fetch_assoc();
+	if ($detail_stats) {
 		$roles = json_decode($player['roles'], true);
 		$champions = json_decode($player['champions'], true);
 		$rendered_rows = 0;
@@ -1032,20 +1035,26 @@ function create_playercard(mysqli $dbcn, $playerID, $teamID, $tournamentID, $det
 	$result .= ucfirst($tournament["split"])." ".$tournament["season"];
 	$result .= "</a>";
 	// Spielername und Summonername
+	/*
 	$result .= "<div class='player-card-div player-card-name'>
 					<span>{$player["name"]}</span>";
     if ($player["riotID_name"] != null) {
         $result .= "<a href='https://op.gg/summoners/euw/{$player["riotID_name"]}-{$player["riotID_tag"]}' target='_blank'><div class='material-symbol'>".file_get_contents(dirname(__FILE__)."/../icons/material/person.svg")."</div>{$player["riotID_name"]}#{$player["riotID_tag"]}</a>";
     }
 	$result .= "</div>";
+	*/
 	// Teamname
-	$result .= "<a class='player-card-div player-card-team' href='team/{$team["OPL_ID"]}'>";
+	$result .= "<a class='player-card-div player-card-team' href='turnier/$tournamentID/team/{$team["OPL_ID"]}'>";
 	if ($team["OPL_ID_logo"] != NULL && file_exists(dirname(__FILE__)."/../img/team_logos/{$team["OPL_ID_logo"]}/$logo_filename")) {
 		$result .= "<img alt='{$team["name"]} Logo' src='img/team_logos/{$team["OPL_ID_logo"]}/$logo_filename'>";
 		$result .= "<span>{$team["name"]}</span>";
 	} else {
 		$result .= "<span class='player-card-nologo'>{$team["name"]}</span>";
 	}
+	$result .= "</a>";
+	// Team Details im Turnier
+	$result .= "<a class='player-card-div player-card-group' href='turnier/$tournamentID/gruppe/{$group["OPL_ID"]}'>";
+	$result .= "<span>Liga {$league["number"]} - Gruppe {$group["number"]}</span>";
 	$result .= "</a>";
 	// detailed Stats
 	if ($detail_stats) {
@@ -1086,7 +1095,7 @@ function create_playercard(mysqli $dbcn, $playerID, $teamID, $tournamentID, $det
 
 		// champs
 		if (count($champions) > 0) {
-			$result .= "<div class='player-card-div player-card-roles'>";
+			$result .= "<div class='player-card-div player-card-champs'>";
 			arsort($champions);
 			$champs_cut = FALSE;
 			if (count($champions) > 5) {

@@ -2744,7 +2744,7 @@ div.recent-players-list {
 .player-card {
 	width: 230px;
 	min-width: 230px;
-	height: 250px;
+	height: 208px;
 	display: flex;
 	flex-direction: column;
 	justify-content: center;
@@ -2757,16 +2757,16 @@ div.recent-players-list {
 	overflow: hidden;
 }
 .player-card.expanded-pcard {
-	height: 386px;
+	height: 356px;
 }
 .player-card.expanded-pcard[data-details="2"] {
-	height: 386px;
+	height: 356px;
 }
 .player-card.expanded-pcard[data-details="1"] {
-	height: 338px;
+	height: 316px;
 }
 .player-card.expanded-pcard[data-details="0"] {
-	height: 290px;
+	height: 262px;
 }
 .player-card-div {
 	display: flex;
@@ -2838,11 +2838,14 @@ div.recent-players-list {
 .player-card-team span.player-card-nologo {
 	text-align: center;
 }
+.player-card-group {
+	padding: 12px 14px;
+}
 .player-card-rank {
 	gap: 5px;
 }
 a.player-card-div {
-	transition: background-color 0.2s linear, height 400ms ease-out;
+	transition: background-color 0.2s linear, height 400ms ease-out, padding 400ms ease-out;
 }
 a.player-card-div:hover {
 	background-color: var(--main-button-hover);
@@ -2865,7 +2868,7 @@ a.player-card-div:hover {
 	padding: 0;
 	opacity: 0;
 	pointer-events: none;
-	transition-property: height, opacity;
+	transition-property: height, opacity, padding-bottom;
 	transition-duration: 400ms;
 	transition-timing-function: ease-out;
 }
@@ -2883,6 +2886,7 @@ a.player-card-div:hover {
 .expanded-pcard .player-card-champs,
 .expanded-pcard .player-card-roles {
 	height: 48px;
+	padding-bottom: 6px;
 }
 .player-card .role-single {
 	display: flex;

@@ -104,7 +104,7 @@ function create_summonercard(mysqli $dbcn, $playerID, $tournamentID, $teamID = N
 	</div>"; // card-summoner
 	$return .= "
 	</div>"; // summoner-card
-    //$return .= "<a href='javascript:void(0)' class='open-playerhistory' onclick='popup_player(\"{$player["PUUID"]}\")'><div class='material-symbol'>". file_get_contents(__DIR__."/../icons/material/history.svg") ."</div>Spieler-History</a>";
+    //$return .= "<a href='javascript:void(0)' class='open-playerhistory' onclick='popup_player(\"{$player["OPL_ID"]}\")'><div class='material-symbol'>". file_get_contents(__DIR__."/../icons/material/info.svg") ."</div>Spieler-Details</a>";
     $return .= "<a href='spieler/$playerID' class='open-playerhistory' ><div class='material-symbol'>". file_get_contents(__DIR__."/../icons/material/info.svg") ."</div>Spieler-Details</a>";
 	$return .= "<a href='https://www.op.gg/summoners/euw/$enc_riotid' target='_blank' class='op-gg-single'><div class='svg-wrapper op-gg'>".file_get_contents(__DIR__."/../img/opgglogo.svg")."</div></a>";
 	$return .= "</div>"; // summoner-card-wrapper
