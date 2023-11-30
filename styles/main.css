@@ -450,6 +450,12 @@ button.exp_coll_sc .material-symbol svg {
 .league-icon svg {
 	fill: var(--text-color);
 }
+.summoner-card .league-icon,
+.summoner-card .league-icon svg {
+	height: 14px;
+	width: 14px;
+	display: block;
+}
 div.svg-wrapper,
 div.svg-wrapper svg {
 	width: 30px;
@@ -1140,10 +1146,16 @@ div.list-player-overview .close-overview {
 	align-self: center;
 	padding: 10px;
 }
+h2.player-ov-name {
+	font-size: 1.9em;
+	margin: 2px 0;
+}
 .player-ov-riotid {
+	position: relative;
 	display: flex;
 	align-items: center;
-	gap: 2px;
+	gap: 4px;
+	margin-bottom: 4px;
 }
 div.team-avg-rank {
 	display: flex;
@@ -1232,6 +1244,11 @@ div.summoner-card-container {
 .summoner-card div.summoner {
 	display: flex;
 	flex-direction: column;
+}
+.summoner-card span.card-riotid {
+	display: flex;
+	gap: 2px;
+	align-items: center;
 }
 .summoner-card div.card-rank {
 	display: flex;
@@ -2882,6 +2899,14 @@ body.player .button.expand-pcards {
 	height: 42px;
 	border-radius: 8px;
 }
+.player-ov-titlewrapper {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+}
+a.button.toplayer {
+	padding: 15px 20px;
+}
 .player-card-name {
 	display: flex;
 	flex-direction: column;
@@ -2897,7 +2922,7 @@ body.player .button.expand-pcards {
 	gap: 2px;
 	position: relative;
 }
-.player-card-name a::after {
+a.player-ov-riotid::after {
 	content: '';
 	position: absolute;
 	width: 0;
@@ -2908,7 +2933,7 @@ body.player .button.expand-pcards {
 	transition: all ease-in-out .2s;
 	border-radius: 0 0 100px 100px;
 }
-.player-card-name a:hover::after {
+a.player-ov-riotid:hover::after {
 	width: calc(100% - 24px);
 	left: 24px;
 }

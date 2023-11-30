@@ -28,7 +28,10 @@ function create_summonercard(mysqli $dbcn, $playerID, $tournamentID, $teamID = N
 	</span>
 	<div class='divider'></div>
 	<div class='card-summoner'>
-		<span>{$player['riotID_name']}</span><span class='riot-id-tag'>$riot_tag</span>";
+		<span class='card-riotid'>
+			<span class='league-icon'>".file_get_contents(__DIR__."/../icons/league-alt.svg")."</span>
+			<span>{$player['riotID_name']}</span><span class='riot-id-tag'>$riot_tag</span>
+		</span>";
 
 	if ($player_tier != NULL) {
 		$player_tier = strtolower($player_tier);
@@ -104,8 +107,8 @@ function create_summonercard(mysqli $dbcn, $playerID, $tournamentID, $teamID = N
 	</div>"; // card-summoner
 	$return .= "
 	</div>"; // summoner-card
-    //$return .= "<a href='javascript:void(0)' class='open-playerhistory' onclick='popup_player(\"{$player["OPL_ID"]}\")'><div class='material-symbol'>". file_get_contents(__DIR__."/../icons/material/info.svg") ."</div>Spieler-Details</a>";
-    $return .= "<a href='spieler/$playerID' class='open-playerhistory' ><div class='material-symbol'>". file_get_contents(__DIR__."/../icons/material/info.svg") ."</div>Spieler-Details</a>";
+    $return .= "<a href='javascript:void(0)' class='open-playerhistory' onclick='popup_player(\"{$player["OPL_ID"]}\")'><div class='material-symbol'>". file_get_contents(__DIR__."/../icons/material/info.svg") ."</div>Spieler-Details</a>";
+    //$return .= "<a href='spieler/$playerID' class='open-playerhistory' ><div class='material-symbol'>". file_get_contents(__DIR__."/../icons/material/info.svg") ."</div>Spieler-Details</a>";
 	$return .= "<a href='https://www.op.gg/summoners/euw/$enc_riotid' target='_blank' class='op-gg-single'><div class='svg-wrapper op-gg'>".file_get_contents(__DIR__."/../img/opgglogo.svg")."</div></a>";
 	$return .= "</div>"; // summoner-card-wrapper
 

@@ -43,7 +43,7 @@ $pass_wrong = $pass ? "" : "Falsches Passwort";
 echo create_header(dbcn: $dbcn, title: "player", open_login: !$pass, loginforminfo: $pass_wrong);
 
 echo "<div class='main-content'>";
-echo create_player_overview($dbcn,$playerID);
+echo create_player_overview($dbcn,$playerID, true);
 echo "</div>";
 /*
 $teams_played_in = $dbcn->execute_query("SELECT * FROM players_in_teams_in_tournament WHERE OPL_ID_player = ?", [$playerID])->fetch_all(MYSQLI_ASSOC);

@@ -1057,7 +1057,7 @@ function create_playercard(mysqli $dbcn, $playerID, $teamID, $tournamentID, $det
 	// Teamname
 	$result .= "<a class='player-card-div player-card-team' href='turnier/$tournamentID/team/{$team["OPL_ID"]}'>";
 	if ($team["OPL_ID_logo"] != NULL && file_exists(dirname(__FILE__)."/../img/team_logos/{$team["OPL_ID_logo"]}/$logo_filename")) {
-		$result .= "<img alt='{$team["name"]} Logo' src='img/team_logos/{$team["OPL_ID_logo"]}/$logo_filename'>";
+		$result .= "<img class='color-switch' alt='{$team["name"]} Logo' src='img/team_logos/{$team["OPL_ID_logo"]}/$logo_filename'>";
 		$result .= "<span>{$team["name"]}</span>";
 	} else {
 		$result .= "<span class='player-card-nologo'>{$team["name"]}</span>";
@@ -1147,13 +1147,15 @@ function create_playercard(mysqli $dbcn, $playerID, $teamID, $tournamentID, $det
 	return $result;
 }
 
-function create_player_overview(mysqli $dbcn,$playerid):string {
+function create_player_overview(mysqli $dbcn,$playerid,$onplayerpage=false):string {
 	$result = "";
     $teams_played_in = $dbcn->execute_query("SELECT * FROM players_in_teams_in_tournament WHERE OPL_ID_player = ?", [$playerid])->fetch_all(MYSQLI_ASSOC);
 	$player = $dbcn->execute_query("SELECT * FROM players WHERE OPL_ID = ?", [$playerid])->fetch_assoc();
-	$result .= "<div class='player-ov-name'>{$player["name"]}</div>";
+	if (!$onplayerpage) $result .= "<a href='spieler/$playerid' class='button toplayer'><div class='material-symbol'>".file_get_contents(__DIR__."/../icons/material/person.svg")."</div>Zur Spielerseite</a>";
+	$result .= "<div class='player-ov-titlewrapper'><h2 class='player-ov-name'>{$player["name"]}</h2><a href='https://www.opleague.pro/user/$playerid' class='toorlink' target='_blank'><div class='material-symbol'>".file_get_contents(__DIR__."/../icons/material/open_in_new.svg")."</div></a></div>";
+	$result .= "<div class='divider'></div>";
 	if ($player["riotID_name"] != null) {
-		$result .= "<a class='player-ov-riotid' href='https://op.gg/summoners/euw/{$player["riotID_name"]}-{$player["riotID_tag"]}' target='_blank'><span class='league-icon'>".file_get_contents(dirname(__FILE__)."/../icons/league.svg")."</span>{$player["riotID_name"]}#{$player["riotID_tag"]}</a>";
+		$result .= "<a class='player-ov-riotid' href='https://op.gg/summoners/euw/{$player["riotID_name"]}-{$player["riotID_tag"]}' target='_blank'><span class='league-icon'>".file_get_contents(dirname(__FILE__)."/../icons/league-alt.svg")."</span><span>{$player["riotID_name"]}#{$player["riotID_tag"]}</span></a>";
 	}
     if (count($teams_played_in) >= 2) {
         $result .= "<div class='player-ov-buttons'>";
