@@ -58,7 +58,7 @@ echo "<h2 class='pagetitle'>Elo/Rang-Übersicht</h2>";
 echo "<div class='search-wrapper'>
                 <span class='searchbar'>
                     <input class=\"search-teams-elo $tournamentID deletable-search\" oninput='search_teams_elo()' placeholder='Team suchen' type='text'>
-                    <a class='material-symbol' href='#' onclick='clear_searchbar()'>". file_get_contents(__DIR__."/../icons/material/close.svg") ."</a>
+                    <a class='material-symbol clear-search' href='#'>". file_get_contents(__DIR__."/../icons/material/close.svg") ."</a>
                 </span>
               </div>";
 $filtered = $_REQUEST['view'] ?? NULL;

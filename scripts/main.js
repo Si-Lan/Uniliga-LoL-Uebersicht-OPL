@@ -10,9 +10,20 @@ $(document).ready(() => {
 });
 
 // allgemeine Funktionen der Seite
-async function open_settings_menu() {
+function toggle_settings_menu(to_state = null) {
 	event.preventDefault();
-	$('.settings-menu').toggleClass('shown');
+	let settings = $('.settings-menu');
+	let settings_icon = $('.settings-button .material-symbol');
+	if (to_state == null) {
+		to_state = !settings.hasClass("shown");
+	}
+	if (to_state) {
+		settings.addClass("shown");
+		settings_icon.addClass("flipy");
+	} else {
+		settings.removeClass("shown")
+		settings_icon.removeClass("flipy");
+	}
 }
 async function toggle_darkmode() {
 	event.preventDefault();
@@ -70,14 +81,15 @@ function toggle_admin_buttons() {
 	}
 }
 $(document).ready(function () {
-	$('header .settings-button').on("click",open_settings_menu);
+	$('header .settings-button').on("click",()=>{toggle_settings_menu()});
 	$('header .settings-option.toggle-mode').on("click",toggle_darkmode);
 	let settings = $('.settings-menu');
+	let search = $('.header-search');
 	let header = $('header');
 	window.addEventListener("click", (event) => {
 		if (settings.hasClass('shown')) {
 			if (!$.contains(header.get(0),$(event.target).get(0)) && event.target !== header[0]) {
-				settings.removeClass('shown');
+				toggle_settings_menu(false);
 			}
 		}
 	});
@@ -88,13 +100,14 @@ $(document).ready(function() {
 	$(".settings-option.feedback").attr("href",`mailto:${atob(encMail)}`);
 });
 
-function clear_searchbar() {
+function clear_searchbar(el) {
 	event.preventDefault();
-	$('.searchbar input').val('').trigger('keyup').trigger('input').focus();
+	$searchbar = $(el.parentNode);
+	$searchbar.find("input").val('').trigger('keyup').trigger('input').focus();
 }
-function toggle_clear_search_x() {
-	let clear_button = $(".searchbar .material-symbol");
-	let input = $('.searchbar input')[0].value;
+function toggle_clear_search_x(el) {
+	let clear_button = $(el.parentNode).find(".material-symbol");
+	let input = $(el)[0].value;
 	if (input === "") {
 		clear_button.css("display", "none");
 	} else {
@@ -102,8 +115,12 @@ function toggle_clear_search_x() {
 	}
 }
 $(document).ready(function() {
-	$('.searchbar input').on("input",toggle_clear_search_x);
-	$('.searchbar .clear-search').on("click",clear_searchbar);
+	$('.searchbar input').on("input", function() {
+		toggle_clear_search_x(this);
+	})
+	$('.searchbar .clear-search').on("click", function () {
+		clear_searchbar(this);
+	})
 });
 
 // teamlist-filter
@@ -729,7 +746,7 @@ function color_elo_list() {
 	}
 }
 
-let acCurrentFocus = -1;
+let acCurrentFocus = 0;
 function search_teams_elo() {
 	let searchbar = $('.search-wrapper .searchbar');
 	let input = $('.search-teams-elo')[0];
@@ -742,7 +759,7 @@ function search_teams_elo() {
 	} else {
 		ac.empty();
 	}
-	acCurrentFocus = -1;
+	acCurrentFocus = 0;
 
 	let teams = $('.elo-list-team');
 	teams.removeClass('ac-selected-team');
@@ -757,10 +774,13 @@ function search_teams_elo() {
 	}
 	teams_list.sort(function(a,b) {return a[0] > b[0] ? 1 : -1});
 
+	let first_hit = true;
 	for (let i=0; i < teams_list.length; i++) {
 		let indexOf = teams_list[i][0].toUpperCase().indexOf(input_value);
 		if (indexOf > -1) {
-			ac.append($(`<div>${teams_list[i][0].substring(0,indexOf)}<strong>${teams_list[i][0].substring(indexOf,indexOf+input_value.length)}</strong>${teams_list[i][0].substring(indexOf+input_value.length)}
+			let ac_class = (first_hit) ? `class="autocomplete-active"` : "";
+			first_hit = false;
+			ac.append($(`<div ${ac_class}>${teams_list[i][0].substring(0,indexOf)}<strong>${teams_list[i][0].substring(indexOf,indexOf+input_value.length)}</strong>${teams_list[i][0].substring(indexOf+input_value.length)}
                     <input type='hidden' value='${teams_list[i][1]}'></div>`).click(function() {
 				$('html').stop().animate({scrollTop: this.getElementsByTagName("input")[0].value-300}, 400, 'swing');
 				$('.search-wrapper .searchbar .autocomplete-items').empty();
@@ -1193,8 +1213,6 @@ $(document).ready(function () {
 	$('.player-cards .exp_coll_sc').on("click",expand_collapse_summonercard);
 });
 
-// TODO: check code below (player-overview)
-
 // player page search
 let player_search_controller = null;
 function search_players() {
@@ -1267,13 +1285,13 @@ async function reload_recent_players(initial=false) {
 		})
 		.catch(error => console.error(error))
 }
-function remove_recent_player(puuid) {
+function remove_recent_player(playerid) {
 	event.preventDefault();
 	let recents = JSON.parse(localStorage.getItem("searched_players_IDs"));
 	if (recents === null) {
 		return;
 	}
-	let index = recents.indexOf(puuid);
+	let index = recents.indexOf(playerid);
 	recents.splice(index,1);
 	localStorage.setItem("searched_players_IDs",JSON.stringify(recents));
 	if ($("body.players").length > 0) {
@@ -1412,8 +1430,6 @@ function expand_all_playercards(collapse=false) {
 		}
 	}
 }
-
-// TODO: check code above (player-overview)
 
 // user update
 function format_time_minsec(date) {
@@ -2103,6 +2119,139 @@ $(document).ready(function () {
 	});
 });
 
+function toggle_search_popup(to_state=null) {
+	event.preventDefault();
+	let search = $('.header-search');
+	let search_button = $('.header_search_button');
+	if (to_state == null) {
+		to_state = !search.hasClass("shown");
+	}
+	if (to_state) {
+		search.addClass("shown");
+		search_button.find(".material-symbol").html(get_material_icon("close",true));
+		search.find("input").focus();
+	} else {
+		search.removeClass("shown");
+		search_button.find(".material-symbol").html(get_material_icon("search",true));
+	}
+}
+$(document).ready(function () {
+	window.addEventListener("keydown", (event) => {
+		if (event.key === "Escape" && $('header .header-search').hasClass('shown')) {
+			toggle_search_popup(false);
+		}
+		if (event.key === "Escape" && $('header .settings-menu').hasClass('shown')) {
+			toggle_settings_menu(false);
+		}
+	})
+})
+
+let header_search_controller = null;
+let header_search_acCurrentFocus = 0;
+function header_search() {
+	if (header_search_controller !== null) header_search_controller.abort();
+	header_search_controller = new AbortController();
+
+	let searchbar = $('.header-search .searchbar');
+	let input = $('.header-search input.search-all')[0];
+	let input_value = input.value.toUpperCase();
+	let loading_indicator = $('.search-loading-indicator');
+	let ac = $('.header-search .searchbar .autocomplete-items');
+
+	if (ac.length === 0) {
+		ac = $("<div class=\'autocomplete-items\'></div>");
+		searchbar.append(ac);
+	} else {
+		ac.empty();
+	}
+
+	if (input_value.length < 2) {
+		loading_indicator.remove();
+		return;
+	}
+	if (loading_indicator.length > 0) {
+		loading_indicator.remove();
+	}
+	searchbar.append("<div class='search-loading-indicator'></div>");
+
+	fetch(`ajax/search-all.php`, {
+		method: "GET",
+		signal: header_search_controller.signal,
+		headers: {
+			search: input_value,
+		}
+	})
+		.then(res => res.json())
+		.then(search_results => {
+			$('.search-loading-indicator').remove();
+
+			for (let i = 0; i <search_results.length; i++) {
+				let icon = "";
+				let link = "";
+				let additional = "";
+				let ac_class = (i===0) ? `class="autocomplete-active"` : "";
+				if (search_results[i]["type"] === "team") {
+					icon = `<span class='material-symbol'>${get_material_icon("groups",true)}</span>`;
+					link = `team/${search_results[i]["OPL_ID"]}`;
+				} else if (search_results[i]["type"] === "player") {
+					icon = `<span class='material-symbol'>${get_material_icon("person",true)}</span>`;
+					link = `spieler/${search_results[i]["OPL_ID"]}`;
+					additional = (search_results[i]["riotID_name"] !== null) ? `<br>(${search_results[i]["riotID_name"]}#${search_results[i]["riotID_tag"]})` : "";
+				}
+				ac.append($(`<a href="${link}" ${ac_class}>${icon}${search_results[i]["name"]}${additional}</a>`));
+			}
+
+			if (!($(input).hasClass("focus-listen"))) {
+				input.addEventListener("keydown",function (e) {
+					let autocomplete = $('.header-search .searchbar .autocomplete-items');
+					let autocomplete_items = $('.header-search .searchbar .autocomplete-items a');
+					if(autocomplete_items.length > 0) {
+						if (e.keyCode === 40) {
+							e.preventDefault();
+							header_search_acCurrentFocus++;
+							autocomplete_items.removeClass("autocomplete-active");
+							if (header_search_acCurrentFocus >= autocomplete_items.length) header_search_acCurrentFocus = 0;
+							if (header_search_acCurrentFocus < 0) header_search_acCurrentFocus = (autocomplete_items.length - 1);
+							autocomplete_items[header_search_acCurrentFocus].classList.add("autocomplete-active");
+							if (!(autocomplete[0].scrollTop+autocomplete[0].offsetHeight-autocomplete_items[header_search_acCurrentFocus].offsetHeight >= autocomplete_items[header_search_acCurrentFocus].offsetTop) || !(autocomplete[0].scrollTop <= autocomplete_items[header_search_acCurrentFocus].offsetTop)) {
+								autocomplete.stop().animate({scrollTop: autocomplete_items[header_search_acCurrentFocus].offsetTop-autocomplete[0].offsetHeight+autocomplete_items[header_search_acCurrentFocus].offsetHeight}, 100, 'swing');
+							}
+						} else if (e.keyCode === 38) {
+							e.preventDefault();
+							header_search_acCurrentFocus--;
+							autocomplete_items.removeClass("autocomplete-active");
+							if (header_search_acCurrentFocus >= autocomplete_items.length) header_search_acCurrentFocus = 0;
+							if (header_search_acCurrentFocus < 0) header_search_acCurrentFocus = (autocomplete_items.length - 1);
+							autocomplete_items[header_search_acCurrentFocus].classList.add("autocomplete-active");
+							if (!(autocomplete[0].scrollTop+autocomplete[0].offsetHeight-autocomplete_items[header_search_acCurrentFocus].offsetHeight >= autocomplete_items[header_search_acCurrentFocus].offsetTop) || !(autocomplete[0].scrollTop <= autocomplete_items[header_search_acCurrentFocus].offsetTop)) {
+								autocomplete.stop().animate({scrollTop: autocomplete_items[header_search_acCurrentFocus].offsetTop}, 100, 'swing');
+							}
+						} else if (e.keyCode === 13) {
+							if (header_search_acCurrentFocus < 0) header_search_acCurrentFocus = 0;
+							e.preventDefault();
+							autocomplete_items[header_search_acCurrentFocus].click();
+						}
+					}
+				});
+				$(input).addClass("focus-listen");
+			}
+
+		})
+		.catch(error => {
+			$('.search-loading-indicator').remove();
+			if (error.name === "AbortError") {
+				console.log(error)
+			} else {
+				console.error(error)
+			}
+		});
+}
+
+$(document).ready(function () {
+	$(".header_search_button").on("click",()=>{toggle_search_popup()});
+	$('header .header-search .searchbar input').on("input",header_search);
+});
+
 // allgemeine Helper
 function get_material_icon(name,nowrap=false) {
 	let res = "";
@@ -2124,6 +2273,7 @@ function get_material_icon(name,nowrap=false) {
 	if (name === "unfold_more") res += "<svg xmlns=\"http://www.w3.org/2000/svg\" height=\"48\" viewBox=\"0 96 960 960\" width=\"48\"><path d=\"M322 422q-9-9-9-22t9-22l137-137q5-5 10-7t11-2q5 0 10.5 2t10.5 7l137 137q9 9 9 22t-9 22q-9 9-22 9t-22-9L480 308 366 422q-9 9-22 9t-22-9Zm158 502q-5 0-10.5-2t-10.5-7L322 778q-9-9-9-22t9-22q9-9 22-9t22 9l114 114 114-114q9-9 22-9t22 9q9 9 9 22t-9 22L501 915q-5 5-10 7t-11 2Z\"/></svg>";
 	if (name === "person") res += "<svg xmlns=\"http://www.w3.org/2000/svg\" height=\"48\" viewBox=\"0 -960 960 960\" width=\"48\"><path d=\"M480-481q-66 0-108-42t-42-108q0-66 42-108t108-42q66 0 108 42t42 108q0 66-42 108t-108 42Zm260 321H220q-24.75 0-42.375-17.625T160-220v-34q0-38 19-65t49-41q67-30 128.5-45T480-420q62 0 123 15.5t127.921 44.694q31.301 14.126 50.19 40.966Q800-292 800-254v34q0 24.75-17.625 42.375T740-160Zm-520-60h520v-34q0-16-9.5-30.5T707-306q-64-31-117-42.5T480-360q-57 0-111 11.5T252-306q-14 7-23 21.5t-9 30.5v34Zm260-321q39 0 64.5-25.5T570-631q0-39-25.5-64.5T480-721q-39 0-64.5 25.5T390-631q0 39 25.5 64.5T480-541Zm0-90Zm0 411Z\"/></svg>";
 	if (name === "groups") res += "<svg xmlns=\"http://www.w3.org/2000/svg\" height=\"48\" viewBox=\"0 -960 960 960\" width=\"48\"><path d=\"M0-240v-53q0-38.567 41.5-62.784Q83-380 150.376-380q12.165 0 23.395.5Q185-379 196-377.348q-8 17.348-12 35.165T180-305v65H0Zm240 0v-65q0-32 17.5-58.5T307-410q32-20 76.5-30t96.5-10q53 0 97.5 10t76.5 30q32 20 49 46.5t17 58.5v65H240Zm540 0v-65q0-19.861-3.5-37.431Q773-360 765-377.273q11-1.727 22.171-2.227 11.172-.5 22.829-.5 67.5 0 108.75 23.768T960-293v53H780Zm-480-60h360v-6q0-37-50.5-60.5T480-390q-79 0-129.5 23.5T300-305v5ZM149.567-410Q121-410 100.5-430.562 80-451.125 80-480q0-29 20.562-49.5Q121.125-550 150-550q29 0 49.5 20.5t20.5 49.933Q220-451 199.5-430.5T149.567-410Zm660 0Q781-410 760.5-430.562 740-451.125 740-480q0-29 20.562-49.5Q781.125-550 810-550q29 0 49.5 20.5t20.5 49.933Q880-451 859.5-430.5T809.567-410ZM480-480q-50 0-85-35t-35-85q0-51 35-85.5t85-34.5q51 0 85.5 34.5T600-600q0 50-34.5 85T480-480Zm.351-60Q506-540 523-557.351t17-43Q540-626 522.851-643t-42.5-17Q455-660 437.5-642.851t-17.5 42.5Q420-575 437.351-557.5t43 17.5ZM480-300Zm0-300Z\"/></svg>";
+	if (name === "search") res += "<svg xmlns=\"http://www.w3.org/2000/svg\" height=\"48\" viewBox=\"0 -960 960 960\" width=\"48\"><path d=\"M378-329q-108.162 0-183.081-75Q120-479 120-585t75-181q75-75 181.5-75t181 75Q632-691 632-584.85 632-542 618-502q-14 40-42 75l242 240q9 8.556 9 21.778T818-143q-9 9-22.222 9-13.222 0-21.778-9L533-384q-30 26-69.959 40.5T378-329Zm-1-60q81.25 0 138.125-57.5T572-585q0-81-56.875-138.5T377-781q-82.083 0-139.542 57.5Q180-666 180-585t57.458 138.5Q294.917-389 377-389Z\"/></svg>";
 	if (!nowrap) res += "</div>";
 	return res;
 }

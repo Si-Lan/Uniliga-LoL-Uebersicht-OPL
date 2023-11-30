@@ -9,4 +9,4 @@ if ($dbcn -> connect_error)	exit("Database Connection failed");
 $playerid = $_SERVER["HTTP_PLAYERID"] ?? $_GET['playerid'] ?? NULL;
 if ($playerid === NULL) exit;
 
-create_player_overview($dbcn, $playerid);
+echo create_player_overview($dbcn, $playerid);

@@ -100,6 +100,10 @@ function create_header(mysqli $dbcn = NULL, string $title = "home", string|int $
 		<div class='material-symbol'>".file_get_contents(dirname(__FILE__)."/../icons/material/home.svg")."</div>
 	</a>";
 	}
+	$result .= "
+	<button title='Suche' class='header_search_button'>
+		<div class='material-symbol'>".file_get_contents(dirname(__FILE__)."/../icons/material/search.svg")."</div>
+	</button>";
 	$result .= "<div class='title'>";
 	switch ($title) {
 		case "players":
@@ -158,6 +162,13 @@ function create_header(mysqli $dbcn = NULL, string $title = "home", string|int $
 				<a class='settings-option login' href='$pageurl?login'>Login<div class='material-symbol'>". file_get_contents(dirname(__FILE__)."/../icons/material/login.svg") ."</div></a>
 			</div>";
 	}
+	$result .= "
+			<div class='header-search'>
+				<span class='searchbar'>
+                    <input class=\"search-all deletable-search\" placeholder='Suche' type='text'>
+                    <a class='material-symbol clear-search' href='#'>". file_get_contents(__DIR__."/../icons/material/close.svg") ."</a>
+                </span>
+			</div>";
 	$result .= "</header>";
 
 	$result .= "
@@ -1136,19 +1147,26 @@ function create_playercard(mysqli $dbcn, $playerID, $teamID, $tournamentID, $det
 	return $result;
 }
 
-function create_player_overview($dbcn,$playerid) {
+function create_player_overview(mysqli $dbcn,$playerid):string {
+	$result = "";
     $teams_played_in = $dbcn->execute_query("SELECT * FROM players_in_teams_in_tournament WHERE OPL_ID_player = ?", [$playerid])->fetch_all(MYSQLI_ASSOC);
+	$player = $dbcn->execute_query("SELECT * FROM players WHERE OPL_ID = ?", [$playerid])->fetch_assoc();
+	$result .= "<div class='player-ov-name'>{$player["name"]}</div>";
+	if ($player["riotID_name"] != null) {
+		$result .= "<a class='player-ov-riotid' href='https://op.gg/summoners/euw/{$player["riotID_name"]}-{$player["riotID_tag"]}' target='_blank'><span class='league-icon'>".file_get_contents(dirname(__FILE__)."/../icons/league.svg")."</span>{$player["riotID_name"]}#{$player["riotID_tag"]}</a>";
+	}
     if (count($teams_played_in) >= 2) {
-        echo "<div class='player-ov-buttons'>";
-        echo "<a href='#' class='button expand-pcards' title='Ausklappen' onclick='expand_all_playercards()'><div class='material-symbol'>".file_get_contents(dirname(__FILE__)."/../icons/material/unfold_more.svg")."</div></a>";
-        echo "<a href='#' class='button expand-pcards' title='Einklappen' onclick='expand_all_playercards(true)'><div class='material-symbol'>".file_get_contents(dirname(__FILE__)."/../icons/material/unfold_less.svg")."</div></a>";
-        echo "</div>";
+        $result .= "<div class='player-ov-buttons'>";
+		$result .= "<a href='#' class='button expand-pcards' title='Ausklappen' onclick='expand_all_playercards()'><div class='material-symbol'>".file_get_contents(dirname(__FILE__)."/../icons/material/unfold_more.svg")."</div></a>";
+		$result .= "<a href='#' class='button expand-pcards' title='Einklappen' onclick='expand_all_playercards(true)'><div class='material-symbol'>".file_get_contents(dirname(__FILE__)."/../icons/material/unfold_less.svg")."</div></a>";
+		$result .= "</div>";
     }
-    echo "<div class='player-popup-content'>";
+	$result .= "<div class='player-popup-content'>";
     foreach ($teams_played_in as $team) {
-        echo create_playercard($dbcn, $playerid, $team["OPL_ID_team"], $team["OPL_ID_tournament"]);
+		$result .= create_playercard($dbcn, $playerid, $team["OPL_ID_team"], $team["OPL_ID_tournament"]);
     }
-    echo "</div>";
+	$result .= "</div>";
+	return $result;
 }
 
 function create_player_search_cards_from_search (mysqli $dbcn, string $search) {
@@ -1186,4 +1204,62 @@ function create_player_search_cards(mysqli $dbcn, array $playerids, bool $remove
     }
 
     echo $player_cards;
+}
+
+function search_all(mysqli $dbcn, string $search_input) {
+	$input_array = str_split($search_input);
+	$input_array = implode("%",$input_array);
+	$players = $dbcn->execute_query("SELECT OPL_ID, name, riotID_name, riotID_tag FROM players WHERE riotID_name LIKE ? OR name LIKE ?",["%".$input_array."%","%".$input_array."%"])->fetch_all(MYSQLI_ASSOC);
+	$teams = $dbcn->execute_query("SELECT OPL_ID, name FROM teams WHERE name LIKE ?",["%".$input_array."%"])->fetch_all(MYSQLI_ASSOC);
+
+	$remaining_search_results = array();
+	foreach ($players as $player) {
+		$player["type"] = "player";
+		$remaining_search_results[$player["OPL_ID"]] = $player;
+	}
+	foreach ($teams as $team) {
+		$team["type"] = "team";
+		$remaining_search_results[$team["OPL_ID"]] = $team;
+	}
+
+	$starting_hits = array();
+	foreach ($remaining_search_results as $i=>$result) {
+		if (str_starts_with(strtolower($result["name"]), strtolower($search_input)) || strpos(strtolower($result["name"]), " ".strtolower($search_input))) {
+			$starting_hits[] = $result;
+			unset($remaining_search_results[$i]);
+		}
+	}
+
+	$contain_hits = array();
+	foreach ($remaining_search_results as $i=>$result) {
+		if (strpos(strtolower($result["name"]), strtolower($search_input))) {
+			$contain_hits[] = $result;
+			unset($remaining_search_results[$i]);
+		}
+	}
+
+	$compare_searchresults = function($a,$b) use ($search_input) {
+		if ($a["type"] == "player") {
+			$a_compare = min(levenshtein($search_input,$a["name"]), levenshtein($search_input,$a["riotID_name"]));
+		} else {
+			$a_compare = levenshtein($search_input,$a["name"]);
+		}
+		if ($b["type"] == "player") {
+			$b_compare = min(levenshtein($search_input,$b["name"]), levenshtein($search_input,$b["riotID_name"]));
+		} else {
+			$b_compare = levenshtein($search_input,$b["name"],1,1,1);
+		}
+		return $a_compare <=> $b_compare;
+	};
+
+	usort($starting_hits, $compare_searchresults);
+	usort($contain_hits, $compare_searchresults);
+	usort($remaining_search_results, $compare_searchresults);
+
+	$all_results = array_merge($starting_hits,$contain_hits);
+	foreach ($remaining_search_results as $result) {
+		$all_results[] = $result;
+	}
+
+	return $all_results;
 }

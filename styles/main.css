@@ -154,22 +154,28 @@ header {
 	width: 100%;
 	background-color: var(--header-bg);
 	display: grid;
-	grid-template-columns: 80px 10fr 80px;
+	grid-template-columns: 70px 70px 10fr 80px;
 	box-sizing: border-box;
 	border-bottom: var(--header-border) solid 1px;
 	margin-bottom: 20px;
 }
+body.home header {
+	grid-template-columns: 70px 10fr 80px;
+}
 header div.title {
-	grid-column: 2;
+	grid-column: 3;
 	flex-wrap: nowrap;
 	margin: 0 20px;
+}
+body.home header div.title {
+	grid-column: 2;
 }
 header div.title h1 {
 	margin: 0;
 	white-space: nowrap;
 }
 header div.title h1{
-	font-size: clamp(1em,8vw,1.7em);
+	font-size: clamp(1em,5vw,1.7em);
 }
 header.tournament div.title h1,
 header.admin_dd div.title h1{
@@ -226,7 +232,7 @@ header div.settings-menu {
 	border: var(--header-border) solid;
 	border-width: 0 0 1px 1px;
 	border-bottom-left-radius: 6px;
-	z-index: 2;
+	z-index: 3;
 }
 header div.settings-menu.shown {
 	display: flex;
@@ -247,8 +253,46 @@ header div.settings-menu a.settings-option:last-child {
 header div.settings-menu a.settings-option:hover {
 	background-color: var(--button-header-hover);
 }
+header button {
+	background-color: var(--header-bg);
+	box-shadow: none;
+	border-radius: 0;
+}
+header button:hover {
+	background-color: var(--button-header-hover);
+}
+header .header_search_button {
+	border-right: var(--header-border) solid 1px;
+}
+header .header-search {
+	display: none;
+	flex-direction: column;
+	position: absolute;
+	top: 60px;
+	left: 0;
+	width: 420px;
+	background-color: var(--header-bg);
+	border: var(--header-border) solid;
+	border-width: 0 1px 1px 0;
+	border-bottom-right-radius: 6px;
+	z-index: 2;
+	padding: 10px;
+}
+header .header-search.shown {
+	display: flex;
+}
+header .header-search .searchbar {
+	width: 90%;
+}
+.header-search .autocomplete-items>a {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	gap: 6px;
+}
 @media screen and (max-width: 510px) {
-	header {
+	header,
+	body.home header {
 		min-height: 110px;
 		grid-template-columns: 80px 1fr 80px;
 		grid-template-rows: 45px 1fr;
@@ -257,7 +301,8 @@ header div.settings-menu a.settings-option:hover {
 		min-height: 90px;
 		grid-template-rows: 35px 1fr;
 	}
-	header div.title {
+	header div.title,
+	body.home header div.title  {
 		grid-column: 1 / end;
 		grid-row: 2;
 	}
@@ -284,6 +329,24 @@ header div.settings-menu a.settings-option:hover {
 	}
 	header.home div.settings-menu {
 		top: 35px;
+	}
+	header .header-search {
+		width: 100%;
+		top: 110px;
+		box-sizing: border-box;
+		border-right: 0;
+		border-radius: 0 0 6px 6px;
+		padding: 20px 10px;
+	}
+	header .header_search_button {
+		border-right: 0;
+		border-bottom: var(--header-border) solid 1px;
+		border-radius: 0 0 6px 6px;
+	}
+	body.home header .header_search_button {
+		border-right: var(--header-border) solid 1px;
+		border-bottom: var(--header-border) solid 1px;
+		border-radius: 0 0 6px 0;
 	}
 }
 .tooltip {
@@ -368,12 +431,23 @@ button.exp_coll_sc .material-symbol svg {
 	height: 24px;
 	width: 24px;
 }
+.material-symbol.flipy {
+	transform: rotateY(180deg);
+}
 .github-link .material-symbol svg {
 	height: 22px;
 	width: 22px;
 }
 .github-link .material-symbol svg path {
 	transform: scale(0.22);
+	fill: var(--text-color);
+}
+.league-icon,
+.league-icon svg {
+	height: 20px;
+	width: 20px;
+}
+.league-icon svg {
 	fill: var(--text-color);
 }
 div.svg-wrapper,
@@ -390,7 +464,8 @@ body.light div.svg-wrapper.role svg path,
 body.light div.svg-wrapper.role svg polygon {
 	fill: #444444;
 }
-span.searchbar .material-symbol svg {
+span.searchbar>.material-symbol svg,
+span.searchbar>.material-symbol {
 	height: 18px;
 	width: 18px;
 }
@@ -467,6 +542,10 @@ input[type=text].search-players {
 	font-size: 16px;
 	height: 40px;
 }
+input[type=text].search-all {
+	font-size: 14px;
+	height: 35px;
+}
 div.search-wrapper {
 	display: flex;
 	justify-content: center;
@@ -496,7 +575,7 @@ span.searchbar {
 	align-self: center;
 	border-radius: 6px;
 }
-span.searchbar .material-symbol {
+span.searchbar>.material-symbol {
 	position: absolute;
 	display: none;
 	right: 6px;
@@ -504,10 +583,10 @@ span.searchbar .material-symbol {
 	color: var(--text-color);
 	text-align: center;
 	cursor: pointer;
-	padding: 4px 5px 2px 5px;
+	padding: 3px 5px 3px 5px;
 	transition: color 0.2s, background-color 0.2s;
 }
-span.searchbar .material-symbol:hover {
+span.searchbar>.material-symbol:hover {
 	color: var(--text-color);
 	background-color: var(--hover-bg-transparent);
 }
@@ -522,7 +601,8 @@ span.searchbar input.search-teams-elo + .material-symbol {
 	height: 18px;
 	font-size: 16px;
 }
-span.searchbar input.search-players + .material-symbol {
+span.searchbar input.search-players + .material-symbol,
+span.searchbar input.search-players + .material-symbol svg {
 	width: 20px;
 	height: 20px;
 	font-size: 18px;
@@ -1012,6 +1092,13 @@ div.team-button.search-off, div.team-button.filterD-off, div.team-button.filterG
 	display: none;
 }
 
+body.player div.main-content {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 10px;
+}
+
 div.list-player-overview {
 	display: flex;
 	flex-direction: column;
@@ -1052,6 +1139,11 @@ div.list-player-overview img.list-overview-logo {
 div.list-player-overview .close-overview {
 	align-self: center;
 	padding: 10px;
+}
+.player-ov-riotid {
+	display: flex;
+	align-items: center;
+	gap: 2px;
 }
 div.team-avg-rank {
 	display: flex;
@@ -2223,7 +2315,8 @@ a.elo-list-after:hover {
 	background: var(--custom-scrollbar);
 	border-radius: 6px;
 }
-.autocomplete-items div {
+.autocomplete-items div,
+.autocomplete-items a {
 	padding: 15px 25px;
 	cursor: pointer;
 	border-bottom: 1px solid var(--main-button-show-hover);
@@ -2231,7 +2324,8 @@ a.elo-list-after:hover {
 	text-overflow: ellipsis;
 	overflow: hidden;
 }
-.autocomplete-items div:hover {
+.autocomplete-items div:hover,
+.autocomplete-items a:hover {
 	background-color: var(--main-button-show-hover);
 }
 .autocomplete-active {
@@ -2737,7 +2831,8 @@ div.recent-players-list {
 	height: 28px;
 	width: 28px;
 }
-.player-popup .button.expand-pcards {
+.player-popup .button.expand-pcards,
+body.player .button.expand-pcards {
 	padding: 12px 14px;
 }
 

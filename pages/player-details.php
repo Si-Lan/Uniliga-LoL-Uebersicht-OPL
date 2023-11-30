@@ -42,11 +42,16 @@ echo create_html_head_elements(title: "{$player["name"]} | Uniliga LoL - Übersi
 $pass_wrong = $pass ? "" : "Falsches Passwort";
 echo create_header(dbcn: $dbcn, title: "player", open_login: !$pass, loginforminfo: $pass_wrong);
 
+echo "<div class='main-content'>";
+echo create_player_overview($dbcn,$playerID);
+echo "</div>";
+/*
 $teams_played_in = $dbcn->execute_query("SELECT * FROM players_in_teams_in_tournament WHERE OPL_ID_player = ?", [$playerID])->fetch_all(MYSQLI_ASSOC);
 
 foreach ($teams_played_in as $team) {
     echo create_playercard($dbcn, $playerID, $team["OPL_ID_team"], $team["OPL_ID_tournament"]);
 }
+*/
 
 ?>
 </body>

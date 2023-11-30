@@ -35,7 +35,7 @@ echo "<div><h2>Spielersuche</h2>Suche nach Spielernamen oder RiotID</div>";
 echo "<div class='search-wrapper'>
                 <span class='searchbar'>
                     <input class=\"search-players deletable-search\" placeholder='Spieler suchen' type='text'>
-                    <a class='material-symbol' href='#' onclick='clear_searchbar()'>". file_get_contents(dirname(__FILE__)."/../icons/material/close.svg") ."</a>
+                    <a class='material-symbol clear-search' href='#'>". file_get_contents(dirname(__FILE__)."/../icons/material/close.svg") ."</a>
                 </span>
               </div>";
 echo "
