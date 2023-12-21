@@ -444,17 +444,20 @@ button.exp_coll_sc .material-symbol svg {
 }
 .league-icon,
 .league-icon svg {
-	height: 20px;
-	width: 20px;
+	height: 24px;
+	width: 24px;
 }
 .league-icon svg {
 	fill: var(--text-color);
 }
 .summoner-card .league-icon,
 .summoner-card .league-icon svg {
-	height: 14px;
-	width: 14px;
+	height: 18px;
+	width: 18px;
+}
+.summoner-card .league-icon {
 	display: block;
+	margin-right: 2px;
 }
 div.svg-wrapper,
 div.svg-wrapper svg {

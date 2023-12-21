@@ -29,7 +29,7 @@ function create_summonercard(mysqli $dbcn, $playerID, $tournamentID, $teamID = N
 	<div class='divider'></div>
 	<div class='card-summoner'>
 		<span class='card-riotid'>
-			<span class='league-icon'>".file_get_contents(__DIR__."/../icons/league-alt.svg")."</span>
+			<span class='league-icon'>".file_get_contents(__DIR__."/../icons/LoL_Icon_Flat.svg")."</span>
 			<span>{$player['riotID_name']}</span><span class='riot-id-tag'>$riot_tag</span>
 		</span>";
 

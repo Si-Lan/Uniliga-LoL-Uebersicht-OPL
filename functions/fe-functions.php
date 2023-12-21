@@ -1155,7 +1155,7 @@ function create_player_overview(mysqli $dbcn,$playerid,$onplayerpage=false):stri
 	$result .= "<div class='player-ov-titlewrapper'><h2 class='player-ov-name'>{$player["name"]}</h2><a href='https://www.opleague.pro/user/$playerid' class='toorlink' target='_blank'><div class='material-symbol'>".file_get_contents(__DIR__."/../icons/material/open_in_new.svg")."</div></a></div>";
 	$result .= "<div class='divider'></div>";
 	if ($player["riotID_name"] != null) {
-		$result .= "<a class='player-ov-riotid' href='https://op.gg/summoners/euw/{$player["riotID_name"]}-{$player["riotID_tag"]}' target='_blank'><span class='league-icon'>".file_get_contents(dirname(__FILE__)."/../icons/league-alt.svg")."</span><span>{$player["riotID_name"]}#{$player["riotID_tag"]}</span></a>";
+		$result .= "<a class='player-ov-riotid' href='https://op.gg/summoners/euw/{$player["riotID_name"]}-{$player["riotID_tag"]}' target='_blank'><span class='league-icon'>".file_get_contents(dirname(__FILE__)."/../icons/LoL_Icon_Flat.svg")."</span><span>{$player["riotID_name"]}#{$player["riotID_tag"]}</span></a>";
 	}
     if (count($teams_played_in) >= 2) {
         $result .= "<div class='player-ov-buttons'>";
