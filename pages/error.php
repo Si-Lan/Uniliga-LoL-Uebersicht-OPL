@@ -11,7 +11,7 @@ $lightmode = is_light_mode(true);
 echo create_html_head_elements();
 
 ?>
-<body class="home <?php echo $lightmode?>">
+<body class="error <?php echo $lightmode?>">
 <?php
 
 $pass_wrong = $pass ? "" : "Falsches Passwort";
