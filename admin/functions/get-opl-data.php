@@ -789,19 +789,24 @@ function calculate_standings_from_matchups($tournamentID):array {
 
 	foreach ($teams as $team) {
 		$standing = [
+			"id" => $team["OPL_ID"],
 			"standing" => null,
 			"played" => 0,
 			"wins" => 0,
 			"draws" => 0,
 			"losses" => 0,
 			"points" => 0,
+			"wins_vs" => [],
 		];
 		$matches = $dbcn->execute_query("SELECT * FROM matchups WHERE OPL_ID_tournament = ? AND (OPL_ID_team1 = ? OR OPL_ID_team2 = ?)", [$tournamentID, $team["OPL_ID"], $team["OPL_ID"]])->fetch_all(MYSQLI_ASSOC);
 		foreach ($matches as $match) {
+			$enemy_id = ($team["OPL_ID"] == $match["OPL_ID_team1"]) ? $match["OPL_ID_team2"] : $match["OPL_ID_team1"];
+			if (!array_key_exists($enemy_id,$standing["wins_vs"])) $standing["wins_vs"][$enemy_id] = 0;
 			if ($match["played"]) {
 				$standing["played"]++;
 				if ($match["winner"] == $team["OPL_ID"]) {
 					$standing["wins"]++;
+					$standing["wins_vs"][$enemy_id] += ($enemy_id == $match["OPL_ID_team1"]) ? intval($match["team2Score"]) : intval($match["team1Score"]);
 				}
 				if ($match["draw"]) {
 					$standing["draws"]++;
@@ -830,16 +835,11 @@ function calculate_standings_from_matchups($tournamentID):array {
 
 
 	uasort($teams_standings, function ($a,$b) {
-		if ($a["points"] == $b["points"]) {
-			if ($a["wins"] == $b["wins"]) {
-				if ($a["losses"] == $b["losses"]) {
-					return 0;
-				}
-				return ($a["losses"] < $b["losses"]) ? -1 : 1;
-			}
-			return ($a["wins"] > $b["wins"]) ? -1 : 1;
-		};
-		return ($a["points"] > $b["points"]) ? -1 : 1;
+		if ($a["points"] != $b["points"]) return ($a["points"] > $b["points"]) ? -1 : 1;
+		if (array_key_exists($b["id"],$a["wins_vs"]) && $a["wins_vs"][$b["id"]] != $b["wins_vs"][$a["id"]]) return ($a["wins_vs"][$b["id"]] > $b["wins_vs"][$a["id"]]) ? -1 : 1;
+		if ($a["wins"] != $b["wins"]) return ($a["wins"] > $b["wins"]) ? -1 : 1;
+		if ($a["losses"] != $b["losses"]) return ($a["losses"] < $b["losses"]) ? -1 : 1;
+		return 0;
 	});
 
 	$standing_counter = 1;
@@ -871,7 +871,8 @@ function calculate_standings_from_matchups($tournamentID):array {
 	$updated = [];
 	foreach ($teams as $team) {
 		$team_updates = [];
-
+		unset($teams_standings[$team["OPL_ID"]]["id"]);
+		unset($teams_standings[$team["OPL_ID"]]["wins_vs"]);
 		foreach ($teams_standings[$team["OPL_ID"]] as $key=>$item) {
 			if ($team[$key] !== $item) {
 				$team_updates[$key] = ["old"=>$team[$key], "new"=>$item];
