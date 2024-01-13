@@ -512,22 +512,22 @@ function get_stats_for_players($teamID, $tournamentID) {
 					--- BOT: {$roles['bottom']}<br>
 					--- SUP: {$roles['utility']}<br>";
 		$roles = json_encode($roles);
-		$player_stats_written = $dbcn->execute_query("SELECT * FROM stats_players_in_tournaments WHERE OPL_ID_player = ? AND OPL_ID_tournament = ?", [$player["OPL_ID"], $tournamentID])->fetch_assoc();
+		$player_stats_written = $dbcn->execute_query("SELECT * FROM stats_players_teams_tournaments WHERE OPL_ID_player = ? AND OPL_ID_team = ? AND OPL_ID_tournament = ?", [$player["OPL_ID"], $teamID, $tournamentID])->fetch_assoc();
 		if ($player_stats_written != NULL) {
-			$dbcn->execute_query("UPDATE stats_players_in_tournaments SET roles = ? WHERE OPL_ID_player = ? AND OPL_ID_tournament = ?", [$roles, $player['OPL_ID'], $tournamentID]);
+			$dbcn->execute_query("UPDATE stats_players_teams_tournaments SET roles = ? WHERE OPL_ID_player = ? AND OPL_ID_team = ? AND OPL_ID_tournament = ?", [$roles, $player['OPL_ID'], $teamID, $tournamentID]);
 		} else {
-			$dbcn->execute_query("INSERT INTO stats_players_in_tournaments (OPL_ID_player, OPL_ID_tournament, roles) VALUES (?, ?, ?)", [$player["OPL_ID"], $tournamentID, $roles]);
+			$dbcn->execute_query("INSERT INTO stats_players_teams_tournaments (OPL_ID_player, OPL_ID_team, OPL_ID_tournament, roles) VALUES (?, ?, ?, ?)", [$player["OPL_ID"], $teamID, $tournamentID, $roles]);
 		}
 
 		$uniq = count($champions);
 		$champions = json_encode($champions);
 		$returnArr["echo"] .= "-{$player['summonerName']}: $uniq versch. Champs <br>";
 		$returnArr["echo"] .= "--$champions<br>";
-		$player_stats_written = $dbcn->execute_query("SELECT * FROM stats_players_in_tournaments WHERE OPL_ID_player = ? AND OPL_ID_tournament = ?", [$player["OPL_ID"], $tournamentID])->fetch_assoc();
+		$player_stats_written = $dbcn->execute_query("SELECT * FROM stats_players_teams_tournaments WHERE OPL_ID_player = ? AND OPL_ID_team = ? AND OPL_ID_tournament = ?", [$player["OPL_ID"], $teamID, $tournamentID])->fetch_assoc();
 		if ($player_stats_written != NULL) {
-			$dbcn->execute_query("UPDATE stats_players_in_tournaments SET champions = ? WHERE OPL_ID_player = ? AND OPL_ID_tournament = ?", [$champions, $player['OPL_ID'], $tournamentID]);
+			$dbcn->execute_query("UPDATE stats_players_teams_tournaments SET champions = ? WHERE OPL_ID_player = ? AND OPL_ID_team = ? AND OPL_ID_tournament = ?", [$champions, $player['OPL_ID'], $teamID, $tournamentID]);
 		} else {
-			$dbcn->execute_query("INSERT INTO stats_players_in_tournaments (OPL_ID_player, OPL_ID_tournament, champions) VALUES (?, ?, ?)", [$player["OPL_ID"], $tournamentID, $champions]);
+			$dbcn->execute_query("INSERT INTO stats_players_teams_tournaments (OPL_ID_player, OPL_ID_team, OPL_ID_tournament, champions) VALUES (?, ?, ?, ?)", [$player["OPL_ID"], $teamID, $tournamentID, $champions]);
 		}
 
 		$returnArr["writes"]++;

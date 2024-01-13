@@ -83,7 +83,7 @@ $opl_tourn_url = "https://www.opleague.pro/event/";
 $opgg_logo_svg = file_get_contents(__DIR__."/../img/opgglogo.svg");
 $opgg_url = "https://www.op.gg/multisearch/euw?summoners=";
 
-$players = $dbcn->execute_query("SELECT * FROM players JOIN players_in_teams_in_tournament pit on players.OPL_ID = pit.OPL_ID_player AND pit.OPL_ID_tournament = ? LEFT JOIN stats_players_in_tournaments spit ON pit.OPL_ID_player = spit.OPL_ID_player AND spit.OPL_ID_tournament = ? WHERE pit.OPL_ID_team = ? ", [$tournamentID, $tournamentID, $teamID])->fetch_all(MYSQLI_ASSOC);
+$players = $dbcn->execute_query("SELECT * FROM players JOIN players_in_teams_in_tournament pit on players.OPL_ID = pit.OPL_ID_player AND pit.OPL_ID_tournament = ? LEFT JOIN stats_players_teams_tournaments spit ON pit.OPL_ID_player = spit.OPL_ID_player AND spit.OPL_ID_team = pit.OPL_ID_team AND spit.OPL_ID_tournament = ? WHERE pit.OPL_ID_team = ? ", [$tournamentID, $tournamentID, $teamID])->fetch_all(MYSQLI_ASSOC);
 $matches = $dbcn->execute_query("SELECT * FROM matchups WHERE OPL_ID_tournament = ? AND (OPL_ID_team1 = ? OR OPL_ID_team2 = ?)", [$group["OPL_ID"],$teamID,$teamID])->fetch_all(MYSQLI_ASSOC);
 
 $opgglink = $opgg_url;

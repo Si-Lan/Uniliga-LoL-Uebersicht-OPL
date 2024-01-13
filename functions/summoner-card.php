@@ -1,6 +1,6 @@
 <?php
 function create_summonercard(mysqli $dbcn, $playerID, $tournamentID, $teamID = NULL, bool $collapsed=FALSE, bool $echo=FALSE):string {
-	$player = $dbcn->execute_query("SELECT * FROM players p JOIN players_in_teams_in_tournament pitit on p.OPL_ID = pitit.OPL_ID_player AND OPL_ID_tournament = ? AND OPL_ID_team = ? LEFT JOIN stats_players_in_tournaments spit ON p.OPL_ID = spit.OPL_ID_player WHERE p.OPL_ID = ?", [$tournamentID, $teamID, $playerID])->fetch_assoc();
+	$player = $dbcn->execute_query("SELECT * FROM players p JOIN players_in_teams_in_tournament pitit on p.OPL_ID = pitit.OPL_ID_player AND OPL_ID_tournament = ? AND OPL_ID_team = ? LEFT JOIN stats_players_teams_tournaments spit ON p.OPL_ID = spit.OPL_ID_player AND pitit.OPL_ID_team = spit.OPL_ID_team AND pitit.OPL_ID_tournament = spit.OPL_ID_tournament WHERE p.OPL_ID = ?", [$tournamentID, $teamID, $playerID])->fetch_assoc();
 	$return = "";
 	$player_removed_class =  ($player["removed"] == 1) ? "player-removed" : "";
     if ($collapsed) {

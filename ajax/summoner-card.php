@@ -15,7 +15,7 @@ if ($playerID != NULL) {
 }
 
 if ($teamID != NULL) {
-	$players = $dbcn->execute_query("SELECT * FROM players JOIN players_in_teams_in_tournament pit ON players.OPL_ID = pit.OPL_ID_player AND pit.OPL_ID_tournament = ? LEFT JOIN stats_players_in_tournaments spit ON pit.OPL_ID_player = spit.OPL_ID_player AND spit.OPL_ID_tournament = pit.OPL_ID_tournament WHERE pit.OPL_ID_team = ? ", [$tournamentID, $teamID])->fetch_all(MYSQLI_ASSOC);
+	$players = $dbcn->execute_query("SELECT * FROM players JOIN players_in_teams_in_tournament pit ON players.OPL_ID = pit.OPL_ID_player AND pit.OPL_ID_tournament = ? LEFT JOIN stats_players_teams_tournaments spit ON pit.OPL_ID_player = spit.OPL_ID_player AND spit.OPL_ID_team = pit.OPL_ID_team AND spit.OPL_ID_tournament = pit.OPL_ID_tournament WHERE pit.OPL_ID_team = ? ", [$tournamentID, $teamID])->fetch_all(MYSQLI_ASSOC);
 	$players_gamecount_by_id = array();
 	foreach ($players as $player) {
 		$played_games = 0;
