@@ -779,6 +779,7 @@ div.team-button div.team-name {
 	align-items: center;
 	justify-content: center;
 	gap: 20px;
+	overflow-wrap: anywhere;
 }
 div.team-button div.team-group {
 	font-size: 14px;
@@ -1987,10 +1988,13 @@ a.button.write.games-div {
 .standing-item img {
 	max-height: 36px;
 	border-radius: 6px;
+	aspect-ratio: 1/1;
+	object-fit: contain;
 }
 .standing-pre.rank {
 	font-size: 18px;
 	height: 36px;
+	width: 11px;
 	padding: 10px 20px;
 	border-radius: 6px;
 	background-color: var(--main-button-color);
