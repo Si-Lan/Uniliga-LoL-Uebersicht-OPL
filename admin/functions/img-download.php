@@ -75,6 +75,8 @@ function download_opl_img(int|string $itemID, string $type, bool $echo_states = 
 	if ($img_dark ?? false) imagedestroy($img_dark);
 	if ($img_light ?? false) imagedestroy($img_light);
 
+	if ($type == "team_logo" && $img_written) $dbcn->execute_query("UPDATE teams SET last_logo_download = ? WHERE OPL_ID = ?", [date('Y-m-d H:i:s'), $itemID]);
+
 	$dbcn->close();
 	return $img_written;
 }

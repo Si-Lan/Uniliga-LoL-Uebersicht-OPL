@@ -339,9 +339,10 @@ function get_teams_for_tournament($tournamentID, bool $deletemissing = false):ar
 			$dbcn->execute_query("INSERT INTO teams_in_tournaments (OPL_ID_team, OPL_ID_group) VALUES (?, ?)", [$team_data["OPL_ID"], $tournamentID]);
 		}
 
-		// Team Logo herunterladen, wenn es noch nicht existiert
-		$local_img_folder_path = __DIR__."/../../img/team_logos";
-		if ($team_data["OPL_logo_url"] != NULL && (!file_exists("$local_img_folder_path/{$team_data["OPL_ID_logo"]}/logo.webp") || !file_exists("$local_img_folder_path/{$team_data["OPL_ID_logo"]}/logo_light.webp"))) {
+		// Team Logo herunterladen, wenn das aktuelle logo älter als eine woche ist
+		$last_update = strtotime($dbcn->execute_query("SELECT last_logo_download FROM teams WHERE OPL_ID = ?", [$team_data["OPL_ID"]])->fetch_column() ?? "");
+		$current_time = strtotime(date('Y-m-d H:i:s'));
+		if ($team_data["OPL_logo_url"] != NULL && $current_time-$last_update > 604800) {
 			$logo_dl = download_opl_img($team_data["OPL_ID"], "team_logo");
 		}
 
