@@ -30,6 +30,7 @@ if (preg_match("/^(winter|sommer)([0-9]{2})$/",strtolower($tournamentID),$url_pa
 }
 $tournament = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID = ? AND eventType = 'tournament'", [$tournamentID])->fetch_assoc();
 $team_groups = $dbcn->execute_query("SELECT * FROM teams JOIN teams_in_tournaments tit ON teams.OPL_ID = tit.OPL_ID_team WHERE OPL_ID = ? AND OPL_ID_group IN (SELECT OPL_ID FROM tournaments WHERE eventType='group' AND OPL_ID_parent IN (SELECT OPL_ID FROM tournaments WHERE eventType='league' AND OPL_ID_parent = ?))", [$teamID, $tournamentID])->fetch_all(MYSQLI_ASSOC);
+$team_playoffs = $dbcn->execute_query("SELECT * FROM teams JOIN teams_in_tournaments tit ON teams.OPL_ID = tit.OPL_ID_team WHERE OPL_ID = ? AND OPL_ID_group IN (SELECT OPL_ID FROM tournaments WHERE eventType='playoffs' AND OPL_ID_parent = ?)", [$teamID, $tournamentID])->fetch_all(MYSQLI_ASSOC);
 $team_solo = $dbcn->execute_query("SELECT * FROM teams WHERE OPL_ID = ?", [$teamID])->fetch_assoc();
 
 if ($tournament == NULL) {
@@ -61,9 +62,16 @@ if (count($team_groups) > 1) {
 } else {
 	$team = $team_groups[0];
 }
+if (count($team_playoffs) == 0) {
+    $playoff_ID = null;
+} else {
+    // TODO: mehrere Playoffs anzeigen können
+    $playoff_ID = $team_playoffs[0]["OPL_ID_group"];
+}
 
 $group = $dbcn->execute_query("SELECT * FROM tournaments WHERE eventType='group' AND OPL_ID = ?", [$team["OPL_ID_group"]])->fetch_assoc();
 $league = $dbcn->execute_query("SELECT * FROM tournaments WHERE eventType='league' AND OPL_ID = ?", [$group["OPL_ID_parent"]])->fetch_assoc();
+$playoff = $dbcn->execute_query("SELECT * FROM tournaments WHERE eventType='playoffs' AND OPL_ID = ?", [$playoff_ID])->fetch_assoc();
 
 $t_name_clean = preg_replace("/LoL/","",$tournament["name"]);
 echo create_html_head_elements(css: ["game"], js: ["rgapi"], title: "{$team["name"]} | $t_name_clean", loggedin: $logged_in);
@@ -85,6 +93,7 @@ $opgg_url = "https://www.op.gg/multisearch/euw?summoners=";
 
 $players = $dbcn->execute_query("SELECT * FROM players JOIN players_in_teams_in_tournament pit on players.OPL_ID = pit.OPL_ID_player AND pit.OPL_ID_tournament = ? LEFT JOIN stats_players_teams_tournaments spit ON pit.OPL_ID_player = spit.OPL_ID_player AND spit.OPL_ID_team = pit.OPL_ID_team AND spit.OPL_ID_tournament = ? WHERE pit.OPL_ID_team = ? ", [$tournamentID, $tournamentID, $teamID])->fetch_all(MYSQLI_ASSOC);
 $matches = $dbcn->execute_query("SELECT * FROM matchups WHERE OPL_ID_tournament = ? AND (OPL_ID_team1 = ? OR OPL_ID_team2 = ?)", [$group["OPL_ID"],$teamID,$teamID])->fetch_all(MYSQLI_ASSOC);
+$matches_playoffs = $dbcn->execute_query("SELECT * FROM matchups WHERE OPL_ID_tournament = ? AND (OPL_ID_team1 = ? OR OPL_ID_team2 = ?)", [$playoff_ID,$teamID,$teamID])->fetch_all(MYSQLI_ASSOC);
 
 $opgglink = $opgg_url;
 for ($i = 0; $i < count($players); $i++) {
@@ -127,7 +136,7 @@ echo create_header(dbcn: $dbcn, title: "tournament", tournament_id: $tournamentI
 
 echo create_tournament_nav_buttons($tournamentID, $dbcn,"",$league['OPL_ID'],$group["OPL_ID"]);
 
-echo create_team_nav_buttons($tournamentID,$group["OPL_ID"],$team,"details",$updatediff);
+echo create_team_nav_buttons($tournamentID,$group["OPL_ID"],$team,"details",playoffID: $playoff_ID,updatediff: $updatediff);
 
 echo "<div class='main-content'>";
 echo "
@@ -239,6 +248,12 @@ if ($curr_matchID != NULL) {
 echo "<div class='match-content content'>";
 foreach ($matches as $match) {
 	echo create_matchbutton($dbcn,$match['OPL_ID'],"groups",$teamID);
+}
+if ($matches_playoffs != null && count($matches_playoffs) > 0) {
+    echo "<h4>Playoffs</h4>";
+}
+foreach ($matches_playoffs as $match) {
+	echo create_matchbutton($dbcn,$match['OPL_ID'],"playoffs",$teamID);
 }
 echo "</div>";
 echo "</div>"; // matches

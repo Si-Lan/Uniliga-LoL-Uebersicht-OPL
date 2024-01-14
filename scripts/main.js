@@ -1625,6 +1625,7 @@ async function user_update_team(button) {
 	let team_ID = button.getAttribute("data-team");
 	let tournamentID = button.getAttribute("data-tournament");
 	let groupID = button.getAttribute("data-group");
+	let playoffID = button.getAttribute("data-playoff") ?? null;
 	$(button).addClass("user_updating");
 	button.disabled = true;
 	user_update_running = true;
@@ -1762,8 +1763,22 @@ async function user_update_team(button) {
 	await fetch(`ajax/user-update-functions.php`, {
 		method: "GET",
 		headers: {
-			type: "matches_from_group",
+			type: "matchups_from_group",
 			groupid: groupID,
+		}
+	})
+		.catch(e => console.error(e));
+
+	await new Promise(r => setTimeout(r, 1000));
+
+	loading_width = 60;
+	button.style.setProperty("--update-loading-bar-width", `${loading_width}%`);
+
+	await fetch(`ajax/user-update-functions.php`, {
+		method: "GET",
+		headers: {
+			type: "matchups_from_group",
+			groupid: playoffID,
 		}
 	})
 		.catch(e => console.error(e));
@@ -1794,6 +1809,38 @@ async function user_update_team(button) {
 				})
 					.then(() => {
 						loading_width = loading_width + 25/matchids.length;
+						button.style.setProperty("--update-loading-bar-width", `${loading_width}%`);
+					})
+					.catch(e => console.error(e));
+				await new Promise(r => setTimeout(r, 1000));
+			}
+		})
+		.catch(e => console.error(e));
+
+	loading_width = 90;
+	button.style.setProperty("--update-loading-bar-width", `${loading_width}%`);
+
+	await fetch(`ajax/get-data.php`, {
+		method: "GET",
+		headers: {
+			type: "matchups",
+			tournamentID: playoffID,
+			teamid: team_ID,
+			idonly: "true",
+		}
+	})
+		.then(res => res.json())
+		.then(async matchids => {
+			for (const match of matchids) {
+				await fetch(`ajax/user-update-functions.php`, {
+					method: "GET",
+					headers: {
+						type: "matchresult",
+						matchid: match,
+					}
+				})
+					.then(() => {
+						loading_width = loading_width + 5/matchids.length;
 						button.style.setProperty("--update-loading-bar-width", `${loading_width}%`);
 					})
 					.catch(e => console.error(e));

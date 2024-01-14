@@ -64,11 +64,11 @@ function get_tournament($id):array {
 	// regex prüft ob name mit einer zahl oder zwei zahlen mit - oder / getrennt endet
 	$number_matches = [];
 	$number = $numberTo = NULL;
-	if (preg_match("#[0-9]([-/][0-9])?$#",$name,$number_matches) && $type != "tournament") {
-		$number = $number_matches[0];
-		if (strlen($number) > 1) {
-			$numberTo = substr($number,2,1);
-			$number = substr($number,0,1);
+	if (preg_match("#([0-9])\.?([-/]([0-9])\.?)?(\s?Liga)?$#",$name,$number_matches) && $type != "tournament") {
+		$returnArr["dump"] = $number_matches;
+		$number = $number_matches[1];
+		if (array_key_exists(3,$number_matches)) {
+			$numberTo = $number_matches[3];
 		}
 	} else {
 		$returnArr["info"] .= "<span style='color: orangered'>Keine Nummer gefunden <br></span>";
@@ -275,8 +275,7 @@ function get_teams_for_tournament($tournamentID, bool $deletemissing = false):ar
 	}
 
 	$tournament = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID = ?", [$tournamentID])->fetch_assoc();
-
-	if ($tournament["eventType"] != "group") {
+	if (!($tournament["eventType"] == "group" || $tournament["eventType"] == "playoffs")) {
 		return [];
 	}
 
@@ -391,7 +390,7 @@ function get_players_for_tournament($tournamentID):array {
 
 	$tournament = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID = ?", [$tournamentID])->fetch_assoc();
 
-	if ($tournament["eventType"] != "group") {
+	if (!($tournament["eventType"] == "group" || $tournament["eventType"] == "playoffs")) {
 		return [];
 	}
 
@@ -441,6 +440,15 @@ function get_players_for_team($teamID, $tournamentID):array {
 														        	SELECT OPL_ID_parent
 														        	FROM tournaments
 														        	WHERE eventType= 'league'
+														          		AND OPL_ID = ?
+														        	)
+														       )
+														   OR (
+														    eventType='tournament'
+														        AND OPL_ID = (
+														        	SELECT OPL_ID_parent
+														        	FROM tournaments
+														        	WHERE eventType= 'playoffs'
 														          		AND OPL_ID = ?
 														        	)
 														       )
@@ -637,7 +645,7 @@ function get_matchups_for_tournament($tournamentID, bool $deletemissing = false)
 
 	$tournament = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID = ?", [$tournamentID])->fetch_assoc();
 
-	if ($tournament["eventType"] != "group") {
+	if (!($tournament["eventType"] == "group" || $tournament["eventType"] == "playoffs")) {
 		return [];
 	}
 
@@ -656,12 +664,15 @@ function get_matchups_for_tournament($tournamentID, bool $deletemissing = false)
 	$match_ids = [];
 
 	foreach ($data as $match) {
+		$teamids = array_keys($match["teams"]);
+		$t1id = ($teamids[0] == "") ? null : $teamids[0];
+		$t2id = (count($teamids) < 2 || $teamids[1] == "") ? null : $teamids[1];
 		$match_data = [
 			"OPL_ID" => $match["ID"],
 			"OPL_ID_tournament" => $tournamentID,
-			"OPL_ID_team1" => array_keys($match["teams"])[0],
-			"OPL_ID_team2" => array_keys($match["teams"])[1],
-			"plannedDate" => $match["to_be_played_on"]["date"],
+			"OPL_ID_team1" => $t1id,
+			"OPL_ID_team2" => $t2id,
+			"plannedDate" => $match["to_be_played_on"]["date"] ?? null,
 			"playday" => $match["playday"],
 			"bestOf" => $match["best_of"],
 		];

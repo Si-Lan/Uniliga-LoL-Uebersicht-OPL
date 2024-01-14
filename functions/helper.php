@@ -76,7 +76,7 @@ function get_top_parent_tournament(mysqli $dbcn, $event_id) {
 
 	if ($current_tournament["eventType"] == "tournament") {
 		return $current_tournament["OPL_ID"];
-	} elseif ($current_tournament["eventType"] == "league") {
+	} elseif ($current_tournament["eventType"] == "league" || $current_tournament["eventType"] == "playoffs") {
 		return $current_tournament["OPL_ID_parent"];
 	} elseif ($current_tournament["eventType"] == "group") {
 		return $dbcn->execute_query("SELECT OPL_ID_parent FROM tournaments WHERE eventType='league' AND OPL_ID = ?", [$current_tournament["OPL_ID_parent"]])->fetch_column();

@@ -42,6 +42,11 @@ if ($type == "get_teams_for_tournament") {
 				sleep(1);
 			}
 		}
+		$playoffs = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID_parent = ? AND eventType = 'playoffs'", [$tournament["OPL_ID"]])->fetch_all(MYSQLI_ASSOC);
+		foreach ($playoffs as $playoff) {
+			array_push($result, ...get_teams_for_tournament($playoff["OPL_ID"], $deletemissing));
+			sleep(1);
+		}
 	} elseif ($tournament["eventType"] == "league") {
 		$groups = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID_parent = ? AND eventType = 'group'", [$id])->fetch_all(MYSQLI_ASSOC);
 		foreach ($groups as $group) {
@@ -69,6 +74,11 @@ if ($type == "get_players_for_tournament") {
 				array_push($result, ...get_players_for_tournament($group["OPL_ID"]));
 				sleep(1);
 			}
+		}
+		$playoffs = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID_parent = ? AND eventType = 'playoffs'", [$tournament["OPL_ID"]])->fetch_all(MYSQLI_ASSOC);
+		foreach ($playoffs as $playoff) {
+			array_push($result, ...get_players_for_tournament($playoff["OPL_ID"]));
+			sleep(1);
 		}
 	} elseif ($tournament["eventType"] == "league") {
 		$groups = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID_parent = ? AND eventType = 'group'", [$id])->fetch_all(MYSQLI_ASSOC);
@@ -144,6 +154,11 @@ if ($type == "get_matchups_for_tournament") {
 				array_push($result, ...get_matchups_for_tournament($group["OPL_ID"], $deletemissing));
 				sleep(1);
 			}
+		}
+		$playoffs = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID_parent = ? AND eventType = 'playoffs'", [$tournament["OPL_ID"]])->fetch_all(MYSQLI_ASSOC);
+		foreach ($playoffs as $playoff) {
+			array_push($result, ...get_matchups_for_tournament($playoff["OPL_ID"], $deletemissing));
+			sleep(1);
 		}
 	} elseif ($tournament["eventType"] == "league") {
 		$groups = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID_parent = ? AND eventType = 'group'", [$id])->fetch_all(MYSQLI_ASSOC);

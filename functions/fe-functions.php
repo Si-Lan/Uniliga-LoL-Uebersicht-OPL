@@ -448,11 +448,8 @@ function create_matchbutton(mysqli $dbcn,$match_id,$type,$team_id=NULL):string {
 	$result = "";
 	$pageurl = $_SERVER['REQUEST_URI'];
 	$opl_match_url = "https://www.opleague.pro/match/";
-	if ($type == "groups") {
+	if ($type == "groups" || $type == "playoffs") {
 		$match = $dbcn->execute_query("SELECT * FROM matchups WHERE OPL_ID = ?",[$match_id])->fetch_assoc();
-	} elseif ($type == "playoffs") {
-		return "";
-		//$match = $dbcn->execute_query("SELECT * FROM playoffmatches WHERE MatchID = ?",[$match_id])->fetch_assoc();
 	} else {
 		return "";
 	}
@@ -461,6 +458,9 @@ function create_matchbutton(mysqli $dbcn,$match_id,$type,$team_id=NULL):string {
 	foreach ($teams_from_DB as $i=>$team) {
 		$teams[$team['OPL_ID']] = array("TeamName"=>$team['name'], "imgID"=>$team['OPL_ID']);
 	}
+
+	$team1Name = ($match["OPL_ID_team1"] != "") ? $teams[$match["OPL_ID_team1"]]["TeamName"] : "TBD";
+	$team2Name = ($match["OPL_ID_team2"] != "") ? $teams[$match["OPL_ID_team2"]]["TeamName"] : "TBD";
 
 	$current1 = "";
 	$current2 = "";
@@ -479,8 +479,8 @@ function create_matchbutton(mysqli $dbcn,$match_id,$type,$team_id=NULL):string {
 		$result .= "<div class='match-button-wrapper' data-matchid='$match_id' data-matchtype='$type'>
                             <a class='button match nolink sideext-right'>
                                 <div class='teams'>
-                                    <div class='team 1$current1'><div class='name'>{$teams[$match['OPL_ID_team1']]['TeamName']}</div></div>
-                                    <div class='team 2$current2'><div class='name'>{$teams[$match['OPL_ID_team2']]['TeamName']}</div></div>
+                                    <div class='team 1$current1'><div class='name'>$team1Name</div></div>
+                                    <div class='team 2$current2'><div class='name'>$team2Name</div></div>
                                 </div>";
 		if ($match['plannedDate'] == NULL || strtotime($match['plannedDate']) == 0) {
 			$result .= "<div>vs.</div>";
@@ -516,8 +516,8 @@ function create_matchbutton(mysqli $dbcn,$match_id,$type,$team_id=NULL):string {
 			$result .= "<a class='button match sideext-right' href='$pageurl' onclick='popup_match(\"{$match['OPL_ID']}\",null,\"$type\")'>";
 		}
 		$result .= "<div class='teams score'>
-				<div class='team 1 $state1$current1'><div class='name'>{$teams[$match['OPL_ID_team1']]['TeamName']}</div><div class='score'>{$t1score}</div></div>
-				<div class='team 2 $state2$current2'><div class='name'>{$teams[$match['OPL_ID_team2']]['TeamName']}</div><div class='score'>{$t2score}</div></div>
+				<div class='team 1 $state1$current1'><div class='name'>$team1Name</div><div class='score'>{$t1score}</div></div>
+				<div class='team 2 $state2$current2'><div class='name'>$team2Name</div><div class='score'>{$t2score}</div></div>
 			  </div>
 			</a>
 			<a class='sidebutton-match' href='$opl_match_url{$match['OPL_ID']}' target='_blank'>
@@ -528,7 +528,7 @@ function create_matchbutton(mysqli $dbcn,$match_id,$type,$team_id=NULL):string {
 	return $result;
 }
 
-function create_team_nav_buttons($tournamentID,$groupID,$team,$active,$updatediff="unbekannt"):string {
+function create_team_nav_buttons($tournamentID,$groupID,$team,$active,$playoffID=null,$updatediff="unbekannt"):string {
 	$result = "";
 	$details_a = $matchhistory_a = $stats_a = "";
 	if ($active == "details") {
@@ -558,10 +558,11 @@ function create_team_nav_buttons($tournamentID,$groupID,$team,$active,$updatedif
            	<a href='turnier/$tournamentID/team/$team_id/matchhistory' class='button$matchhistory_a'><div class='material-symbol'>". file_get_contents(__DIR__."/../icons/material/manage_search.svg") ."</div>Match-History</a>
             <a href='turnier/$tournamentID/team/$team_id/stats' class='button$stats_a'><div class='material-symbol'>". file_get_contents(__DIR__."/../icons/material/monitoring.svg") ."</div>Statistiken</a>
         </div>";
+	$data_playoff = ($playoffID != null) ? "data-playoff='$playoffID'" : "";
 	if ($active == "details") {
 		$result .= "
 				<div class='updatebuttonwrapper'>
-           			<button type='button' class='icononly user_update_team update_data' data-team='$team_id' data-tournament='$tournamentID' data-group='$groupID'><div class='material-symbol'>".file_get_contents(__DIR__."/../icons/material/sync.svg")."</div></button>
+           			<button type='button' class='icononly user_update_team update_data' data-team='$team_id' data-tournament='$tournamentID' data-group='$groupID' $data_playoff><div class='material-symbol'>".file_get_contents(__DIR__."/../icons/material/sync.svg")."</div></button>
 					<span>letztes Update:<br>$updatediff</span>
 				</div>";
 	}
