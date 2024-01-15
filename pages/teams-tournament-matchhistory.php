@@ -118,7 +118,7 @@ foreach ($matches as $m=>$match) {
 	}
 	foreach ($games as $game) {
 		$gameID = $game['RIOT_matchID'];
-		echo create_game($dbcn,$gameID,$teamID);
+		echo create_game($dbcn,$gameID,$teamID,tournamentID: $tournamentID);
 	}
 	echo "</div>";
 }

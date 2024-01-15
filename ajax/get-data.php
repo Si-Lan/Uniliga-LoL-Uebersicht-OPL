@@ -149,7 +149,12 @@ if ($type == "players") {
 if ($type == "team-and-players") {
 	$teamID = $_SERVER["HTTP_TEAMID"] ?? NULL;
 	$tournamentID = $_SERVER["HTTP_TOURNAMENTID"] ?? NULL;
-	$teamDB = $dbcn->execute_query("SELECT * FROM teams WHERE OPL_ID = ?", [$teamID])->fetch_assoc();
+	$teams_season_rank = $_SERVER["HTTP_TEAMS_SEASON_RANK"] ?? NULL;
+	if ($teams_season_rank != NULL && $tournamentID != NULL) {
+		$teamDB = $dbcn->execute_query("SELECT *, tsr.avg_rank_tier, tsr.avg_rank_div, tsr.avg_rank_num FROM teams LEFT JOIN teams_season_rank as tsr ON teams.OPL_ID = tsr.OPL_ID_team AND tsr.season = (SELECT tr.season FROM tournaments as tr WHERE tr.OPL_ID = ?) WHERE OPL_ID = ?", [$tournamentID,$teamID])->fetch_assoc();
+	} else {
+		$teamDB = $dbcn->execute_query("SELECT * FROM teams WHERE OPL_ID = ?", [$teamID])->fetch_assoc();
+	}
 	$playersDB = $dbcn->execute_query("SELECT * FROM players JOIN players_in_teams_in_tournament pit on players.OPL_ID = pit.OPL_ID_player WHERE pit.OPL_ID_team = ? AND pit.OPL_ID_tournament = ?", [$teamID, $tournamentID])->fetch_all(MYSQLI_ASSOC);
 	echo json_encode(["team"=>$teamDB, "players"=>$playersDB]);
 }

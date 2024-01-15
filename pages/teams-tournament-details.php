@@ -32,6 +32,7 @@ $tournament = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID = ? A
 $team_groups = $dbcn->execute_query("SELECT * FROM teams JOIN teams_in_tournaments tit ON teams.OPL_ID = tit.OPL_ID_team WHERE OPL_ID = ? AND OPL_ID_group IN (SELECT OPL_ID FROM tournaments WHERE eventType='group' AND OPL_ID_parent IN (SELECT OPL_ID FROM tournaments WHERE eventType='league' AND OPL_ID_parent = ?))", [$teamID, $tournamentID])->fetch_all(MYSQLI_ASSOC);
 $team_playoffs = $dbcn->execute_query("SELECT * FROM teams JOIN teams_in_tournaments tit ON teams.OPL_ID = tit.OPL_ID_team WHERE OPL_ID = ? AND OPL_ID_group IN (SELECT OPL_ID FROM tournaments WHERE eventType='playoffs' AND OPL_ID_parent = ?)", [$teamID, $tournamentID])->fetch_all(MYSQLI_ASSOC);
 $team_solo = $dbcn->execute_query("SELECT * FROM teams WHERE OPL_ID = ?", [$teamID])->fetch_assoc();
+$team_rank = $dbcn->execute_query("SELECT tsr.* FROM teams t LEFT JOIN teams_season_rank tsr ON tsr.OPL_ID_team = t.OPL_ID AND tsr.season = (SELECT tr.season FROM tournaments as tr WHERE tr.OPL_ID = ?) WHERE t.OPL_ID = ?", [$tournamentID, $teamID])->fetch_assoc();
 
 if ($tournament == NULL) {
 	echo create_html_head_elements(title: "Turnier nicht gefunden | Uniliga LoL - Übersicht");
@@ -152,14 +153,14 @@ if ($collapsed) {
 }
 echo "
                      </div>";
-if ($team['avg_rank_tier'] != NULL) {
-	$avg_rank = strtolower($team['avg_rank_tier']);
+if ($team_rank['avg_rank_tier'] != NULL) {
+	$avg_rank = strtolower($team_rank['avg_rank_tier']);
 	$avg_rank_cap = ucfirst($avg_rank);
 	echo "
                     <div class='team-avg-rank'>
                         Team-Rang: 
                         <img class='rank-emblem-mini' src='ddragon/img/ranks/mini-crests/{$avg_rank}.svg' alt='$avg_rank_cap'>
-                        <span>{$avg_rank_cap} {$team['avg_rank_div']}</span>
+                        <span>{$avg_rank_cap} {$team_rank['avg_rank_div']}</span>
                     </div>";
 }
 echo "

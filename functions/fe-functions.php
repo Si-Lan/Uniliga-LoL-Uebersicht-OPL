@@ -594,7 +594,7 @@ function populate_th($maintext,$tooltiptext,$init=false) {
 	return "<span class='tooltip'>$maintext<span class='tooltiptext'>$tooltiptext</span><div class='material-symbol sort-direction'>".$svg_code."</div></span>";
 }
 
-function create_game(mysqli $dbcn,$gameID,$curr_team=NULL):string {
+function create_game(mysqli $dbcn,$gameID,$curr_team=NULL,$tournamentID=null):string {
 	$result = "";
 	// TODO: tournamentID integrieren, falls ein game in mehreren turnieren eingetragen ist (aktuell wird einfach das erste geholt)
 	$gameDB = $dbcn->execute_query("SELECT * FROM games JOIN games_in_tournament git on games.RIOT_matchID = git.RIOT_matchID WHERE games.RIOT_matchID = ?",[$gameID])->fetch_assoc();
@@ -602,8 +602,16 @@ function create_game(mysqli $dbcn,$gameID,$curr_team=NULL):string {
 	$team_red_ID = $gameDB['OPL_ID_redTeam'];
 	$team_blue = $dbcn->execute_query("SELECT * FROM teams WHERE OPL_ID = ?",[$team_blue_ID])->fetch_assoc();
 	$team_red = $dbcn->execute_query("SELECT * FROM teams WHERE OPL_ID = ?",[$team_red_ID])->fetch_assoc();
-	$players_blue_DB = $dbcn->execute_query("SELECT summonerName, rank_tier, rank_div, PUUID FROM players JOIN players_in_teams_in_tournament pit on players.OPL_ID = pit.OPL_ID_player WHERE OPL_ID_team = ?",[$team_blue['OPL_ID']])->fetch_all(MYSQLI_ASSOC);
-	$players_red_DB = $dbcn->execute_query("SELECT summonerName, rank_tier, rank_div, PUUID FROM players JOIN players_in_teams_in_tournament pit on players.OPL_ID = pit.OPL_ID_player WHERE OPL_ID_team = ?",[$team_red['OPL_ID']])->fetch_all(MYSQLI_ASSOC);
+	$players_blue_DB = $dbcn->execute_query("SELECT summonerName, psr.rank_tier, psr.rank_div, PUUID
+														FROM players
+														    JOIN players_in_teams_in_tournament pit on players.OPL_ID = pit.OPL_ID_player
+															LEFT JOIN players_season_rank psr on psr.OPL_ID_player = players.OPL_ID AND psr.season = (SELECT tournaments.season FROM tournaments WHERE tournaments.OPL_ID = ?)
+														WHERE OPL_ID_team = ?",[$tournamentID,$team_blue['OPL_ID']])->fetch_all(MYSQLI_ASSOC);
+	$players_red_DB = $dbcn->execute_query("SELECT summonerName, psr.rank_tier, psr.rank_div, PUUID
+														FROM players
+														    JOIN players_in_teams_in_tournament pit on players.OPL_ID = pit.OPL_ID_player
+															LEFT JOIN players_season_rank psr on psr.OPL_ID_player = players.OPL_ID AND psr.season = (SELECT tournaments.season FROM tournaments WHERE tournaments.OPL_ID = ?)
+														WHERE OPL_ID_team = ?",[$tournamentID,$team_red['OPL_ID']])->fetch_all(MYSQLI_ASSOC);
 
 	$tournamentID = $gameDB["OPL_ID_tournament"];
 
@@ -1020,7 +1028,8 @@ function show_old_url_warning($tournamentID):string {
 function create_playercard(mysqli $dbcn, $playerID, $teamID, $tournamentID, $detail_stats=true) {
     $logo_filename = is_light_mode() ? "logo_light.webp" : "logo.webp";
 	$player = $dbcn->execute_query("SELECT * FROM players_in_teams_in_tournament ptt LEFT JOIN players p on p.OPL_ID = ptt.OPL_ID_player LEFT JOIN stats_players_teams_tournaments spit on ptt.OPL_ID_player = spit.OPL_ID_player AND ptt.OPL_ID_team = spit.OPL_ID_team AND ptt.OPL_ID_tournament = spit.OPL_ID_tournament WHERE ptt.OPL_ID_player = ? AND ptt.OPL_ID_team = ? AND ptt.OPL_ID_tournament = ?", [$playerID, $teamID, $tournamentID])->fetch_assoc();
-    $tournament = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID = ?", [$tournamentID])->fetch_assoc();
+	$player_rank = $dbcn->execute_query("SELECT * FROM players_season_rank WHERE OPL_ID_player = ? AND season = (SELECT tournaments.season FROM tournaments WHERE tournaments.OPL_ID = ?)", [$playerID, $tournamentID])->fetch_assoc();
+	$tournament = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID = ?", [$tournamentID])->fetch_assoc();
     $team = $dbcn->execute_query("SELECT * FROM teams WHERE OPL_ID = ?", [$teamID])->fetch_assoc();
 	$team_in_tournament = $dbcn->execute_query("SELECT * FROM teams_in_tournaments WHERE OPL_ID_team = ? AND OPL_ID_group IN (SELECT OPL_ID FROM tournaments WHERE eventType = 'group' AND OPL_ID_parent IN (SELECT OPL_ID FROM tournaments WHERE eventType = 'league' AND OPL_ID_parent = ?))", [$teamID, $tournamentID])->fetch_assoc();
     $group = $dbcn->execute_query("SELECT * FROM tournaments WHERE eventType='group' AND OPL_ID = ?", [$team_in_tournament["OPL_ID_group"]])->fetch_assoc();
@@ -1070,12 +1079,12 @@ function create_playercard(mysqli $dbcn, $playerID, $teamID, $tournamentID, $det
 	$result .= "</a>";
 	// detailed Stats
 	if ($detail_stats) {
-		$rank_tier = strtolower($player["rank_tier"]??"");
-		$rank_div = $player["rank_div"];
+		$rank_tier = strtolower($player_rank["rank_tier"]??"");
+		$rank_div = $player_rank["rank_div"]??null;
 		$LP = NULL;
 		if ($rank_tier == "CHALLENGER" || $rank_tier == "GRANDMASTER" || $rank_tier == "MASTER") {
 			$rank_div = "";
-			$LP = $player["leaguePoints"];
+			$LP = $player_rank["leaguePoints"]??null;
 		}
 		if ($LP != NULL) {
 			$LP = "(".$LP." LP)";
@@ -1084,7 +1093,7 @@ function create_playercard(mysqli $dbcn, $playerID, $teamID, $tournamentID, $det
 		}
 
 		// Rang
-		if ($player["rank_tier"] != NULL) {
+		if ($player["rank_tier"]??null != NULL) {
 			$result .= "<div class='player-card-div player-card-rank'><img class='rank-emblem-mini' src='ddragon/img/ranks/mini-crests/$rank_tier.svg' alt='".ucfirst($rank_tier)."'>".ucfirst($rank_tier)." $rank_div $LP</div>";
 		} else {
 			$result .= "<div class='player-card-div player-card-rank'>kein Rang</div>";
@@ -1156,7 +1165,26 @@ function create_player_overview(mysqli $dbcn,$playerid,$onplayerpage=false):stri
 	$result .= "<div class='player-ov-titlewrapper'><h2 class='player-ov-name'>{$player["name"]}</h2><a href='https://www.opleague.pro/user/$playerid' class='toorlink' target='_blank'><div class='material-symbol'>".file_get_contents(__DIR__."/../icons/material/open_in_new.svg")."</div></a></div>";
 	$result .= "<div class='divider'></div>";
 	if ($player["riotID_name"] != null) {
+		$result .= "<div class='player-ov-riotid-wrapper'>";
 		$result .= "<a class='player-ov-riotid' href='https://op.gg/summoners/euw/{$player["riotID_name"]}-{$player["riotID_tag"]}' target='_blank'><span class='league-icon'>".file_get_contents(dirname(__FILE__)."/../icons/LoL_Icon_Flat.svg")."</span><span>{$player["riotID_name"]}#{$player["riotID_tag"]}</span></a>";
+		$rank_tier = strtolower($player["rank_tier"]??"");
+		$rank_div = $player["rank_div"];
+		$LP = NULL;
+		if ($rank_tier == "CHALLENGER" || $rank_tier == "GRANDMASTER" || $rank_tier == "MASTER") {
+			$rank_div = "";
+			$LP = $player["leaguePoints"];
+		}
+		if ($LP != NULL) {
+			$LP = "(".$LP." LP)";
+		} else {
+			$LP = "";
+		}
+		if ($player["rank_tier"] != NULL) {
+			$result .= "<div class='player-rank'><img class='rank-emblem-mini' src='ddragon/img/ranks/mini-crests/$rank_tier.svg' alt='".ucfirst($rank_tier)."'>".ucfirst($rank_tier)." $rank_div $LP</div>";
+		} else {
+			$result .= "<div class='player-rank'>kein Rang</div>";
+		}
+		$result .= "</div>";
 	}
     if (count($teams_played_in) >= 2) {
         $result .= "<div class='player-ov-buttons'>";

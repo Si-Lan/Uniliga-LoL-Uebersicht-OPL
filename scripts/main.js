@@ -376,10 +376,12 @@ async function popup_team(teamID, tournamentID = null) {
 			type: "team-and-players",
 			teamid: teamID,
 			tournamentid: tournamentID,
+			"teams-season-rank": "true",
 		}
 	})
 		.then(res => res.json())
 		.then(team_data => {
+			console.log(team_data);
 			if (current_team_in_popup === team_data['team']['OPL_ID']) {
 
 				let players_string = "";

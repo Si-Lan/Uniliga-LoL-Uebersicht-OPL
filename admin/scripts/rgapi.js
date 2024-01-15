@@ -770,7 +770,7 @@ function get_average_team_ranks(tournament_id) {
 						}
 					}
 				};
-				req.open("GET", "./admin/ajax/get-rgapi-data.php?type=calculate-write-avg-rank&team=" + team['OPL_ID']);
+				req.open("GET", `./admin/ajax/get-rgapi-data.php?type=calculate-write-avg-rank&team=${team['OPL_ID']}&tournament=${tournament_id}`);
 				req.send();
 			}
 			if (teams.length === 0) {

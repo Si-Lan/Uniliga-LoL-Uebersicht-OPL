@@ -1,6 +1,7 @@
 <?php
 function create_summonercard(mysqli $dbcn, $playerID, $tournamentID, $teamID = NULL, bool $collapsed=FALSE, bool $echo=FALSE):string {
 	$player = $dbcn->execute_query("SELECT * FROM players p JOIN players_in_teams_in_tournament pitit on p.OPL_ID = pitit.OPL_ID_player AND OPL_ID_tournament = ? AND OPL_ID_team = ? LEFT JOIN stats_players_teams_tournaments spit ON p.OPL_ID = spit.OPL_ID_player AND pitit.OPL_ID_team = spit.OPL_ID_team AND pitit.OPL_ID_tournament = spit.OPL_ID_tournament WHERE p.OPL_ID = ?", [$tournamentID, $teamID, $playerID])->fetch_assoc();
+	$player_rank = $dbcn->execute_query("SELECT * FROM players_season_rank WHERE OPL_ID_player = ? AND season = (SELECT tournaments.season FROM tournaments WHERE tournaments.OPL_ID = ?)", [$playerID, $tournamentID])->fetch_assoc();
 	$return = "";
 	$player_removed_class =  ($player["removed"] == 1) ? "player-removed" : "";
     if ($collapsed) {
@@ -11,12 +12,12 @@ function create_summonercard(mysqli $dbcn, $playerID, $tournamentID, $teamID = N
 	$enc_riotid = urlencode($player['riotID_name']??"")."-".urlencode($player['riotID_tag']??"");
 	$riotid_full = $player['riotID_name']."#".$player['riotID_tag'];
 	$riot_tag = ($player['riotID_tag'] != NULL && $player['riotID_tag'] != "") ? "#".$player['riotID_tag'] : "";
-	$player_tier = $player['rank_tier'];
-	$player_div = $player['rank_div'];
+	$player_tier = $player_rank['rank_tier'] ?? null;
+	$player_div = $player_rank['rank_div'] ?? null;
 	$player_LP = NULL;
 	if ($player_tier == "CHALLENGER" || $player_tier == "GRANDMASTER" || $player_tier == "MASTER") {
 		$player_div = "";
-		$player_LP = $player["rank_LP"];
+		$player_LP = $player_rank["rank_LP"] ?? null;
 	}
 	$return .= "<div class='summoner-card-wrapper'>";
 	$return .= "
@@ -27,7 +28,8 @@ function create_summonercard(mysqli $dbcn, $playerID, $tournamentID, $teamID = N
 		{$player['name']}
 	</span>
 	<div class='divider'></div>
-	<div class='card-summoner'>
+	<div class='card-summoner'>";
+	if ($player["riotID_name"] != null) $return .= "
 		<span class='card-riotid'>
 			<span class='league-icon'>".file_get_contents(__DIR__."/../icons/LoL_Icon_Flat.svg")."</span>
 			<span>{$player['riotID_name']}</span><span class='riot-id-tag'>$riot_tag</span>

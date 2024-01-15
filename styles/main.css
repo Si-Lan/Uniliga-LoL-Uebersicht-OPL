@@ -1160,6 +1160,17 @@ h2.player-ov-name {
 	align-items: center;
 	gap: 4px;
 	margin-bottom: 4px;
+	font-size: 1.1em;
+}
+.player-rank {
+	display: flex;
+	align-items: center;
+	gap: 5px;
+}
+.player-ov-riotid-wrapper {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
 }
 div.team-avg-rank {
 	display: flex;
