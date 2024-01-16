@@ -457,7 +457,7 @@ function get_players_for_team($teamID, $tournamentID):array {
 														    eventType='tournament'
 														        AND OPL_ID = ?
 														       )",
-		[$tournamentID, $tournamentID, $tournamentID])->fetch_column();
+		[$tournamentID, $tournamentID, $tournamentID, $tournamentID])->fetch_column();
 
 	$url = "https://www.opleague.pro/api/v4/team/$teamID/users";
 	$options = ["http" => [
@@ -690,7 +690,7 @@ function get_matchups_for_tournament($tournamentID, bool $deletemissing = false)
 										VALUES (?, ?, ?, ?, ?, ?, ?, false)", [$match_data["OPL_ID"], $match_data["OPL_ID_tournament"], $match_data["OPL_ID_team1"], $match_data["OPL_ID_team2"], $match_data["plannedDate"], $match_data["playday"], $match_data["bestOf"]]);
 		} else {
 			foreach ($match_data as $key=>$item) {
-				if ($key == "plannedDate") {
+				if ($key == "plannedDate" && $matchDB[$key] != null && $item != null) {
 					if (strtotime($matchDB[$key]) != strtotime($item)) {
 						$updated[$key] = ["old"=>$matchDB[$key], "new"=>$item];
 					}

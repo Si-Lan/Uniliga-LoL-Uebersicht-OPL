@@ -32,7 +32,7 @@ foreach ($leagues as $league) {
 }
 $playoffs = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID_parent = ? AND eventType = 'playoffs'", [$tournament_id])->fetch_all(MYSQLI_ASSOC);
 foreach ($playoffs as $playoff) {
-	file_put_contents("cron_logs/cron_log_$day.log",date("d.m.y H:i:s")." : Teams for playoffs-group {$playoff["number"]}/{$playoff["numberTo"]} ({$playoff["OPL_ID"]})\n", FILE_APPEND);
+	file_put_contents("cron_logs/cron_log_$day.log",date("d.m.y H:i:s")." : Teams for playoffs-group {$playoff["number"]}/{$playoff["numberRangeTo"]} ({$playoff["OPL_ID"]})\n", FILE_APPEND);
 	array_push($results, ...get_teams_for_tournament($playoff["OPL_ID"]));
 	sleep(1);
 }
