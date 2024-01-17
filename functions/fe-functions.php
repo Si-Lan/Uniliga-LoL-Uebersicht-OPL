@@ -76,10 +76,12 @@ function check_login():bool {
 	return true;
 }
 
-function create_header(mysqli $dbcn = NULL, string $title = "home", string|int $tournament_id = NULL, bool $home_button = TRUE, bool $open_login = FALSE, string $loginforminfo = ""):string {
+function create_header(mysqli $dbcn = NULL, string $title = "home", string|int $tournament_id = NULL, bool $home_button = TRUE, bool $open_login = FALSE, string $loginforminfo = "", bool $search_button = TRUE):string {
 	$loginopen = $open_login ? "modalopen_auto" : "";
 
 	$result = "";
+
+	if (file_exists(__DIR__."/../setup/maintenance.enable")) $result .= "<div style='text-align: center; padding: 5px 0; background-color: #7e1616'>Achtung: Wartungsmodus ist aktiviert!</div>";
 
 	$pageurl = $_SERVER['REQUEST_URI'];
 
@@ -100,10 +102,12 @@ function create_header(mysqli $dbcn = NULL, string $title = "home", string|int $
 		<div class='material-symbol'>".file_get_contents(dirname(__FILE__)."/../icons/material/home.svg")."</div>
 	</a>";
 	}
-	$result .= "
+	if ($search_button) {
+		$result .= "
 	<button title='Suche' class='header_search_button'>
 		<div class='material-symbol'>".file_get_contents(dirname(__FILE__)."/../icons/material/search.svg")."</div>
 	</button>";
+	}
 	$result .= "<div class='title'>";
 	switch ($title) {
 		case "players":
@@ -128,6 +132,9 @@ function create_header(mysqli $dbcn = NULL, string $title = "home", string|int $
 			break;
 		case "rgapi":
 			$result .= "<h1>Uniliga LoL - Riot-API-Daten</h1>";
+			break;
+		case "maintenance":
+			$result .= "<h1>Uniliga LoL - Übersicht - Wartung</h1>";
 			break;
 		case "404":
 			$result.= "<h1>404 - Seite nicht gefunden</h1>";

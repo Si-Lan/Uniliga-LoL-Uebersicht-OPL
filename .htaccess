@@ -1,9 +1,16 @@
 RewriteEngine On
 RewriteBase /uniliga
 
-#RewriteCond %{HTTP_COOKIE} !write-login=(.+);? [NC]
-#RewriteCond %{HTTP_COOKIE} !admin-login=(.+);? [NC]
-#RewriteRule ^(.*)$ /toornament/uniliga/$1 [NC,L,R=302]
+# manage maintenance mode
+RewriteCond %{HTTP_COOKIE} !admin-login=(.+);? [NC]
+RewriteCond %{DOCUMENT_ROOT}/uniliga/setup/maintenance.enable -f
+RewriteCond %{SCRIPT_FILENAME} !maintenance.php
+RewriteCond %{QUERY_STRING} !login
+RewriteCond %{REQUEST_URI} !./styles/
+RewriteCond %{REQUEST_URI} !./scripts/
+RewriteRule ^(.*)$ ./pages/maintenance.php [R=503,L]
+
+ErrorDocument 503 /uniliga/pages/maintenance.php
 
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteCond %{REQUEST_URI} /(.*)/$

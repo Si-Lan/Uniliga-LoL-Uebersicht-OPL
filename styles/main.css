@@ -3237,6 +3237,18 @@ body.admin .main-content {
 	flex-direction: column;
 	align-items: center;
 }
+.maintenance-off {
+	background-color: #492323;
+}
+.maintenance-off:hover {
+	background-color: #602b2b;
+}
+.maintenance-on {
+	background-color: #304f27;
+}
+.maintenance-on:hover {
+	background-color: #3e6533;
+}
 #main-selection {
 	display: flex;
 	flex-direction: column;

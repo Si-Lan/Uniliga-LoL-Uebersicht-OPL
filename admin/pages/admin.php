@@ -19,6 +19,8 @@ echo create_html_head_elements(css: [""], js: ["admin"], title: "Admin-Panel | U
 
 echo create_header($dbcn, title: "admin", open_login: !$loggedin);
 
+$maintenance_mode = (file_exists(__DIR__."/../../setup/maintenance.enable")) ? "on" : "off";
+
 if ($loggedin) {
 	?>
 	<h1>OPL -> Database</h1>
@@ -27,6 +29,7 @@ if ($loggedin) {
 		<dialog class='write-result-popup dismissable-popup'>
 			<div class='dialog-content'></div>
 		</dialog>
+        <button type="button" id="maintenance-mode" class="maintenance-<?php echo $maintenance_mode ?>">Maintenance Mode</button>
 		<div id="main-selection">
 			<span class="searchbar"> <label for="input-tournament-id"></label><input id="input-tournament-id" name="id" placeholder="Tournament ID" type="number"> </span>
 			<button id="turnier-button-get">Turnier hinzufügen</button>
