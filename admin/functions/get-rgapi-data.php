@@ -330,12 +330,18 @@ function assign_and_filter_game($RiotMatchID,$tournamentID):array {
 
 	// check from which match the game is
 	$matchDB = [];
-	if ($tournament["eventType"] == "group" || $tournament["eventType"] == "playoffs") {
+	if ($tournament["eventType"] == "group") {
 		$matchDB = $dbcn->execute_query("SELECT * FROM matchups WHERE ((OPL_ID_team1 = ? AND OPL_ID_team2 = ?) OR (OPL_ID_team1 = ? AND OPL_ID_team2 = ?)) AND OPL_ID_tournament = ?", [$BlueTeamID, $RedTeamID, $RedTeamID, $BlueTeamID, $tournamentID])->fetch_all(MYSQLI_ASSOC);
 	} elseif ($tournament["eventType"] == "league") {
 		$matchDB = $dbcn->execute_query("SELECT * FROM matchups WHERE ((OPL_ID_team1 = ? AND OPL_ID_team2 = ?) OR (OPL_ID_team1 = ? AND OPL_ID_team2 = ?)) AND OPL_ID_tournament IN (SELECT OPL_ID FROM tournaments WHERE eventType = 'group' AND OPL_ID_parent = ?)", [$BlueTeamID, $RedTeamID, $RedTeamID, $BlueTeamID, $tournamentID])->fetch_all(MYSQLI_ASSOC);
 	} elseif ($tournament["eventType"] == "tournament") {
-		$matchDB = $dbcn->execute_query("SELECT * FROM matchups WHERE ((OPL_ID_team1 = ? AND OPL_ID_team2 = ?) OR (OPL_ID_team1 = ? AND OPL_ID_team2 = ?)) AND OPL_ID_tournament IN (SELECT OPL_ID FROM tournaments WHERE eventType = 'group' AND OPL_ID_parent IN (SELECT OPL_ID FROM tournaments WHERE eventType = 'league' AND OPL_ID_parent = ?))", [$BlueTeamID, $RedTeamID, $RedTeamID, $BlueTeamID, $tournamentID])->fetch_all(MYSQLI_ASSOC);
+		$matchDB = $dbcn->execute_query("SELECT * FROM matchups
+         										WHERE ((OPL_ID_team1 = ? AND OPL_ID_team2 = ?) OR (OPL_ID_team1 = ? AND OPL_ID_team2 = ?))
+         										  AND OPL_ID_tournament IN 
+         										      (SELECT OPL_ID FROM tournaments
+         										                     WHERE (eventType = 'group' AND OPL_ID_parent IN (SELECT OPL_ID FROM tournaments WHERE eventType = 'league' AND OPL_ID_parent = ?))
+         										                        OR (eventType = 'playoffs') AND OPL_ID_parent = ?)",
+			[$BlueTeamID, $RedTeamID, $RedTeamID, $BlueTeamID, $tournamentID, $tournamentID])->fetch_all(MYSQLI_ASSOC);
 	}
 	if (count($matchDB) == 0) {
 		$returnArr["echo"] .= "<span style='color: orange'>-!no fitting Match found<br></span>";
