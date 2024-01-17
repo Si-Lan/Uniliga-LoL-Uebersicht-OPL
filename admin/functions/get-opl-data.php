@@ -418,8 +418,7 @@ function get_players_for_team($teamID, $tournamentID):array {
 
 	$tournament_data = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID = ?", [$tournamentID])->fetch_assoc();
 	$current_time = time();
-	$tournament_end = strtotime($tournament_data["dateEnd"]);
-	$parent_tournamentID = $dbcn->execute_query("SELECT OPL_ID
+	$parent_tournament = $dbcn->execute_query("SELECT *
 														FROM tournaments
 														WHERE (
 														    eventType='tournament'
@@ -458,6 +457,8 @@ function get_players_for_team($teamID, $tournamentID):array {
 														        AND OPL_ID = ?
 														       )",
 		[$tournamentID, $tournamentID, $tournamentID, $tournamentID])->fetch_column();
+	$parent_tournamentID = $parent_tournament["OPL_ID"];
+	$tournament_end = strtotime($parent_tournament["dateEnd"]);
 
 	$url = "https://www.opleague.pro/api/v4/team/$teamID/users";
 	$options = ["http" => [
@@ -755,6 +756,11 @@ function get_results_for_matchup($matchID):array {
 	]];
 	$context = stream_context_create($options);
 	$response = json_decode(file_get_contents($url, context: $context),true);
+	if(str_contains($http_response_header[0],"429")) {
+		sleep(1);
+		$response = json_decode(file_get_contents($url, context: $context),true);
+		if (str_contains($http_response_header[0],"429")) trigger_error("Custom Warning: second try after 429 failed", E_USER_NOTICE);
+	}
 
 	$data = $response["data"]["result"];
 
@@ -762,8 +768,8 @@ function get_results_for_matchup($matchID):array {
 		"team1Score" => strval($data["scores"][$matchDB["OPL_ID_team1"]]) ?? null,
 		"team2Score" => strval($data["scores"][$matchDB["OPL_ID_team2"]]) ?? null,
 		"played" => intval($response["data"]["state_key"]) >= 4,
-		"winner" => (count($data["win_IDs"])>0) ? $data["win_IDs"][0] : null,
-		"loser" => (count($data["win_IDs"])>0) ? $data["loss_IDs"][0] : null,
+		"winner" => (count($data["win_IDs"]??[])>0) ? $data["win_IDs"][0] : null,
+		"loser" => (count($data["win_IDs"]??[])>0) ? $data["loss_IDs"][0] : null,
 		"draw" => (intval($response["data"]["state_key"]) >= 4) ? count($data["draw_IDs"]) > 0 : null,
 		"def_win" => (intval($response["data"]["state_key"]) >= 4) ? count($data["defwin"]) > 0 : null,
 	];
