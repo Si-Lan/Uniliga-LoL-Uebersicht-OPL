@@ -600,6 +600,7 @@ function assign_and_filter_games(tournamentID,teamID = 0, all = 0) {
 				};
 				sort_request.open("GET","./admin/ajax/get-rgapi-data.php?type=assign-and-filter&match="+games[i]['RIOT_matchID']+"&tournament="+tournamentID,true);
 				sort_request.send();
+				await new Promise(r => setTimeout(r, 100));
 			}
 
 			if (games.length === 0) {
