@@ -49,8 +49,7 @@ echo create_html_head_elements(title: "{$team["name"]} | Uniliga LoL - Übersich
 <body class="team <?php echo "$lightmode $admin_btns"?>">
 <?php
 
-$pass_wrong = $pass ? "" : "Falsches Passwort";
-echo create_header(dbcn: $dbcn, title: "team", open_login: !$pass, loginforminfo: $pass_wrong);
+echo create_header(dbcn: $dbcn, title: "team");
 
 ?>
 </body>

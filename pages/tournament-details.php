@@ -1,8 +1,11 @@
-<!DOCTYPE html>
-<html lang="de">
 <?php
 include_once __DIR__."/../setup/data.php";
 include_once __DIR__."/../functions/fe-functions.php";
+check_login();
+?>
+<!DOCTYPE html>
+<html lang="de">
+<?php
 
 $lightmode = is_light_mode(true);
 $logged_in = is_logged_in();

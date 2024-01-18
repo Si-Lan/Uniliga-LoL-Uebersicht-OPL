@@ -73,8 +73,7 @@ if ($league["format"] === "Swiss") {
 	$group_title = "Gruppe {$group['number']}";
 }
 
-$pass_wrong = $pass ? "" : "Falsches Passwort";
-echo create_header(dbcn: $dbcn, title: "tournament", tournament_id: $tournamentID, open_login: !$pass, loginforminfo: $pass_wrong);
+echo create_header(dbcn: $dbcn, title: "tournament", tournament_id: $tournamentID);
 
 echo create_tournament_nav_buttons($tournamentID, $dbcn,"group",$league['OPL_ID'],$groupID);
 

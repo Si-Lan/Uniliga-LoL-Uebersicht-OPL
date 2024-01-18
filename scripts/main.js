@@ -1,5 +1,5 @@
 $(document).ready(() => {
-	$(".settings-option.login").on("click", () => {event.preventDefault(); document.getElementById("login-dialog").showModal();});
+	$(".settings-option.login").on("click", () => {event.preventDefault(); document.getElementById("login-dialog").showModal(); document.getElementById("keypass").focus();});
 	$('dialog.dismissable-popup').on('click', function (event) {
 		if (event.target === this) {
 			this.close();

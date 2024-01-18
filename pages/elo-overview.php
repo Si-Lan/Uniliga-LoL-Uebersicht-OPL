@@ -49,8 +49,7 @@ echo create_html_head_elements(css: ["elo"], title: "Elo-Übersicht - $t_name_cl
 <body class="elo-overview <?php echo $lightmode?>">
 <?php
 
-$pass_wrong = $pass ? "" : "Falsches Passwort";
-echo create_header($dbcn, title: "tournament", tournament_id: $tournamentID, open_login: !$pass, loginforminfo: $pass_wrong);
+echo create_header($dbcn, title: "tournament", tournament_id: $tournamentID);
 
 echo create_tournament_nav_buttons(tournament_id: $tournament_url_path, active: "elo");
 

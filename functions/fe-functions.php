@@ -76,12 +76,19 @@ function check_login():bool {
 	return true;
 }
 
-function create_header(mysqli $dbcn = NULL, string $title = "home", string|int $tournament_id = NULL, bool $home_button = TRUE, bool $open_login = FALSE, string $loginforminfo = "", bool $search_button = TRUE):string {
+function create_header(mysqli $dbcn = NULL, string $title = "home", string|int $tournament_id = NULL, bool $home_button = TRUE, bool $search_button = TRUE, bool $open_login = FALSE):string {
+	include_once __DIR__."/../setup/data.php";
+	$loginforminfo = "";
+	$password = get_admin_pass();
+	if (isset($_GET["login"]) && isset($_POST["keypass"]) && $_POST["keypass"] != $password) {
+		$open_login = true;
+		$loginforminfo = "Falsches Passwort";
+	}
+
 	$loginopen = $open_login ? "modalopen_auto" : "";
 
 	$result = "";
 
-	if (file_exists(__DIR__."/../setup/maintenance.enable")) $result .= "<div style='text-align: center; padding: 5px 0; background-color: #7e1616'>Achtung: Wartungsmodus ist aktiviert!</div>";
 
 	$pageurl = $_SERVER['REQUEST_URI'];
 
@@ -94,6 +101,8 @@ function create_header(mysqli $dbcn = NULL, string $title = "home", string|int $
 
 	$loggedin = is_logged_in();
 	$colormode = is_light_mode() ? "light" : "dark";
+
+	if (file_exists(__DIR__."/../setup/maintenance.enable") && $loggedin) $result .= "<div style='text-align: center; padding: 5px 0; background-color: #7e1616'>Achtung: Wartungsmodus ist aktiviert!</div>";
 
 	$result .= "<header class='$title'>";
 	if ($home_button) {

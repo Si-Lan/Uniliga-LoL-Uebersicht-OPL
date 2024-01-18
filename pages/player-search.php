@@ -27,8 +27,7 @@ echo create_html_head_elements(title: "Spielersuche | Uniliga LoL - Übersicht",
 <body class="players <?php echo "$lightmode $admin_btns"?>">
 <?php
 
-$pass_wrong = $pass ? "" : "Falsches Passwort";
-echo create_header(dbcn: $dbcn, title: "players", open_login: !$pass, loginforminfo: $pass_wrong);
+echo create_header(dbcn: $dbcn, title: "players");
 
 echo "<div class='main-content'>";
 echo "<div><h2>Spielersuche</h2>Suche nach Spielernamen oder RiotID</div>";

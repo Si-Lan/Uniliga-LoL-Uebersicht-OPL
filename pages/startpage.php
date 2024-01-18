@@ -25,8 +25,7 @@ echo create_html_head_elements();
 <body class="home <?php echo $lightmode?>">
 <?php
 
-$pass_wrong = $pass ? "" : "Falsches Passwort";
-echo create_header($dbcn, home_button: FALSE, open_login: !$pass, loginforminfo: $pass_wrong);
+echo create_header($dbcn, home_button: FALSE);
 
 ?>
 <div class="home-content">

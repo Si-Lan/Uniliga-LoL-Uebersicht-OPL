@@ -1,11 +1,15 @@
-<!DOCTYPE html>
-<html lang="de">
 <?php
 $root = __DIR__."/../../";
 include_once $root."functions/fe-functions.php";
 include_once $root."functions/helper.php";
 include_once $root."setup/data.php";
 include_once $root."admin/functions/fe-functions.php";
+
+$pass = check_login();
+?>
+<!DOCTYPE html>
+<html lang="de">
+<?php
 
 $dbcn = create_dbcn();
 $loggedin = is_logged_in();

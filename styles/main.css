@@ -158,6 +158,7 @@ header {
 	box-sizing: border-box;
 	border-bottom: var(--header-border) solid 1px;
 	margin-bottom: 20px;
+	position: relative;
 }
 body.home header {
 	grid-template-columns: 70px 10fr 80px;
