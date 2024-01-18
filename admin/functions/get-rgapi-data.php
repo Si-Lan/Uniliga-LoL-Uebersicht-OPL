@@ -466,7 +466,7 @@ function get_Rank_by_SummonerId($playerID) {
 		$current_year = intval(date("y"));
 		$seasonal_rank = $dbcn->execute_query("SELECT * FROM players_season_rank WHERE OPL_ID_player = ? AND season = ?", [$playerID, $current_year])->fetch_assoc();
 		if ($seasonal_rank != null) {
-			$dbcn->execute_query("UPDATE players_season_rank SET rank_tier = ?, rank_div = ?, rank_LP = ? WHERE OPL_ID_player = ?", [$tier,$div,$league_points,$playerID]);
+			$dbcn->execute_query("UPDATE players_season_rank SET rank_tier = ?, rank_div = ?, rank_LP = ? WHERE OPL_ID_player = ? AND season = ?", [$tier,$div,$league_points,$playerID,$current_year]);
 		} else {
 			$dbcn->execute_query("INSERT INTO players_season_rank (OPL_ID_player, season, rank_tier, rank_div, rank_LP) VALUES (?,?,?,?,?)", [$playerID,$current_year,$tier,$div,$league_points]);
 		}
