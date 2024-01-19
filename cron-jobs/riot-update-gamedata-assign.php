@@ -35,7 +35,7 @@ foreach ($games as $gindex=>$game) {
 	$notsorted += $resultA["notsorted"];
 }
 
-file_put_contents("cron_logs/cron_log_$day.log","\nGamedata for $gamedata_gotten Games written\n$notinT Games not from Tournament\n$inT Games from the Tournament\n$sorted Games matched with Tournament-Games\n$notsorted Games found no match\n"."----- Gamedata for Games without Data done -----\n", FILE_APPEND);
+file_put_contents("cron_logs/cron_log_$day.log","Gamedata for $gamedata_gotten Games written\n$notinT Games not from Tournament\n$inT Games from the Tournament\n$sorted Games matched with Tournament-Games\n$notsorted Games found no match\n"."----- Gamedata for Games without Data done -----\n", FILE_APPEND);
 
 echo "-------- Gamedata for $gamedata_gotten Games written\n";
 echo "-------- $notinT Games not from Tournament\n";

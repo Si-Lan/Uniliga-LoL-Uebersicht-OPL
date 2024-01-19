@@ -29,8 +29,8 @@ foreach ($players as $pindex=>$player) {
 	$result = get_Rank_by_SummonerId($player['OPL_ID']);
 	$players_updated += $result["writes"];
 }
+file_put_contents("cron_logs/cron_log_$day.log","$players_updated Ranks for Players updated\n"."----- Ranks done -----\n", FILE_APPEND);
 echo "-------- ".$players_updated." Ranks for Players updated\n";
-file_put_contents("cron_logs/cron_log_$day.log","\n$players_updated Ranks for Players updated\n"."----- Ranks done -----\n", FILE_APPEND);
 
 echo "\n---- avg Ranks for Teams \n";
 file_put_contents("cron_logs/cron_log_$day.log","\n----- Teamranks starting -----\n".date("d.m.y H:i:s")." : Teamranks for $tournament_id\n", FILE_APPEND);
@@ -42,4 +42,4 @@ foreach ($teams as $tindex=>$team) {
 	$teams_updated += $result['writes'];
 }
 echo "-------- ".$teams_updated." avg Ranks for Teams updated\n";
-file_put_contents("cron_logs/cron_log_$day.log","\n$teams_updated Ranks for Teams updated\n"."----- Teamranks done -----\n", FILE_APPEND);
+file_put_contents("cron_logs/cron_log_$day.log","$teams_updated Ranks for Teams updated\n"."----- Teamranks done -----\n", FILE_APPEND);

@@ -30,4 +30,4 @@ foreach ($teams as $tindex=>$team) {
 echo "-------- written Stats for {$teamstats_gotten["writes"]} Teams\n";
 echo "-------- updated Stats for {$teamstats_gotten["updates"]} Teams\n";
 echo "-------- no Games played for {$teamstats_gotten["not"]} Teams\n";
-file_put_contents("cron_logs/cron_log_$day.log","\nwritten Stats for {$teamstats_gotten["writes"]} Teams\nupdated Stats for {$teamstats_gotten["updates"]} Teams\nno Games played for {$teamstats_gotten["not"]} Teams\n"."----- calculating Teamstats done -----\n", FILE_APPEND);
+file_put_contents("cron_logs/cron_log_$day.log","written Stats for {$teamstats_gotten["writes"]} Teams\nupdated Stats for {$teamstats_gotten["updates"]} Teams\nno Games played for {$teamstats_gotten["not"]} Teams\n"."----- calculating Teamstats done -----\n", FILE_APPEND);

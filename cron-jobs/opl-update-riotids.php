@@ -80,7 +80,7 @@ foreach ($results as $result) {
 	if ($result["updated"]) $updates++;
 }
 
-file_put_contents("cron_logs/cron_log_$day.log","\n$updates RiotIDs updated\n"."----- RiotIDs done -----\n", FILE_APPEND);
+file_put_contents("cron_logs/cron_log_$day.log","$updates RiotIDs updated\n"."----- RiotIDs done -----\n", FILE_APPEND);
 
 echo "-------- $updates RiotIDs updated\n";
 $dbcn->close();

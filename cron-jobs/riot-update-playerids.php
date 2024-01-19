@@ -37,7 +37,7 @@ foreach ($teams as $tindex=>$team) {
 	$ids_written["4"] += $results["404"];
 }
 
-file_put_contents("cron_logs/cron_log_$day.log","\n{$ids_written["p"]} PUUIDS written\n{$ids_written["s"]} SummonerIDs written\n{$ids_written["4"]} Summoners not found\n"."----- PUUIDs and SummonerIDs done -----\n", FILE_APPEND);
+file_put_contents("cron_logs/cron_log_$day.log","{$ids_written["p"]} PUUIDS written\n{$ids_written["s"]} SummonerIDs written\n{$ids_written["4"]} Summoners not found\n"."----- PUUIDs and SummonerIDs done -----\n", FILE_APPEND);
 
 echo "-------- {$ids_written["p"]} PUUIDS written\n";
 echo "-------- {$ids_written["s"]} SummonerIDs written\n";

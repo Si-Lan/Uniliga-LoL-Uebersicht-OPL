@@ -42,7 +42,7 @@ foreach ($results as $result) {
 	if (count($result["updated"])) $updates++;
 }
 
-file_put_contents("cron_logs/cron_log_$day.log","\n$writes Players written\n$updates Players updated\n"."----- Players done -----\n", FILE_APPEND);
+file_put_contents("cron_logs/cron_log_$day.log","$writes Players written\n$updates Players updated\n"."----- Players done -----\n", FILE_APPEND);
 
 echo "-------- $writes Players written\n";
 echo "-------- $updates Players updated\n";

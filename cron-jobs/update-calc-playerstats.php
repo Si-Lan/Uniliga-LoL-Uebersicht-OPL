@@ -26,4 +26,4 @@ foreach ($teams as $tindex=>$team) {
 	$players_updated += $result['writes'];
 }
 echo "-------- Stats for ".$players_updated." Players updated\n";
-file_put_contents("cron_logs/cron_log_$day.log","\nStats for $players_updated Players updated\n"."----- calculating Playerstats done -----\n", FILE_APPEND);
+file_put_contents("cron_logs/cron_log_$day.log","Stats for $players_updated Players updated\n"."----- calculating Playerstats done -----\n", FILE_APPEND);

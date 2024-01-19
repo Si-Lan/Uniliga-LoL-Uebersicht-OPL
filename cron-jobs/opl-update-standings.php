@@ -36,7 +36,7 @@ foreach ($results as $result) {
 	if (count($result) > 0) $updates++;
 }
 
-file_put_contents("cron_logs/cron_log_$day.log","\n$updates Standings updated\n"."----- Standings done -----\n", FILE_APPEND);
+file_put_contents("cron_logs/cron_log_$day.log","$updates Standings updated\n"."----- Standings done -----\n", FILE_APPEND);
 
 echo "-------- $updates Standings updated\n";
 $dbcn->close();

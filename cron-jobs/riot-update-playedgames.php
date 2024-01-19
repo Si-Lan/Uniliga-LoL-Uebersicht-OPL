@@ -31,7 +31,7 @@ foreach ($players as $pindex=>$player) {
 	$games_gotten["already"] += $results["already"];
 }
 
-file_put_contents("cron_logs/cron_log_$day.log","\n{$games_gotten["new"]} new Games written\n{$games_gotten["already"]} found Games already in Database\n"."----- played Custom-Games done -----\n", FILE_APPEND);
+file_put_contents("cron_logs/cron_log_$day.log","{$games_gotten["new"]} new Games written\n{$games_gotten["already"]} found Games already in Database\n"."----- played Custom-Games done -----\n", FILE_APPEND);
 
 echo "-------- {$games_gotten["new"]} new Games written\n";
 echo "-------- {$games_gotten["already"]} found Games already in Database\n";

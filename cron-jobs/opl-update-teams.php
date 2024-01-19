@@ -44,7 +44,7 @@ foreach ($results as $result) {
 	if ($result["logo_downloaded"]) $dl++;
 }
 
-file_put_contents("cron_logs/cron_log_$day.log","\n$writes Teams written\n$updates Teams updated\n$dl Team-Logos downloaded\n"."----- Teams done -----\n", FILE_APPEND);
+file_put_contents("cron_logs/cron_log_$day.log","$writes Teams written\n$updates Teams updated\n$dl Team-Logos downloaded\n"."----- Teams done -----\n", FILE_APPEND);
 
 echo "-------- $writes Teams written\n";
 echo "-------- $updates Teams updated\n";
