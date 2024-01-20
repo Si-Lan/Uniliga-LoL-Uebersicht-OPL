@@ -456,7 +456,7 @@ function get_players_for_team($teamID, $tournamentID):array {
 														    eventType='tournament'
 														        AND OPL_ID = ?
 														       )",
-		[$tournamentID, $tournamentID, $tournamentID, $tournamentID])->fetch_all(MYSQLI_ASSOC);
+		[$tournamentID, $tournamentID, $tournamentID, $tournamentID])->fetch_assoc();
 	$parent_tournamentID = $parent_tournament["OPL_ID"];
 	$tournament_end = strtotime($parent_tournament["dateEnd"]);
 
