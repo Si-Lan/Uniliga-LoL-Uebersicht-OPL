@@ -38,6 +38,13 @@ function create_html_head_elements(array $css = [], array $js = [], string $titl
 	// title
 	$result .= "<title>$title</title>";
 
+	// meta tags
+	$page_title_trimmed = preg_replace("#\s\| Uniliga LoL - Übersicht$#","", $title);
+	$result .= "<meta property='og:site_name' content='Silence.lol | Uniliga LoL Übersicht'>";
+	$result .= "<meta property='og:title' content='$page_title_trimmed'>";
+	$result .= "<meta property='og:description' content='Turnierübersicht, Matchhistory und Statistiken zu Teams und Spielern für die League of Legends Uniliga'>";
+	$result .= "<meta property='og:image' content='https://silence.lol/storage/img/silence_s_logo_bg_250.png'>";
+
 	if ($head_wrap) {
 		$result .= "</head>";
 	}
