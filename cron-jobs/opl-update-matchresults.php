@@ -1,5 +1,4 @@
 <?php
-set_time_limit(600);
 $day = date("d_m_y");
 ini_set("log_errors", 1);
 ini_set("error_log", "cron_logs/cron_errors/opl_matchresults_$day.log");

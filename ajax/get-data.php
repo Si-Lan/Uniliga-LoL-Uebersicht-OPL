@@ -83,7 +83,7 @@ if ($type == "teams") {
 
 if ($type == "players") {
 	$players = [];
-	$tournamentID = $_SERVER["HTTP_TOURNAMENTID"] ?? NULL;
+	$tournamentID = $_SERVER["HTTP_TOURNAMENTID"] ?? $_GET["tournamentid"] ?? NULL;
 	$teamID = $_SERVER["HTTP_TEAMID"] ?? NULL;
 
 	if ($tournamentID != NULL) {
@@ -140,9 +140,17 @@ if ($type == "players") {
 		foreach ($players as $player) {
 			$summoners[] = $player["summonerName"];
 		}
-		echo json_encode($summoners);
+		$result = $summoners;
 	} else {
-		echo json_encode($players);
+		$result = $players;
+	}
+
+	$uniq_result = array_values(array_unique($result, SORT_REGULAR));
+
+	if (isset($_SERVER["HTTP_AMOUNT"]) || isset($_GET["amount"])) {
+		echo count($uniq_result);
+	} else {
+		echo json_encode($result);
 	}
 }
 
