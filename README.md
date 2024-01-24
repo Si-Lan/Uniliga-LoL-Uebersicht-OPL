@@ -43,7 +43,7 @@ Wenn ihr mich unterstützen wollt, könnt ihr das gerne hier tun
 
 ### Datenbank:
 *MariaDB*-Datenbank:  
-[SQL-File mit Datenbank-Struktur](https://silence.lol/storage/uniliga_opl.sql.zip)
+[SQL-File mit Datenbank-Struktur](https://silence.lol/storage/uniliga_opl_2023_01_23.sql.zip)
 
 
 ## Wartungsaufwand:
@@ -53,7 +53,10 @@ Wenn ihr mich unterstützen wollt, könnt ihr das gerne hier tun
    * Buttons im Backend (uniliga/admin)
 2. Möglichkeit: Automatisch
    * Cron-Jobs einrichten
-      * *Dokumentation dazu folgt*
+      * In **cron-jobs/.htaccess** kann Passwortschutz aktiviert werden, um Zugriff einzuschränken
+      * Aufgrund von Beschränkungen in der Aufrufzahl der APIs von OPL und Riot dauert das Aktualisieren eines gesamten Turniers lange. (ca. >1h für ein aktives Turnier) Deswegen kann das Update nicht durch ein einziges PHP-Script durchgeführt werden, sondern muss aufgeteilt werden. Folgendes Shell Script ruft die nötigen PHP-Scripts auf: [cron-update-script](https://silence.lol/storage/update.sh)
+        * Einfach URLs durch eigene ersetzen.
+      * Dieses Script wird auf meiner Seite alle paar Tage nachts ausgeführt und dauert etwa über 1 Stunde
 
 ### bei neuen LoL-Patches:
 * Riots DataDragon Dateien updaten:
