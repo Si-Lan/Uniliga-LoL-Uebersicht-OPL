@@ -42,7 +42,7 @@ if ($tournament == NULL) {
 	exit();
 }
 
-$t_name_clean = preg_replace("/LoL/","",$tournament["name"]);
+$t_name_clean = preg_replace("/LoL\s/","",$tournament["name"]);
 echo create_html_head_elements(js: ["rgapi"], title: "$t_name_clean | Uniliga LoL - Übersicht", loggedin: $logged_in);
 
 ?>

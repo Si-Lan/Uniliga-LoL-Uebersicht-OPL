@@ -74,7 +74,7 @@ foreach ($teams_from_groupDB as $i=>$team_from_group) {
 	$teams_from_group[$team_from_group['OPL_ID']] = $team_from_group;
 }
 
-$t_name_clean = preg_replace("/LoL/","",$tournament["name"]);
+$t_name_clean = preg_replace("/LoL\s/","",$tournament["name"]);
 echo create_html_head_elements(css: ["game"], title: "{$team["name"]} - Matchhistory | $t_name_clean", loggedin: $logged_in);
 
 

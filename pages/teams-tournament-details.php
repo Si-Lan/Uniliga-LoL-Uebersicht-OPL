@@ -78,7 +78,7 @@ $group = $dbcn->execute_query("SELECT * FROM tournaments WHERE eventType='group'
 $league = $dbcn->execute_query("SELECT * FROM tournaments WHERE eventType='league' AND OPL_ID = ?", [$group["OPL_ID_parent"]])->fetch_assoc();
 $playoff = $dbcn->execute_query("SELECT * FROM tournaments WHERE eventType='playoffs' AND OPL_ID = ?", [$playoff_ID])->fetch_assoc();
 
-$t_name_clean = preg_replace("/LoL/","",$tournament["name"]);
+$t_name_clean = preg_replace("/LoL\s/","",$tournament["name"]);
 echo create_html_head_elements(css: ["game"], js: ["rgapi"], title: "{$team["name"]} | $t_name_clean", loggedin: $logged_in);
 
 $open_popup = "";

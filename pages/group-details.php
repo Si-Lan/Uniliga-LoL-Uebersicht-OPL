@@ -42,7 +42,7 @@ if ($tournament == NULL || $group == NULL) {
 
 $league = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID = ? AND eventType = 'league'", [$group["OPL_ID_parent"]])->fetch_assoc();
 
-$t_name_clean = preg_replace("/LoL/","",$tournament["name"]);
+$t_name_clean = preg_replace("/LoL\s/","",$tournament["name"]);
 echo create_html_head_elements(css: ["game"], title: "Liga {$league["number"]} - Gruppe {$group["number"]} | $t_name_clean | Uniliga LoL - Übersicht");
 
 $open_popup = "";
