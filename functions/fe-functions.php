@@ -905,14 +905,16 @@ function create_game(mysqli $dbcn,$gameID,$curr_team=NULL,$tournamentID=null):st
 			$riotIdName = "";
 			$riotIdTag = "";
 
-			if (array_key_exists("riotIdName", $player) && $player["riotIdName"] != "") {
-				$riotIdName = $player["riotIdName"];
+			if (array_key_exists("riotIdGameName", $player) && $player["riotIdGameName"] != "") {
+				$riotIdName = $player["riotIdGameName"];
 				$riotIdTag = $player["riotIdTagline"];
 			} else {
 				$player_DB = $dbcn->execute_query("SELECT * FROM players WHERE PUUID = ?", [$player["puuid"]])->fetch_assoc();
 				if ($player_DB != NULL) {
 					$riotIdName = $player_DB['riotID_name'];
 					$riotIdTag = $player_DB['riotID_tag'];
+				} else {
+					$riotIdName = $player["summonerName"];
 				}
 			}
 
