@@ -468,7 +468,7 @@ function create_standings(mysqli $dbcn, $tournament_id, $group_id, $team_id=NULL
 	return $result;
 }
 
-function create_matchbutton(mysqli $dbcn,$match_id,$type,$team_id=NULL):string {
+function create_matchbutton(mysqli $dbcn,$match_id,$type,$team_id=NULL,$tournament_id=NULL):string {
 	$result = "";
 	$pageurl = $_SERVER['REQUEST_URI'];
 	$opl_match_url = "https://www.opleague.pro/match/";
@@ -533,12 +533,10 @@ function create_matchbutton(mysqli $dbcn,$match_id,$type,$team_id=NULL):string {
 			$state1 = "draw";
 			$state2 = "draw";
 		}
-		$result .= "<div class='match-button-wrapper' data-matchid='$match_id' data-matchtype='$type'>";
-		if ($team_id != NULL) {
-			$result .= "<a class='button match sideext-right' href='$pageurl' onclick='popup_match(\"{$match['OPL_ID']}\",\"{$team_id}\",\"$type\")'>";
-		} else {
-			$result .= "<a class='button match sideext-right' href='$pageurl' onclick='popup_match(\"{$match['OPL_ID']}\",null,\"$type\")'>";
-		}
+		$result .= "<div class='match-button-wrapper' data-matchid='$match_id' data-matchtype='$type' data-tournamentid='$tournament_id'>";
+		$team_id_pass = ($team_id != null) ? "\"$team_id\"" : "null";
+		$tournament_id_pass = ($tournament_id != null) ? "\"$tournament_id\"" : "null";
+		$result .= "<a class='button match sideext-right' href='$pageurl' onclick='popup_match(\"{$match['OPL_ID']}\",$team_id_pass,\"$type\",$tournament_id_pass)'>";
 		$result .= "<div class='teams score'>
 				<div class='team 1 $state1$current1'><div class='name'>$team1Name</div><div class='score'>{$t1score}</div></div>
 				<div class='team 2 $state2$current2'><div class='name'>$team2Name</div><div class='score'>{$t2score}</div></div>
@@ -626,16 +624,27 @@ function create_game(mysqli $dbcn,$gameID,$curr_team=NULL,$tournamentID=null):st
 	$team_red_ID = $gameDB['OPL_ID_redTeam'];
 	$team_blue = $dbcn->execute_query("SELECT * FROM teams WHERE OPL_ID = ?",[$team_blue_ID])->fetch_assoc();
 	$team_red = $dbcn->execute_query("SELECT * FROM teams WHERE OPL_ID = ?",[$team_red_ID])->fetch_assoc();
-	$players_blue_DB = $dbcn->execute_query("SELECT summonerName, psr.rank_tier, psr.rank_div, PUUID
+	if ($tournamentID == null) {
+		$players_blue_DB = $dbcn->execute_query("SELECT PUUID, riotID_name, riotID_tag, rank_tier, rank_div
+														FROM players
+														    JOIN players_in_teams_in_tournament pit on players.OPL_ID = pit.OPL_ID_player
+														WHERE OPL_ID_team = ?",[$team_blue['OPL_ID']])->fetch_all(MYSQLI_ASSOC);
+		$players_red_DB = $dbcn->execute_query("SELECT PUUID, riotID_name, riotID_tag, rank_tier, rank_div
+														FROM players
+														    JOIN players_in_teams_in_tournament pit on players.OPL_ID = pit.OPL_ID_player
+														WHERE OPL_ID_team = ?",[$team_blue['OPL_ID']])->fetch_all(MYSQLI_ASSOC);
+	} else {
+		$players_blue_DB = $dbcn->execute_query("SELECT PUUID, riotID_name, riotID_tag, psr.rank_tier, psr.rank_div
 														FROM players
 														    JOIN players_in_teams_in_tournament pit on players.OPL_ID = pit.OPL_ID_player
 															LEFT JOIN players_season_rank psr on psr.OPL_ID_player = players.OPL_ID AND psr.season = (SELECT tournaments.season FROM tournaments WHERE tournaments.OPL_ID = ?)
 														WHERE OPL_ID_team = ?",[$tournamentID,$team_blue['OPL_ID']])->fetch_all(MYSQLI_ASSOC);
-	$players_red_DB = $dbcn->execute_query("SELECT summonerName, psr.rank_tier, psr.rank_div, PUUID
+		$players_red_DB = $dbcn->execute_query("SELECT PUUID, riotID_name, riotID_tag, psr.rank_tier, psr.rank_div
 														FROM players
 														    JOIN players_in_teams_in_tournament pit on players.OPL_ID = pit.OPL_ID_player
 															LEFT JOIN players_season_rank psr on psr.OPL_ID_player = players.OPL_ID AND psr.season = (SELECT tournaments.season FROM tournaments WHERE tournaments.OPL_ID = ?)
 														WHERE OPL_ID_team = ?",[$tournamentID,$team_red['OPL_ID']])->fetch_all(MYSQLI_ASSOC);
+	}
 
 	$tournamentID = $gameDB["OPL_ID_tournament"];
 
@@ -657,21 +666,7 @@ function create_game(mysqli $dbcn,$gameID,$curr_team=NULL,$tournamentID=null):st
 		$blue_curr = "";
 		$red_curr = "";
 	}
-	/*
-	if ($gameDB['winningTeam'] == $team_blue_ID) {
-		$score_blue = "Victory";
-		$score_red = "Defeat";
-		$score_blue_class = " win";
-		$score_red_class = " loss";
-	} else {
-		$score_blue = "Defeat";
-		$score_red = "Victory";
-		$score_blue_class = " loss";
-		$score_red_class = " win";
-	}
-	*/
 
-	//$obj_icon_url = "https://raw.communitydragon.org/12.1/plugins/rcp-fe-lol-match-history/global/default/";
 	$obj_icon_url = "ddragon/img/";
 	$kills_icon = $obj_icon_url."kills.png";
 	$obj_icons = $obj_icon_url."right_icons.png";
@@ -783,7 +778,6 @@ function create_game(mysqli $dbcn,$gameID,$curr_team=NULL,$tournamentID=null):st
 	$dd_img = "ddragon/$patch/img";
 	$dd_data = dirname(__FILE__)."/../ddragon/$patch/data";
 
-	//$champion_dd = file_get_contents("https://ddragon.leagueoflegends.com/cdn/$patch/data/en_US/champion.json");
 	$champion_dd = file_get_contents("$dd_data/champion.json");
 	$champion_dd = json_decode($champion_dd,true);
 	$champion_data = $champion_dd['data'];
@@ -792,7 +786,6 @@ function create_game(mysqli $dbcn,$gameID,$curr_team=NULL,$tournamentID=null):st
 		$champions_by_key[$champ['key']] = $champ['id'];
 	}
 
-	//$runes_dd = json_decode(file_get_contents("https://ddragon.leagueoflegends.com/cdn/$patch/data/en_US/runesReforged.json"),true);
 	$runes_dd = json_decode(file_get_contents("$dd_data/runesReforged.json"),true);
 	$runes = [];
 	for ($r = 0; $r < count($runes_dd); $r++) {
@@ -805,9 +798,6 @@ function create_game(mysqli $dbcn,$gameID,$curr_team=NULL,$tournamentID=null):st
 		$runes[$runes_dd[$r]["id"]]["slots"][0]["runes"] = $keystones_new;
 	}
 
-	//$summs_cd = json_decode(file_get_contents("https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/summoner-spells.json"),true);
-
-	//$summs_dd = json_decode(file_get_contents("https://ddragon.leagueoflegends.com/cdn/$patch/data/en_US/summoner.json"),true);
 	$summs_dd = json_decode(file_get_contents("$dd_data/summoner.json"),true);
 	$summs = array_column($summs_dd['data'],"id","key");
 
@@ -909,10 +899,9 @@ function create_game(mysqli $dbcn,$gameID,$curr_team=NULL,$tournamentID=null):st
 				$riotIdName = $player["riotIdGameName"];
 				$riotIdTag = $player["riotIdTagline"];
 			} else {
-				$player_DB = $dbcn->execute_query("SELECT * FROM players WHERE PUUID = ?", [$player["puuid"]])->fetch_assoc();
-				if ($player_DB != NULL) {
-					$riotIdName = $player_DB['riotID_name'];
-					$riotIdTag = $player_DB['riotID_tag'];
+				if (array_key_exists($player["puuid"], $players_PUUID)) {
+					$riotIdName = $players_PUUID[$player["puuid"]]['riotID_name'];
+					$riotIdTag = $players_PUUID[$player["puuid"]]['riotID_tag'];
 				} else {
 					$riotIdName = $player["summonerName"];
 				}

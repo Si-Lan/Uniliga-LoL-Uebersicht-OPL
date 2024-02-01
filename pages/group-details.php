@@ -161,7 +161,7 @@ if ($curr_matchID != NULL) {
 	foreach ($curr_games as $game_i=>$curr_game) {
 		echo "<div class='game game$game_i'>";
 		$gameID = $curr_game['RIOT_matchID'];
-		echo create_game($dbcn,$gameID);
+		echo create_game($dbcn,$gameID,tournamentID: $tournamentID);
 		echo "</div>";
 	}
 	echo "
@@ -179,7 +179,7 @@ foreach ($matches_grouped as $roundNum=>$round) {
                     <div class='divider'></div>
                     <div class='match-wrapper'>";
 	foreach ($round as $match) {
-		echo create_matchbutton($dbcn,$match['OPL_ID'],"groups");
+		echo create_matchbutton($dbcn,$match['OPL_ID'],"groups",tournament_id: $tournamentID);
 	}
 	echo "</div>";
 	echo "</div>"; // match-round

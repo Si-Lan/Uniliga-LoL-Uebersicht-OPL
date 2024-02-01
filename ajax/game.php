@@ -9,6 +9,7 @@ if ($dbcn -> connect_error) exit("Database Connection failed");
 $gameID = $_SERVER['HTTP_GAMEID'] ?? $_GET['gameID'] ?? NULL;
 if ($gameID === NULL) exit("no game found");
 $teamID = $_SERVER['HTTP_TEAMID'] ?? $_GET['teamID'] ?? NULL;
-echo create_game($dbcn, $gameID, $teamID);
+$tournamentID = $_SERVER['HTTP_TOURNAMENTID'] ?? $_GET['tournamentID'] ?? NULL;
+echo create_game($dbcn, $gameID, $teamID, $tournamentID);
 
 $dbcn->close();

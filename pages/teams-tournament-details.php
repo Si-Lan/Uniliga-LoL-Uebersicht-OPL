@@ -237,7 +237,7 @@ if ($curr_matchID != NULL) {
 	foreach ($curr_games as $game_i=>$curr_game) {
 		echo "<div class='game game$game_i'>";
 		$gameID = $curr_game['RIOT_matchID'];
-		echo create_game($dbcn,$gameID,$teamID);
+		echo create_game($dbcn,$gameID,$teamID,$tournamentID);
 		echo "</div>";
 	}
 	echo "
@@ -252,13 +252,13 @@ if ($curr_matchID != NULL) {
 
 echo "<div class='match-content content'>";
 foreach ($matches as $match) {
-	echo create_matchbutton($dbcn,$match['OPL_ID'],"groups",$teamID);
+	echo create_matchbutton($dbcn,$match['OPL_ID'],"groups",$teamID,$tournamentID);
 }
 if ($matches_playoffs != null && count($matches_playoffs) > 0) {
     echo "<h4>Playoffs</h4>";
 }
 foreach ($matches_playoffs as $match) {
-	echo create_matchbutton($dbcn,$match['OPL_ID'],"playoffs",$teamID);
+	echo create_matchbutton($dbcn,$match['OPL_ID'],"playoffs",$teamID,$tournamentID);
 }
 echo "</div>";
 echo "</div>"; // matches

@@ -481,7 +481,7 @@ $(document).ready(function() {
 	let url = new URL(window.location.href);
 	current_match_in_popup = url.searchParams.get('match');
 });
-async function popup_match(matchID,teamID=null,matchtype="groups") {
+async function popup_match(matchID,teamID=null,matchtype="groups",tournamentID=null) {
 	event.preventDefault();
 	let popup = $('.mh-popup');
 	let popupbg = $('.mh-popup-bg');
@@ -527,7 +527,8 @@ async function popup_match(matchID,teamID=null,matchtype="groups") {
 
 			let buttonwrapper = `<div class='mh-popup-buttons'>`;
 			if (teamID != null) {
-				buttonwrapper += `<a class='button' href='team/${teamID}/matchhistory#${matchID}'> ${get_material_icon("manage_search")} in Matchhistory ansehen</a>`;
+				let tournament_url_part = (tournamentID != null) ? `turnier/${tournamentID}/` : "";
+				buttonwrapper += `<a class='button' href='${tournament_url_part}team/${teamID}/matchhistory#${matchID}'> ${get_material_icon("manage_search")} in Matchhistory ansehen</a>`;
 			}
 			let teamid_data = "";
 			if (teamID !== null) teamid_data = `data-team='${teamID}'`;
@@ -599,6 +600,9 @@ async function popup_match(matchID,teamID=null,matchtype="groups") {
 				});
 				if (teamID !== null) {
 					fetchheaders.append("teamid",teamID)
+				}
+				if (tournamentID !== null) {
+					fetchheaders.append("tournamentid",tournamentID)
 				}
 				fetch(`ajax/game.php`, {
 					method: "GET",
@@ -1600,6 +1604,7 @@ async function user_update_group(button) {
 	let matchbuttons = $("div.match-button-wrapper");
 	for (const matchbutton of matchbuttons) {
 		let match_ID = matchbutton.getAttribute("data-matchid");
+		let tournament_ID = matchbutton.getAttribute("data-tournamentid");
 		let matchtype = matchbutton.getAttribute("data-matchtype")
 
 		fetch(`ajax/create-page-elements.php`, {
@@ -1607,6 +1612,7 @@ async function user_update_group(button) {
 			headers: {
 				type: "matchbutton",
 				matchid: match_ID,
+				tournamentid: tournament_ID,
 				matchtype: matchtype,
 			}
 		})
@@ -1927,12 +1933,14 @@ async function user_update_team(button) {
 	let matchbuttons = $("div.match-button-wrapper");
 	for (const matchbutton of matchbuttons) {
 		let match_ID = matchbutton.getAttribute("data-matchid");
+		let tournament_ID = matchbutton.getAttribute("data-tournamentid");
 		let matchtype = matchbutton.getAttribute("data-matchtype");
 		fetch(`ajax/create-page-elements.php`, {
 			method: "GET",
 			headers: {
 				type: "matchbutton",
 				matchid: match_ID,
+				tournamentid: tournament_ID,
 				matchtype: matchtype,
 				teamid: team_ID,
 			}
