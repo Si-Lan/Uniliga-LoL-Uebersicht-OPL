@@ -44,7 +44,7 @@ function get_tournament($id):array {
 		$returnArr["info"] .= "<span style='color: orangered'>Keine Sommer/Winterseason gefunden <br></span>";
 	}
 
-	if (preg_match("/(?:winter|sommer) *([0-9]{2})/",$name_lower,$season_match)) {
+	if (preg_match("/(?:winter|sommer) *[0-9]*([0-9]{2})/",$name_lower,$season_match)) {
 		$season = $season_match[1];
 	}
 
