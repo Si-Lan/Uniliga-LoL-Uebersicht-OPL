@@ -14,10 +14,19 @@ body.light {
 	display: flex;
 	flex-direction: column;
 }
+.mh-popup .game-wrapper {
+	width: 100%;
+}
+@media screen and (max-width: 1160px) {
+	.game-wrapper {
+		overflow-x: auto;
+	}
+}
 .game-wrapper.collapsed .game-details {
 	display: none;
 }
 div.game-details {
+	align-self: center;
 	display: flex;
 	flex-direction: column;
 	border-color: #404040;
@@ -582,6 +591,7 @@ button.expand-game-details .material-symbol svg {
 	}
 	div.game-details {
 		margin: 0 10px;
+		align-self: auto;
 	}
 	.game-details-mini .team,
 	.game-details-mini .team span {

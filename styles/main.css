@@ -3413,7 +3413,6 @@ dialog .close-popup:hover {
 	}
 	div.round-wrapper {
 		align-items: normal!important;
-		overflow-x: auto;
 	}
 	div.game-details {
 		margin: 0 12px;
