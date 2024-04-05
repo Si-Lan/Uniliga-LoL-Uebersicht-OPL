@@ -616,7 +616,8 @@ function populate_th($maintext,$tooltiptext,$init=false) {
 	return "<span class='tooltip'>$maintext<span class='tooltiptext'>$tooltiptext</span><div class='material-symbol sort-direction'>".$svg_code."</div></span>";
 }
 
-function create_game(mysqli $dbcn,$gameID,$curr_team=NULL,$tournamentID=null):string {
+function create_game(mysqli $dbcn,$gameID,$curr_team=NULL,$tournamentID=null, $return="minimized"):string {
+	$result_minimized = "";
 	$result = "";
 	// TODO: tournamentID integrieren, falls ein game in mehreren turnieren eingetragen ist (aktuell wird einfach das erste geholt)
 	$gameDB = $dbcn->execute_query("SELECT * FROM games JOIN games_in_tournament git on games.RIOT_matchID = git.RIOT_matchID WHERE games.RIOT_matchID = ?",[$gameID])->fetch_assoc();
@@ -656,25 +657,7 @@ function create_game(mysqli $dbcn,$gameID,$curr_team=NULL,$tournamentID=null):st
 		$players_PUUID[$players_red_DB[$i]['PUUID']] = $players_red_DB[$i];
 	}
 
-	if ($curr_team == $team_blue_ID) {
-		$blue_curr = "current";
-		$red_curr = "";
-	} elseif ($curr_team == $team_red_ID) {
-		$blue_curr = "";
-		$red_curr = "current";
-	} else {
-		$blue_curr = "";
-		$red_curr = "";
-	}
-
-	$obj_icon_url = "ddragon/img/";
-	$kills_icon = $obj_icon_url."kills.png";
-	$obj_icons = $obj_icon_url."right_icons.png";
-	$gold_icons = $obj_icon_url."icon_gold.png";
-	$cs_icons = $obj_icon_url."icon_minions.png";
-
 	$data = json_decode($gameDB['matchdata'],true);
-	$participants_PUUIDs = $data['metadata']['participants'];
 	$info = $data['info'];
 	$participants = $info['participants'];
 	for ($team_index = 0; $team_index <= 1; $team_index++) {
@@ -694,16 +677,42 @@ function create_game(mysqli $dbcn,$gameID,$curr_team=NULL,$tournamentID=null):st
 
 
 	if ($info['teams'][0]['win']) {
+		$winning_team = $team_blue;
 		$score_blue = "Victory";
 		$score_red = "Defeat";
 		$score_blue_class = " win";
 		$score_red_class = " loss";
 	} else {
+		$winning_team = $team_red;
 		$score_blue = "Defeat";
 		$score_red = "Victory";
 		$score_blue_class = " loss";
 		$score_red_class = " win";
 	}
+
+	$score_current_class = "";
+	$blue_curr = "";
+	$red_curr = "";
+	$general_class = "";
+	if ($curr_team == $team_blue_ID) {
+		$score_current_class = ($info['teams'][0]['win']) ? "win" : "loss";
+		$blue_curr = "current";
+		$score_text = $score_blue;
+	} elseif ($curr_team == $team_red_ID) {
+		$score_current_class = ($info['teams'][1]['win']) ? "win" : "loss";
+		$red_curr = "current";
+		$score_text = $score_red;
+	} else {
+		$general_class = "general";
+		$score_text = $winning_team["name"];
+	}
+
+	$obj_icon_url = "ddragon/img/";
+	$kills_icon = $obj_icon_url."kills.png";
+	$obj_icons = $obj_icon_url."right_icons.png";
+	$gold_icons = $obj_icon_url."icon_gold.png";
+	$cs_icons = $obj_icon_url."icon_minions.png";
+
 
 
 	$towers_blue = $teams[0]['objectives']['tower']['kills'];
@@ -822,7 +831,62 @@ function create_game(mysqli $dbcn,$gameID,$curr_team=NULL,$tournamentID=null):st
 	}
 
 	$gamedate = date("d.m.y",$info["gameCreation"]/1000);
-	$log_link = "https://www.leagueofgraphs.com/match/euw/".explode("_",$gameID)[1];
+
+	$result_minimized .= "<div class='game-details-mini $general_class $score_current_class'>";
+	// gamedetails
+	$result_minimized .= "<div class='game-information'>
+							<span>$gamedate</span>
+							<div class='game-result-text'>";
+	//if ($curr_team != $team_blue_ID && $curr_team != $team_red_ID) $result_minimized .= "<div class='tooltip'><span class='winning-team'>{$winning_team["name"]}</span><span class='tooltiptext'>{$winning_team["name"]}</span></div>";
+	$result_minimized .= "<span class='game-result $score_current_class'>$score_text</span>
+</div>
+							<span>$game_duration_min:$game_duration_sec</span>
+						</div>";
+	// team blue
+	$result_minimized .= "<a class='team $score_blue_class $blue_curr' href='./turnier/$tournamentID/team/$team_blue_ID'>$logo_blue<span>{$team_blue["name"]}</span></a>";
+
+	// players
+	for ($t = 0; $t < 2; $t++) {
+		$result_minimized .= "<div class='players'>";
+		for ($p = 0; $p < 5; $p++) {
+			$result_minimized .= "<div class='player'>";
+			$player = $participants[$p+($t*5)];
+			$championId = $player['championName'];
+			$result_minimized .= "<img loading='lazy' alt='' title='{$player['championName']}' src='$dd_img/champion/{$championId}.webp' class='champ'>";
+
+			$riotIdName = "";
+			$riotIdTag = "";
+
+			if (array_key_exists("riotIdGameName", $player) && $player["riotIdGameName"] != "") {
+				$riotIdName = $player["riotIdGameName"];
+				$riotIdTag = $player["riotIdTagline"];
+			} else {
+				if (array_key_exists($player["puuid"], $players_PUUID)) {
+					$riotIdName = $players_PUUID[$player["puuid"]]['riotID_name'];
+					$riotIdTag = $players_PUUID[$player["puuid"]]['riotID_tag'];
+				} else {
+					$riotIdName = $player["summonerName"];
+				}
+			}
+			if ($riotIdTag != "") {
+				$result_minimized .= "<div class='tooltip'><span class='player-name'>$riotIdName</span><span class='tooltiptext riot-id'>$riotIdName#$riotIdTag</span></div>";
+			} else {
+				$result_minimized .= "<div>$riotIdName</div>";
+			}
+
+			$result_minimized .= "</div>";
+		}
+
+		$result_minimized .= "</div>";
+	}
+
+	//team red
+	$result_minimized .= "<a class='team $score_red_class $red_curr' href='./turnier/$tournamentID/team/$team_red_ID'>$logo_red<span>{$team_red["name"]}</span></a>";
+
+	// expand button
+	$result_minimized .= "<button class='expand-game-details'><div class='material-symbol'>".file_get_contents(dirname(__FILE__)."/../icons/material/expand_less.svg")."</div></button>";
+
+	$result_minimized .= "</div>";
 
 	$result .= "
     <div class='game-details'>
@@ -1022,7 +1086,8 @@ function create_game(mysqli $dbcn,$gameID,$curr_team=NULL,$tournamentID=null):st
     </div>
     ";
 
-	return $result;
+	if ($return == "details") return $result;
+	return "<div class='game-wrapper collapsed'>".$result_minimized.$result."</div>";
 }
 
 function show_old_url_warning($tournamentID):string {

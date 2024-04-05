@@ -369,7 +369,7 @@ header .header-search .searchbar {
 	pointer-events: none;
 	min-width: max-content;
 	font-weight: 400;
-	font-size: 1rem;
+	font-size: 1em;
 }
 .tooltip span.tooltiptext.interactable {
 	pointer-events: auto;
