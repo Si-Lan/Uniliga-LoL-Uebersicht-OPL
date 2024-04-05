@@ -621,6 +621,7 @@ async function popup_match(matchID,teamID=null,matchtype="groups",tournamentID=n
 								await new Promise(r => setTimeout(r, 210));
 								popup_loader.remove();
 							}
+							popup.find(`.game${i} button.expand-game-details`).on("click", expand_collapse_game);
 						}
 					})
 					.catch(error => console.error(error));
@@ -659,6 +660,13 @@ $(document).ready(function () {
 			}
 		})
 	}
+});
+
+function expand_collapse_game() {
+	$(this).parent().parent().toggleClass("collapsed");
+}
+$(document).ready(function () {
+	$('button.expand-game-details').on("click", expand_collapse_game);
 });
 
 // Elo Overview Swap Views
