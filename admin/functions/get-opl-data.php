@@ -197,22 +197,12 @@ function create_tournament_get_button(array $data, bool $in_write_popup = false)
 	$deactivated_check = ($data["deactivated"]) ? "" : "checked";
 	$finished_check = ($data["finished"]) ? "checked" : "";
 
-	$result .= "<label class=\"write_tournament_name\">Name:<input type=\"text\" value=\"{$data["name"]}\" readonly></label>
-					<label class=\"write_tournament_id\">ID:<input type=\"text\" value=\"{$data["OPL_ID"]}\" readonly></label>
-					<label class=\"write_tournament_parent\">Parent:<input type=\"text\" value=\"{$data["OPL_ID_parent"]}\"></label>
-					<label class=\"write_tournament_split\">
-						Split:<span class=\"slct\">
-							<select>
-								<option disabled hidden value=''>nicht erkannt</option>
-								<option $splitselect_winter value='winter'>Winter</option>
-								<option $splitselect_sommer value='sommer'>Sommer</option>
-							</select>
-							<span class='material-symbol'>".file_get_contents(__DIR__."/../../icons/material/arrow_drop_down.svg") ."</span>
-						</span>
-					</label>
-					<label class=\"write_tournament_season\">Season:<input type=\"number\" value=\"{$data["season"]}\"></label>
+	$result .= "
+				<div class='write_tournament_row wtrow-1'>
+					<label class=\"write_tournament_id\"><input type=\"text\" value=\"{$data["OPL_ID"]}\" readonly></label>
+					<label class=\"write_tournament_name\"><input type=\"text\" value=\"{$data["name"]}\" readonly></label>
 					<label class=\"write_tournament_type\">
-						Typ:<span class=\"slct\">
+						<span class=\"slct\">
 							<select>
 								<option value=''></option>
 								<option $typeselect_tournament value='tournament'>Turnier</option>
@@ -224,10 +214,30 @@ function create_tournament_get_button(array $data, bool $in_write_popup = false)
 							<span class='material-symbol'>".file_get_contents(__DIR__."/../../icons/material/arrow_drop_down.svg")."</span>
 						</span>
 					</label>
-					<label class=\"write_tournament_format\">
-						Format:<span class=\"slct\">
+					<label class=\"write_tournament_parent\">Parent:<input type=\"text\" value=\"{$data["OPL_ID_parent"]}\"></label>
+				</div>
+				<div class='write_tournament_row wtrow-2'>
+					<label class=\"write_tournament_split\">
+						<span class=\"slct\">
 							<select>
-								<option value=''></option>
+								<option disabled hidden value=''>nicht erkannt</option>
+								<option $splitselect_winter value='winter'>Winter</option>
+								<option $splitselect_sommer value='sommer'>Sommer</option>
+							</select>
+							<span class='material-symbol'>".file_get_contents(__DIR__."/../../icons/material/arrow_drop_down.svg") ."</span>
+						</span>
+					</label>
+					<label class=\"write_tournament_season\"><input type=\"number\" value=\"{$data["season"]}\" placeholder='##'></label>
+					<label class=\"write_tournament_number\">Nummer:<input type=\"text\" value=\"{$data["number"]}\" placeholder='#'></label>
+					<label class=\"write_tournament_number2\"><input type=\"text\" value=\"{$data["numberRangeTo"]}\" placeholder='#'></label>
+					<label class=\"write_tournament_startdate\">Zeitraum<input type=\"date\" value=\"{$dateStart}\"></label>
+					<label class=\"write_tournament_enddate\"><input type=\"date\" value=\"{$dateEnd}\"></label>
+				</div>
+				<div class='write_tournament_row wtrow-3'>
+					<label class=\"write_tournament_format\">
+						<span class=\"slct\">
+							<select>
+								<option value=''>Format wählen</option>
 								<option $formatselect_round_robin value='round-robin'>round-robin</option>
 								<option $formatselect_single_elim value='single-elimination'>single-elim</option>
 								<option $formatselect_double_elim value='double-elimination'>double-elim</option>
@@ -235,20 +245,20 @@ function create_tournament_get_button(array $data, bool $in_write_popup = false)
 							<span class='material-symbol'>".file_get_contents(__DIR__."/../../icons/material/arrow_drop_down.svg")."</span>
 						</span>
 					</label>
-					<label class=\"write_tournament_number\">Nummer:<input type=\"text\" value=\"{$data["number"]}\"></label>
-					<label class=\"write_tournament_number2\">Nummer2:<input type=\"text\" value=\"{$data["numberRangeTo"]}\"></label>
-					<label class=\"write_tournament_startdate\">Start:<input type=\"date\" value=\"{$dateStart}\"></label>
-					<label class=\"write_tournament_enddate\">End:<input type=\"date\" value=\"{$dateEnd}\"></label>
 					<label class=\"write_tournament_show\">Anzeigen:<input type=\"checkbox\" $deactivated_check></label>
 					<label class=\"write_tournament_finished\">Beendet:<input type=\"checkbox\" $finished_check></label>
-					<label class=\"write_tournament_logoid\">Logo-ID:<input type=\"number\" value=\"{$data["OPL_ID_logo"]}\" readonly></label>
-					<label class=\"write_tournament_logourl\">Logo-URL:<input type=\"text\" value=\"{$data["OPL_logo_url"]}\" readonly></label>";
+					<label class=\"write_tournament_logoid\">Logo:<input type=\"number\" value=\"{$data["OPL_ID_logo"]}\" readonly></label>
+					<label class=\"write_tournament_logourl\"><input type=\"text\" value=\"{$data["OPL_logo_url"]}\" readonly></label>
+				</div>";
 
 	$result .= "</div>";
+	$result .= "<div class='tournament-write-button-wrapper'>";
 	if ($in_write_popup) $result .= "<button class=\"write_tournament\" type=\"button\">Eintragen</button>";
 	if (!$in_write_popup) $result .= "<button class=\"update_tournament\" type=\"button\" data-id='$id_class'>Aktualisieren</button>";
 	if (!$in_write_popup) $result .= "<button class=\"get_event_children\" type=\"button\" data-id='$id_class'>Kinder holen</button>";
 	if (!$in_write_popup) $result .= "<button class=\"get_event_parents\" type=\"button\" data-id='$id_class'>Eltern holen</button>";
+	if (!$in_write_popup) $result .= "<button class=\"open-tournament-data-popup $id_class\" type=\"button\" data-id='$id_class'>weitere Daten holen</button>";
+	$result .= "</div>";
 
 	if (!$in_write_popup) $result .= "
 			<dialog class='tournament-data-popup dismissable-popup $id_class'>
@@ -264,7 +274,6 @@ function create_tournament_get_button(array $data, bool $in_write_popup = false)
 					<button class='calculate-standings $id_class' data-id='$id_class'><span>Tabelle des Turniers aktualisieren</span></button>
 				</div>
 			</dialog>";
-	if (!$in_write_popup) $result .= "<button class=\"open-tournament-data-popup $id_class\" type=\"button\" data-id='$id_class'>weitere Daten holen</button>";
 
 	$result .= "</div>";
 	return $result;

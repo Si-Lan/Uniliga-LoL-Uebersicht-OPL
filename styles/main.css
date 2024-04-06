@@ -3285,11 +3285,36 @@ div.turnier-select {
 
 div.turnier-select-list {
 	display: flex;
-	flex-direction: row;
+	flex-direction: column;
 	gap: 10px;
-	flex-wrap: wrap;
-	max-width: 1350px;
-	justify-content: space-evenly;
+}
+.tsl-heading {
+	display: flex;
+	gap: 12px;
+	align-items: center;
+}
+.tsl-heading h5 {
+	font-size: 16px;
+	margin: 10px 0;
+}
+button.toggle-turnierselect-accordeon {
+	padding: 10px 15px;
+}
+button.toggle-turnierselect-accordeon .material-symbol {
+	transition: transform 400ms;
+}
+button.toggle-turnierselect-accordeon.open .material-symbol {
+	transform: rotateX(180deg);
+}
+.turnier-sl-accordeon {
+	height: 0;
+	overflow: hidden;
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+.turnier-sl-accordeon.open {
+	height: auto;
 }
 
 div.tournament-write-data-wrapper {
@@ -3300,25 +3325,41 @@ div.tournament-write-data-wrapper {
 div.tournament-write-data {
 	display: flex;
 	flex-direction: column;
-	gap: 5px;
+	gap: 7px;
 	background-color: var(--main-button-color);
 	border-radius: 6px;
 	padding: 15px 25px;
-	min-width: 280px;
 }
 dialog#tournament-add div.tournament-write-data {
 	margin-bottom: 10px;
 }
 div.turnier-select div.tournament-write-data {
-	overflow: scroll;
-	max-height: 330px;
+	overflow: auto;
+}
+.write_tournament_row {
+	display: flex;
+	flex-direction: row;
+	flex-wrap: wrap;
+	gap: 8px;
+	justify-content: space-between;
+	position: relative;
+}
+.write_tournament_row.wtrow-1:after,
+.write_tournament_row.wtrow-2:after {
+	content: "";
+	border: 1px solid var(--divider-color-main);
+	position: absolute;
+	width: 90%;
+	left: 5%;
+	bottom: -5px;
 }
 div.tournament-write-data input{
 	height: 35px;
 }
 div.tournament-write-data label {
 	display: flex;
-	flex-direction: column;
+	flex-direction: row;
+	align-items: center;
 }
 div.tournament-write-data select {
 	background-color: var(--input-bg);
@@ -3330,7 +3371,6 @@ div.tournament-write-data select:hover,
 div.tournament-write-data select:focus {
 	background-color: var(--input-bg-focus);
 	border: solid 1px var(--input-focus-border);
-
 }
 input[type=date] {
 	border-radius: 6px;
@@ -3344,6 +3384,45 @@ input[type=date] {
 .tournament-write-data label:has(input[type=checkbox]) {
 	flex-direction: row;
 	align-items: center;
+}
+.write_tournament_name {
+	width: calc(100% - 316px);
+	min-width: 272px;
+}
+.write_tournament_id input,
+.write_tournament_parent input,
+.write_tournament_logoid input {
+	width: 64px;
+}
+.write_tournament_season input {
+	width: 48px;
+}
+.write_tournament_number input,
+.write_tournament_number2 input {
+	width: 40px;
+}
+.write_tournament_type .slct,
+.write_tournament_split .slct {
+	width: 112px;
+}
+.write_tournament_format .slct {
+	width: 148px;
+}
+.tournament-write-button-wrapper {
+	display: flex;
+	flex-direction: row;
+	gap: 4px;
+}
+.tournament-write-button-wrapper button {
+	flex: 1;
+}
+.tournament-write-button-wrapper button.open-tournament-data-popup {
+	flex: 2;
+}
+@media screen and (max-width: 550px) {
+	.tournament-write-button-wrapper button {
+		padding: 10px 10px;
+	}
 }
 
 .related-event-button-list {

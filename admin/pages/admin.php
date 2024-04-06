@@ -59,6 +59,7 @@ if ($loggedin) {
 			?>
 		</div>
 	</div>
+    <div style="height: 200px"></div>
 	<?php
 }
 ?>

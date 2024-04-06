@@ -425,6 +425,15 @@ function calculate_standings_from_matchups(tournamentID) {
 		.catch(e => console.error(e));
 }
 
+function toggle_turnier_select_accordeon(tournamentID) {
+	$(".turnier-sl-accordeon."+tournamentID).toggleClass("open");
+	$(`.toggle-turnierselect-accordeon[data-id=${tournamentID}]`).toggleClass("open");
+}
+$(document).ready(function () {
+	$(".toggle-turnierselect-accordeon").on("click", function () {
+		toggle_turnier_select_accordeon(this.getAttribute("data-id"));
+	});
+});
 
 // ddragon update
 function sync_patches_to_db(button) {
