@@ -57,7 +57,7 @@ function get_tournament($id):array {
 		$type = "wildcard";
 	} elseif (preg_match("/playoffs?/",$name_lower)) {
 		$type = "playoffs";
-	} elseif (str_contains($name_lower, "gruppe") || str_contains($name_lower, "group")) {
+	} elseif (str_contains($name_lower, "gruppe ") || str_contains($name_lower, "group ")) {
 		$type = "group";
 	} elseif (str_contains($name_lower, " liga")) {
 		$type = "league";
