@@ -172,8 +172,8 @@ function create_header(mysqli $dbcn = NULL, string $title = "home", string|int $
 				<a class='settings-option toggle-admin-b-vis' href='$pageurl'>Buttons<div class='material-symbol'>". file_get_contents(dirname(__FILE__)."/../icons/material/visibility$admin_button_state.svg") ."</div></a>
 				<a class='settings-option toor-write' href='./admin'>Admin<div class='material-symbol'>". file_get_contents(dirname(__FILE__)."/../icons/material/edit_square.svg") ."</div></a>
 				<a class='settings-option rgapi-write' href='./admin/rgapi'>RGAPI<div class='material-symbol'>". file_get_contents(dirname(__FILE__)."/../icons/material/videogame_asset.svg") ."</div></a>
-				<a class='settings-option ddragon-write' href='./admin/ddragon'>DDragon</a>
-				<a class='settings-option update-log' href='./admin/updates'>Updates</a>
+				<a class='settings-option ddragon-write' href='./admin/ddragon'>DDragon<div class='material-symbol'>". file_get_contents(dirname(__FILE__)."/../icons/material/photo_library.svg") ."</div></a>
+				<a class='settings-option update-log' href='./admin/updates'>Update-Logs</a>
 				<a class='settings-option logout' href='$pageurl?logout'>Logout<div class='material-symbol'>". file_get_contents(dirname(__FILE__)."/../icons/material/logout.svg") ."</div></a>
 			</div>";
 	} else {
