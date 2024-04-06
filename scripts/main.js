@@ -6,7 +6,8 @@ $(document).ready(() => {
 		}
 	});
 	$("dialog.modalopen_auto").get().forEach(element => element.showModal());
-	$("dialog .close-popup").on("click", function() {this.closest("dialog").close()})
+	$("dialog .close-popup").on("click", function() {this.closest("dialog").close()});
+	$("dialog.clear-on-exit").on("close", function() {$(this).find(".dialog-content > *:not(.close-popup,.close-button-space)").remove()})
 });
 
 // allgemeine Funktionen der Seite

@@ -22,7 +22,11 @@ function get_tournament($id):array {
 		]
 	]];
 	$context = stream_context_create($options);
-	$response = json_decode(file_get_contents($url, false, $context),true);
+	$response = json_decode(@file_get_contents($url, false, $context),true);
+	if (str_contains($http_response_header[0], "404")) {
+		$returnArr["response"] = "404";
+		return $returnArr;
+	}
 
 	$data = $response["data"];
 
@@ -241,8 +245,10 @@ function create_tournament_get_button(array $data, bool $in_write_popup = false)
 					<label class=\"write_tournament_logourl\">Logo-URL:<input type=\"text\" value=\"{$data["OPL_logo_url"]}\" readonly></label>";
 
 	$result .= "</div>";
-	if ($in_write_popup) $result .= "<button id=\"write_tournament\" type=\"button\">Eintragen</button>";
-	if (!$in_write_popup) $result .= "<button class=\"update_tournament\" type=\"button\">Aktualisieren</button>";
+	if ($in_write_popup) $result .= "<button class=\"write_tournament\" type=\"button\">Eintragen</button>";
+	if (!$in_write_popup) $result .= "<button class=\"update_tournament\" type=\"button\" data-id='$id_class'>Aktualisieren</button>";
+	if (!$in_write_popup) $result .= "<button class=\"get_event_children\" type=\"button\" data-id='$id_class'>Kinder holen</button>";
+	if (!$in_write_popup) $result .= "<button class=\"get_event_parents\" type=\"button\" data-id='$id_class'>Eltern holen</button>";
 
 	if (!$in_write_popup) $result .= "
 			<dialog class='tournament-data-popup dismissable-popup $id_class'>
@@ -262,6 +268,38 @@ function create_tournament_get_button(array $data, bool $in_write_popup = false)
 
 	$result .= "</div>";
 	return $result;
+}
+
+function get_related_events($tournamentID, string $relation = "children"):array {
+	$dbcn = create_dbcn();
+	$bearer_token = get_opl_bearer_token();
+	$user_agent = get_user_agent_for_api_calls();
+
+	$url = "https://www.opleague.pro/api/v4/tournament/$tournamentID";
+	$options = ["http" => [
+		"header" => [
+			"Authorization: Bearer $bearer_token",
+			"User-Agent: $user_agent",
+		]
+	]];
+	$context = stream_context_create($options);
+	$response = json_decode(file_get_contents($url, false, $context),true);
+
+	if ($relation == "children") {
+		$related_events = $response["data"]["leafes"];
+	} elseif ($relation == "parents") {
+		$related_events = $response["data"]["ancestors"];
+	} else {
+		return [];
+	}
+	$tournaments = $dbcn->execute_query("SELECT OPL_ID FROM tournaments")->fetch_all();
+	$tournaments = array_merge(...$tournaments);
+	$related_events_dbcheck = [];
+	foreach ($related_events as $event) {
+		$related_events_dbcheck[] = [$event, in_array($event,$tournaments)];
+	}
+
+	return $related_events_dbcheck;
 }
 
 function get_teams_for_tournament($tournamentID, bool $deletemissing = false):array {

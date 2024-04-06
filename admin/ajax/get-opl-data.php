@@ -25,6 +25,17 @@ if ($type == "write_tournament") {
 	echo $result;
 }
 
+if ($type == "get_event_children") {
+	$id = $_SERVER["HTTP_ID"];
+	$result = get_related_events($id);
+	echo json_encode($result);
+}
+if ($type == "get_event_parents") {
+	$id = $_SERVER["HTTP_ID"];
+	$result = get_related_events($id, "parents");
+	echo json_encode($result);
+}
+
 // adds teams for the given tournament to DB (x Calls to OPL-API) (1 for groups / more for tournaments and leagues)
 if ($type == "get_teams_for_tournament") {
 	$result = [];

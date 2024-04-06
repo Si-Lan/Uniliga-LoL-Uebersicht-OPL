@@ -45,6 +45,12 @@ if ($loggedin) {
 
 			</div>
 		</dialog>
+        <dialog id="related-add" class="clear-on-exit">
+            <div class="dialog-content">
+                <button class="close-popup"><span class="material-symbol"><?php echo file_get_contents(__DIR__."/../../icons/material/close.svg") ?></span></button>
+                <div class="close-button-space"></div>
+            </div>
+        </dialog>
 
 		<h2>Turniere in Datenbank:</h2>
 		<div class="turnier-select">

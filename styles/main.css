@@ -2575,6 +2575,7 @@ a.button.write.loading-data:hover {
 	border: 4px solid;
 	border-color: var(--text-color) transparent;
 	animation: lds-dual-ring 3s linear infinite;
+	pointer-events: none;
 }
 .add-patch-popup .popup-loading-indicator {
 	height: 15px;
@@ -3345,11 +3346,24 @@ input[type=date] {
 	align-items: center;
 }
 
+.related-event-button-list {
+	display: flex;
+	flex-direction: column;
+	align-items: stretch;
+	gap: 4px;
+}
+.related-event-button-list>button.in-db {
+	background-color: #213c4f;
+}
+.related-event-button-list>button.in-db:hover {
+	background-color: #284a62;
+}
+
 dialog .dialog-content {
 	display: flex;
 	flex-direction: column;
 	padding: 25px;
-	min-width: 45px;
+	min-width: 150px;
 }
 dialog {
 	padding: 0;
@@ -3362,6 +3376,8 @@ dialog::backdrop {
 	background: rgba(0,0,0,0.5);
 }
 dialog .close-button-space {
+	display: flex;
+	justify-content: center;
 	height: 60px;
 }
 dialog .close-popup {
