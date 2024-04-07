@@ -1248,7 +1248,7 @@ function create_player_overview(mysqli $dbcn,$playerid,$onplayerpage=false):stri
 	$result .= "<div class='divider'></div>";
 	if ($player["riotID_name"] != null) {
 		$result .= "<div class='player-ov-riotid-wrapper'>";
-		$result .= "<a class='player-ov-riotid' href='https://op.gg/summoners/euw/{$player["riotID_name"]}-{$player["riotID_tag"]}' target='_blank'><span class='league-icon'>".file_get_contents(dirname(__FILE__)."/../icons/LoL_Icon_Flat.svg")."</span><span>{$player["riotID_name"]}#{$player["riotID_tag"]}</span></a>";
+		$result .= "<a class='player-ov-riotid tooltip' href='https://op.gg/summoners/euw/{$player["riotID_name"]}-{$player["riotID_tag"]}' target='_blank'><span class='league-icon'>".file_get_contents(dirname(__FILE__)."/../icons/LoL_Icon_Flat.svg")."</span><span>{$player["riotID_name"]}#{$player["riotID_tag"]}</span><span class='tooltiptext linkinfo'><span class='material-symbol'>".file_get_contents(__DIR__."/../icons/material/open_in_new.svg")."</span>OP.GG</span></a>";
 		$rank_tier = strtolower($player["rank_tier"]??"");
 		$rank_div = $player["rank_div"];
 		$LP = NULL;

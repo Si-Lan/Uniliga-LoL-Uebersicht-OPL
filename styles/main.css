@@ -7,6 +7,7 @@
 	--nav-button-divider: #404040;
 	--sec-bg-color: #404040;
 	--sec-bg-color-st: rgba(64, 64, 64, 0.91);
+	--sec-bg-color-st2: rgba(64, 64, 64, 0.75);
 	--input-bg: #323232;
 	--hover-bg-transparent: #7E7E7E50;
 	--main-button-show-color: #373737;
@@ -383,6 +384,20 @@ th:hover span.tooltip span.tooltiptext,
 span.tooltiptext.riot-id {
 	bottom: 104%;
 	background-color: var(--sec-bg-color-st);
+}
+span.tooltiptext.linkinfo {
+	bottom: 104%;
+	background-color: var(--sec-bg-color-st2);
+	padding: 8px 12px;
+	font-size: 0.96rem;
+}
+span.tooltiptext.linkinfo .material-symbol,
+span.tooltiptext.linkinfo .material-symbol svg {
+	height: 16px;
+	width: 16px;
+	position: relative;
+	bottom: -1px;
+	margin-right: 2px;
 }
 h2.pagetitle {
 	font-size: 2em;
