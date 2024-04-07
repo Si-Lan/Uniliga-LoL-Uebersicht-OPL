@@ -1118,10 +1118,12 @@ function create_playercard(mysqli $dbcn, $playerID, $teamID, $tournamentID, $det
 		$roles = json_decode($player['roles'], true);
 		$champions = json_decode($player['champions'], true);
 		$rendered_rows = 0;
-		if (array_sum($roles)>0 && count($champions)>0) {
-			$rendered_rows = 2;
-		} elseif (array_sum($roles)>0 || count($champions)>0) {
-			$rendered_rows = 1;
+		if ($roles != null && $champions != null) {
+			if (array_sum($roles)>0 && count($champions)>0) {
+				$rendered_rows = 2;
+			} elseif (array_sum($roles)>0 || count($champions)>0) {
+				$rendered_rows = 1;
+			}
 		}
 		$result = "<div class='player-card' data-details='$rendered_rows'>";
 	} else {
@@ -1180,7 +1182,7 @@ function create_playercard(mysqli $dbcn, $playerID, $teamID, $tournamentID, $det
 		}
 
 		// roles
-		if (array_sum($roles) > 0) {
+		if ($roles != null && array_sum($roles) > 0) {
 			$result .= "<div class='player-card-div player-card-roles'>";
 			foreach ($roles as $role => $role_amount) {
 				if ($role_amount != 0) {
@@ -1195,7 +1197,7 @@ function create_playercard(mysqli $dbcn, $playerID, $teamID, $tournamentID, $det
 		}
 
 		// champs
-		if (count($champions) > 0) {
+		if ($champions != null && count($champions) > 0) {
 			$result .= "<div class='player-card-div player-card-champs'>";
 			arsort($champions);
 			$champs_cut = FALSE;
