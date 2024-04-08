@@ -571,7 +571,7 @@ function create_team_nav_buttons($tournamentID,$groupID,$team,$active,$playoffID
 	}
 	$result .= "
 			<div>
-				<h2>{$team['name']}</h2>
+				<h2><a class='fancy-link-underline' href='team/$team_id'>{$team['name']}</a></h2>
 				<a href=\"$opl_team_url$team_id\" class='toorlink' target='_blank'><div class='material-symbol'>". file_get_contents(__DIR__."/../icons/material/open_in_new.svg") ."</div></a>
 			</div>
         </div>
@@ -1375,4 +1375,85 @@ function search_all(mysqli $dbcn, string $search_input) {
 	}
 
 	return $all_results;
+}
+
+function create_teamcard(mysqli $dbcn, $teamID, $tournamentID) {
+	$logo_filename = is_light_mode() ? "logo_light.webp" : "logo.webp";
+	$team_in_tournament = $dbcn->execute_query("SELECT * FROM teams_in_tournaments WHERE OPL_ID_team = ? AND OPL_ID_group = ?", [$teamID,$tournamentID])->fetch_assoc();
+	$tournament = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID=?",[$tournamentID])->fetch_assoc();
+	if ($tournament["eventType"] == "group") {
+		$league = $dbcn->execute_query("SELECT * FROM tournaments WHERE eventType = 'league' AND OPL_ID=?",[$tournament["OPL_ID_parent"]])->fetch_assoc();
+		$parent_tournament = $dbcn->execute_query("SELECT * FROM tournaments WHERE eventType = 'tournament' AND OPL_ID = ?",[$league["OPL_ID_parent"]])->fetch_assoc();
+	} else {
+		//TODO: playoffs
+		return;
+	}
+	$team_season_rank = $dbcn->execute_query("SELECT * FROM teams_season_rank WHERE OPL_ID_team = ? AND season = ?",[$teamID,$tournament["season"]])->fetch_assoc();
+	$rank_tier = strtolower($team_season_rank["avg_rank_tier"]??"");
+	$rank_div = $team_season_rank["avg_rank_div"]??null;
+	$players = $dbcn->execute_query("SELECT * FROM players_in_teams_in_tournament ptt LEFT JOIN players p ON ptt.OPL_ID_player = p.OPL_ID LEFT JOIN stats_players_teams_tournaments sptt ON p.OPL_ID = sptt.OPL_ID_player AND sptt.OPL_ID_tournament = ptt.OPL_ID_tournament AND sptt.OPL_ID_team = ptt.OPL_ID_team WHERE ptt.OPL_ID_team = ? AND ptt.OPL_ID_tournament = ?", [$teamID,$parent_tournament["OPL_ID"]])->fetch_all(MYSQLI_ASSOC);
+	$player_amount = count($players);
+	$players_by_role = ["top"=>[],"jungle"=>[],"middle"=>[],"bottom"=>[],"utility"=>[],"none"=>[]];
+	foreach ($players as $player) {
+		if ($player["roles"] == null) {
+			$players_by_role["none"][] = $player;
+			continue;
+		}
+		$roles = json_decode($player["roles"],true);
+		asort($roles);
+		$roles = array_reverse($roles);
+		$player["roles"] = $roles;
+		$players_by_role[array_key_first($roles)][] = $player;
+	}
+
+	$result = "<div class='team-card'>";
+	// Turnier-Titel
+	$result .= "<a class='team-card-div team-card-tournament' href='turnier/{$parent_tournament["OPL_ID"]}'>";
+	if ($tournament["OPL_ID_logo"] != NULL) {
+		$result .= "<img class='color-switch' alt='' src='img/tournament_logos/{$tournament["OPL_ID_logo"]}/$logo_filename'>";
+	}
+	$result .= ucfirst($tournament["split"])." ".$tournament["season"];
+	$result .= "</a>";
+
+	// Liga und Gruppe
+	$result .= "<a class='team-card-div team-card-league' href='turnier/{$parent_tournament["OPL_ID"]}/gruppe/{$tournament["OPL_ID"]}'>";
+	$result .= "Liga ".$league["number"]." - Gruppe ".$tournament["number"];
+	$result .= "</a>";
+
+	// Link zu Teamseite
+	$result .= "<a class='team-card-div team-card-teampage' href='turnier/{$parent_tournament["OPL_ID"]}/team/$teamID'><div class='material-symbol'>". file_get_contents(__DIR__."/../icons/material/group.svg") ."</div>zu Team im Turnier</a>";
+
+	// Standing
+	if (($team_in_tournament["standing"]??null) != null) {
+		$result .= "<div class='team-card-div team-card-standings'>{$team_in_tournament["standing"]}.Platz : {$team_in_tournament["wins"]}-{$team_in_tournament["draws"]}-{$team_in_tournament["losses"]}</div>";
+	}
+
+	// Rang
+	if (($team_season_rank["avg_rank_tier"]??null) != null) {
+		$result .= "<div class='team-card-div team-card-rank'><img class='rank-emblem-mini' src='ddragon/img/ranks/mini-crests/$rank_tier.svg' alt='".ucfirst($rank_tier)."'>".ucfirst($rank_tier)." $rank_div</div>";
+	}
+
+	// Spieler
+	$result .= "<button type='button' class='team-card-div team-card-playeramount'><div class='material-symbol'>". file_get_contents(__DIR__."/../icons/material/person.svg") ."</div>$player_amount Spieler</button>";
+	$result .= "<div class='team-card-div team-card-players-wrapper'>";
+	$result .= "<div class='team-card-players'>";
+	foreach ($players_by_role as $role_players) {
+		foreach ($role_players as $player) {
+			$result .= "<a class='fancy-link-underline-parent' href='spieler/{$player["OPL_ID"]}'>";
+			if ($player["roles"] != null) {
+				$result .= "<div class='team-card-players-roles'>";
+				foreach ($player["roles"] as $role=>$role_amount) {
+					if ($role_amount == 0) continue;
+					$result.= "<span class='svg-wrapper role'>".file_get_contents(__DIR__."/../ddragon/img/positions/position-$role-light.svg")."</span>";
+				}
+				$result .= "</div>";
+			}
+			$result .= "<span class='fancy-link-underline-target'>{$player["name"]}</span></a>";
+		}
+	}
+	$result .= "</div>";
+	$result .= "</div>";
+
+	$result .= "</div>";
+	return $result;
 }

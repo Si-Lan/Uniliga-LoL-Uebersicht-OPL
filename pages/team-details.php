@@ -1,6 +1,7 @@
 <?php
 include_once __DIR__."/../setup/data.php";
 include_once __DIR__."/../functions/fe-functions.php";
+include_once __DIR__."/../functions/summoner-card.php";
 
 $pass = check_login();
 $lightmode = is_light_mode(true);
@@ -21,14 +22,18 @@ try {
 $teamID = $_GET["team"] ?? NULL;
 
 $team = $dbcn->execute_query("SELECT * FROM teams WHERE OPL_ID = ?", [$teamID])->fetch_assoc();
-
-if ($team != NULL) {
-	$groupID = $dbcn->execute_query("SELECT OPL_ID_group FROM teams_in_tournaments WHERE OPL_ID_team = ? ORDER BY OPL_ID_group DESC", [$teamID])->fetch_column();
-	$tournamentID = get_top_parent_tournament($dbcn, $groupID);
-	header("Location: /uniliga/turnier/$tournamentID/team/$teamID");
-	exit();
+$groups_played_in = $dbcn->execute_query("SELECT * FROM teams_in_tournaments WHERE OPL_ID_team=?",[$teamID])->fetch_all(MYSQLI_ASSOC);
+$tournaments_played_in = [];
+foreach ($groups_played_in as $event) {
+    $parent = get_top_parent_tournament($dbcn,$event["OPL_ID_group"]);
+    if (array_key_exists($parent, $tournaments_played_in)) {
+        $tournaments_played_in[$parent][] = $event;
+    } else {
+        $tournaments_played_in[$parent] = [$event];
+    }
 }
-
+$players = $dbcn->execute_query("SELECT * FROM players JOIN players_in_teams pit on players.OPL_ID = pit.OPL_ID_player WHERE pit.OPL_ID_team = ? ", [$teamID])->fetch_all(MYSQLI_ASSOC);
+$player_amount = count($players);
 ?>
 <!DOCTYPE html>
 <html lang="de">
@@ -50,6 +55,59 @@ echo create_html_head_elements(title: "{$team["name"]} | Uniliga LoL - Übersich
 <?php
 
 echo create_header(dbcn: $dbcn, title: "team");
+
+$local_team_img = "img/team_logos/";
+$logo_filename = is_light_mode() ? "logo_light.webp" : "logo.webp";
+$opl_team_url = "https://www.opleague.pro/team/";
+$opgg_url = "https://www.op.gg/multisearch/euw?summoners=";
+$opgg_logo_svg = file_get_contents(__DIR__."/../img/opgglogo.svg");
+$opgglink = $opgg_url;
+for ($i = 0; $i < count($players); $i++) {
+	if ($i != 0) {
+		$opgglink .= urlencode(",");
+	}
+	$opgglink .= urlencode($players[$i]["riotID_name"]."#".$players[$i]["riotID_tag"]);
+}
+echo "<div class='team title'>
+			<div class='team-name'>";
+if ($team['OPL_ID_logo'] != NULL && file_exists(__DIR__."/../$local_team_img{$team['OPL_ID_logo']}/logo.webp")) {
+	echo "<img class='color-switch' alt src='$local_team_img{$team['OPL_ID_logo']}/$logo_filename'>";
+}
+echo "
+			<div>
+				<h2>{$team['name']}</h2>
+				<a href=\"$opl_team_url$teamID\" class='toorlink' target='_blank'><div class='material-symbol'>". file_get_contents(__DIR__."/../icons/material/open_in_new.svg") ."</div></a>
+			</div>
+        </div>";
+echo "</div>";
+
+echo "<div class='main-content'>";
+
+echo "<div class='team-card-list'>";
+foreach ($tournaments_played_in as $tournament_id=>$tournaments) {
+    echo create_teamcard($dbcn,$teamID,$tournaments[0]["OPL_ID_group"]);
+}
+echo "</div>";
+
+echo "
+                <div class='player-cards opgg-cards'>
+                    <div class='title'>
+                        <h3>Aktuelle Spieler</h3>
+                        <a href='$opgglink' class='button op-gg' target='_blank'><div class='svg-wrapper op-gg'>$opgg_logo_svg</div><span class='player-amount'>({$player_amount} Spieler)</span></a>";
+
+echo "
+                     </div>";
+echo "
+                    <div class='summoner-card-container'>";
+foreach ($players as $player) {
+	echo create_summonercard_general($dbcn,$player["OPL_ID"]);
+}
+echo "
+                    </div> 
+                </div>"; //summoner-card-container -then- player-cards
+
+
+echo "</div>";
 
 ?>
 </body>

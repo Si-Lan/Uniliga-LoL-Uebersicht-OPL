@@ -3066,6 +3066,149 @@ a.player-card-div:hover {
 	justify-content: center;
 }
 
+.team-card-list {
+	display: flex;
+	align-items: flex-start;
+	gap: 12px;
+	flex-wrap: wrap;
+	justify-content: center;
+}
+.team-card {
+	width: 230px;
+	min-width: 230px;
+	padding: 8px 0;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	background-color: var(--main-button-color);
+	box-shadow: 2px 2px 5px rgb(0 0 0 / 0.2);
+	border-radius: 6px;
+	box-sizing: border-box;
+	transition: height 400ms ease-out;
+	position: relative;
+	overflow: hidden;
+}
+.team-card-div {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 8px 0;
+}
+a.team-card-div {
+	transition: background-color 0.2s linear, height 400ms ease-out, padding 400ms ease-out;
+}
+a.team-card-div:hover {
+	background-color: var(--main-button-hover);
+}
+button.team-card-div {
+	box-shadow: none;
+	border-radius: 0;
+}
+.team-card-tournament {
+	font-size: 1.1em;
+	padding: 16px 0;
+	gap: 4px;
+}
+.team-card-tournament img {
+	height: 32px;
+}
+.team-card-league {
+	padding: 16px 0;
+}
+.team-card-teampage {
+	display: flex;
+	gap: 4px;
+	padding: 12px;
+}
+.team-card-playeramount {
+	padding: 16px 0;
+	border-top: 1px solid var(--divider-color-main);
+}
+.team-card-players-wrapper {
+	display: grid;
+	align-items: start;
+	grid-template-rows: 0fr;
+	opacity: 0;
+	padding: 0;
+	pointer-events: none;
+	transition-property: opacity, padding, grid-template-rows;
+	transition-duration: 400ms;
+	transition-timing-function: ease-out;
+	overflow: hidden;
+}
+.team-card-players-wrapper.shown {
+	grid-template-rows: 1fr;
+	opacity: 1;
+	padding: 8px 12px;
+	pointer-events: initial;
+}
+.team-card-players {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	overflow: hidden;
+}
+.team-card-players a {
+	display: flex;
+	gap: 4px;
+	align-items: center;
+}
+.team-card-players-roles {
+	display: flex;
+	gap: 2px;
+	align-items: center;
+}
+.team-card-players .svg-wrapper.role,
+.team-card-players .svg-wrapper.role svg {
+	height: 20px;
+	width: 20px;
+}
+.team-card-players-roles .role:not(:first-child),
+.team-card-players-roles .role:not(:first-child) svg {
+	height: 16px;
+	width: 16px;
+}
+.team-card-players-roles .role:not(:first-child) svg {
+	filter: brightness(0.5);
+}
+
+a.fancy-link-underline {
+	position: relative;
+}
+a.fancy-link-underline::after {
+	content: '';
+	position: absolute;
+	width: 0;
+	height: 1px;
+	left: calc(50%);
+	bottom: 0;
+	background-color: var(--text-color);
+	transition: all ease-in-out .2s;
+	border-radius: 0 0 100px 100px;
+}
+a.fancy-link-underline:hover::after {
+	width: calc(100%);
+	left: 0;
+}
+a.fancy-link-underline-parent span.fancy-link-underline-target {
+	position: relative;
+}
+a.fancy-link-underline-parent span.fancy-link-underline-target::after {
+	content: '';
+	position: absolute;
+	width: 0;
+	height: 1px;
+	left: calc(50%);
+	bottom: 0;
+	background-color: var(--text-color);
+	transition: all ease-in-out .2s;
+	border-radius: 0 0 100px 100px;
+}
+a.fancy-link-underline-parent:hover span.fancy-link-underline-target::after {
+	width: calc(100%);
+	left: 0;
+}
+
 div.updatebuttonwrapper {
 	display: flex;
 	align-items: center;
