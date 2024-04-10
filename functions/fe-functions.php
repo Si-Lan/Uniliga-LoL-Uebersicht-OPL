@@ -1407,6 +1407,10 @@ function create_teamcard(mysqli $dbcn, $teamID, $tournamentID) {
 		asort($roles);
 		$roles = array_reverse($roles);
 		$player["roles"] = $roles;
+		if ($roles[array_key_first($roles)] == 0) {
+			$players_by_role["none"][] = $player;
+			continue;
+		}
 		$players_by_role[array_key_first($roles)][] = $player;
 	}
 
