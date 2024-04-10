@@ -759,7 +759,7 @@ function get_average_team_ranks(tournament_id) {
 							result = "kein Rang"
 						}
 						console.log(team['name'] + ": " + result);
-						container.append(team['name']+":<br>- "+result+"<br>");
+						container.append(team['name']+":<br>"+result+"<br>");
 						container.scrollTop(container.prop("scrollHeight"));
 						if (loops_done >= max_loops) {
 							console.log("----- Done with calculating avg. Ranks -----");

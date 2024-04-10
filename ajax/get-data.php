@@ -159,7 +159,7 @@ if ($type == "team-and-players") {
 	$tournamentID = $_SERVER["HTTP_TOURNAMENTID"] ?? NULL;
 	$teams_season_rank = $_SERVER["HTTP_TEAMS_SEASON_RANK"] ?? NULL;
 	if ($teams_season_rank != NULL && $tournamentID != NULL) {
-		$teamDB = $dbcn->execute_query("SELECT *, tsr.avg_rank_tier, tsr.avg_rank_div, tsr.avg_rank_num FROM teams LEFT JOIN teams_season_rank as tsr ON teams.OPL_ID = tsr.OPL_ID_team AND tsr.season = (SELECT tr.season FROM tournaments as tr WHERE tr.OPL_ID = ?) WHERE OPL_ID = ?", [$tournamentID,$teamID])->fetch_assoc();
+		$teamDB = $dbcn->execute_query("SELECT *, tsr.avg_rank_tier, tsr.avg_rank_div, tsr.avg_rank_num FROM teams LEFT JOIN teams_tournament_rank as tsr ON teams.OPL_ID = tsr.OPL_ID_team AND tsr.OPL_ID_tournament = ? WHERE OPL_ID = ?", [$tournamentID,$teamID])->fetch_assoc();
 	} else {
 		$teamDB = $dbcn->execute_query("SELECT * FROM teams WHERE OPL_ID = ?", [$teamID])->fetch_assoc();
 	}

@@ -429,6 +429,9 @@ function get_Rank_by_SummonerId($playerID) {
 	$player = $dbcn->query("SELECT * FROM players WHERE players.OPL_ID = {$playerID}")->fetch_assoc();
 	$returnArr["echo"] .= "<span style='color: royalblue'>writing Rank for {$player['name']} :<br></span>";
 
+	$today = date("Y-m-d");
+	$current_ranked_split = $dbcn->execute_query("SELECT * FROM lol_ranked_splits WHERE split_start < ? AND (split_end > ? OR split_end IS NULL) ORDER BY season DESC, split DESC", [$today, $today])->fetch_assoc();
+
 	if ($player["summonerID"] == NULL) {
 		$returnArr["echo"] .= "<span style='color: orangered'>--could not get Rank, SummonerID is missing<br></span>";
 		return $returnArr;
@@ -463,12 +466,15 @@ function get_Rank_by_SummonerId($playerID) {
 		}
 		$returnArr["echo"] .= "<span style='color: limegreen'>--got Rank: $tier $div ($league_points LP)<br></span>";
 
-		$current_year = intval(date("y"));
-		$seasonal_rank = $dbcn->execute_query("SELECT * FROM players_season_rank WHERE OPL_ID_player = ? AND season = ?", [$playerID, $current_year])->fetch_assoc();
-		if ($seasonal_rank != null) {
-			$dbcn->execute_query("UPDATE players_season_rank SET rank_tier = ?, rank_div = ?, rank_LP = ? WHERE OPL_ID_player = ? AND season = ?", [$tier,$div,$league_points,$playerID,$current_year]);
+		if ($current_ranked_split != null) {
+			$seasonal_rank = $dbcn->execute_query("SELECT * FROM players_season_rank WHERE OPL_ID_player = ? AND season = ? AND split = ?", [$playerID, $current_ranked_split["season"], $current_ranked_split["split"]])->fetch_assoc();
+			if ($seasonal_rank != null) {
+				$dbcn->execute_query("UPDATE players_season_rank SET rank_tier = ?, rank_div = ?, rank_LP = ? WHERE OPL_ID_player = ? AND season = ? AND split = ?", [$tier,$div,$league_points,$playerID,$current_ranked_split["season"],$current_ranked_split["split"]]);
+			} else {
+				$dbcn->execute_query("INSERT INTO players_season_rank (OPL_ID_player, season, split, rank_tier, rank_div, rank_LP) VALUES (?,?,?,?,?,?)", [$playerID,$current_ranked_split["season"],$current_ranked_split["split"],$tier,$div,$league_points]);
+			}
 		} else {
-			$dbcn->execute_query("INSERT INTO players_season_rank (OPL_ID_player, season, rank_tier, rank_div, rank_LP) VALUES (?,?,?,?,?)", [$playerID,$current_year,$tier,$div,$league_points]);
+			$returnArr["echo"] .= "<span style='color: orangered'>--no matching Ranked Split found for today, is today between two splits, or is the current splits date not set?<br></span>";
 		}
 		$dbcn->query("UPDATE players SET rank_tier = '{$tier}', rank_div = '{$div}', rank_LP = '{$league_points}' WHERE OPL_ID = {$playerID}");
 
@@ -549,7 +555,7 @@ function get_stats_for_players($teamID, $tournamentID) {
 	return $returnArr;
 }
 
-function calculate_avg_team_rank($teamID,$tournamentID=null) {
+function calculate_avg_team_rank($teamID, $tournamentID=null):array {
 	$returnArr = array("return"=>0, "echo"=>"", "writes"=>0);
 	$dbcn = create_dbcn();
 	if ($dbcn -> connect_error){
@@ -634,16 +640,27 @@ function calculate_avg_team_rank($teamID,$tournamentID=null) {
 
 	if ($tournamentID != null) {
 		$tournament = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID = ?", [$tournamentID])->fetch_assoc();
-		$team_season_rank = $dbcn->execute_query("SELECT * FROM teams_season_rank WHERE OPL_ID_team = ? AND season = ?", [$teamID, $tournament["season"]])->fetch_assoc();
-		$players = $dbcn->execute_query("SELECT * FROM players p JOIN players_in_teams_in_tournament pit on p.OPL_ID = pit.OPL_ID_player LEFT JOIN players_season_rank psr ON psr.OPL_ID_player = p.OPL_ID AND psr.season = (SELECT tournaments.season FROM tournaments WHERE tournaments.OPL_ID = ?) WHERE OPL_ID_team = ? AND OPL_ID_tournament = ?", [$tournamentID, $teamID, $tournamentID])->fetch_all(MYSQLI_ASSOC);
+		$ranked_split = ["season"=>$tournament["ranked_season"], "split"=>$tournament["ranked_split"]];
+		$next_split = $dbcn->execute_query("SELECT * FROM lol_ranked_splits WHERE (season = ? AND split = ?)",[$ranked_split["season"], $ranked_split["split"]+1])->fetch_assoc();
+		if ($next_split == null) {
+			$next_split = $dbcn->execute_query("SELECT * FROM lol_ranked_splits WHERE (season = ? AND split = ?)",[$ranked_split["season"]+1, 1])->fetch_assoc();
+		}
+		if ($next_split == null) $returnArr["echo"] .= "<span style='color: orangered'>- kein zweiter Split gefunden</span><br>";
+
+		$team_season_rank = $dbcn->execute_query("SELECT * FROM teams_tournament_rank WHERE OPL_ID_team = ? AND OPL_ID_tournament = ? AND second_ranked_split = false", [$teamID, $tournamentID])->fetch_assoc();
+		$team_season_rank_2 = $dbcn->execute_query("SELECT * FROM teams_tournament_rank WHERE OPL_ID_team = ? AND OPL_ID_tournament = ? AND second_ranked_split = true", [$teamID, $tournamentID])->fetch_assoc();
+		$players = $dbcn->execute_query("SELECT * FROM players p JOIN players_in_teams_in_tournament pit on p.OPL_ID = pit.OPL_ID_player LEFT JOIN players_season_rank psr ON psr.OPL_ID_player = p.OPL_ID AND psr.season = ? AND psr.split = ? WHERE OPL_ID_team = ? AND OPL_ID_tournament = ?", [$ranked_split["season"], $ranked_split["split"], $teamID, $tournamentID])->fetch_all(MYSQLI_ASSOC);
+		if ($next_split != null) $players_2 = $dbcn->execute_query("SELECT * FROM players p JOIN players_in_teams_in_tournament pit on p.OPL_ID = pit.OPL_ID_player LEFT JOIN players_season_rank psr ON psr.OPL_ID_player = p.OPL_ID AND psr.season = ? AND psr.split = ? WHERE OPL_ID_team = ? AND OPL_ID_tournament = ?", [$next_split["season"], $next_split["split"], $teamID, $tournamentID])->fetch_all(MYSQLI_ASSOC);
 	} else {
 		$players = $dbcn->execute_query("SELECT * FROM players p JOIN players_in_teams pit on p.OPL_ID = pit.OPL_ID_player WHERE OPL_ID_team = ?", [$teamID])->fetch_all(MYSQLI_ASSOC);
+
+		$today = date("Y-m-d");
+		$ranked_split = $dbcn->execute_query("SELECT * FROM lol_ranked_splits WHERE split_start < ? AND (split_end > ? OR split_end IS NULL) ORDER BY season DESC, split DESC", [$today, $today])->fetch_assoc();
 	}
 
 	$rank_arr = [];
 	foreach ($players as $player) {
 		if ($player['rank_tier'] != NULL && $player['rank_tier'] != "UNRANKED") {
-			$player_rank = 0;
 			if ($player['rank_tier'] === "MASTER" || $player['rank_tier'] === "GRANDMASTER" || $player['rank_tier'] === "CHALLENGER") {
 				$player_rank = $ranks[$player['rank_tier']];
 			} else {
@@ -653,16 +670,20 @@ function calculate_avg_team_rank($teamID,$tournamentID=null) {
 		}
 	}
 	if (count($rank_arr) == 0) {
+		// Team hat keinen avg Rang
 		if ($tournamentID != null) {
+			// Rang wurde für Team in einem Turnier berechnet
 			if ($team_season_rank != null) {
-				$dbcn->execute_query("UPDATE teams_season_rank SET avg_rank_tier = NULL, avg_rank_div = NULL, avg_rank_num = NULL WHERE OPL_ID_team = ? AND season = ?", [$teamID, $tournament["season"]]);
+				$dbcn->execute_query("UPDATE teams_tournament_rank SET avg_rank_tier = NULL, avg_rank_div = NULL, avg_rank_num = NULL WHERE OPL_ID_team = ? AND OPL_ID_tournament = ? AND second_ranked_split = false", [$teamID, $tournament["OPL_ID"]]);
 			} else {
-				$dbcn->execute_query("INSERT INTO teams_season_rank (OPL_ID_team, season, avg_rank_tier, avg_rank_div, avg_rank_num) VALUES (?,?,?,?,?)", [$teamID, $tournament["season"], NULL, NULL, NULL]);
+				$dbcn->execute_query("INSERT INTO teams_tournament_rank (OPL_ID_team, OPL_ID_tournament, second_ranked_split, avg_rank_tier, avg_rank_div, avg_rank_num) VALUES (?,?,false,null,null,null)", [$teamID, $tournament["OPL_ID"]]);
 			}
+			$returnArr["echo"] .= "- ".$tournamentID."_S".$ranked_split["season"]."-".$ranked_split["split"].": kein Rang<br>";
 		} else {
+			// Rang wurde für Team aktuell berechnet
 			$dbcn->execute_query("UPDATE teams SET avg_rank_tier = NULL, avg_rank_div = NULL, avg_rank_num = NULL WHERE OPL_ID = ?", [$teamID]);
+			$returnArr["echo"] .= "- Aktuell: kein Rang<br>";
 		}
-		$returnArr["echo"] .= "";
 	} else {
 		$rank = 0;
 		foreach ($rank_arr as $player) {
@@ -671,17 +692,58 @@ function calculate_avg_team_rank($teamID,$tournamentID=null) {
 		$rank_num = $rank / count($rank_arr);
 		$rank = floor($rank_num);
 		if ($tournamentID != null) {
+			// Rang wurde für Team in einem Turnier berechnet
 			if ($team_season_rank != null) {
-				$dbcn->execute_query("UPDATE teams_season_rank SET avg_rank_tier = ?, avg_rank_div = ?, avg_rank_num = ? WHERE OPL_ID_team = ? AND season = ?", [$ranks_rev[$rank][0], $ranks_rev[$rank][1], $rank_num, $teamID, $tournament["season"]]);
+				$dbcn->execute_query("UPDATE teams_tournament_rank SET avg_rank_tier = ?, avg_rank_div = ?, avg_rank_num = ? WHERE OPL_ID_team = ? AND OPL_ID_tournament = ? AND second_ranked_split = false", [$ranks_rev[$rank][0], $ranks_rev[$rank][1], $rank_num, $teamID, $tournament["OPL_ID"]]);
 			} else {
-				$dbcn->execute_query("INSERT INTO teams_season_rank (OPL_ID_team, season, avg_rank_tier, avg_rank_div, avg_rank_num) VALUES (?,?,?,?,?)", [$teamID, $tournament["season"], $ranks_rev[$rank][0], $ranks_rev[$rank][1], $rank_num]);
+				$dbcn->execute_query("INSERT INTO teams_tournament_rank (OPL_ID_team, OPL_ID_tournament, second_ranked_split, avg_rank_tier, avg_rank_div, avg_rank_num) VALUES (?,?,false,?,?,?)", [$teamID, $tournament["OPL_ID"], $ranks_rev[$rank][0], $ranks_rev[$rank][1], $rank_num]);
 			}
+			$returnArr["echo"] .= "- ".$tournamentID."_S".$ranked_split["season"]."-".$ranked_split["split"].": ". $ranks_rev[$rank][0] . $ranks_rev[$rank][1] . " " . $rank_num."<br>";
 		} else {
+			// Rang wurde für Team aktuell berechnet
 			$dbcn->execute_query("UPDATE teams SET avg_rank_tier = ?, avg_rank_div = ?, avg_rank_num = ? WHERE OPL_ID = ?", [$ranks_rev[$rank][0], $ranks_rev[$rank][1], $rank_num, $teamID]);
+			$returnArr["echo"] .= "- Aktuell: ". $ranks_rev[$rank][0] . $ranks_rev[$rank][1] . " " . $rank_num."<br>";
 		}
-		$returnArr["writes"]++;
-		$returnArr["echo"] .= $ranks_rev[$rank][0] . $ranks_rev[$rank][1] . " " . $rank_num;
+		$returnArr["writes"] = 1;
 	}
+
+	if ($tournamentID != null && $next_split != null) {
+		$rank_arr = [];
+		foreach ($players_2 as $player) {
+			if ($player['rank_tier'] != NULL && $player['rank_tier'] != "UNRANKED") {
+				if ($player['rank_tier'] === "MASTER" || $player['rank_tier'] === "GRANDMASTER" || $player['rank_tier'] === "CHALLENGER") {
+					$player_rank = $ranks[$player['rank_tier']];
+				} else {
+					$player_rank = $ranks[$player['rank_tier']." ".$player['rank_div']];
+				}
+				$rank_arr[] = $player_rank;
+			}
+		}
+		if (count($rank_arr) == 0) {
+			if ($team_season_rank_2 != null) {
+				$dbcn->execute_query("UPDATE teams_tournament_rank SET avg_rank_tier = NULL, avg_rank_div = NULL, avg_rank_num = NULL WHERE OPL_ID_team = ? AND OPL_ID_tournament = ? AND second_ranked_split = true", [$teamID, $tournament["OPL_ID"]]);
+			} else {
+				$dbcn->execute_query("INSERT INTO teams_tournament_rank (OPL_ID_team, OPL_ID_tournament, second_ranked_split, avg_rank_tier, avg_rank_div, avg_rank_num) VALUES (?,?,true,null,null,null)", [$teamID, $tournament["OPL_ID"]]);
+			}
+			$returnArr["echo"] .= "- ".$tournamentID."_S".$next_split["season"]."-".$next_split["split"].": kein Rang<br>";
+		} else {
+			$rank = 0;
+			foreach ($rank_arr as $player) {
+				$rank += $player;
+			}
+			$rank_num = $rank / count($rank_arr);
+			$rank = floor($rank_num);
+			if ($team_season_rank_2 != null) {
+				$dbcn->execute_query("UPDATE teams_tournament_rank SET avg_rank_tier = ?, avg_rank_div = ?, avg_rank_num = ? WHERE OPL_ID_team = ? AND OPL_ID_tournament = ? AND second_ranked_split = true", [$ranks_rev[$rank][0], $ranks_rev[$rank][1], $rank_num, $teamID, $tournament["OPL_ID"]]);
+			} else {
+				$dbcn->execute_query("INSERT INTO teams_tournament_rank (OPL_ID_team, OPL_ID_tournament, second_ranked_split, avg_rank_tier, avg_rank_div, avg_rank_num) VALUES (?,?,true,?,?,?)", [$teamID, $tournament["OPL_ID"], $ranks_rev[$rank][0], $ranks_rev[$rank][1], $rank_num]);
+			}
+			$returnArr["writes"] = 1;
+			$returnArr["echo"] .= "- ".$tournamentID."_S".$next_split["season"]."-".$next_split["split"].": ". $ranks_rev[$rank][0] . $ranks_rev[$rank][1] . " " . $rank_num."<br>";
+		}
+
+	}
+
 	return $returnArr;
 }
 

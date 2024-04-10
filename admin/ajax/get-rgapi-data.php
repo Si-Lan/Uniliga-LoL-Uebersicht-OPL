@@ -67,7 +67,8 @@ if ($type == "calculate-write-avg-rank") {
 	$teamID = $_REQUEST["team"];
 	$tournamentID = $_REQUEST["tournament"] ?? NULL;
 	$result = calculate_avg_team_rank($teamID,$tournamentID);
-	echo $result["echo"];
+	$result_2 = calculate_avg_team_rank($teamID);
+	echo $result["echo"].$result_2["echo"];
 }
 
 
