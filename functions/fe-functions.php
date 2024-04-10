@@ -385,9 +385,13 @@ function create_standings(mysqli $dbcn, $tournament_id, $group_id, $team_id=NULL
 														FROM teams
 														    JOIN teams_in_tournaments tit
 														        ON teams.OPL_ID = tit.OPL_ID_team
+															LEFT JOIN teams_tournament_rank ttr
+																ON teams.OPL_ID = ttr.OPL_ID_team
+																	AND ttr.OPL_ID_tournament = ?
+																	AND second_ranked_split = false
 														WHERE tit.OPL_ID_group = ?
 															AND teams.OPL_ID <> -1
-														ORDER BY IF((standing=0 OR standing IS NULL), 1, 0), standing",[$group['OPL_ID']])->fetch_all(MYSQLI_ASSOC);
+														ORDER BY IF((standing=0 OR standing IS NULL), 1, 0), standing",[$tournament_id,$group_id])->fetch_all(MYSQLI_ASSOC);
 
 	$result .= "<div class='standings'>";
 	if ($team_id == NULL) {
