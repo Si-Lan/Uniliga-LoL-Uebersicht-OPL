@@ -115,6 +115,57 @@ foreach ($leagues as $league) {
 	echo "</div>";
 }
 
+//TODO: das ist hier erstmal nur zum testen
+echo "<div class='division'>
+                        <div class='group-title-wrapper'><h2>Wildcard</h2>";
+/*
+if ($logged_in) {
+	echo "<a class='button write games-div {$league['OPL_ID']}' onclick='get_games_for_division(\"$tournamentID\",\"{$league['OPL_ID']}\")'><div class='material-symbol'>" . file_get_contents("../icons/material/place_item.svg") . "</div>Lade Spiele</a>";
+}
+*/
+echo "</div>";
+/*
+if ($logged_in) {
+	echo "<div class='result-wrapper no-res {$league['OPL_ID']} {$tournamentID}'>
+                            <div class='clear-button' onclick='clear_results(\"{$league['OPL_ID']}\")'>Clear</div>
+                            <div class='result-content'></div>
+                          </div>";
+}
+*/
+echo "<div class='divider'></div>";
+
+$wildcards = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID_parent = ? AND eventType='wildcard' AND deactivated = FALSE", [$tournamentID])->fetch_all(MYSQLI_ASSOC);
+
+echo "<div class='groups'>";
+foreach ($wildcards as $wildcard) {
+	$group_title = ($wildcard["numberRangeTo"] == null) ? "Wildcard Liga {$wildcard['number']}" : "Wildcard Liga {$wildcard['number']}-{$wildcard["numberRangeTo"]}";
+
+	echo "<div>";
+	echo "<div class='group'>
+                            <a href='turnier/{$tournament_url_path}/gruppe/{$wildcard['OPL_ID']}' class='button'>$group_title</a>
+                            <a href='turnier/{$tournament_url_path}/teams?liga={$wildcard['OPL_ID']}' class='button'><div class='material-symbol'>" . file_get_contents("../icons/material/group.svg") . "</div>Teams</a>";
+	echo "</div>"; // group
+    /*
+	if ($logged_in) {
+		echo "<a class='button write games- {$group['OPL_ID']}' onclick='get_games_for_group(\"$tournamentID\",\"{$group['OPL_ID']}\")'><div class='material-symbol'>" . file_get_contents("../icons/material/place_item.svg") . "</div>Lade Spiele</a>";
+	}
+    */
+	echo "</div>";
+    /*
+	if ($logged_in) {
+		echo "
+                            <div class='result-wrapper no-res {$group['OPL_ID']} {$tournamentID}'>
+                                <div class='clear-button' onclick='clear_results(\"{$group['OPL_ID']}\")'>Clear</div>
+                                <div class='result-content'></div>
+                            </div>";
+	}
+    */
+}
+echo "</div>";
+
+echo "</div>";
+
+
 echo "</div>";
 echo "</div>";
 
