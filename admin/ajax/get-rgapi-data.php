@@ -55,11 +55,23 @@ if ($type == "assign-and-filter" || $type == "matchdata-and-assign") {
 }
 
 if ($type == "get-rank-for-player") {
-	$id = $_REQUEST['player'];
+	$id = $_SERVER["HTTP_PLAYER"] ?? $_REQUEST['player'];
+	$additional_teamupdate = $_SERVER["HTTP_UPDATE_CURRENT_TEAM"] ?? $_REQUEST["update-current-team"] ?? null;
+	$additional_teamupdate = ($additional_teamupdate == "true");
 
 	$results = get_Rank_by_SummonerId($id);
 
-	$returnArr = $results['echo'];
+	$results_teams = "";
+	if ($additional_teamupdate) {
+		$dbcn = create_dbcn();
+		$teams = $dbcn->execute_query("SELECT * FROM players_in_teams LEFT JOIN teams ON players_in_teams.OPL_ID_team = teams.OPL_ID WHERE OPL_ID_player = ?", [$id])->fetch_all(MYSQLI_ASSOC);
+		foreach ($teams as $team) {
+			$result_team = calculate_avg_team_rank($team["OPL_ID_team"]);
+			$results_teams .= $team["name"].":<br>".$result_team["echo"];
+		}
+	}
+
+	$returnArr = $results['echo'].$results_teams;
 	echo $returnArr;
 }
 

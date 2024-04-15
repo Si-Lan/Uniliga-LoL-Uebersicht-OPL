@@ -126,12 +126,22 @@ if ($type == "players") {
 			}
 		}
 	} else {
-		if (isset($_SERVER["HTTP_SUMMONERIDSET"])) {
-			$players = $dbcn->execute_query("SELECT * FROM players JOIN players_in_teams pit ON players.OPL_ID = pit.OPL_ID_player WHERE pit.OPL_ID_team = ? AND summonerID IS NOT NULL", [$teamID])->fetch_all(MYSQLI_ASSOC);
-		} elseif (isset($_SERVER["HTTP_PUUIDSET"])) {
-			$players = $dbcn->execute_query("SELECT * FROM players JOIN players_in_teams pit ON players.OPL_ID = pit.OPL_ID_player WHERE pit.OPL_ID_team = ? AND PUUID IS NOT NULL", [$teamID])->fetch_all(MYSQLI_ASSOC);
+		if ($teamID != null) {
+			if (isset($_SERVER["HTTP_SUMMONERIDSET"])) {
+				$players = $dbcn->execute_query("SELECT * FROM players JOIN players_in_teams pit ON players.OPL_ID = pit.OPL_ID_player WHERE pit.OPL_ID_team = ? AND summonerID IS NOT NULL", [$teamID])->fetch_all(MYSQLI_ASSOC);
+			} elseif (isset($_SERVER["HTTP_PUUIDSET"])) {
+				$players = $dbcn->execute_query("SELECT * FROM players JOIN players_in_teams pit ON players.OPL_ID = pit.OPL_ID_player WHERE pit.OPL_ID_team = ? AND PUUID IS NOT NULL", [$teamID])->fetch_all(MYSQLI_ASSOC);
+			} else {
+				$players = $dbcn->execute_query("SELECT * FROM players JOIN players_in_teams pit ON players.OPL_ID = pit.OPL_ID_player WHERE pit.OPL_ID_team = ?", [$teamID])->fetch_all(MYSQLI_ASSOC);
+			}
 		} else {
-			$players = $dbcn->execute_query("SELECT * FROM players JOIN players_in_teams pit ON players.OPL_ID = pit.OPL_ID_player WHERE pit.OPL_ID_team = ?", [$teamID])->fetch_all(MYSQLI_ASSOC);
+			if (isset($_SERVER["HTTP_SUMMONERIDSET"])) {
+				$players = $dbcn->execute_query("SELECT * FROM players WHERE summonerID IS NOT NULL")->fetch_all(MYSQLI_ASSOC);
+			} elseif (isset($_SERVER["HTTP_PUUIDSET"])) {
+				$players = $dbcn->execute_query("SELECT * FROM players WHERE PUUID IS NOT NULL")->fetch_all(MYSQLI_ASSOC);
+			} else {
+				$players = $dbcn->execute_query("SELECT * FROM players")->fetch_all(MYSQLI_ASSOC);
+			}
 		}
 	}
 

@@ -15,7 +15,7 @@ $dbcn = create_dbcn();
 $loggedin = is_logged_in();
 $lightmode = is_light_mode(true);
 
-echo create_html_head_elements(css: [""], js: ["admin"], title: "Admin-Panel | Uniliga LoL - Übersicht" ,loggedin: $loggedin);
+echo create_html_head_elements(css: ["rgapi"], js: ["admin"], title: "Admin-Panel | Uniliga LoL - Übersicht" ,loggedin: $loggedin);
 
 ?>
 <body class="admin <?php echo $lightmode?>">
@@ -34,6 +34,7 @@ if ($loggedin) {
 			<div class='dialog-content'></div>
 		</dialog>
         <button type="button" id="maintenance-mode" class="maintenance-<?php echo $maintenance_mode ?>">Maintenance Mode</button>
+        <h2>Neues Turnier hinzufügen:</h2>
 		<div id="main-selection">
 			<span class="searchbar"> <label for="input-tournament-id"></label><input id="input-tournament-id" name="id" placeholder="Tournament ID" type="number"> </span>
 			<button id="turnier-button-get">Turnier hinzufügen</button>
@@ -51,6 +52,17 @@ if ($loggedin) {
                 <div class="close-button-space"></div>
             </div>
         </dialog>
+
+        <h2>Allgemeine Verwaltung:</h2>
+        <div class="general-administration">
+            <button class="update_all_teams"><span>Teaminformationen für alle Teams aktualisieren</span></button>
+            <button class="update_all_rosters"><span>Roster für alle Teams aktualisieren</span></button>
+            <button class="update_all_player_ranks"><span>Ränge für alle Spieler aktualisieren</span></button>
+            <div class="result-wrapper no-res gen-admin">
+                <div class="clear-button" onclick="clear_results('gen-admin')">Clear</div>
+                <div class="result-content"></div>
+            </div>
+        </div>
 
 		<h2>Turniere in Datenbank:</h2>
 		<div class="turnier-select">

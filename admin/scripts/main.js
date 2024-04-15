@@ -714,3 +714,101 @@ $(document).ready(function () {
 	});
 
 });
+
+
+async function get_teaminfo_for_all_teams() {
+	// TODO: new function to update teamname and logo
+}
+
+async function get_players_for_all_teams() {
+	// TODO: new function to get players independent from tournament
+	// TODO: update riotids here (from OPL or Riot?)
+}
+
+async function get_ranks_for_all_players() {
+	//console.log("----- Start getting Ranks (all) -----");
+	let button = $(this);
+	button.addClass("button-updating");
+	button.prop("disabled", true);
+	let loadingbar_width = 0;
+	button.attr("style",`--loading-bar-width:${loadingbar_width}%`);
+
+	let wrapper = $(".result-wrapper.gen-admin");
+	let container = $(".result-wrapper.gen-admin .result-content");
+
+	let playerlist;
+
+	await fetch(`./ajax/get-data.php`, {
+		method: "GET",
+		headers: {
+			"type": "players",
+			"summonerIDset": "true",
+		},
+	})
+		.then(res => res.json())
+		.then(players => {
+			playerlist = players;
+		})
+		.catch(e => console.error(e));
+
+	add_to_write_results(wrapper,container,"----- "+playerlist.length+" Spieler gefunden -----<br>");
+
+	for (const playerIndex in playerlist) {
+		let i = parseInt(playerIndex)
+		let player = playerlist[i];
+		//console.log("Starting with Player "+(i+1));
+
+		fetch(`./admin/ajax/get-rgapi-data.php`, {
+			method: "GET",
+			headers: {
+				"type": "get-rank-for-player",
+				"player": player["OPL_ID"],
+				"update-current-team": "true",
+			}
+		})
+			.then(res => res.text())
+			.then(result => {
+				//console.log(`Player ${i+1} done`);
+				//console.log(result);
+				add_to_write_results(wrapper,container,`#${i+1}<br>${result}`);
+				loadingbar_width += 100/playerlist.length;
+				button.attr("style",`--loading-bar-width:${loadingbar_width}%`);
+			})
+			.catch(e => console.error(e));
+
+		if ((i+1) % 50 === 0) {
+			//console.log("-- sleep (#"+ (i+1) +") --");
+			// added some more seconds as padding to avoid 429 errors
+			for (let t = 0; t <= 15; t++) {
+				await new Promise(r => setTimeout(r, 1000));
+				add_to_write_results(wrapper,container,`----- wait ${15-t} -----<br>`);
+			}
+			//console.log("-- slept --");
+		}
+	}
+
+	//console.log("----- Done with getting Ranks (all) -----");
+	add_to_write_results(wrapper,container,"<br>----- Done with getting Ranks -----<br>");
+
+	button.prop("disabled", false);
+	button.removeClass("button-updating");
+	button.attr("style",`--loading-bar-width: 0`);
+}
+$(document).ready(function () {
+	$('button.update_all_player_ranks').on('click', get_ranks_for_all_players);
+});
+
+function clear_results(ID) {
+	let results = $(".result-wrapper."+ID);
+	if (!results.hasClass("no-res")) {
+		results.addClass("no-res");
+		results.find(".result-content").html("");
+	}
+}
+function add_to_write_results(wrapper_element, content_element, content) {
+	wrapper_element.removeClass('no-res');
+	content_element.append(content);
+	if (content_element.prop("scrollHeight") - content_element.scrollTop() < 1000) {
+		content_element.scrollTop(content_element.prop("scrollHeight"));
+	}
+}

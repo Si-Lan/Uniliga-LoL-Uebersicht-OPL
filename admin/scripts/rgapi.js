@@ -12,7 +12,7 @@ function clear_results(ID,num=0) {
 	}
 	if (!results.hasClass("no-res")) {
 		results.addClass("no-res");
-		$(".result-wrapper .result-content").html("");
+		results.find(".result-content").html("");
 	}
 }
 function get_puuids(tournID, only_without_puuid = true) {

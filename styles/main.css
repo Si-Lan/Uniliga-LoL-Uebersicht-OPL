@@ -3396,6 +3396,10 @@ dialog.add-patch-popup .dialog-content {
 body.admin .main-content {
 	flex-direction: column;
 	align-items: center;
+	gap: 8px;
+}
+body.admin h2 {
+	margin-top: 40px;
 }
 .maintenance-off {
 	background-color: #492323;
@@ -3408,6 +3412,12 @@ body.admin .main-content {
 }
 .maintenance-on:hover {
 	background-color: #3e6533;
+}
+.general-administration {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 4px;
 }
 #main-selection {
 	display: flex;
