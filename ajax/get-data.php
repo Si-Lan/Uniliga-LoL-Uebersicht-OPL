@@ -54,6 +54,11 @@ if ($type == "playoffs") {
 
 if ($type == "teams") {
 	$tournamentID = $_SERVER["HTTP_TOURNAMENTID"] ?? NULL;
+	if ($tournamentID == null) {
+		$teams = $dbcn->execute_query("SELECT * FROM teams WHERE OPL_ID > 0")->fetch_all(MYSQLI_ASSOC);
+		echo json_encode($teams);
+		exit;
+	}
 	$tournament = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID = ?", [$tournamentID])->fetch_assoc();
 	$groups = [];
 	if ($tournament["eventType"] == "tournament") {

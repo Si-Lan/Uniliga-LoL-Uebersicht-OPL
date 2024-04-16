@@ -71,6 +71,14 @@ if ($type == "get_teams_for_tournament") {
 	$dbcn->close();
 }
 
+if ($type == "update_team") {
+	$dbcn = create_dbcn();
+	$team_id = $_SERVER["HTTP_TEAMID"] ?? NULL;
+	$result = update_team($team_id);
+	echo json_encode($result);
+	$dbcn->close();
+}
+
 // adds the players for all teams in the given tournament to DB  (x API-Calls) (x = number of teams)
 if ($type == "get_players_for_tournament") {
 	$result = [];

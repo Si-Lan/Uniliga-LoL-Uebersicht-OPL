@@ -100,7 +100,7 @@ echo "
 echo "
                     <div class='summoner-card-container'>";
 foreach ($players as $player) {
-	echo create_summonercard_general($dbcn,$player["OPL_ID"]);
+	if (!$player["removed"]) echo create_summonercard_general($dbcn,$player["OPL_ID"],$teamID);
 }
 echo "
                     </div> 

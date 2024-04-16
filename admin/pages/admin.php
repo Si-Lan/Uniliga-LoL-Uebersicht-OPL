@@ -55,8 +55,7 @@ if ($loggedin) {
 
         <h2>Allgemeine Verwaltung:</h2>
         <div class="general-administration">
-            <button class="update_all_teams"><span>Teaminformationen für alle Teams aktualisieren</span></button>
-            <button class="update_all_rosters"><span>Roster für alle Teams aktualisieren</span></button>
+            <button class="update_all_teams"><span>Alle Teams aktualisieren</span></button>
             <button class="update_all_player_ranks"><span>Ränge für alle Spieler aktualisieren</span></button>
             <div class="result-wrapper no-res gen-admin">
                 <div class="clear-button" onclick="clear_results('gen-admin')">Clear</div>

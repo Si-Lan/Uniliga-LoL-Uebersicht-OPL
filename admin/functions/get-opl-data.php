@@ -336,6 +336,8 @@ function get_teams_for_tournament($tournamentID, bool $deletemissing = false):ar
 	$context = stream_context_create($options);
 	$response = json_decode(file_get_contents($url, false, $context),true);
 
+	$datetime_today = date("Y-m-d H:i:s");
+
 	$data = $response["data"]["team_registrations"];
 
 	$team_ids = [];
@@ -368,13 +370,21 @@ function get_teams_for_tournament($tournamentID, bool $deletemissing = false):ar
 			$written = true;
 			$dbcn->execute_query("INSERT INTO teams (OPL_ID, name, shortName, OPL_logo_url, OPL_ID_logo)
 										VALUES (?, ?, ?, ?, ?)", [$team_data["OPL_ID"], $team_data["name"], $team_data["shortName"], $team_data["OPL_logo_url"], $team_data["OPL_ID_logo"]]);
+			$dbcn->execute_query("INSERT INTO team_name_history (OPL_ID_team, name, shortName, update_time)
+										VALUES (?,?,?,?)",[$team_data["OPL_ID"], $team_data["name"], $team_data["shortName"], $datetime_today]);
 		} else {
+			$name_updated = false;
 			foreach ($team_data as $key=>$item) {
 				if ($teamDB[$key] != $item) {
 					$updated[$key] = ["old"=>$teamDB[$key], "new"=>$item];
+					if ($key == "name" || $key == "shortName") {
+						$name_updated = true;
+					}
 				}
 			}
 			if (count($updated) > 0) {
+				if ($name_updated) $dbcn->execute_query("INSERT INTO team_name_history (OPL_ID_team, name, shortName, update_time)
+																VALUES (?,?,?,?)",[$team_data["OPL_ID"], $team_data["name"], $team_data["shortName"], $datetime_today]);
 				$dbcn->execute_query("UPDATE teams SET name=?, shortName=?, OPL_ID_logo=?, OPL_logo_url=? WHERE OPL_ID = ?", [$team_data["name"], $team_data["shortName"], $team_data["OPL_ID_logo"], $team_data["OPL_logo_url"], $team_data["OPL_ID"]]);
 			}
 		}
@@ -427,6 +437,139 @@ function get_teams_for_tournament($tournamentID, bool $deletemissing = false):ar
 	return $returnArr;
 }
 
+function update_team($teamID):array {
+	$dbcn = create_dbcn();
+	$bearer_token = get_opl_bearer_token();
+	$user_agent = get_user_agent_for_api_calls();
+
+	if ($dbcn->connect_error) {
+		return [];
+	}
+
+	$team = $dbcn->execute_query("SELECT * FROM teams WHERE OPL_ID = ?", [$teamID])->fetch_assoc();
+	if ($team == null) {
+		return [];
+	}
+
+	$url = "https://www.opleague.pro/api/v4/team/$teamID/users";
+	$options = ["http" => [
+		"header" => [
+			"Authorization: Bearer $bearer_token",
+			"User-Agent: $user_agent",
+		]
+	]];
+	$context = stream_context_create($options);
+	$response = json_decode(file_get_contents($url, context: $context), true);
+
+	$datetime_today = date("Y-m-d H:i:s");
+
+	$data = $response["data"];
+	$users = $data["users"];
+
+	$logo_url = $data["logo_array"]["background"] ?? null;
+	$logo_id = ($logo_url != null) ? explode("/", $logo_url, -1) : null;
+	$logo_id = ($logo_id != null) ? end($logo_id) : null;
+
+	$team_data = [
+		"OPL_ID" => $data["ID"],
+		"name" => $data["name"],
+		"shortName" => $data["short_name"],
+		"OPL_logo_url" => $logo_url,
+		"OPL_ID_logo" => $logo_id,
+	];
+
+	$updated_team = [];
+	$logo_dl = false;
+
+	$name_updated = false;
+	foreach ($team_data as $key=>$item) {
+		if ($team[$key] != $item) {
+			$updated_team[$key] = ["old"=>$team[$key], "new"=>$item];
+			if ($key == "name" || $key == "shortName") {
+				$name_updated = true;
+			}
+		}
+	}
+	if (count($updated_team) > 0) {
+		if ($name_updated) $dbcn->execute_query("INSERT INTO team_name_history (OPL_ID_team, name, shortName, update_time)
+																VALUES (?,?,?,?)",[$team_data["OPL_ID"], $team_data["name"], $team_data["shortName"], $datetime_today]);
+		$dbcn->execute_query("UPDATE teams SET name=?, shortName=?, OPL_ID_logo=?, OPL_logo_url=? WHERE OPL_ID = ?", [$team_data["name"], $team_data["shortName"], $team_data["OPL_ID_logo"], $team_data["OPL_logo_url"], $team_data["OPL_ID"]]);
+	}
+
+	// Team Logo herunterladen, wenn das aktuelle logo älter als eine woche ist
+	$last_update = strtotime($team["last_logo_download"] ?? "");
+	$current_time = strtotime(date('Y-m-d H:i:s'));
+	if ($team_data["OPL_logo_url"] != NULL && $current_time-$last_update > 604800) {
+		$logo_dl = download_opl_img($team_data["OPL_ID_logo"], "team_logo");
+	}
+
+	// Update Players:
+
+	$player_result_array = [];
+	$player_IDs = [];
+
+	foreach ($users as $player) {
+		$player_data = [
+			"OPL_ID" => $player["ID"],
+			"name" => $player["username"],
+		];
+
+		$updated_player = [];
+		$written = false;
+
+		$player_DB = $dbcn->execute_query("SELECT * FROM players WHERE OPL_ID = ?", [$player_data["OPL_ID"]])->fetch_assoc();
+
+		if ($player_DB == null) {
+			$written = true;
+			$dbcn->execute_query("INSERT INTO players (OPL_ID, name) VALUES (?,?)", [$player_data["OPL_ID"], $player_data["name"]]);
+		} else {
+			foreach ($player_data as $key=>$item) {
+				if ($player_DB[$key] != $item) {
+					$updated_player[$key] = ["old"=>$player_DB[$key], "new"=>$item];
+				}
+			}
+			if (count($updated_player) > 0) {
+				$dbcn->execute_query("UPDATE players SET name = ? WHERE OPL_ID = ?", [$player_data["name"], $player_data["OPL_ID"]]);
+			}
+		}
+
+		$player_in_team = $dbcn->execute_query("SELECT * FROM players_in_teams WHERE OPL_ID_team = ? AND OPL_ID_player = ?", [$teamID, $player_data["OPL_ID"]])->fetch_assoc();
+		if ($player_in_team == NULL) {
+			$updated_player["teamID"] = ["old"=>NULL, "new"=>$teamID];
+			$dbcn->execute_query("INSERT INTO players_in_teams (OPL_ID_player, OPL_ID_team) VALUES (?, ?)", [$player_data["OPL_ID"], $teamID]);
+		} else {
+			$dbcn->execute_query("UPDATE players_in_teams SET removed = FALSE WHERE OPL_ID_player = ? AND OPL_ID_team = ?", [$player_data["OPL_ID"], $teamID]);
+		}
+
+		$player_IDs[] = $player_data["OPL_ID"];
+
+		$player_result_array[] = [
+			"player" => $player_data,
+			"written" => $written,
+			"updated" => $updated_player,
+		];
+	}
+
+	$players_t_DB = $dbcn->execute_query("SELECT * FROM players_in_teams pit LEFT JOIN players p ON pit.OPL_ID_player = p.OPL_ID WHERE OPL_ID_team = ?", [$teamID])->fetch_all(MYSQLI_ASSOC);
+	$players_removed = [];
+	if (count($player_IDs) > 0) {
+		foreach ($players_t_DB as $player) {
+			if (!in_array($player["OPL_ID_player"], $player_IDs)) {
+				$dbcn->execute_query("UPDATE players_in_teams SET removed = TRUE WHERE OPL_ID_player = ? AND OPL_ID_team = ?", [$player["OPL_ID_player"], $teamID]);
+				$players_removed[] = $player;
+			}
+		}
+	}
+
+	return [
+		"team" => $team_data,
+		"updated" => $updated_team,
+		"logo_downloaded" => $logo_dl,
+		"player_updates" => $player_result_array,
+		"players_removed" => $players_removed,
+	];
+}
+
 // works only for tournaments with eventType group
 function get_players_for_tournament($tournamentID):array {
 	$returnArr = [];
@@ -454,7 +597,7 @@ function get_players_for_tournament($tournamentID):array {
 
 function get_players_for_team($teamID, $tournamentID):array {
 	$returnArr = [];
-	if ($teamID == -1) return $returnArr;
+	if ($teamID < 0) return $returnArr;
 	$dbcn = create_dbcn();
 	$bearer_token = get_opl_bearer_token();
 	$user_agent = get_user_agent_for_api_calls();

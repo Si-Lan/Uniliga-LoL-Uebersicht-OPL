@@ -716,13 +716,91 @@ $(document).ready(function () {
 });
 
 
-async function get_teaminfo_for_all_teams() {
-	// TODO: new function to update teamname and logo
-}
+async function update_all_teams() {
+	let button = $(this);
+	button.addClass("button-updating");
+	button.prop("disabled", true);
+	let loadingbar_width = 0;
+	button.attr("style",`--loading-bar-width:${loadingbar_width}%`);
 
-async function get_players_for_all_teams() {
-	// TODO: new function to get players independent from tournament
-	// TODO: update riotids here (from OPL or Riot?)
+	let wrapper = $(".result-wrapper.gen-admin");
+	let container = $(".result-wrapper.gen-admin .result-content");
+
+	let teamlist;
+
+	await fetch(`./ajax/get-data.php`, {
+		method: "GET",
+		headers: {
+			"type": "teams",
+		}
+	})
+		.then(res => res.json())
+		.then(teams => {
+			teamlist = teams;
+		})
+		.catch(e => console.error(e));
+
+	add_to_write_results(wrapper,container, `----- ${teamlist.length} Teams gefunden ----- <br>`);
+	console.log(teamlist);
+
+	for (const teamIndex in teamlist) {
+		let i = parseInt(teamIndex);
+		let team = teamlist[i];
+
+		await fetch(`./admin/ajax/get-opl-data.php`, {
+			method: "GET",
+			headers: {
+				"type": "update_team",
+				"teamid": team["OPL_ID"],
+			}
+		})
+			.then(res => res.json())
+			.then(result => {
+				let team_result = `#${i+1}<br>Team: ${team["name"]}:<br>`;
+				if (result.length === 0 || result["updated"].length === 0) {
+					team_result += "<span style='color: orangered'>Keine Änderungen</span>";
+				} else {
+					for (const [updatetype,updated] of Object.entries(result["updated"])) {
+						team_result += `<span style="color: orange">${updatetype}: \"${updated["old"]}\" => \"${updated["new"]}\"</span>`;
+					}
+				}
+				if (result["logo_downloaded"]) team_result += "<span style='color: orange'>- Logo aktualisiert</span>";
+				if (result["player_updates"].length !== 0) {
+					team_result += "<span>Spieler:</span>";
+					for (const player of result["player_updates"]) {
+						if (player["written"]) {
+							team_result += `<span style='color: limegreen'>NEU: ${player["player"]["name"]} (${player["player"]["OPL_ID"]})</span>`;
+						} else if (player["updated"].length !== 0) {
+							team_result += `<span style='color: orange'>UPDATED: ${player["player"]["name"]} (${player["player"]["OPL_ID"]})</span>`;
+							for (const [updatetype,updated] of Object.entries(player["updated"])) {
+								team_result += `<span style='color: orange'>- ${updatetype}: ${updated["old"]} => ${updated["new"]}</span>`;
+							}
+						} else {
+							team_result += `<span style="color: cornflowerblue">${player["player"]["name"]} (${player["player"]["OPL_ID"]})</span>`;
+						}
+					}
+				}
+				if (result["players_removed"] !== 0) {
+					team_result += "<span>entfernte Spieler:</span>";
+					for (const player of result["players_removed"]) {
+						team_result += `<span style='color: orangered'>ALT: ${player["name"]} (${player["OPL_ID"]})</span>`;
+					}
+				}
+				team_result += "<br>";
+				add_to_write_results(wrapper,container,team_result);
+				loadingbar_width += 100/teamlist.length;
+				button.attr("style",`--loading-bar-width:${loadingbar_width}%`);
+			})
+			.catch(e => {console.error(e)});
+
+		await new Promise(r => setTimeout(r, 1000));
+	}
+
+	add_to_write_results(wrapper,container,"<br>----- Done with updating Teams -----<br>");
+
+	button.prop("disabled", false);
+	button.removeClass("button-updating");
+	button.attr("style",`--loading-bar-width: 0`);
 }
 
 async function get_ranks_for_all_players() {
@@ -796,6 +874,7 @@ async function get_ranks_for_all_players() {
 }
 $(document).ready(function () {
 	$('button.update_all_player_ranks').on('click', get_ranks_for_all_players);
+	$('button.update_all_teams').on('click', update_all_teams);
 });
 
 function clear_results(ID) {

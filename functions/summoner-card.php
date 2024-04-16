@@ -120,9 +120,10 @@ function create_summonercard(mysqli $dbcn, $playerID, $tournamentID, $teamID = N
 	return $return;
 }
 
-function create_summonercard_general(mysqli $dbcn, $playerID):string {
-	$player = $dbcn->execute_query("SELECT * FROM players WHERE OPL_ID = ?", [$playerID])->fetch_assoc();
+function create_summonercard_general(mysqli $dbcn, $playerID, $teamID = null):string {
+	$player = $dbcn->execute_query("SELECT * FROM players p LEFT JOIN players_in_teams pit ON p.OPL_ID = pit.OPL_ID_player AND pit.OPL_ID_team = ? WHERE OPL_ID = ?", [$teamID,$playerID])->fetch_assoc();
 	$player_rank = $dbcn->execute_query("SELECT * FROM players_season_rank WHERE OPL_ID_player = ? ORDER BY season DESC", [$playerID])->fetch_assoc();
+	$player_removed_class =  ($player["removed"]??false) ? " player-removed" : "";
 	$return = "";
 	$enc_riotid = urlencode($player['riotID_name']??"")."-".urlencode($player['riotID_tag']??"");
 	$riotid_full = $player['riotID_name']."#".$player['riotID_tag'];
@@ -136,7 +137,7 @@ function create_summonercard_general(mysqli $dbcn, $playerID):string {
 	}
 	$return .= "<div class='summoner-card-wrapper'>";
 	$return .= "
-	<div class='summoner-card {$player['OPL_ID']} collapsed' onclick='player_to_opgg_link(\"{$player['OPL_ID']}\",\"{$riotid_full}\")'>";
+	<div class='summoner-card {$player['OPL_ID']} collapsed$player_removed_class' onclick='player_to_opgg_link(\"{$player['OPL_ID']}\",\"{$riotid_full}\")'>";
 	$return .= "<input type='checkbox' name='OPGG' checked class='opgg-checkbox'>";
 	$return .= "
 	<span class='card-player'>
