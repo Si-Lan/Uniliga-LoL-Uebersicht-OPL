@@ -1392,7 +1392,7 @@ function create_teamcard(mysqli $dbcn, $teamID, $tournamentID) {
 		//TODO: playoffs
 		return;
 	}
-	$team_season_rank = $dbcn->execute_query("SELECT * FROM teams_tournament_rank WHERE OPL_ID_team = ? AND OPL_ID_tournament = ?",[$teamID,$tournament["OPL_ID"]])->fetch_assoc();
+	$team_season_rank = $dbcn->execute_query("SELECT * FROM teams_tournament_rank WHERE OPL_ID_team = ? AND OPL_ID_tournament = ? AND second_ranked_split = FALSE",[$teamID,$tournament["OPL_ID"]])->fetch_assoc();
 	$rank_tier = strtolower($team_season_rank["avg_rank_tier"]??"");
 	$rank_div = $team_season_rank["avg_rank_div"]??null;
 	$players = $dbcn->execute_query("SELECT * FROM players_in_teams_in_tournament ptt LEFT JOIN players p ON ptt.OPL_ID_player = p.OPL_ID LEFT JOIN stats_players_teams_tournaments sptt ON p.OPL_ID = sptt.OPL_ID_player AND sptt.OPL_ID_tournament = ptt.OPL_ID_tournament AND sptt.OPL_ID_team = ptt.OPL_ID_team WHERE ptt.OPL_ID_team = ? AND ptt.OPL_ID_tournament = ?", [$teamID,$parent_tournament["OPL_ID"]])->fetch_all(MYSQLI_ASSOC);
