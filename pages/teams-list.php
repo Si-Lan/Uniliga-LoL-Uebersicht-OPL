@@ -157,6 +157,8 @@ foreach ($teams as $i_teams=>$team) {
 	$currTeamDivID = $groups[$team["OPL_ID_group"]]["OPL_ID_parent"];
 	$currTeamImgID = $team["OPL_ID_logo"];
 
+	$team_name_now = $dbcn->execute_query("SELECT name FROM team_name_history WHERE OPL_ID_team = ? AND update_time > ? AND (update_time < ? OR ? IS NULL) ORDER BY update_time DESC", [$currTeamID,$tournament["dateStart"],$tournament["dateEnd"],$tournament["dateEnd"]])->fetch_column();
+
 	$team_rank = "";
 
 	if (array_key_exists($currTeamDivID, $leagues)) {
@@ -198,7 +200,7 @@ foreach ($teams as $i_teams=>$team) {
                         <img class='color-switch' alt src='$img_url'>";
 	}
 	echo "
-                        <span>$currTeam</span>
+                        <span>$team_name_now</span>
                     </div>
                     <div class='team-group'>
                         $team_rank

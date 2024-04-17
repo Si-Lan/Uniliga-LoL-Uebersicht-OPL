@@ -272,7 +272,7 @@ function create_tournament_nav_buttons(string|int $tournament_id, mysqli $dbcn =
 	return $result;
 }
 
-function generate_elo_list($dbcn,$view,$teams,$tournamentID,$division,$group):string {
+function generate_elo_list(mysqli $dbcn,$view,$teams,$tournamentID,$division,$group):string {
 	$results = "";
 	$local_team_img = "img/team_logos/";
     $logo_filename = is_light_mode() ? "logo_light.webp" : "logo.webp";
@@ -309,7 +309,9 @@ function generate_elo_list($dbcn,$view,$teams,$tournamentID,$division,$group):st
                         <div class='elo-list-after-header elo-nr'>Elo</div>
                         <a class='elo-list-after-header op-gg'><div class='svg-wrapper op-gg'></div></a>
                     </div>";
+	$tournament = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID = ?", [$tournamentID])->fetch_assoc();
 	foreach ($teams as $team) {
+		$team_name = $dbcn->execute_query("SELECT * FROM team_name_history WHERE OPL_ID_team = ? AND update_time > ? AND (update_time < ? OR ? IS NULL) ORDER BY update_time DESC", [$team["OPL_ID"],$tournament["dateStart"],$tournament["dateEnd"],$tournament["dateEnd"]])->fetch_assoc();
 		$curr_players = $dbcn->execute_query(
 			"SELECT p.*
 				FROM players p
@@ -342,7 +344,7 @@ function generate_elo_list($dbcn,$view,$teams,$tournamentID,$division,$group):st
                                 <img class='color-switch' src='$local_team_img{$team['OPL_ID_logo']}/$logo_filename' alt='Teamlogo'>";
 		}
 		$results .= "
-                                <span>{$team['name']}</span>
+                                <span>{$team_name['name']}</span>
                             </div>
                             <div class='elo-list-item rank'>";
 		if ($team['avg_rank_tier'] != NULL) {
@@ -428,6 +430,9 @@ function create_standings(mysqli $dbcn, $tournament_id, $group_id, $team_id=NULL
 			}
 			$curr_opgglink .= urlencode($curr_player["riotID_name"]."#".$curr_player["riotID_tag"]);
 		}
+		$tournament = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID = ?", [$tournament_id])->fetch_assoc();
+		$team_name_now = $dbcn->execute_query("SELECT name FROM team_name_history WHERE OPL_ID_team = ? AND update_time > ? AND (update_time < ? OR ? IS NULL) ORDER BY update_time DESC", [$currteam["OPL_ID"],$tournament["dateStart"],$tournament["dateEnd"],$tournament["dateEnd"]])->fetch_column();
+		$currteam["name"] = $team_name_now;
 		if ($team_id != NULL) {
 			$current = ($currteam['OPL_ID'] == $team_id)? " current" : "";
 		} else {
@@ -487,8 +492,18 @@ function create_matchbutton(mysqli $dbcn,$match_id,$type,$team_id=NULL,$tourname
 		$teams[$team['OPL_ID']] = array("TeamName"=>$team['name'], "imgID"=>$team['OPL_ID']);
 	}
 
-	$team1Name = ($match["OPL_ID_team1"] != "") ? $teams[$match["OPL_ID_team1"]]["TeamName"] : "TBD";
-	$team2Name = ($match["OPL_ID_team2"] != "") ? $teams[$match["OPL_ID_team2"]]["TeamName"] : "TBD";
+	$tournament = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID = ?", [$tournament_id])->fetch_assoc();
+
+	if ($match["OPL_ID_team1"] != "") {
+		$team1Name = $dbcn->execute_query("SELECT name FROM team_name_history WHERE OPL_ID_team = ? AND update_time > ? AND (update_time < ? OR ? IS NULL) ORDER BY update_time DESC", [$match["OPL_ID_team1"],$tournament["dateStart"],$tournament["dateEnd"],$tournament["dateEnd"]])->fetch_column();
+	} else {
+		$team1Name = "TBD";
+	}
+	if ($match["OPL_ID_team2"] != "") {
+		$team2Name = $dbcn->execute_query("SELECT name FROM team_name_history WHERE OPL_ID_team = ? AND update_time > ? AND (update_time < ? OR ? IS NULL) ORDER BY update_time DESC", [$match["OPL_ID_team2"],$tournament["dateStart"],$tournament["dateEnd"],$tournament["dateEnd"]])->fetch_column();
+	} else {
+		$team2Name = "TBD";
+	}
 
 	$current1 = "";
 	$current2 = "";
@@ -652,6 +667,11 @@ function create_game(mysqli $dbcn,$gameID,$curr_team=NULL,$tournamentID=null, $r
 	}
 
 	$tournamentID = $gameDB["OPL_ID_tournament"];
+
+	$tournament = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID = ?", [$tournamentID])->fetch_assoc();
+
+	$team_name_blue = $dbcn->execute_query("SELECT * FROM team_name_history WHERE OPL_ID_team = ? AND update_time > ? AND (update_time < ? OR ? IS NULL) ORDER BY update_time DESC", [$team_blue_ID,$tournament["dateStart"],$tournament["dateEnd"],$tournament["dateEnd"]])->fetch_assoc();
+	$team_name_red = $dbcn->execute_query("SELECT * FROM team_name_history WHERE OPL_ID_team = ? AND update_time > ? AND (update_time < ? OR ? IS NULL) ORDER BY update_time DESC", [$team_red_ID,$tournament["dateStart"],$tournament["dateEnd"],$tournament["dateEnd"]])->fetch_assoc();
 
 	$players_PUUID = [];
 	for ($i = 0; $i < count($players_blue_DB); $i++)  {
@@ -847,7 +867,7 @@ function create_game(mysqli $dbcn,$gameID,$curr_team=NULL,$tournamentID=null, $r
 							<span>$game_duration_min:$game_duration_sec</span>
 						</div>";
 	// team blue
-	$result_minimized .= "<a class='team $score_blue_class $blue_curr' href='./turnier/$tournamentID/team/$team_blue_ID'>$logo_blue<span>{$team_blue["name"]}</span></a>";
+	$result_minimized .= "<a class='team $score_blue_class $blue_curr' href='./turnier/$tournamentID/team/$team_blue_ID'>$logo_blue<span>{$team_name_blue["name"]}</span></a>";
 
 	// players
 	for ($t = 0; $t < 2; $t++) {
@@ -885,7 +905,7 @@ function create_game(mysqli $dbcn,$gameID,$curr_team=NULL,$tournamentID=null, $r
 	}
 
 	//team red
-	$result_minimized .= "<a class='team $score_red_class $red_curr' href='./turnier/$tournamentID/team/$team_red_ID'>$logo_red<span>{$team_red["name"]}</span></a>";
+	$result_minimized .= "<a class='team $score_red_class $red_curr' href='./turnier/$tournamentID/team/$team_red_ID'>$logo_red<span>{$team_name_red["name"]}</span></a>";
 
 	// expand button
 	$result_minimized .= "<button class='expand-game-details'><div class='material-symbol'>".file_get_contents(dirname(__FILE__)."/../icons/material/expand_less.svg")."</div></button>";
@@ -896,7 +916,7 @@ function create_game(mysqli $dbcn,$gameID,$curr_team=NULL,$tournamentID=null, $r
     <div class='game-details'>
         <div class='game-row teams'>
             <a class='team 1 $blue_curr$score_blue_class' href='./turnier/$tournamentID/team/$team_blue_ID'>
-                <div class='name'>$logo_blue{$team_blue['name']}</div>
+                <div class='name'>$logo_blue{$team_name_blue["name"]}</div>
                 <div class='score$score_blue_class'>$score_blue</div>
             </a>
             <div class='time'>
@@ -904,7 +924,7 @@ function create_game(mysqli $dbcn,$gameID,$curr_team=NULL,$tournamentID=null, $r
             </div>
             <a class='team 2 $red_curr$score_red_class' href='./turnier/$tournamentID/team/$team_red_ID'>
                 <div class='score$score_red_class'>$score_red</div>
-                <div class='name'>{$team_red['name']}$logo_red</div>
+                <div class='name'>{$team_name_red["name"]}$logo_red</div>
             </a>
         </div>
         <div class='game-row team-stats'>
@@ -1115,6 +1135,7 @@ function create_playercard(mysqli $dbcn, $playerID, $teamID, $tournamentID, $det
 	$player_rank = $dbcn->execute_query("SELECT * FROM players_season_rank WHERE OPL_ID_player = ? AND season = (SELECT tournaments.season FROM tournaments WHERE tournaments.OPL_ID = ?)", [$playerID, $tournamentID])->fetch_assoc();
 	$tournament = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID = ?", [$tournamentID])->fetch_assoc();
     $team = $dbcn->execute_query("SELECT * FROM teams WHERE OPL_ID = ?", [$teamID])->fetch_assoc();
+	$team_name = $dbcn->execute_query("SELECT * FROM team_name_history WHERE OPL_ID_team = ? AND update_time > ? AND (update_time < ? OR ? IS NULL) ORDER BY update_time DESC", [$team["OPL_ID"],$tournament["dateStart"],$tournament["dateEnd"],$tournament["dateEnd"]])->fetch_assoc();
 	$team_in_tournament = $dbcn->execute_query("SELECT * FROM teams_in_tournaments WHERE OPL_ID_team = ? AND OPL_ID_group IN (SELECT OPL_ID FROM tournaments WHERE eventType = 'group' AND OPL_ID_parent IN (SELECT OPL_ID FROM tournaments WHERE eventType = 'league' AND OPL_ID_parent = ?))", [$teamID, $tournamentID])->fetch_assoc();
     $group = $dbcn->execute_query("SELECT * FROM tournaments WHERE eventType='group' AND OPL_ID = ?", [$team_in_tournament["OPL_ID_group"]])->fetch_assoc();
 	$league = $dbcn->execute_query("SELECT * FROM tournaments WHERE eventType='league' AND OPL_ID = ?", [$group["OPL_ID_parent"]])->fetch_assoc();
@@ -1153,10 +1174,10 @@ function create_playercard(mysqli $dbcn, $playerID, $teamID, $tournamentID, $det
 	// Teamname
 	$result .= "<a class='player-card-div player-card-team' href='turnier/$tournamentID/team/{$team["OPL_ID"]}'>";
 	if ($team["OPL_ID_logo"] != NULL && file_exists(dirname(__FILE__)."/../img/team_logos/{$team["OPL_ID_logo"]}/$logo_filename")) {
-		$result .= "<img class='color-switch' alt='{$team["name"]} Logo' src='img/team_logos/{$team["OPL_ID_logo"]}/$logo_filename'>";
-		$result .= "<span>{$team["name"]}</span>";
+		$result .= "<img class='color-switch' alt='' src='img/team_logos/{$team["OPL_ID_logo"]}/$logo_filename'>";
+		$result .= "<span>{$team_name["name"]}</span>";
 	} else {
-		$result .= "<span class='player-card-nologo'>{$team["name"]}</span>";
+		$result .= "<span class='player-card-nologo'>{$team_name["name"]}</span>";
 	}
 	$result .= "</a>";
 	// Team Details im Turnier

@@ -577,7 +577,7 @@ async function popup_match(matchID,teamID=null,matchtype="groups",tournamentID=n
 			if (current_match_in_popup === data['match']['OPL_ID']) {
 				popup.append(`<h2 class='round-title'>
                                 <span class='round'>Runde ${data['match']['playday']}: &nbsp</span>
-                                <a href='team/${data['team1']['OPL_ID']}' class='team "+team1score+"'>${data['team1']['name']}</a>
+                                <a href='team/${data['team1']['OPL_ID']}' class='team ${team1score}'>${data['team1']['name']}</a>
                                 <span class='score'><span class='${team1score}'>${team1wins}</span>:<span class='${team2score}'>${team2wins}</span></span>
                                 <a href='team/${data['team2']['OPL_ID']}' class='team ${team2score}'>${data['team2']['name']}</a>
                               </h2>`);

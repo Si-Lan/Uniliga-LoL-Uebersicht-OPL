@@ -74,8 +74,11 @@ foreach ($teams_from_groupDB as $i=>$team_from_group) {
 	$teams_from_group[$team_from_group['OPL_ID']] = $team_from_group;
 }
 
+$team_name_now = $dbcn->execute_query("SELECT name FROM team_name_history WHERE OPL_ID_team = ? AND update_time > ? AND (update_time < ? OR ? IS NULL) ORDER BY update_time DESC", [$teamID,$tournament["dateStart"],$tournament["dateEnd"],$tournament["dateEnd"]])->fetch_column();
+$team["name"] = $team_name_now;
+
 $t_name_clean = preg_replace("/LoL\s/","",$tournament["name"]);
-echo create_html_head_elements(title: "{$team["name"]} - Statistiken | $t_name_clean", loggedin: $logged_in);
+echo create_html_head_elements(title: "{$team_name_now} - Statistiken | $t_name_clean", loggedin: $logged_in);
 
 
 ?>
