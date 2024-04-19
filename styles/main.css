@@ -3475,14 +3475,21 @@ button.toggle-turnierselect-accordeon.open .material-symbol {
 	transform: rotateX(180deg);
 }
 .turnier-sl-accordeon {
-	height: 0;
-	overflow: hidden;
+	display: grid;
+	grid-template-rows: 0fr;
+	pointer-events: none;
+	gap: 8px;
+	transition: grid-template-rows 400ms ease-out;
+}
+.turnier-sl-accordeon.open {
+	grid-template-rows: 1fr;
+	pointer-events: initial;
+}
+.turnier-sl-accordeon .tsl-acc-content {
 	display: flex;
 	flex-direction: column;
 	gap: 8px;
-}
-.turnier-sl-accordeon.open {
-	height: auto;
+	overflow: hidden;
 }
 
 div.tournament-write-data-wrapper {

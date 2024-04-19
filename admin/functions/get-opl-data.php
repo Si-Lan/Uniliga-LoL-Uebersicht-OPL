@@ -264,14 +264,14 @@ function create_tournament_get_button(array $data, bool $in_write_popup = false)
 			<dialog class='tournament-data-popup dismissable-popup $id_class'>
 				<div class='dialog-content'>
 					<h2>{$data["name"]} ({$data["eventType"]})</h2>
-					<button class='get-teams $id_class' data-id='$id_class'><span>Teams im Turnier updaten</span></button>
-					<button class='get-teams-delete $id_class' data-id='$id_class'><span>Teams im Turnier updaten (Alte entfernen)</span></button>
-					<button class='get-players $id_class' data-id='$id_class'><span>Spieler im Turnier updaten</span></button>
-					<button class='get-riotids $id_class' data-id='$id_class'><span>Spieler-Accounts im Turnier updaten</span></button>
-					<button class='get-matchups $id_class' data-id='$id_class'><span>Matches im Turnier updaten</span></button>
-					<button class='get-matchups-delete $id_class' data-id='$id_class'><span>Matches im Turnier updaten (Alte entfernen)</span></button>
-					<button class='get-results $id_class' data-id='$id_class'><span>Match-Ergebnisse im Turnier updaten</span></button>
-					<button class='calculate-standings $id_class' data-id='$id_class'><span>Tabelle des Turniers aktualisieren</span></button>
+					<button class='get-teams $id_class' data-id='$id_class'><span>Teams im Turnier updaten (Gruppenweise)</span></button>
+					<button class='get-teams-delete $id_class' data-id='$id_class'><span>Teams im Turnier updaten + entfernen (Gruppenweise))</span></button>
+					<button class='get-players $id_class' data-id='$id_class'><span>Spieler im Turnier updaten (pro Team)</span></button>
+					<button class='get-riotids $id_class' data-id='$id_class'><span>Spieler-Accounts im Turnier updaten (pro Team > pro Spieler)</span></button>
+					<button class='get-matchups $id_class' data-id='$id_class'><span>Matches im Turnier updaten (Gruppenweise)</span></button>
+					<button class='get-matchups-delete $id_class' data-id='$id_class'><span>Matches im Turnier updaten + entfernen (Gruppenweise)</span></button>
+					<button class='get-results $id_class' data-id='$id_class'><span>Match-Ergebnisse im Turnier updaten (pro Match)</span></button>
+					<button class='calculate-standings $id_class' data-id='$id_class'><span>Tabelle des Turniers aktualisieren (Berechnung pro Gruppe)</span></button>
 				</div>
 			</dialog>";
 
