@@ -157,7 +157,7 @@ foreach ($teams as $i_teams=>$team) {
 	$currTeamDivID = $groups[$team["OPL_ID_group"]]["OPL_ID_parent"];
 	$currTeamImgID = $team["OPL_ID_logo"];
 
-	$team_name_now = $dbcn->execute_query("SELECT name FROM team_name_history WHERE OPL_ID_team = ? AND update_time > ? AND (update_time < ? OR ? IS NULL) ORDER BY update_time DESC", [$currTeamID,$tournament["dateStart"],$tournament["dateEnd"],$tournament["dateEnd"]])->fetch_column();
+	$team_name_now = $dbcn->execute_query("SELECT name FROM team_name_history WHERE OPL_ID_team = ? AND (update_time < ? OR ? IS NULL) ORDER BY update_time DESC", [$currTeamID,$tournament["dateEnd"],$tournament["dateEnd"]])->fetch_column();
 
 	$team_rank = "";
 

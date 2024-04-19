@@ -176,7 +176,7 @@ if ($type == "team-and-players") {
 	if ($teams_season_rank != NULL && $tournamentID != NULL) {
 		$teamDB = $dbcn->execute_query("SELECT *, tsr.avg_rank_tier, tsr.avg_rank_div, tsr.avg_rank_num FROM teams LEFT JOIN teams_tournament_rank as tsr ON teams.OPL_ID = tsr.OPL_ID_team AND tsr.OPL_ID_tournament = ? AND tsr.second_ranked_split = FALSE WHERE OPL_ID = ?", [$tournamentID,$teamID])->fetch_assoc();
 		$tournament = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID = ?", [$tournamentID])->fetch_assoc();
-		$t_teamname = $dbcn->execute_query("SELECT * FROM team_name_history WHERE OPL_ID_team = ? AND update_time > ? AND (update_time < ? OR ? IS NULL) ORDER BY update_time DESC", [$teamID,$tournament["dateStart"],$tournament["dateEnd"],$tournament["dateEnd"]])->fetch_assoc();
+		$t_teamname = $dbcn->execute_query("SELECT * FROM team_name_history WHERE OPL_ID_team = ? AND (update_time < ? OR ? IS NULL) ORDER BY update_time DESC", [$teamID,$tournament["dateEnd"],$tournament["dateEnd"]])->fetch_assoc();
 		$teamDB["name"] = $t_teamname["name"];
 		$teamDB["shortName"] = $t_teamname["shortName"];
 	} else {
