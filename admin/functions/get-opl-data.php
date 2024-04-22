@@ -88,15 +88,17 @@ function get_tournament($id):array {
 		}
 	}
 
+	$suggested_top_parent = $dbcn->execute_query("SELECT OPL_ID FROM tournaments WHERE eventType = 'tournament' AND season = ? AND split = ? ORDER BY OPL_ID", [$season, $split])->fetch_column();
 	if ($type == "group") {
 		$suggested_parent = $dbcn->execute_query("SELECT OPL_ID FROM tournaments WHERE eventType = 'league' AND season = ? AND split = ? AND number = ? ORDER BY OPL_ID", [$season, $split, $groups_league_num])->fetch_column();
 	} else {
-		$suggested_parent = $dbcn->execute_query("SELECT OPL_ID FROM tournaments WHERE eventType = 'tournament' AND season = ? AND split = ? ORDER BY OPL_ID", [$season, $split])->fetch_column();
+		$suggested_parent = $suggested_top_parent;
 	}
 
 	$returnArr["data"] = [
 		"OPL_ID" => $id,
 		"OPL_ID_parent" => $suggested_parent,
+		"OPL_ID_top_parent" => $suggested_parent,
 		"name" => $name,
 		"split" => $split,
 		"season" => $season,
@@ -110,6 +112,8 @@ function get_tournament($id):array {
 		"OPL_ID_logo" => $logo_id,
 		"finished" => false,
 		"deactivated" => true,
+		"ranked_season" => null,
+		"ranked_split" => null,
 	];
 
 	$returnArr["info"] .= "
@@ -144,8 +148,8 @@ function write_tournament(array $data):string {
 	if ($tournament == NULL) {
 		$returnInfo .= "<span style='color: lawngreen'>- Turnier ist noch nicht in DB, schreibe in DB<br></span>";
 		$dbcn->execute_query("INSERT INTO
-			tournaments (OPL_ID, OPL_ID_parent, name, split, season, eventType, format, number, numberRangeTo, dateStart, dateEnd, OPL_logo_url, OPL_ID_logo, finished, deactivated)
-			VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", [$data["OPL_ID"], $data["OPL_ID_parent"], $data["name"], $data["split"], $data["season"], $data["eventType"], $data["format"], $data["number"], $data["numberRangeTo"], $data["dateStart"], $data["dateEnd"], $data["OPL_logo_url"], $data["OPL_ID_logo"], $data["finished"], $data["deactivated"]]);
+			tournaments (OPL_ID, OPL_ID_parent, OPL_ID_top_parent, name, split, season, eventType, format, number, numberRangeTo, dateStart, dateEnd, OPL_logo_url, OPL_ID_logo, finished, deactivated, ranked_season, ranked_split)
+			VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", [$data["OPL_ID"], $data["OPL_ID_parent"], $data["OPL_ID_top_parent"], $data["name"], $data["split"], $data["season"], $data["eventType"], $data["format"], $data["number"], $data["numberRangeTo"], $data["dateStart"], $data["dateEnd"], $data["OPL_logo_url"], $data["OPL_ID_logo"], $data["finished"], $data["deactivated"], $data["ranked_season"], $data["ranked_split"]]);
 	} else {
 		$changed = false;
 		foreach ($tournament as $key=>$item) {
@@ -156,7 +160,7 @@ function write_tournament(array $data):string {
 		}
 		if ($changed) {
 			$returnInfo .= "<span style='color: yellow'>- Turnier wurde geupdatet, aktualisiere DB<br></span>";
-			$dbcn->execute_query("UPDATE tournaments SET OPL_ID_parent = ?, name = ?, split = ?, season = ?, eventType = ?, format = ?, number = ?, numberRangeTo = ?, dateStart = ?, dateEnd = ?, OPL_logo_url = ?, OPL_ID_logo = ?, finished = ?, deactivated = ? WHERE OPL_ID = ?", [$data["OPL_ID_parent"], $data["name"], $data["split"], $data["season"], $data["eventType"], $data["format"], $data["number"], $data["numberRangeTo"], $data["dateStart"], $data["dateEnd"], $data["OPL_logo_url"], $data["OPL_ID_logo"], $data["finished"], $data["deactivated"], $data["OPL_ID"]]);
+			$dbcn->execute_query("UPDATE tournaments SET OPL_ID_parent = ?, OPL_ID_top_parent = ?, name = ?, split = ?, season = ?, eventType = ?, format = ?, number = ?, numberRangeTo = ?, dateStart = ?, dateEnd = ?, OPL_logo_url = ?, OPL_ID_logo = ?, finished = ?, deactivated = ?, ranked_season = ?, ranked_split = ? WHERE OPL_ID = ?", [$data["OPL_ID_parent"], $data["OPL_ID_top_parent"], $data["name"], $data["split"], $data["season"], $data["eventType"], $data["format"], $data["number"], $data["numberRangeTo"], $data["dateStart"], $data["dateEnd"], $data["OPL_logo_url"], $data["OPL_ID_logo"], $data["finished"], $data["deactivated"], $data["ranked_season"], $data["ranked_split"], $data["OPL_ID"]]);
 		} else {
 			$returnInfo .= "- neue Daten identisch zu vorhandenen Daten<br>";
 		}
@@ -215,6 +219,7 @@ function create_tournament_get_button(array $data, bool $in_write_popup = false)
 						</span>
 					</label>
 					<label class=\"write_tournament_parent\">Parent:<input type=\"text\" value=\"{$data["OPL_ID_parent"]}\"></label>
+					<label class=\"write_tournament_top_parent\">Top:<input type=\"text\" value=\"{$data["OPL_ID_top_parent"]}\"></label>
 				</div>
 				<div class='write_tournament_row wtrow-2'>
 					<label class=\"write_tournament_split\">
@@ -232,8 +237,6 @@ function create_tournament_get_button(array $data, bool $in_write_popup = false)
 					<label class=\"write_tournament_number2\"><input type=\"text\" value=\"{$data["numberRangeTo"]}\" placeholder='#'></label>
 					<label class=\"write_tournament_startdate\">Zeitraum<input type=\"date\" value=\"{$dateStart}\"></label>
 					<label class=\"write_tournament_enddate\"><input type=\"date\" value=\"{$dateEnd}\"></label>
-				</div>
-				<div class='write_tournament_row wtrow-3'>
 					<label class=\"write_tournament_format\">
 						<span class=\"slct\">
 							<select>
@@ -245,10 +248,14 @@ function create_tournament_get_button(array $data, bool $in_write_popup = false)
 							<span class='material-symbol'>".file_get_contents(__DIR__."/../../icons/material/arrow_drop_down.svg")."</span>
 						</span>
 					</label>
+				</div>
+				<div class='write_tournament_row wtrow-3'>
 					<label class=\"write_tournament_show\">Anzeigen:<input type=\"checkbox\" $deactivated_check></label>
 					<label class=\"write_tournament_finished\">Beendet:<input type=\"checkbox\" $finished_check></label>
 					<label class=\"write_tournament_logoid\">Logo:<input type=\"number\" value=\"{$data["OPL_ID_logo"]}\" readonly></label>
 					<label class=\"write_tournament_logourl\"><input type=\"text\" value=\"{$data["OPL_logo_url"]}\" readonly></label>
+					<label class=\"write_tournament_ranked_season\">Rank-Season:<input type=\"text\" value=\"{$data["ranked_season"]}\" placeholder='##'></label>
+					<label class=\"write_tournament_ranked_split\">Rank-Split:<input type=\"text\" value=\"{$data["ranked_split"]}\" placeholder='#'></label>
 				</div>";
 
 	$result .= "</div>";

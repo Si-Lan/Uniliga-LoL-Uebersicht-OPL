@@ -3561,11 +3561,14 @@ input[type=date] {
 	align-items: center;
 }
 .write_tournament_name {
-	width: calc(100% - 316px);
+	/* 64px + 112px + 116px + 94px + (4*8px) = 418px*/
+	/* Breiten aller anderen Felder in der Reihe + Abstände*/
+	width: calc(100% - 418px);
 	min-width: 272px;
 }
 .write_tournament_id input,
 .write_tournament_parent input,
+.write_tournament_top_parent input,
 .write_tournament_logoid input {
 	width: 64px;
 }
@@ -3573,7 +3576,9 @@ input[type=date] {
 	width: 48px;
 }
 .write_tournament_number input,
-.write_tournament_number2 input {
+.write_tournament_number2 input,
+.write_tournament_ranked_season input,
+.write_tournament_ranked_split input {
 	width: 40px;
 }
 .write_tournament_type .slct,

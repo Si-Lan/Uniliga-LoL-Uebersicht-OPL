@@ -64,6 +64,7 @@ function write_tournament(tournamentID = null, from_related = false) {
 	let data = {};
 	data.OPL_ID = $(`${additional_related} .${id_class} label.write_tournament_id input`).val();
 	data.OPL_ID_parent = $(`${additional_related} .${id_class} label.write_tournament_parent input`).val();
+	data.OPL_ID_top_parent = $(`${additional_related} .${id_class} label.write_tournament_top_parent input`).val();
 	data.name = $(`${additional_related} .${id_class} label.write_tournament_name input`).val();
 	data.split = $(`${additional_related} .${id_class} label.write_tournament_split select`).find(":selected").val();
 	data.season = $(`${additional_related} .${id_class} label.write_tournament_season input`).val();
@@ -77,6 +78,8 @@ function write_tournament(tournamentID = null, from_related = false) {
 	data.OPL_ID_logo = $(`${additional_related} .${id_class} label.write_tournament_logoid input`).val();
 	data.finished = $(`${additional_related} .${id_class} label.write_tournament_finished input`).prop("checked") ? 1 : 0;
 	data.deactivated = !$(`${additional_related} .${id_class} label.write_tournament_show input`).prop("checked") ? 1 : 0;
+	data.ranked_season = $(`${additional_related} .${id_class} label.write_tournament_ranked_season input`).val();
+	data.ranked_split = $(`${additional_related} .${id_class} label.write_tournament_ranked_split input`).val();
 	console.log(data);
 	fetch(`./admin/ajax/get-opl-data.php`, {
 		method: "GET",
