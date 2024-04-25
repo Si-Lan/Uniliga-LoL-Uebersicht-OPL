@@ -3118,7 +3118,18 @@ button.team-card-div {
 .team-card-teampage {
 	display: flex;
 	gap: 4px;
-	padding: 12px;
+	padding: 8px;
+}
+.team-card-teampage img {
+	height: 42px;
+	border-radius: 8px;
+}
+.team-card-teampage span.team-card-nologo {
+	text-align: center;
+	padding: 8px 0;
+}
+.team-card-standings {
+	padding: 12px 0;
 }
 .team-card-playeramount {
 	padding: 16px 0;

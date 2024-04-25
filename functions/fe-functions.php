@@ -1404,6 +1404,8 @@ function search_all(mysqli $dbcn, string $search_input) {
 
 function create_teamcard(mysqli $dbcn, $teamID, $tournamentID) {
 	$logo_filename = is_light_mode() ? "logo_light.webp" : "logo.webp";
+	$logo_filename_square = is_light_mode() ? "logo_light_square.webp" : "logo_square.webp";
+	$team = $dbcn->execute_query("SELECT * FROM teams WHERE OPL_ID = ?", [$teamID])->fetch_assoc();
 	$team_in_tournament = $dbcn->execute_query("SELECT * FROM teams_in_tournaments WHERE OPL_ID_team = ? AND OPL_ID_group = ?", [$teamID,$tournamentID])->fetch_assoc();
 	$tournament = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID=?",[$tournamentID])->fetch_assoc();
 	if ($tournament["eventType"] == "group") {
@@ -1413,6 +1415,8 @@ function create_teamcard(mysqli $dbcn, $teamID, $tournamentID) {
 		//TODO: playoffs
 		return;
 	}
+	$team_name_current = $dbcn->execute_query("SELECT * FROM team_name_history WHERE OPL_ID_team = ? AND (update_time < ? OR ? IS NULL) ORDER BY update_time DESC",[$teamID,$tournament["dateEnd"],$tournament["dateEnd"]])->fetch_assoc();
+	$team_logo_current = $dbcn->execute_query("SELECT * FROM team_logo_history WHERE OPL_ID_team = ? AND (update_time < ? OR ? IS NULL) ORDER BY update_time DESC",[$teamID,$tournament["dateEnd"],$tournament["dateEnd"]])->fetch_assoc();
 	$team_season_rank = $dbcn->execute_query("SELECT * FROM teams_tournament_rank WHERE OPL_ID_team = ? AND OPL_ID_tournament = ? AND second_ranked_split = FALSE",[$teamID,$tournament["OPL_ID"]])->fetch_assoc();
 	$rank_tier = strtolower($team_season_rank["avg_rank_tier"]??"");
 	$rank_div = $team_season_rank["avg_rank_div"]??null;
@@ -1450,7 +1454,15 @@ function create_teamcard(mysqli $dbcn, $teamID, $tournamentID) {
 	$result .= "</a>";
 
 	// Link zu Teamseite
-	$result .= "<a class='team-card-div team-card-teampage' href='turnier/{$parent_tournament["OPL_ID"]}/team/$teamID'><div class='material-symbol'>". file_get_contents(__DIR__."/../icons/material/group.svg") ."</div>zu Team im Turnier</a>";
+	$logo_dir = (($team_logo_current["dir_key"]??-1) == -1) ? "" : $team_logo_current["dir_key"]."/";
+	$result .= "<a class='team-card-div team-card-teampage' href='turnier/{$parent_tournament["OPL_ID"]}/team/$teamID'>";
+	if ($team["OPL_ID_logo"] != NULL && file_exists(dirname(__FILE__)."/../img/team_logos/{$team["OPL_ID_logo"]}/$logo_dir$logo_filename_square")) {
+		$result .= "<img class='color-switch' alt='' src='img/team_logos/{$team["OPL_ID_logo"]}/$logo_dir$logo_filename_square'>";
+		$result .= "<span>{$team_name_current["name"]}</span>";
+	} else {
+		$result .= "<span class='team-card-nologo'>{$team_name_current["name"]}</span>";
+	}
+	$result .= "</a>";
 
 	// Standing
 	if (($team_in_tournament["standing"]??null) != null) {
