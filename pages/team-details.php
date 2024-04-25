@@ -33,7 +33,8 @@ foreach ($groups_played_in as $event) {
     }
 }
 $players = $dbcn->execute_query("SELECT * FROM players JOIN players_in_teams pit on players.OPL_ID = pit.OPL_ID_player WHERE pit.OPL_ID_team = ? ", [$teamID])->fetch_all(MYSQLI_ASSOC);
-$player_amount = count($players);
+$players_current = $dbcn->execute_query("SELECT * FROM players JOIN players_in_teams pit on players.OPL_ID = pit.OPL_ID_player WHERE pit.OPL_ID_team = ? AND pit.removed = false", [$teamID])->fetch_all(MYSQLI_ASSOC);
+$current_player_amount = count($players_current);
 ?>
 <!DOCTYPE html>
 <html lang="de">
@@ -62,7 +63,7 @@ $opl_team_url = "https://www.opleague.pro/team/";
 $opgg_url = "https://www.op.gg/multisearch/euw?summoners=";
 $opgg_logo_svg = file_get_contents(__DIR__."/../img/opgglogo.svg");
 $opgglink = $opgg_url;
-for ($i = 0; $i < count($players); $i++) {
+for ($i = 0; $i < count($players_current); $i++) {
 	if ($i != 0) {
 		$opgglink .= urlencode(",");
 	}
@@ -93,14 +94,14 @@ echo "
                 <div class='player-cards opgg-cards'>
                     <div class='title'>
                         <h3>Aktuelle Spieler</h3>
-                        <a href='$opgglink' class='button op-gg' target='_blank'><div class='svg-wrapper op-gg'>$opgg_logo_svg</div><span class='player-amount'>({$player_amount} Spieler)</span></a>";
+                        <a href='$opgglink' class='button op-gg' target='_blank'><div class='svg-wrapper op-gg'>$opgg_logo_svg</div><span class='player-amount'>({$current_player_amount} Spieler)</span></a>";
 
 echo "
                      </div>";
 echo "
                     <div class='summoner-card-container'>";
-foreach ($players as $player) {
-	if (!$player["removed"]) echo create_summonercard_general($dbcn,$player["OPL_ID"],$teamID);
+foreach ($players_current as $player) {
+	echo create_summonercard_general($dbcn,$player["OPL_ID"],$teamID);
 }
 echo "
                     </div> 
