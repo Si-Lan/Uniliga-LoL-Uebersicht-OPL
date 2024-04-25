@@ -53,7 +53,9 @@ function download_opl_img(int|string $itemID, string $type, bool $echo_states = 
 		$img_dark = imagecreatefromstring($imgdata_dark);
 		$img_dark = square_logo($img_dark);
 
-		if ($type == "team_logo" && is_new_logo($img_dark,"$local_tournament_directory_path/logo_square.webp")) {
+		$logo_comparision = is_new_logo($img_dark,"$local_tournament_directory_path/logo_square.webp");
+
+		if ($type == "team_logo" && $logo_comparision[0]) {
 			if ($echo_states) echo "--neues Logo<br>";
 			$current_logo = $dbcn->execute_query("SELECT * FROM team_logo_history WHERE OPL_ID_team = ? AND dir_key = -1", [$itemID])->fetch_assoc();
 			$latest_logo = $dbcn->execute_query("SELECT * FROM team_logo_history WHERE OPL_ID_team = ? ORDER BY dir_key DESC", [$itemID])->fetch_assoc();
@@ -62,7 +64,7 @@ function download_opl_img(int|string $itemID, string $type, bool $echo_states = 
 				copy_old_team_logos($itemID, $dir_key);
 				$dbcn->execute_query("UPDATE team_logo_history SET dir_key = ? WHERE OPL_ID_team = ? AND dir_key = -1", [$dir_key,$itemID]);
 			}
-			$dbcn->execute_query("INSERT INTO team_logo_history (OPL_ID_team, dir_key, update_time) VALUES (?,?,?)",[$itemID,-1,$today]);
+			$dbcn->execute_query("INSERT INTO team_logo_history (OPL_ID_team, dir_key, update_time, diff_to_prev) VALUES (?,?,?,?)",[$itemID,-1,$today,$logo_comparision[1]]);
 			$new_logo = true;
 		}
 
@@ -71,7 +73,9 @@ function download_opl_img(int|string $itemID, string $type, bool $echo_states = 
 		$img_light = imagecreatefromstring($imgdata_light);
 		$img_light = square_logo($img_light);
 
-		if ($type == "team_logo" && is_new_logo($img_light,"$local_tournament_directory_path/logo_light_square.webp")) {
+		$logo_comparision_l = is_new_logo($img_light,"$local_tournament_directory_path/logo_light_square.webp");
+
+		if ($type == "team_logo" && $logo_comparision_l[0]) {
 			if ($echo_states) echo "--neues Logo<br>";
 			$current_logo = $dbcn->execute_query("SELECT * FROM team_logo_history WHERE OPL_ID_team = ? AND dir_key = -1", [$itemID])->fetch_assoc();
 			$latest_logo = $dbcn->execute_query("SELECT * FROM team_logo_history WHERE OPL_ID_team = ? ORDER BY dir_key DESC", [$itemID])->fetch_assoc();
@@ -80,7 +84,7 @@ function download_opl_img(int|string $itemID, string $type, bool $echo_states = 
 				copy_old_team_logos($itemID, $dir_key);
 				$dbcn->execute_query("UPDATE team_logo_history SET dir_key = ? WHERE OPL_ID_team = ? AND dir_key = -1", [$dir_key,$itemID]);
 			}
-			$dbcn->execute_query("INSERT INTO team_logo_history (OPL_ID_team, dir_key, update_time) VALUES (?,?,?)",[$itemID,-1,$today]);
+			$dbcn->execute_query("INSERT INTO team_logo_history (OPL_ID_team, dir_key, update_time, diff_to_prev) VALUES (?,?,?,?)",[$itemID,-1,$today,$logo_comparision_l[1]]);
 			$new_logo = true;
 		}
 
@@ -182,10 +186,10 @@ function copy_old_team_logos($id,$dir_key) {
 
 function is_new_logo($new_img, $old_img_location) {
 	$comparision = @custom_compareImages($new_img, $old_img_location, 20);
-	if ($comparision < 40) {
-		return true;
+	if ($comparision < 35) {
+		return [true,$comparision];
 	} else {
-		return false;
+		return [false,$comparision];
 	}
 }
 
@@ -239,7 +243,7 @@ function custom_compareImages($imagePathA, $imagePathB, $accuracy):float|int {
 }
 function colorComp($color, $c){
 	//test to see if the point matches - within boundaries
-	if($color >= $c-2 && $color <= $c+2){
+	if($color >= $c-10 && $color <= $c+10){
 		return true;
 	}else{
 		return false;
