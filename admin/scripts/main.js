@@ -11,6 +11,9 @@ function set_button_listeners() {
 	$(".get-results").on("click", function () {get_results_for_tournament(this.getAttribute("data-id"))});
 	$(".calculate-standings").on("click", function () {calculate_standings_from_matchups(this.getAttribute("data-id"))});
 	$(".open-tournament-data-popup").on("click", function() {$(`dialog.tournament-data-popup.${this.getAttribute("data-id")}`)[0].showModal()});
+	$(".toggle-turnierselect-accordeon").on("click", function () {
+		toggle_turnier_select_accordeon(this.getAttribute("data-id"));
+	});
 }
 
 $(document).ready(() => {
