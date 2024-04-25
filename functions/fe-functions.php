@@ -1266,7 +1266,7 @@ function create_playercard(mysqli $dbcn, $playerID, $teamID, $tournamentID, $det
 
 function create_player_overview(mysqli $dbcn,$playerid,$onplayerpage=false):string {
 	$result = "";
-    $teams_played_in = $dbcn->execute_query("SELECT * FROM players_in_teams_in_tournament WHERE OPL_ID_player = ?", [$playerid])->fetch_all(MYSQLI_ASSOC);
+    $teams_played_in = $dbcn->execute_query("SELECT * FROM players_in_teams_in_tournament WHERE OPL_ID_player = ? ORDER BY OPL_ID_tournament DESC", [$playerid])->fetch_all(MYSQLI_ASSOC);
 	$player = $dbcn->execute_query("SELECT * FROM players WHERE OPL_ID = ?", [$playerid])->fetch_assoc();
 	if (!$onplayerpage) $result .= "<a href='spieler/$playerid' class='button toplayer'><div class='material-symbol'>".file_get_contents(__DIR__."/../icons/material/person.svg")."</div>Zur Spielerseite</a>";
 	$result .= "<div class='player-ov-titlewrapper'><h2 class='player-ov-name'>{$player["name"]}</h2><a href='https://www.opleague.pro/user/$playerid' class='toorlink' target='_blank'><div class='material-symbol'>".file_get_contents(__DIR__."/../icons/material/open_in_new.svg")."</div></a></div>";
