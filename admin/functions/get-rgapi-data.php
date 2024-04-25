@@ -473,10 +473,12 @@ function get_Rank_by_SummonerId($playerID) {
 			} else {
 				$dbcn->execute_query("INSERT INTO players_season_rank (OPL_ID_player, season, split, rank_tier, rank_div, rank_LP) VALUES (?,?,?,?,?,?)", [$playerID,$current_ranked_split["season"],$current_ranked_split["split"],$tier,$div,$league_points]);
 			}
+			$returnArr["echo"] .= "<span>---writing for S{$current_ranked_split["season"]}-{$current_ranked_split["split"]}<br></span>";
 		} else {
 			$returnArr["echo"] .= "<span style='color: orangered'>--no matching Ranked Split found for today, is today between two splits, or is the current splits date not set?<br></span>";
 		}
 		$dbcn->query("UPDATE players SET rank_tier = '{$tier}', rank_div = '{$div}', rank_LP = '{$league_points}' WHERE OPL_ID = {$playerID}");
+		$returnArr["echo"] .= "<span>---writing for current Rank<br></span>";
 
 		$returnArr["echo"] .= "<span style='color: lawngreen'>---write Rank to DB<br></span>";
 		$returnArr["writes"]++;
