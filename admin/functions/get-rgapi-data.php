@@ -652,7 +652,7 @@ function calculate_avg_team_rank($teamID, $tournamentID=null):array {
 		$players = $dbcn->execute_query("SELECT * FROM players p JOIN players_in_teams_in_tournament pit on p.OPL_ID = pit.OPL_ID_player LEFT JOIN players_season_rank psr ON psr.OPL_ID_player = p.OPL_ID AND psr.season = ? AND psr.split = ? WHERE OPL_ID_team = ? AND OPL_ID_tournament = ?", [$ranked_split["season"], $ranked_split["split"], $teamID, $tournamentID])->fetch_all(MYSQLI_ASSOC);
 		if ($next_split != null) $players_2 = $dbcn->execute_query("SELECT * FROM players p JOIN players_in_teams_in_tournament pit on p.OPL_ID = pit.OPL_ID_player LEFT JOIN players_season_rank psr ON psr.OPL_ID_player = p.OPL_ID AND psr.season = ? AND psr.split = ? WHERE OPL_ID_team = ? AND OPL_ID_tournament = ?", [$next_split["season"], $next_split["split"], $teamID, $tournamentID])->fetch_all(MYSQLI_ASSOC);
 	} else {
-		$players = $dbcn->execute_query("SELECT * FROM players p JOIN players_in_teams pit on p.OPL_ID = pit.OPL_ID_player WHERE OPL_ID_team = ?", [$teamID])->fetch_all(MYSQLI_ASSOC);
+		$players = $dbcn->execute_query("SELECT * FROM players p JOIN players_in_teams pit on p.OPL_ID = pit.OPL_ID_player WHERE OPL_ID_team = ? AND removed = 0", [$teamID])->fetch_all(MYSQLI_ASSOC);
 
 		$today = date("Y-m-d");
 		$ranked_split = $dbcn->execute_query("SELECT * FROM lol_ranked_splits WHERE split_start < ? AND (split_end > ? OR split_end IS NULL) ORDER BY season DESC, split DESC", [$today, $today])->fetch_assoc();

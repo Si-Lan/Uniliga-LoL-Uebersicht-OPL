@@ -98,7 +98,7 @@ function get_tournament($id):array {
 	$returnArr["data"] = [
 		"OPL_ID" => $id,
 		"OPL_ID_parent" => $suggested_parent,
-		"OPL_ID_top_parent" => $suggested_parent,
+		"OPL_ID_top_parent" => $suggested_top_parent,
 		"name" => $name,
 		"split" => $split,
 		"season" => $season,
