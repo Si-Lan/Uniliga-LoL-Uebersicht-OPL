@@ -50,7 +50,7 @@ echo create_header($dbcn, title: "tournament", tournament_id: $tournamentID);
 
 echo create_tournament_nav_buttons(tournament_id: $tournament_url_path, active: "list");
 
-$leaguesDB = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID_parent = ? AND eventType = 'league' AND deactivated = FALSE", [$tournamentID])->fetch_all(MYSQLI_ASSOC);
+$leaguesDB = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID_parent = ? AND eventType = 'league' AND deactivated = FALSE ORDER BY number", [$tournamentID])->fetch_all(MYSQLI_ASSOC);
 $leagues = $groups = [];
 foreach ($leaguesDB as $league) {
 	$leagues[$league["OPL_ID"]] = $league;
