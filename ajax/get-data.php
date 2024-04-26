@@ -326,8 +326,8 @@ if ($type == "match-games-teams-by-matchid") {
 	$tournament = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID = (SELECT OPL_ID_top_parent FROM tournaments WHERE OPL_ID = ?)", [$match["OPL_ID_tournament"]])->fetch_assoc();
 
 	$games = $dbcn->execute_query("SELECT games.*, gtm.OPL_ID_matches AS OPL_ID_match FROM games JOIN games_to_matches gtm on games.RIOT_matchID = gtm.RIOT_matchID WHERE OPL_ID_matches = ? ORDER BY played_at",[$matchID])->fetch_all(MYSQLI_ASSOC);
-	$team1 = $dbcn->execute_query("SELECT * FROM teams LEFT JOIN team_name_history tnh ON tnh.OPL_ID_team = teams.OPL_ID AND update_time > ? AND (update_time < ? OR ? IS NULL) WHERE OPL_ID = ? ORDER BY update_time DESC",[$tournament["dateStart"],$tournament["dateEnd"],$tournament["dateEnd"],$match["OPL_ID_team1"]])->fetch_assoc();
-	$team2 = $dbcn->execute_query("SELECT * FROM teams LEFT JOIN team_name_history tnh ON tnh.OPL_ID_team = teams.OPL_ID AND update_time > ? AND (update_time < ? OR ? IS NULL) WHERE OPL_ID = ? ORDER BY update_time DESC",[$tournament["dateStart"],$tournament["dateEnd"],$tournament["dateEnd"],$match["OPL_ID_team2"]])->fetch_assoc();
+	$team1 = $dbcn->execute_query("SELECT * FROM teams LEFT JOIN team_name_history tnh ON tnh.OPL_ID_team = teams.OPL_ID AND (update_time < ? OR ? IS NULL) WHERE OPL_ID = ? ORDER BY update_time DESC",[$tournament["dateEnd"],$tournament["dateEnd"],$match["OPL_ID_team1"]])->fetch_assoc();
+	$team2 = $dbcn->execute_query("SELECT * FROM teams LEFT JOIN team_name_history tnh ON tnh.OPL_ID_team = teams.OPL_ID AND (update_time < ? OR ? IS NULL) WHERE OPL_ID = ? ORDER BY update_time DESC",[$tournament["dateEnd"],$tournament["dateEnd"],$match["OPL_ID_team2"]])->fetch_assoc();
 	$result = json_encode(array("match"=>$match, "games"=>$games, "team1"=>$team1, "team2"=>$team2));
 	echo $result;
 }
