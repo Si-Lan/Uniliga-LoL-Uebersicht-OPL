@@ -557,7 +557,7 @@ function update_team($teamID):array {
 		];
 	}
 
-	$players_t_DB = $dbcn->execute_query("SELECT * FROM players_in_teams pit LEFT JOIN players p ON pit.OPL_ID_player = p.OPL_ID WHERE OPL_ID_team = ?", [$teamID])->fetch_all(MYSQLI_ASSOC);
+	$players_t_DB = $dbcn->execute_query("SELECT * FROM players_in_teams pit LEFT JOIN players p ON pit.OPL_ID_player = p.OPL_ID WHERE OPL_ID_team = ? AND removed = FALSE", [$teamID])->fetch_all(MYSQLI_ASSOC);
 	$players_removed = [];
 	if (count($player_IDs) > 0) {
 		foreach ($players_t_DB as $player) {

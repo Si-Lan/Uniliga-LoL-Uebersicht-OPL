@@ -786,7 +786,7 @@ async function update_all_teams() {
 						}
 					}
 				}
-				if (result["players_removed"] !== 0) {
+				if (result["players_removed"].length !== 0) {
 					team_result += "<span>entfernte Spieler:</span>";
 					for (const player of result["players_removed"]) {
 						team_result += `<span style='color: orangered'>ALT: ${player["name"]} (${player["OPL_ID"]})</span>`;
