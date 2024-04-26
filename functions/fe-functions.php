@@ -313,7 +313,7 @@ function generate_elo_list(mysqli $dbcn,$view,$teams,$tournamentID,$division,$gr
 	foreach ($teams as $team) {
 		$team_name = $dbcn->execute_query("SELECT * FROM team_name_history WHERE OPL_ID_team = ? AND (update_time < ? OR ? IS NULL) ORDER BY update_time DESC", [$team["OPL_ID"],$tournament["dateEnd"],$tournament["dateEnd"]])->fetch_assoc();
 		$curr_players = $dbcn->execute_query(
-			"SELECT p.*
+			"SELECT p.*, pit.removed
 				FROM players p
 				    JOIN players_in_teams_in_tournament pit
 				        ON p.OPL_ID = pit.OPL_ID_player
@@ -329,6 +329,7 @@ function generate_elo_list(mysqli $dbcn,$view,$teams,$tournamentID,$division,$gr
 			$color_class = " rank".floor($team['avg_rank_num']);
 		}
 		foreach ($curr_players as $i_cop => $curr_player) {
+			if ($curr_player["removed"] || $curr_player["riotID_name"] == null) continue;
 			if ($i_cop != 0) {
 				$curr_opgglink .= urlencode(",");
 			}
@@ -425,6 +426,7 @@ function create_standings(mysqli $dbcn, $tournament_id, $group_id, $team_id=NULL
 		)->fetch_all(MYSQLI_ASSOC);
 		$curr_opgglink = $opgg_url;
 		foreach ($curr_players as $i_cop=>$curr_player) {
+			if ($curr_player["removed"] || $curr_player["riotID_name"] == null) continue;
 			if ($i_cop != 0) {
 				$curr_opgglink .= urlencode(",");
 			}
