@@ -389,6 +389,7 @@ async function popup_team(teamID, tournamentID = null) {
 				let players_string = "";
 				for (let i = 0; i < team_data["players"].length; i++) {
 					if (team_data["players"][i]['riotID_name'] == null) continue;
+					if (team_data["players"][i]['removed']) continue;
 					if (i !== 0) {
 						players_string += encodeURIComponent(",");
 					}

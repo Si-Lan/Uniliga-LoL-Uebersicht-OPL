@@ -100,17 +100,19 @@ $opgg_logo_svg = file_get_contents(__DIR__."/../img/opgglogo.svg");
 $opgg_url = "https://www.op.gg/multisearch/euw?summoners=";
 
 $players = $dbcn->execute_query("SELECT * FROM players JOIN players_in_teams_in_tournament pit on players.OPL_ID = pit.OPL_ID_player AND pit.OPL_ID_tournament = ? LEFT JOIN stats_players_teams_tournaments spit ON pit.OPL_ID_player = spit.OPL_ID_player AND spit.OPL_ID_team = pit.OPL_ID_team AND spit.OPL_ID_tournament = ? WHERE pit.OPL_ID_team = ? ", [$tournamentID, $tournamentID, $teamID])->fetch_all(MYSQLI_ASSOC);
-$players_with_riotid = $dbcn->execute_query("SELECT * FROM players JOIN players_in_teams_in_tournament pit on players.OPL_ID = pit.OPL_ID_player AND pit.OPL_ID_tournament = ? LEFT JOIN stats_players_teams_tournaments spit ON pit.OPL_ID_player = spit.OPL_ID_player AND spit.OPL_ID_team = pit.OPL_ID_team AND spit.OPL_ID_tournament = ? WHERE pit.OPL_ID_team = ? AND players.riotID_name IS NOT NULL", [$tournamentID, $tournamentID, $teamID])->fetch_all(MYSQLI_ASSOC);
 $matches = $dbcn->execute_query("SELECT * FROM matchups WHERE OPL_ID_tournament = ? AND (OPL_ID_team1 = ? OR OPL_ID_team2 = ?)", [$group["OPL_ID"],$teamID,$teamID])->fetch_all(MYSQLI_ASSOC);
 $matches_playoffs = $dbcn->execute_query("SELECT * FROM matchups WHERE OPL_ID_tournament = ? AND (OPL_ID_team1 = ? OR OPL_ID_team2 = ?)", [$playoff_ID,$teamID,$teamID])->fetch_all(MYSQLI_ASSOC);
+$opgg_amount = 0;
 $opgglink = $opgg_url;
-for ($i = 0; $i < count($players_with_riotid); $i++) {
+foreach ($players as $i=>$player) {
+	if ($player["removed"]) continue;
+	if ($player["riotID_name"] == null) continue;
 	if ($i != 0) {
 		$opgglink .= urlencode(",");
 	}
-	$opgglink .= urlencode($players_with_riotid[$i]["riotID_name"]."#".$players_with_riotid[$i]["riotID_tag"]);
+	$opgglink .= urlencode($player["riotID_name"]."#".$player["riotID_tag"]);
+	$opgg_amount++;
 }
-$player_amount = count($players_with_riotid);
 //$players_by_id = array();
 $players_gamecount_by_id = array();
 foreach ($players as $player) {
@@ -151,7 +153,7 @@ echo "
                 <div class='player-cards opgg-cards'>
                     <div class='title'>
                         <h3>Spieler</h3>
-                        <a href='$opgglink' class='button op-gg' target='_blank'><div class='svg-wrapper op-gg'>$opgg_logo_svg</div><span class='player-amount'>({$player_amount} Spieler)</span></a>";
+                        <a href='$opgglink' class='button op-gg' target='_blank'><div class='svg-wrapper op-gg'>$opgg_logo_svg</div><span class='player-amount'>({$opgg_amount} Spieler)</span></a>";
 $collapsed = summonercards_collapsed();
 if ($collapsed) {
 	echo "<button type='button' class='exp_coll_sc'><div class='material-symbol'>".file_get_contents(__DIR__."/../icons/material/unfold_more.svg")."</div>Stats ein</button>";

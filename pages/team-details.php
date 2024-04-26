@@ -34,8 +34,6 @@ foreach ($groups_played_in as $event) {
 }
 $players = $dbcn->execute_query("SELECT * FROM players JOIN players_in_teams pit on players.OPL_ID = pit.OPL_ID_player WHERE pit.OPL_ID_team = ? ", [$teamID])->fetch_all(MYSQLI_ASSOC);
 $players_current = $dbcn->execute_query("SELECT * FROM players JOIN players_in_teams pit on players.OPL_ID = pit.OPL_ID_player WHERE pit.OPL_ID_team = ? AND pit.removed = false", [$teamID])->fetch_all(MYSQLI_ASSOC);
-$players_current_with_riotid = $dbcn->execute_query("SELECT * FROM players JOIN players_in_teams pit on players.OPL_ID = pit.OPL_ID_player WHERE pit.OPL_ID_team = ? AND pit.removed = false AND players.riotID_name IS NOT NULL", [$teamID])->fetch_all(MYSQLI_ASSOC);
-$current_player_id_amount = count($players_current_with_riotid);
 ?>
 <!DOCTYPE html>
 <html lang="de">
@@ -64,11 +62,14 @@ $opl_team_url = "https://www.opleague.pro/team/";
 $opgg_url = "https://www.op.gg/multisearch/euw?summoners=";
 $opgg_logo_svg = file_get_contents(__DIR__."/../img/opgglogo.svg");
 $opgglink = $opgg_url;
-for ($i = 0; $i < count($players_current_with_riotid); $i++) {
+$opgg_amount = 0;
+foreach ($players_current as $i=>$player) {
+    if ($player["riotID_name"] == null) continue;
 	if ($i != 0) {
 		$opgglink .= urlencode(",");
 	}
-	$opgglink .= urlencode($players_current_with_riotid[$i]["riotID_name"]."#".$players_current_with_riotid[$i]["riotID_tag"]);
+	$opgglink .= urlencode($player["riotID_name"]."#".$player["riotID_tag"]);
+    $opgg_amount++;
 }
 echo "<div class='team title'>
 			<div class='team-name'>";
