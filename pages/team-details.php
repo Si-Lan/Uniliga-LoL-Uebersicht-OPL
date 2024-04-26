@@ -34,7 +34,8 @@ foreach ($groups_played_in as $event) {
 }
 $players = $dbcn->execute_query("SELECT * FROM players JOIN players_in_teams pit on players.OPL_ID = pit.OPL_ID_player WHERE pit.OPL_ID_team = ? ", [$teamID])->fetch_all(MYSQLI_ASSOC);
 $players_current = $dbcn->execute_query("SELECT * FROM players JOIN players_in_teams pit on players.OPL_ID = pit.OPL_ID_player WHERE pit.OPL_ID_team = ? AND pit.removed = false", [$teamID])->fetch_all(MYSQLI_ASSOC);
-$current_player_amount = count($players_current);
+$players_current_with_riotid = $dbcn->execute_query("SELECT * FROM players JOIN players_in_teams pit on players.OPL_ID = pit.OPL_ID_player WHERE pit.OPL_ID_team = ? AND pit.removed = false AND players.riotID_name IS NOT NULL", [$teamID])->fetch_all(MYSQLI_ASSOC);
+$current_player_id_amount = count($players_current_with_riotid);
 ?>
 <!DOCTYPE html>
 <html lang="de">
@@ -63,11 +64,11 @@ $opl_team_url = "https://www.opleague.pro/team/";
 $opgg_url = "https://www.op.gg/multisearch/euw?summoners=";
 $opgg_logo_svg = file_get_contents(__DIR__."/../img/opgglogo.svg");
 $opgglink = $opgg_url;
-for ($i = 0; $i < count($players_current); $i++) {
+for ($i = 0; $i < count($players_current_with_riotid); $i++) {
 	if ($i != 0) {
 		$opgglink .= urlencode(",");
 	}
-	$opgglink .= urlencode($players[$i]["riotID_name"]."#".$players[$i]["riotID_tag"]);
+	$opgglink .= urlencode($players_current_with_riotid[$i]["riotID_name"]."#".$players_current_with_riotid[$i]["riotID_tag"]);
 }
 echo "<div class='team title'>
 			<div class='team-name'>";
@@ -94,7 +95,7 @@ echo "
                 <div class='player-cards opgg-cards'>
                     <div class='title'>
                         <h3>Aktuelle Spieler</h3>
-                        <a href='$opgglink' class='button op-gg' target='_blank'><div class='svg-wrapper op-gg'>$opgg_logo_svg</div><span class='player-amount'>({$current_player_amount} Spieler)</span></a>";
+                        <a href='$opgglink' class='button op-gg' target='_blank'><div class='svg-wrapper op-gg'>$opgg_logo_svg</div><span class='player-amount'>({$current_player_id_amount} Spieler)</span></a>";
 
 echo "
                      </div>";

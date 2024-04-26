@@ -20,9 +20,13 @@ function create_summonercard(mysqli $dbcn, $playerID, $tournamentID, $teamID = N
 		$player_LP = $player_rank["rank_LP"] ?? null;
 	}
 	$return .= "<div class='summoner-card-wrapper'>";
-	$return .= "
-	<div class='summoner-card {$player['OPL_ID']} $sc_collapsed_state $player_removed_class' onclick='player_to_opgg_link(\"{$player['OPL_ID']}\",\"{$riotid_full}\")'>";
-	$return .= "<input type='checkbox' name='OPGG' checked class='opgg-checkbox'>";
+	if ($player["riotID_name"] != null) {
+		$return .= "<div class='summoner-card {$player['OPL_ID']} $sc_collapsed_state $player_removed_class' onclick='player_to_opgg_link(\"{$player['OPL_ID']}\",\"{$riotid_full}\")'>";
+		$return .= "<input type='checkbox' name='OPGG' checked class='opgg-checkbox'>";
+	} else {
+		$return .= "<div class='summoner-card {$player['OPL_ID']} $sc_collapsed_state $player_removed_class'>";
+		$return .= "<input type='checkbox' name='OPGG' disabled class='opgg-checkbox'>";
+	}
 	$return .= "
 	<span class='card-player'>
 		{$player['name']}
@@ -136,9 +140,13 @@ function create_summonercard_general(mysqli $dbcn, $playerID, $teamID = null):st
 		$player_LP = $player_rank["rank_LP"] ?? null;
 	}
 	$return .= "<div class='summoner-card-wrapper'>";
-	$return .= "
-	<div class='summoner-card {$player['OPL_ID']} collapsed$player_removed_class' onclick='player_to_opgg_link(\"{$player['OPL_ID']}\",\"{$riotid_full}\")'>";
-	$return .= "<input type='checkbox' name='OPGG' checked class='opgg-checkbox'>";
+	if ($player["riotID_name"] != null) {
+		$return .= "<div class='summoner-card {$player['OPL_ID']} collapsed$player_removed_class' onclick='player_to_opgg_link(\"{$player['OPL_ID']}\",\"{$riotid_full}\")'>";
+		$return .= "<input type='checkbox' name='OPGG' checked class='opgg-checkbox'>";
+	} else {
+		$return .= "<div class='summoner-card {$player['OPL_ID']} collapsed$player_removed_class'>";
+		$return .= "<input type='checkbox' name='OPGG' disabled class='opgg-checkbox'>";
+	}
 	$return .= "
 	<span class='card-player'>
 		{$player['name']}

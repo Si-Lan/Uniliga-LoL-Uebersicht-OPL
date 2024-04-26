@@ -385,12 +385,15 @@ async function popup_team(teamID, tournamentID = null) {
 			console.log(team_data);
 			if (current_team_in_popup === team_data['team']['OPL_ID']) {
 
+				let opgg_amount = 0;
 				let players_string = "";
 				for (let i = 0; i < team_data["players"].length; i++) {
+					if (team_data["players"][i]['riotID_name'] == null) continue;
 					if (i !== 0) {
 						players_string += encodeURIComponent(",");
 					}
 					players_string += encodeURIComponent(team_data["players"][i]['riotID_name']+"#"+team_data["players"][i]['riotID_tag']);
+					opgg_amount++;
 				}
 
 				popup.append("<div class='team-buttons opgg-cards'></div>");
@@ -406,7 +409,7 @@ async function popup_team(teamID, tournamentID = null) {
 				}
 				name_container.append(`<h2>${team_data["team"]["name"]}</h2>`);
 				name_container.append(`<a href='https://www.opleague.pro/team/${teamID}' target='_blank' class='toorlink'>${get_material_icon("open_in_new")}</a>`);
-				name_container.append(`<a href='https://www.op.gg/multisearch/euw?summoners=${players_string}' target='_blank' class='button op-gg'><div class='svg-wrapper op-gg'>${opgg_logo_svg}</div><span class='player-amount'>(${team_data["players"].length} Spieler)</span></a>`);
+				name_container.append(`<a href='https://www.op.gg/multisearch/euw?summoners=${players_string}' target='_blank' class='button op-gg'><div class='svg-wrapper op-gg'>${opgg_logo_svg}</div><span class='player-amount'>(${opgg_amount} Spieler)</span></a>`);
 				name_container.append(`<a href='turnier/${tournamentID}/team/${teamID}' class='button'>${get_material_icon("info")}Team-Übersicht</a>`);
 				let sc_collapsed = getCookie("preference_sccollapsed");
 				if (sc_collapsed === "1") {
