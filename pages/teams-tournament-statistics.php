@@ -115,6 +115,15 @@ echo "<div class='main-content'>";
 if ($games_played == 0) {
 	echo "<span>Dieses Team hat noch keine Spiele gespielt</span>";
 } else {
+    echo "<span class='infotext-container tooltip'>
+            <span class='material-symbol'>".file_get_contents(__DIR__."/../icons/material/info.svg")."</span>
+            <span>
+                In den Statistiken können mehr Spiele angezeigt werden, als im Turnier bisher gespielt wurden.
+                <span class='tooltiptext statinfo'>
+                    Aktuell werden alle Spiele angezeigt werden, welche im Turnier-Zeitraum zwischen Uniliga-Teams gespielt wurden.<br>Also auch Spiele aus dem Wildcard-Turnier, oder Scrims zwischen Uniliga-Teams.<br>Ein Filter auf offizielle Spieltage ist geplant!
+                </span>
+            </span>
+          </span>";
 	echo "<span>Spiele: ".$games_played." | Siege: ".$teamstats['games_won']." (".round($teamstats['games_won']/$games_played*100,2)."%)</span>";
 	echo "<span>durchschn. Zeit zum Sieg: ".date("i:s",$teamstats['avg_win_time'])."</span>";
 
