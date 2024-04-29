@@ -385,7 +385,7 @@ function get_teamID_by_puuids(mysqli $dbcn, $PUUIDs, $tournamentID) {
 	$team_counts = [];
 	foreach ($PUUIDs as $player) {
 		$player_data = NULL;
-		if ($tournament["eventType"] == "group") {
+		if ($tournament["eventType"] == "group" || ($tournament["eventType"] == "league" && $tournament["format"] == "swiss")) {
 			$player_data = $dbcn->execute_query("SELECT p.*, pit.OPL_ID_team AS OPL_ID_team FROM players p JOIN players_in_teams pit ON p.OPL_ID = pit.OPL_ID_player JOIN teams_in_tournaments tit on pit.OPL_ID_team = tit.OPL_ID_team WHERE PUUID = ? AND tit.OPL_ID_group = ?", [$player, $tournamentID])->fetch_assoc();
 		} elseif ($tournament["eventType"] == "league") {
 			$player_data = $dbcn->execute_query("SELECT p.*, pit.OPL_ID_team AS OPL_ID_team FROM players p JOIN players_in_teams pit ON p.OPL_ID = pit.OPL_ID_player JOIN teams_in_tournaments tit on pit.OPL_ID_team = tit.OPL_ID_team WHERE PUUID = ? AND tit.OPL_ID_group IN (SELECT OPL_ID FROM tournaments WHERE eventType = 'group' AND OPL_ID_parent = ?)", [$player, $tournamentID])->fetch_assoc();

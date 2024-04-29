@@ -30,6 +30,10 @@ if (preg_match("/^(winter|sommer)([0-9]{2})$/",strtolower($tournamentID),$url_pa
 }
 $tournament = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID = ? AND eventType = 'tournament'", [$tournamentID])->fetch_assoc();
 $group = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID = ? AND eventType = 'group'", [$groupID])->fetch_assoc();
+if ($group == null) {
+    $group = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID = ? AND eventType = 'league' AND format = 'swiss'", [$groupID])->fetch_assoc();
+}
+$swiss = ($group["format"]??"" == 'swiss');
 
 if ($tournament == NULL || $group == NULL) {
 	echo create_html_head_elements(title: "Gruppe nicht gefunden | Uniliga LoL - Übersicht");
@@ -40,10 +44,18 @@ if ($tournament == NULL || $group == NULL) {
 	exit();
 }
 
-$league = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID = ? AND eventType = 'league'", [$group["OPL_ID_parent"]])->fetch_assoc();
+if ($swiss) {
+    $league = $group;
+} else {
+	$league = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID = ? AND eventType = 'league'", [$group["OPL_ID_parent"]])->fetch_assoc();
+}
 
 $t_name_clean = preg_replace("/LoL\s/","",$tournament["name"]);
-echo create_html_head_elements(css: ["game"], title: "Liga {$league["number"]} - Gruppe {$group["number"]} | $t_name_clean | Uniliga LoL - Übersicht");
+if ($swiss) {
+	echo create_html_head_elements(css: ["game"], title: "Liga {$league["number"]} - Swiss-Gruppe | $t_name_clean | Uniliga LoL - Übersicht");
+} else {
+	echo create_html_head_elements(css: ["game"], title: "Liga {$league["number"]} - Gruppe {$group["number"]} | $t_name_clean | Uniliga LoL - Übersicht");
+}
 
 $open_popup = "";
 if (isset($_GET['match'])) {
@@ -67,7 +79,7 @@ $teams_from_group = [];
 foreach ($teams_from_groupDB as $i=>$team_from_group) {
 	$teams_from_group[$team_from_group['OPL_ID']] = array("name"=>$team_from_group['name'], "OPL_ID_logo"=>$team_from_group['OPL_ID_logo']);
 }
-if ($league["format"] === "Swiss") {
+if ($league["format"] === "swiss") {
 	$group_title = "Swiss-Gruppe";
 } else {
 	$group_title = "Gruppe {$group['number']}";

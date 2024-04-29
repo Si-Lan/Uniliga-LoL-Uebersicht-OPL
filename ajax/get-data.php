@@ -12,12 +12,8 @@ if ($type == "groups") {
 	$tournament = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID = ?", [$tournamentID])->fetch_assoc();
 	$groups = [];
 	if ($tournament["eventType"] == "tournament") {
-		$leagues = $dbcn->execute_query("SELECT * FROM tournaments WHERE eventType = 'league' AND OPL_ID_parent = ?", [$tournamentID])->fetch_all(MYSQLI_ASSOC);
-		foreach ($leagues as $league) {
-			$groups_from_league = $dbcn->execute_query("SELECT * FROM tournaments WHERE eventType = 'group' AND OPL_ID_parent = ?", [$league["OPL_ID"]])->fetch_all(MYSQLI_ASSOC);
-			array_push($groups, ...$groups_from_league);
-		}
-	} elseif ($tournament["eventType"] == "league") {
+		$groups = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID_top_parent = ? AND (eventType = 'group' OR (eventType = 'league' AND format = 'swiss'))",[$tournamentID])->fetch_all(MYSQLI_ASSOC);
+	} elseif ($tournament["eventType"] == "league" && $tournament["format"] != "swiss") {
 		$groups = $dbcn->execute_query("SELECT * FROM tournaments WHERE eventType = 'group' AND OPL_ID_parent = ?", [$tournamentID])->fetch_all(MYSQLI_ASSOC);
 	}
 	if (isset($_SERVER["HTTP_IDONLY"]) || isset($_GET["idonly"])) {
@@ -62,14 +58,10 @@ if ($type == "teams") {
 	$tournament = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID = ?", [$tournamentID])->fetch_assoc();
 	$groups = [];
 	if ($tournament["eventType"] == "tournament") {
-		$leagues = $dbcn->execute_query("SELECT * FROM tournaments WHERE eventType = 'league' AND OPL_ID_parent = ?", [$tournamentID])->fetch_all(MYSQLI_ASSOC);
-		foreach ($leagues as $league) {
-			$groups_from_league = $dbcn->execute_query("SELECT * FROM tournaments WHERE eventType = 'group' AND OPL_ID_parent = ?", [$league["OPL_ID"]])->fetch_all(MYSQLI_ASSOC);
-			array_push($groups, ...$groups_from_league);
-		}
-	} elseif ($tournament["eventType"] == "league") {
+		$groups = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID_top_parent = ? AND (eventType = 'group' OR (eventType = 'league' AND format = 'swiss'))",[$tournamentID])->fetch_all(MYSQLI_ASSOC);
+	} elseif ($tournament["eventType"] == "league" && $tournament["format"] != "swiss") {
 		$groups = $dbcn->execute_query("SELECT * FROM tournaments WHERE eventType = 'group' AND OPL_ID_parent = ?", [$tournamentID])->fetch_all(MYSQLI_ASSOC);
-	} elseif ($tournament["eventType"] == "group") {
+	} elseif ($tournament["eventType"] == "group" || ($tournament["eventType"] == "league" && $tournament["format"] == "swiss")) {
 		$groups[] = $tournament;
 	}
 	$teams = [];
@@ -97,20 +89,17 @@ if ($type == "players") {
 		$parent_tournament = NULL;
 		if ($tournament["eventType"] == "tournament") {
 			$parent_tournament = $tournamentID;
-			$leagues = $dbcn->execute_query("SELECT * FROM tournaments WHERE eventType = 'league' AND OPL_ID_parent = ?", [$tournamentID])->fetch_all(MYSQLI_ASSOC);
-			foreach ($leagues as $league) {
-				$groups_from_league = $dbcn->execute_query("SELECT * FROM tournaments WHERE eventType = 'group' AND OPL_ID_parent = ?", [$league["OPL_ID"]])->fetch_all(MYSQLI_ASSOC);
-				array_push($groups, ...$groups_from_league);
-			}
-		} elseif ($tournament["eventType"] == "league") {
+			$groups = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID_top_parent = ? AND (eventType = 'group' OR (eventType = 'league' AND format = 'swiss'))",[$tournamentID])->fetch_all(MYSQLI_ASSOC);
+		} elseif ($tournament["eventType"] == "league" && $tournament["format"] != "swiss") {
 			$parent_tournament = $tournament["OPL_ID_parent"];
 			$groups = $dbcn->execute_query("SELECT * FROM tournaments WHERE eventType = 'group' AND OPL_ID_parent = ?", [$tournamentID])->fetch_all(MYSQLI_ASSOC);
-		} elseif ($tournament["eventType"] == "group") {
+		} elseif ($tournament["eventType"] == "group" || ($tournament["eventType"] == "league" && $tournament["format"] == "swiss")) {
 			$parent_tournament = $dbcn->execute_query("SELECT OPL_ID_parent FROM tournaments WHERE eventType='league' AND OPL_ID = ?", [$tournament["OPL_ID_parent"]])->fetch_column();
 			$groups[] = $tournament;
 		}
 
 		if ($teamID != NULL) {
+			// Players from Team in Tournament
 			if (isset($_SERVER["HTTP_SUMMONERIDSET"])) {
 				$players = $dbcn->execute_query("SELECT * FROM players JOIN players_in_teams_in_tournament pit ON players.OPL_ID = pit.OPL_ID_player WHERE pit.OPL_ID_team = ? AND pit.OPL_ID_tournament = ? AND summonerID IS NOT NULL", [$teamID, $parent_tournament])->fetch_all(MYSQLI_ASSOC);
 			} elseif (isset($_SERVER["HTTP_PUUIDSET"])) {
@@ -119,6 +108,7 @@ if ($type == "players") {
 				$players = $dbcn->execute_query("SELECT * FROM players JOIN players_in_teams_in_tournament pit ON players.OPL_ID = pit.OPL_ID_player WHERE pit.OPL_ID_team = ? AND pit.OPL_ID_tournament = ?", [$teamID, $parent_tournament])->fetch_all(MYSQLI_ASSOC);
 			}
 		} else {
+			// Players from Tournament
 			foreach ($groups as $group) {
 				if (isset($_SERVER["HTTP_SUMMONERIDSET"])) {
 					$players_from_group = $dbcn->execute_query("SELECT p.* FROM players AS p JOIN players_in_teams pit on p.OPL_ID = pit.OPL_ID_player JOIN teams_in_tournaments tit on pit.OPL_ID_team = tit.OPL_ID_team WHERE tit.OPL_ID_group = ? AND summonerID IS NOT NULL", [$group["OPL_ID"]])->fetch_all(MYSQLI_ASSOC);
@@ -131,6 +121,7 @@ if ($type == "players") {
 			}
 		}
 	} else {
+		// Players from Team
 		if ($teamID != null) {
 			if (isset($_SERVER["HTTP_SUMMONERIDSET"])) {
 				$players = $dbcn->execute_query("SELECT * FROM players JOIN players_in_teams pit ON players.OPL_ID = pit.OPL_ID_player WHERE pit.OPL_ID_team = ? AND summonerID IS NOT NULL", [$teamID])->fetch_all(MYSQLI_ASSOC);
@@ -140,6 +131,7 @@ if ($type == "players") {
 				$players = $dbcn->execute_query("SELECT * FROM players JOIN players_in_teams pit ON players.OPL_ID = pit.OPL_ID_player WHERE pit.OPL_ID_team = ?", [$teamID])->fetch_all(MYSQLI_ASSOC);
 			}
 		} else {
+			// All players
 			if (isset($_SERVER["HTTP_SUMMONERIDSET"])) {
 				$players = $dbcn->execute_query("SELECT * FROM players WHERE summonerID IS NOT NULL")->fetch_all(MYSQLI_ASSOC);
 			} elseif (isset($_SERVER["HTTP_PUUIDSET"])) {
@@ -237,16 +229,12 @@ if ($type == "matchups") {
 	$tournament = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID = ?", [$tournamentID])->fetch_assoc();
 	$groups = [];
 	if ($tournament["eventType"] == "tournament") {
-		$leagues = $dbcn->execute_query("SELECT * FROM tournaments WHERE eventType = 'league' AND OPL_ID_parent = ?", [$tournamentID])->fetch_all(MYSQLI_ASSOC);
-		foreach ($leagues as $league) {
-			$groups_from_league = $dbcn->execute_query("SELECT * FROM tournaments WHERE eventType = 'group' AND OPL_ID_parent = ?", [$league["OPL_ID"]])->fetch_all(MYSQLI_ASSOC);
-			array_push($groups, ...$groups_from_league);
-		}
+		$groups = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID_top_parent = ? AND (eventType = 'group' OR (eventType = 'league' AND format = 'swiss'))",[$tournamentID])->fetch_all(MYSQLI_ASSOC);
 		$playoffs = $dbcn->execute_query("SELECT * FROM tournaments WHERE eventType = 'playoffs' AND OPL_ID_parent = ?", [$tournament["OPL_ID"]])->fetch_all(MYSQLI_ASSOC);
 		array_push($groups, ...$playoffs);
-	} elseif ($tournament["eventType"] == "league") {
+	} elseif ($tournament["eventType"] == "league" && $tournament["format"] != "swiss") {
 		$groups = $dbcn->execute_query("SELECT * FROM tournaments WHERE eventType = 'group' AND OPL_ID_parent = ?", [$tournamentID])->fetch_all(MYSQLI_ASSOC);
-	} elseif ($tournament["eventType"] == "group" || $tournament["eventType"] == "playoffs") {
+	} elseif ($tournament["eventType"] == "group" || $tournament["eventType"] == "playoffs" || ($tournament["eventType"] == "league" && $tournament["format"] == "swiss")) {
 		$groups[] = $tournament;
 	}
 	$matchups = [];

@@ -74,6 +74,19 @@ foreach ($leagues as $league) {
 	}
 	echo "<div class='divider'></div>";
 
+    if ($league["format"] == "swiss") {
+        echo "<div class='groups'>";
+		echo "<div>";
+		echo "<div class='group'>
+                            <a href='turnier/{$tournament_url_path}/gruppe/{$league['OPL_ID']}' class='button'>Swiss-Gruppe</a>
+                            <a href='turnier/{$tournament_url_path}/teams?liga={$league['OPL_ID']}' class='button'><div class='material-symbol'>". file_get_contents("../icons/material/group.svg") ."</div>Teams</a>";
+		echo "</div>"; // group
+		echo "</div>"; // <div>
+		echo "</div>"; // groups
+		echo "</div>"; // division
+        continue;
+    }
+
 	$groups = $dbcn->execute_query("SELECT * FROM tournaments WHERE eventType = 'group' AND OPL_ID_parent = ? ORDER BY number", [$league["OPL_ID"]])->fetch_all(MYSQLI_ASSOC);
 
 	echo "<div class='groups'>";

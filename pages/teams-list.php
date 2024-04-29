@@ -137,13 +137,8 @@ $teams = $dbcn->execute_query("SELECT *
                                             AND tit.OPL_ID_group IN (
                                                 SELECT OPL_ID
                                                 FROM tournaments
-                                                WHERE eventType = 'group'
-                                                    AND OPL_ID_parent IN (
-                                                        SELECT OPL_ID
-                                                        FROM tournaments
-                                                        WHERE eventType='league'
-                                                            AND OPL_ID_parent = ?
-                                                    )
+                                                WHERE (eventType = 'group' OR (eventType = 'league' AND format = 'swiss'))
+                                                    AND OPL_ID_top_parent = ?
                                             )
                                         ORDER BY teams.name", [$tournamentID])->fetch_all(MYSQLI_ASSOC);
 
@@ -154,7 +149,11 @@ foreach ($teams as $i_teams=>$team) {
 	$currTeam = $team["name"];
 	$currTeamID = $team["OPL_ID"];
 	$currTeamGroupID = $team["OPL_ID_group"];
-	$currTeamDivID = $groups[$team["OPL_ID_group"]]["OPL_ID_parent"];
+    if (array_key_exists($currTeamGroupID,$leagues)) {
+        $currTeamDivID = $currTeamGroupID;
+    } else {
+		$currTeamDivID = $groups[$team["OPL_ID_group"]]["OPL_ID_parent"];
+	}
 	$currTeamImgID = $team["OPL_ID_logo"];
 
 	$team_name_now = $dbcn->execute_query("SELECT name FROM team_name_history WHERE OPL_ID_team = ? AND (update_time < ? OR ? IS NULL) ORDER BY update_time DESC", [$currTeamID,$tournament["dateEnd"],$tournament["dateEnd"]])->fetch_column();
