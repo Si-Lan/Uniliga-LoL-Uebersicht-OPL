@@ -31,7 +31,11 @@ if ($group_id != NULL) {
 	$leagues = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID_parent = ? AND eventType = 'league'", [$tournament_id])->fetch_all(MYSQLI_ASSOC);
 	foreach ($leagues as $league) {
 		file_put_contents("cron_logs/cron_log_$day.log",date("d.m.y H:i:s")." : Matchresults for league {$league["number"]} ({$league["OPL_ID"]})\n", FILE_APPEND);
-		$groups = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID_parent = ? AND eventType = 'group'", [$league["OPL_ID"]])->fetch_all(MYSQLI_ASSOC);
+		if ($league["format"] == "swiss") {
+			$groups = [$league];
+		} else {
+			$groups = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID_parent = ? AND eventType = 'group'", [$league["OPL_ID"]])->fetch_all(MYSQLI_ASSOC);
+		}
 		foreach ($groups as $group) {
 			file_put_contents("cron_logs/cron_log_$day.log",date("d.m.y H:i:s")." : Matchresults for group {$group["number"]} ({$group["OPL_ID"]})\n", FILE_APPEND);
 			$matches = $dbcn->execute_query("SELECT * FROM matchups WHERE OPL_ID_tournament = ?", [$group["OPL_ID"]])->fetch_all(MYSQLI_ASSOC);

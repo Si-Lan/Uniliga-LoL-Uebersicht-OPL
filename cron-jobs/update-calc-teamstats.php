@@ -18,7 +18,15 @@ $tournament_id = $_GET['t'];
 echo "\n---- calculate Teamstats \n";
 file_put_contents("cron_logs/cron_log_$day.log","\n----- calculating Teamstats starting -----\n".date("d.m.y H:i:s")." : calculating Teamstats for $tournament_id\n", FILE_APPEND);
 
-$teams = $dbcn->execute_query("SELECT * FROM teams JOIN teams_in_tournaments tit on teams.OPL_ID = tit.OPL_ID_team WHERE OPL_ID_group IN (SELECT OPL_ID FROM tournaments WHERE eventType='group' AND OPL_ID_parent IN (SELECT OPL_ID FROM tournaments WHERE eventType='league' AND OPL_ID_parent = ?))", [$tournament_id])->fetch_all(MYSQLI_ASSOC);
+$teams = $dbcn->execute_query("SELECT *
+										FROM teams
+										    JOIN teams_in_tournaments tit
+										        on teams.OPL_ID = tit.OPL_ID_team
+										WHERE OPL_ID_group IN
+										      (SELECT OPL_ID
+										       FROM tournaments
+										       WHERE (eventType='group' OR (eventType='league' AND format='swiss'))
+										         AND OPL_ID_top_parent = ?)", [$tournament_id])->fetch_all(MYSQLI_ASSOC);
 $teamstats_gotten = array("writes"=>0,"updates"=>0,"not"=>0);
 foreach ($teams as $tindex=>$team) {
     $result = calculate_teamstats($team["OPL_ID"],$tournament_id);
