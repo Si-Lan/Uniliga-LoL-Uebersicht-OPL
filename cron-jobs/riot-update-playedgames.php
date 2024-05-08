@@ -38,14 +38,8 @@ if ($indexed) {
 										WHERE tit.OPL_ID_group IN
 										      (SELECT OPL_ID
 										       FROM tournaments
-										       WHERE eventType='group'
-										         AND OPL_ID_parent IN
-										             (SELECT OPL_ID
-										              FROM tournaments
-										              WHERE eventType='league'
-										                AND OPL_ID_parent = ?
-										              )
-										       )
+										       WHERE (eventType='group' OR (eventType='league' AND format='swiss'))
+										         AND OPL_ID_top_parent = ?)
 										ORDER BY p.OPL_ID
 										LIMIT ? OFFSET ?", [$tournament_id,$amount,$first])->fetch_all(MYSQLI_ASSOC);
 } else {
@@ -58,14 +52,8 @@ if ($indexed) {
 										WHERE tit.OPL_ID_group IN
 										      (SELECT OPL_ID
 										       FROM tournaments
-										       WHERE eventType='group'
-										         AND OPL_ID_parent IN
-										             (SELECT OPL_ID
-										              FROM tournaments
-										              WHERE eventType='league'
-										                AND OPL_ID_parent = ?
-										              )
-										       )
+										       WHERE (eventType='group' OR (eventType='league' AND format='swiss'))
+										         AND OPL_ID_top_parent = ?)
 										ORDER BY p.OPL_ID", [$tournament_id])->fetch_all(MYSQLI_ASSOC);
 }
 $games_gotten = array("already"=>0,"new"=>0);

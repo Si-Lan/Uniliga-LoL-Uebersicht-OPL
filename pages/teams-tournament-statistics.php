@@ -32,7 +32,7 @@ if (preg_match("/^(winter|sommer)([0-9]{2})$/",strtolower($tournamentID),$url_pa
 	$tournamentID = $dbcn->execute_query("SELECT OPL_ID FROM tournaments WHERE season = ? AND split = ? AND eventType = 'tournament'", [$season, $split])->fetch_column();
 }
 $tournament = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID = ? AND eventType = 'tournament'", [$tournamentID])->fetch_assoc();
-$team_groups = $dbcn->execute_query("SELECT * FROM teams JOIN teams_in_tournaments tit ON teams.OPL_ID = tit.OPL_ID_team WHERE OPL_ID = ? AND OPL_ID_group IN (SELECT OPL_ID FROM tournaments WHERE eventType='group' AND OPL_ID_parent IN (SELECT OPL_ID FROM tournaments WHERE eventType='league' AND OPL_ID_parent = ?))", [$teamID, $tournamentID])->fetch_all(MYSQLI_ASSOC);
+$team_groups = $dbcn->execute_query("SELECT * FROM teams JOIN teams_in_tournaments tit ON teams.OPL_ID = tit.OPL_ID_team WHERE OPL_ID = ? AND OPL_ID_group IN (SELECT OPL_ID FROM tournaments WHERE (eventType='group' OR (eventType = 'league' AND format = 'swiss')) AND OPL_ID_top_parent = ?)", [$teamID, $tournamentID])->fetch_all(MYSQLI_ASSOC);
 $team_solo = $dbcn->execute_query("SELECT * FROM teams WHERE OPL_ID = ?", [$teamID])->fetch_assoc();
 
 if ($tournament == NULL) {
@@ -65,8 +65,9 @@ if (count($team_groups) > 1) {
 	$team = $team_groups[0];
 }
 
-$group = $dbcn->execute_query("SELECT * FROM tournaments WHERE eventType='group' AND OPL_ID = ?", [$team["OPL_ID_group"]])->fetch_assoc();
+$group = $dbcn->execute_query("SELECT * FROM tournaments WHERE (eventType='group' OR (eventType = 'league' AND format = 'swiss')) AND OPL_ID = ?", [$team["OPL_ID_group"]])->fetch_assoc();
 $league = $dbcn->execute_query("SELECT * FROM tournaments WHERE eventType='league' AND OPL_ID = ?", [$group["OPL_ID_parent"]])->fetch_assoc();
+if ($group["format"] == "swiss") $league = $group;
 
 $teams_from_groupDB = $dbcn->execute_query("SELECT * FROM teams JOIN teams_in_tournaments tit on teams.OPL_ID = tit.OPL_ID_team WHERE OPL_ID_group = ?", [$group["OPL_ID"]])->fetch_all(MYSQLI_ASSOC);
 $teams_from_group = [];
@@ -115,6 +116,15 @@ echo "<div class='main-content'>";
 if ($games_played == 0) {
 	echo "<span>Dieses Team hat noch keine Spiele gespielt</span>";
 } else {
+    echo "<span class='infotext-container tooltip'>
+            <span class='material-symbol'>".file_get_contents(__DIR__."/../icons/material/info.svg")."</span>
+            <span>
+                In den Statistiken können mehr Spiele angezeigt werden, als im Turnier bisher gespielt wurden.
+                <span class='tooltiptext statinfo'>
+                    Aktuell werden alle Spiele angezeigt werden, welche im Turnier-Zeitraum zwischen Uniliga-Teams gespielt wurden.<br>Also auch Spiele aus dem Wildcard-Turnier, oder Scrims zwischen Uniliga-Teams.<br>Ein Filter auf offizielle Spieltage ist geplant!
+                </span>
+            </span>
+          </span>";
 	echo "<span>Spiele: ".$games_played." | Siege: ".$teamstats['games_won']." (".round($teamstats['games_won']/$games_played*100,2)."%)</span>";
 	echo "<span>durchschn. Zeit zum Sieg: ".date("i:s",$teamstats['avg_win_time'])."</span>";
 

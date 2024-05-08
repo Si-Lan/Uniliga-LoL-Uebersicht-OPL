@@ -21,6 +21,11 @@ file_put_contents("cron_logs/cron_log_$day.log","\n----- Standings starting ----
 $results = [];
 $leagues = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID_parent = ? AND eventType = 'league'", [$tournament_id])->fetch_all(MYSQLI_ASSOC);
 foreach ($leagues as $league) {
+	if ($league["format"] == "swiss") {
+		file_put_contents("cron_logs/cron_log_$day.log",date("d.m.y H:i:s")." : Standings for swiss-league {$league["number"]} ({$league["OPL_ID"]})\n", FILE_APPEND);
+		$results[] = calculate_standings_from_matchups($league["OPL_ID"]);
+		continue;
+	}
 	file_put_contents("cron_logs/cron_log_$day.log",date("d.m.y H:i:s")." : Standings for league {$league["number"]} ({$league["OPL_ID"]})\n", FILE_APPEND);
 	$groups = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID_parent = ? AND eventType = 'group'", [$league["OPL_ID"]])->fetch_all(MYSQLI_ASSOC);
 	foreach ($groups as $group) {

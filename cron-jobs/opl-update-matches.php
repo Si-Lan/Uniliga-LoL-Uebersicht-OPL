@@ -20,7 +20,6 @@ echo "\n---- getting Matches from OPL\n";
 file_put_contents("cron_logs/cron_log_$day.log","\n----- Matches starting -----\n", FILE_APPEND);
 
 $results = [];
-
 if ($group_id != null) {
 	$group = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID = ?", [$group_id])->fetch_assoc();
 	if ($group["eventType"] == "group") {
@@ -28,8 +27,10 @@ if ($group_id != null) {
 		file_put_contents("cron_logs/cron_log_$day.log",date("d.m.y H:i:s")." : Matches for league {$league["number"]} group {$group["number"]} ({$league["OPL_ID"]} / {$group["OPL_ID"]})\n", FILE_APPEND);
 	} elseif ($group["eventType"] == "playoffs") {
 		file_put_contents("cron_logs/cron_log_$day.log",date("d.m.y H:i:s")." : Matches for playoffs {$group["number"]}/{$group["numberRangeTo"]} ({$group["OPL_ID"]})\n", FILE_APPEND);
+	} elseif ($group["eventType"] == "league" && $group["format"] == "swiss") {
+		file_put_contents("cron_logs/cron_log_$day.log",date("d.m.y H:i:s")." : Matches for swiss-league {$group["number"]} ({$group["OPL_ID"]})\n", FILE_APPEND);
 	} else {
-		file_put_contents("cron_logs/cron_log_$day.log",date("d.m.y H:i:s")." : Matches not gotten, id $group_id is neither group nor playoffs\n", FILE_APPEND);
+		file_put_contents("cron_logs/cron_log_$day.log",date("d.m.y H:i:s")." : Matches not gotten, id $group_id is neither group, swiss-league nor playoffs\n", FILE_APPEND);
 	}
 	array_push($results, ...get_matchups_for_tournament($group["OPL_ID"]));
 	sleep(1);
@@ -37,6 +38,12 @@ if ($group_id != null) {
 	file_put_contents("cron_logs/cron_log_$day.log",date("d.m.y H:i:s")." : Matches for tournament $tournament_id:\n", FILE_APPEND);
 	$leagues = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID_parent = ? AND eventType = 'league'", [$tournament_id])->fetch_all(MYSQLI_ASSOC);
 	foreach ($leagues as $league) {
+		if ($league["format"] == "swiss") {
+			file_put_contents("cron_logs/cron_log_$day.log",date("d.m.y H:i:s")." : Matches for swiss-league {$league["number"]} ({$league["OPL_ID"]})\n", FILE_APPEND);
+			array_push($results, ...get_matchups_for_tournament($league["OPL_ID"]));
+			sleep(1);
+			continue;
+		}
 		file_put_contents("cron_logs/cron_log_$day.log",date("d.m.y H:i:s")." : Matches for league {$league["number"]} ({$league["OPL_ID"]})\n", FILE_APPEND);
 		$groups = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID_parent = ? AND eventType = 'group'", [$league["OPL_ID"]])->fetch_all(MYSQLI_ASSOC);
 		foreach ($groups as $group) {

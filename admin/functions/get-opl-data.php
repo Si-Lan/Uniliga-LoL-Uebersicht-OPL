@@ -194,6 +194,7 @@ function create_tournament_get_button(array $data, bool $in_write_popup = false)
 	$formatselect_round_robin = (strtolower($data["format"]??"") == "round-robin") ? "selected" : "";
 	$formatselect_single_elim = (strtolower($data["format"]??"") == "single-elimination") ? "selected" : "";
 	$formatselect_double_elim = (strtolower($data["format"]??"") == "double-elimination") ? "selected" : "";
+	$formatselect_swiss = (strtolower($data["format"]??"") == "swiss") ? "selected" : "";
 
 	$dateStart = explode(" ",$data["dateStart"])[0];
 	$dateEnd = explode(" ",$data["dateEnd"])[0];
@@ -244,6 +245,7 @@ function create_tournament_get_button(array $data, bool $in_write_popup = false)
 								<option $formatselect_round_robin value='round-robin'>round-robin</option>
 								<option $formatselect_single_elim value='single-elimination'>single-elim</option>
 								<option $formatselect_double_elim value='double-elimination'>double-elim</option>
+								<option $formatselect_swiss value='swiss'>swiss</option>
 							</select>
 							<span class='material-symbol'>".file_get_contents(__DIR__."/../../icons/material/arrow_drop_down.svg")."</span>
 						</span>
@@ -329,7 +331,7 @@ function get_teams_for_tournament($tournamentID, bool $deletemissing = false):ar
 	}
 
 	$tournament = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID = ?", [$tournamentID])->fetch_assoc();
-	if (!($tournament["eventType"] == "group" || $tournament["eventType"] == "playoffs")) {
+	if (!($tournament["eventType"] == "group" || $tournament["eventType"] == "playoffs" || ($tournament["eventType"] == "league" && $tournament["format"] == "swiss"))) {
 		return [];
 	}
 
@@ -588,7 +590,7 @@ function get_players_for_tournament($tournamentID):array {
 
 	$tournament = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID = ?", [$tournamentID])->fetch_assoc();
 
-	if (!($tournament["eventType"] == "group" || $tournament["eventType"] == "playoffs")) {
+	if (!($tournament["eventType"] == "group" || $tournament["eventType"] == "playoffs" || ($tournament["eventType"] == "league" && $tournament["format"] == "swiss"))) {
 		return [];
 	}
 
@@ -615,45 +617,7 @@ function get_players_for_team($teamID, $tournamentID):array {
 
 	$tournament_data = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID = ?", [$tournamentID])->fetch_assoc();
 	$current_time = time();
-	$parent_tournament = $dbcn->execute_query("SELECT *
-														FROM tournaments
-														WHERE (
-														    eventType='tournament'
-														        AND OPL_ID = (
-														        	SELECT OPL_ID_parent
-														        	FROM tournaments
-														        	WHERE eventType= 'league'
-														          		AND OPL_ID = (
-														          		    SELECT OPL_ID_parent
-														          		    FROM tournaments
-														          		    WHERE eventType='group'
-														          		    	AND OPL_ID = ?
-														          		)
-														        	)
-														    )
-														   OR (
-														    eventType='tournament'
-														        AND OPL_ID = (
-														        	SELECT OPL_ID_parent
-														        	FROM tournaments
-														        	WHERE eventType= 'league'
-														          		AND OPL_ID = ?
-														        	)
-														       )
-														   OR (
-														    eventType='tournament'
-														        AND OPL_ID = (
-														        	SELECT OPL_ID_parent
-														        	FROM tournaments
-														        	WHERE eventType= 'playoffs'
-														          		AND OPL_ID = ?
-														        	)
-														       )
-														    OR (
-														    eventType='tournament'
-														        AND OPL_ID = ?
-														       )",
-		[$tournamentID, $tournamentID, $tournamentID, $tournamentID])->fetch_assoc();
+	$parent_tournament = $dbcn->execute_query("SELECT * FROM tournaments WHERE eventType='tournament' AND OPL_ID = ? OR (OPL_ID = (SELECT OPL_ID_top_parent FROM tournaments WHERE OPL_ID = ?))",[$tournamentID, $tournamentID])->fetch_assoc();
 	$parent_tournamentID = $parent_tournament["OPL_ID"];
 	$tournament_end = strtotime($parent_tournament["dateEnd"]);
 
@@ -844,7 +808,7 @@ function get_matchups_for_tournament($tournamentID, bool $deletemissing = false)
 
 	$tournament = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID = ?", [$tournamentID])->fetch_assoc();
 
-	if (!($tournament["eventType"] == "group" || $tournament["eventType"] == "playoffs")) {
+	if (!($tournament["eventType"] == "group" || $tournament["eventType"] == "playoffs" || ($tournament["eventType"] == "league" && $tournament["format"] == "swiss"))) {
 		return [];
 	}
 
@@ -994,7 +958,7 @@ function calculate_standings_from_matchups($tournamentID):array {
 
 	$tournament = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID = ?", [$tournamentID])->fetch_assoc();
 
-	if ($tournament["eventType"] != "group") {
+	if (!($tournament["eventType"] == "group" || ($tournament["eventType"] == "league" && $tournament["format"] == "swiss"))) {
 		return [];
 	}
 

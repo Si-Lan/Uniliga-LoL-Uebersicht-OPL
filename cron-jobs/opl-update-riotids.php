@@ -25,15 +25,10 @@ if ($group_id != NULL) {
 											FROM players
 											    JOIN players_in_teams_in_tournament pit
 											        ON players.OPL_ID = pit.OPL_ID_player
-											               AND OPL_ID_tournament IN
-											                   (SELECT OPL_ID_parent
+											               AND OPL_ID_tournament =
+											                   (SELECT OPL_ID_top_parent
 											                    FROM tournaments
-											                    WHERE eventType='league'
-											                      AND OPL_ID IN
-											                          (SELECT OPL_ID_parent
-											                           FROM tournaments
-											                           WHERE eventType='group'
-											                             AND tournaments.OPL_ID = ?))
+											                    WHERE tournaments.OPL_ID = ?)
 											    JOIN teams_in_tournaments tit
 											        ON pit.OPL_ID_team = tit.OPL_ID_team
 											WHERE OPL_ID_group = ?", [$group_id, $group_id])->fetch_all(MYSQLI_ASSOC);
@@ -45,6 +40,25 @@ if ($group_id != NULL) {
 	file_put_contents("cron_logs/cron_log_$day.log","\n----- RiotIDs starting -----\n".date("d.m.y H:i:s")." : RiotIDs for tournament $group_id\n", FILE_APPEND);
 	$leagues = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID_parent = ? AND eventType = 'league'", [$tournament_id])->fetch_all(MYSQLI_ASSOC);
 	foreach ($leagues as $league) {
+		if ($league["format"] == "swiss") {
+			file_put_contents("cron_logs/cron_log_$day.log",date("d.m.y H:i:s")." : RiotIDs for swiss-league {$league["number"]} ({$league["OPL_ID"]})\n", FILE_APPEND);
+			$players = $dbcn->execute_query("SELECT *
+													FROM players
+													    JOIN players_in_teams_in_tournament pit
+													        ON players.OPL_ID = pit.OPL_ID_player
+													               AND OPL_ID_tournament =
+													                   (SELECT OPL_ID_top_parent
+													                    FROM tournaments
+													                    WHERE tournaments.OPL_ID = ?)
+													    JOIN teams_in_tournaments tit
+													        ON pit.OPL_ID_team = tit.OPL_ID_team
+													WHERE OPL_ID_group = ?", [$league["OPL_ID"],$league["OPL_ID"]])->fetch_all(MYSQLI_ASSOC);
+			foreach ($players as $player) {
+				$results[] = get_riotid_for_player($player["OPL_ID"]);
+				sleep(1);
+			}
+			continue;
+		}
 		file_put_contents("cron_logs/cron_log_$day.log",date("d.m.y H:i:s")." : RiotIDs for league {$league["number"]} ({$league["OPL_ID"]})\n", FILE_APPEND);
 		$groups = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID_parent = ? AND eventType = 'group'", [$league["OPL_ID"]])->fetch_all(MYSQLI_ASSOC);
 		foreach ($groups as $group) {
@@ -53,15 +67,10 @@ if ($group_id != NULL) {
 													FROM players
 													    JOIN players_in_teams_in_tournament pit
 													        ON players.OPL_ID = pit.OPL_ID_player
-													               AND OPL_ID_tournament IN
-													                   (SELECT OPL_ID_parent
+													               AND OPL_ID_tournament =
+													                   (SELECT OPL_ID_top_parent
 													                    FROM tournaments
-													                    WHERE eventType='league'
-													                      AND OPL_ID IN
-													                          (SELECT OPL_ID_parent
-													                           FROM tournaments
-													                           WHERE eventType='group'
-													                             AND tournaments.OPL_ID = ?))
+													                    WHERE tournaments.OPL_ID = ?)
 													    JOIN teams_in_tournaments tit
 													        ON pit.OPL_ID_team = tit.OPL_ID_team
 													WHERE OPL_ID_group = ?", [$group["OPL_ID"],$group["OPL_ID"]])->fetch_all(MYSQLI_ASSOC);

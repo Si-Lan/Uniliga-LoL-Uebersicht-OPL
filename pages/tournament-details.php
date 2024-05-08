@@ -53,7 +53,7 @@ echo create_header($dbcn, title: "tournament", tournament_id: $tournamentID);
 
 echo create_tournament_nav_buttons(tournament_id: $tournament_url_path, active: "overview");
 
-$leagues = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID_parent = ? AND eventType='league' AND deactivated = FALSE", [$tournamentID])->fetch_all(MYSQLI_ASSOC);
+$leagues = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID_parent = ? AND eventType='league' AND deactivated = FALSE ORDER BY number", [$tournamentID])->fetch_all(MYSQLI_ASSOC);
 
 echo "<h2 class='pagetitle'>Turnier-Details</h2>";
 echo "<div class='divisions-list-wrapper'>";
@@ -73,6 +73,19 @@ foreach ($leagues as $league) {
                           </div>";
 	}
 	echo "<div class='divider'></div>";
+
+    if ($league["format"] == "swiss") {
+        echo "<div class='groups'>";
+		echo "<div>";
+		echo "<div class='group'>
+                            <a href='turnier/{$tournament_url_path}/gruppe/{$league['OPL_ID']}' class='button'>Swiss-Gruppe</a>
+                            <a href='turnier/{$tournament_url_path}/teams?liga={$league['OPL_ID']}' class='button'><div class='material-symbol'>". file_get_contents("../icons/material/group.svg") ."</div>Teams</a>";
+		echo "</div>"; // group
+		echo "</div>"; // <div>
+		echo "</div>"; // groups
+		echo "</div>"; // division
+        continue;
+    }
 
 	$groups = $dbcn->execute_query("SELECT * FROM tournaments WHERE eventType = 'group' AND OPL_ID_parent = ? ORDER BY number", [$league["OPL_ID"]])->fetch_all(MYSQLI_ASSOC);
 

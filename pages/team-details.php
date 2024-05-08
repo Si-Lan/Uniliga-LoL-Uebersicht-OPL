@@ -22,14 +22,16 @@ try {
 $teamID = $_GET["team"] ?? NULL;
 
 $team = $dbcn->execute_query("SELECT * FROM teams WHERE OPL_ID = ?", [$teamID])->fetch_assoc();
-$groups_played_in = $dbcn->execute_query("SELECT * FROM teams_in_tournaments WHERE OPL_ID_team=?",[$teamID])->fetch_all(MYSQLI_ASSOC);
+$groups_played_in = $dbcn->execute_query("SELECT * FROM teams_in_tournaments WHERE OPL_ID_team=? ORDER BY OPL_ID_group DESC",[$teamID])->fetch_all(MYSQLI_ASSOC);
 $tournaments_played_in = [];
 foreach ($groups_played_in as $event) {
-    $parent = get_top_parent_tournament($dbcn,$event["OPL_ID_group"]);
-    if (array_key_exists($parent, $tournaments_played_in)) {
-        $tournaments_played_in[$parent][] = $event;
+    $event_data = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID = ?", [$event["OPL_ID_group"]])->fetch_assoc();
+    if ($event_data["eventType"]=="playoffs") continue;
+    $parentID = $event_data["OPL_ID_top_parent"];
+    if (array_key_exists($parentID, $tournaments_played_in)) {
+        $tournaments_played_in[$parentID][] = $event;
     } else {
-        $tournaments_played_in[$parent] = [$event];
+        $tournaments_played_in[$parentID] = [$event];
     }
 }
 $players = $dbcn->execute_query("SELECT * FROM players JOIN players_in_teams pit on players.OPL_ID = pit.OPL_ID_player WHERE pit.OPL_ID_team = ? ", [$teamID])->fetch_all(MYSQLI_ASSOC);

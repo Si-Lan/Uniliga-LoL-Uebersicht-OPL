@@ -399,6 +399,22 @@ span.tooltiptext.linkinfo .material-symbol svg {
 	bottom: -1px;
 	margin-right: 2px;
 }
+.tooltip span.tooltiptext.statinfo {
+	background-color: var(--main-button-color);
+	bottom: unset;
+	top: 120%;
+	max-width: 480px;
+	min-width: 200px;
+	width: 100%;
+	text-align: start;
+}
+.infotext-container {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	gap: 8px;
+	max-width: 440px;
+}
 h2.pagetitle {
 	font-size: 2em;
 	margin: 0.5em 0;

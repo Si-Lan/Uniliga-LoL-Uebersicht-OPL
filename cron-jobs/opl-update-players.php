@@ -27,14 +27,22 @@ if ($group_id != null) {
 		file_put_contents("cron_logs/cron_log_$day.log",date("d.m.y H:i:s")." : Players for league {$league["number"]} group {$group["number"]} ({$league["OPL_ID"]} / {$group["OPL_ID"]})\n", FILE_APPEND);
 	} elseif ($group["eventType"] == "playoffs") {
 		file_put_contents("cron_logs/cron_log_$day.log",date("d.m.y H:i:s")." : Players for playoffs {$group["number"]}/{$group["numberRangeTo"]} ({$group["OPL_ID"]})\n", FILE_APPEND);
+	} elseif ($group["eventType"] == "league" && $group["format"] == "swiss") {
+		file_put_contents("cron_logs/cron_log_$day.log",date("d.m.y H:i:s")." : Players for swiss-league {$group["number"]} ({$group["OPL_ID"]})\n", FILE_APPEND);
 	} else {
-		file_put_contents("cron_logs/cron_log_$day.log",date("d.m.y H:i:s")." : Players not gotten, id $group_id is neither group nor playoffs\n", FILE_APPEND);
+		file_put_contents("cron_logs/cron_log_$day.log",date("d.m.y H:i:s")." : Players not gotten, id $group_id is neither group, swiss-league nor playoffs\n", FILE_APPEND);
 	}
 	array_push($results, ...get_players_for_tournament($group["OPL_ID"]));
 } elseif ($tournament_id != null) {
 	file_put_contents("cron_logs/cron_log_$day.log",date("d.m.y H:i:s")." : Players for tournament $tournament_id:\n", FILE_APPEND);
 	$leagues = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID_parent = ? AND eventType = 'league'", [$tournament_id])->fetch_all(MYSQLI_ASSOC);
 	foreach ($leagues as $league) {
+		if ($league["format"] == "swiss") {
+			file_put_contents("cron_logs/cron_log_$day.log",date("d.m.y H:i:s")." : Players for swiss-league {$league["number"]} ({$league["OPL_ID"]})\n", FILE_APPEND);
+			array_push($results, ...get_players_for_tournament($league["OPL_ID"]));
+			sleep(1);
+			continue;
+		}
 		file_put_contents("cron_logs/cron_log_$day.log",date("d.m.y H:i:s")." : Players for league {$league["number"]} ({$league["OPL_ID"]})\n", FILE_APPEND);
 		$groups = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID_parent = ? AND eventType = 'group'", [$league["OPL_ID"]])->fetch_all(MYSQLI_ASSOC);
 		foreach ($groups as $group) {

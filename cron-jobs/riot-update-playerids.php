@@ -25,12 +25,8 @@ $teams = $dbcn->execute_query("SELECT *
 										WHERE OPL_ID_group IN
 										      (SELECT OPL_ID
 										       FROM tournaments
-										       WHERE eventType='group'
-										         AND OPL_ID_parent IN
-										             (SELECT OPL_ID
-										              FROM tournaments
-										              WHERE eventType='league'
-										                AND OPL_ID_parent = ?))", [$tournament_id])->fetch_all(MYSQLI_ASSOC);
+										       WHERE (eventType='group' OR (eventType='league' and format='swiss'))
+										         AND OPL_ID_top_parent )", [$tournament_id])->fetch_all(MYSQLI_ASSOC);
 $current_players_gotten = 0;
 $ids_written = array("p"=>0,"s"=>0,"4"=>0);
 foreach ($teams as $tindex=>$team) {

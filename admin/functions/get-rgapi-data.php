@@ -385,7 +385,7 @@ function get_teamID_by_puuids(mysqli $dbcn, $PUUIDs, $tournamentID) {
 	$team_counts = [];
 	foreach ($PUUIDs as $player) {
 		$player_data = NULL;
-		if ($tournament["eventType"] == "group") {
+		if ($tournament["eventType"] == "group" || ($tournament["eventType"] == "league" && $tournament["format"] == "swiss")) {
 			$player_data = $dbcn->execute_query("SELECT p.*, pit.OPL_ID_team AS OPL_ID_team FROM players p JOIN players_in_teams pit ON p.OPL_ID = pit.OPL_ID_player JOIN teams_in_tournaments tit on pit.OPL_ID_team = tit.OPL_ID_team WHERE PUUID = ? AND tit.OPL_ID_group = ?", [$player, $tournamentID])->fetch_assoc();
 		} elseif ($tournament["eventType"] == "league") {
 			$player_data = $dbcn->execute_query("SELECT p.*, pit.OPL_ID_team AS OPL_ID_team FROM players p JOIN players_in_teams pit ON p.OPL_ID = pit.OPL_ID_player JOIN teams_in_tournaments tit on pit.OPL_ID_team = tit.OPL_ID_team WHERE PUUID = ? AND tit.OPL_ID_group IN (SELECT OPL_ID FROM tournaments WHERE eventType = 'group' AND OPL_ID_parent = ?)", [$player, $tournamentID])->fetch_assoc();
@@ -501,7 +501,7 @@ function get_stats_for_players($teamID, $tournamentID) {
 	$players = $dbcn->query("SELECT p.*, pit.OPL_ID_team FROM players p JOIN players_in_teams pit on p.OPL_ID = pit.OPL_ID_player WHERE OPL_ID_team = $teamID")->fetch_all(MYSQLI_ASSOC);
 
 	foreach ($players as $player) {
-		$games = $dbcn->query("SELECT matchdata FROM games JOIN games_in_tournament git on games.RIOT_matchID = git.RIOT_matchID WHERE ((OPL_ID_blueTeam = {$player['OPL_ID_team']} AND OPL_ID_redTeam IS NOT NULL) OR (OPL_ID_redTeam = {$player['OPL_ID_team']} AND OPL_ID_blueTeam IS NOT NULL ))")->fetch_all(MYSQLI_ASSOC);
+		$games = $dbcn->query("SELECT matchdata FROM games JOIN games_in_tournament git on games.RIOT_matchID = git.RIOT_matchID WHERE ((OPL_ID_blueTeam = {$player['OPL_ID_team']} AND OPL_ID_redTeam IS NOT NULL) OR (OPL_ID_redTeam = {$player['OPL_ID_team']} AND OPL_ID_blueTeam IS NOT NULL )) AND git.OPL_ID_tournament = {$tournamentID}")->fetch_all(MYSQLI_ASSOC);
 		$roles = array("top"=>0,"jungle"=>0,"middle"=>0,"bottom"=>0,"utility"=>0);
 		$champions = array();
 		foreach ($games as $game) {
@@ -757,7 +757,7 @@ function calculate_teamstats($teamID, $tournamentID) {
 		$returnArr["echo"] .= "<span style='color: red'>Database Connection failed : " . $dbcn->connect_error . "<br><br></span>";
 		return $returnArr;
 	}
-	$games = $dbcn->execute_query("SELECT matchdata, OPL_ID_blueTeam, OPL_ID_redTeam FROM games JOIN games_in_tournament git on games.RIOT_matchID = git.RIOT_matchID WHERE (OPL_ID_blueTeam = ? AND OPL_ID_redTeam IS NOT NULL) OR (OPL_ID_blueTeam IS NOT NULL AND OPL_ID_redTeam = ?)", [$teamID, $teamID])->fetch_all(MYSQLI_ASSOC);
+	$games = $dbcn->execute_query("SELECT matchdata, OPL_ID_blueTeam, OPL_ID_redTeam FROM games JOIN games_in_tournament git on games.RIOT_matchID = git.RIOT_matchID WHERE ((OPL_ID_blueTeam = ? AND OPL_ID_redTeam IS NOT NULL) OR (OPL_ID_blueTeam IS NOT NULL AND OPL_ID_redTeam = ?)) AND git.OPL_ID_tournament = ?", [$teamID, $teamID, $tournamentID])->fetch_all(MYSQLI_ASSOC);
 	$games_played = count($games);
 
 	if ($games_played == 0) {
