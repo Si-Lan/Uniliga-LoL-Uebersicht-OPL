@@ -82,6 +82,10 @@ if (isset($filteredDivID) && isset($_GET["gruppe"])) {
 	$groupallClass = "";
 	$toGroupButtonClass = " shown";
 	$toGroupButtonLink = " href='turnier/".$tournamentID."/gruppe/".$filteredGroupID."'";
+} elseif (isset($filteredDivID) && $leagues[$filteredDivID]["format"] == "swiss") {
+	$groupallClass = "selected='selected'";
+	$toGroupButtonClass = " shown";
+	$toGroupButtonLink = " href='turnier/".$tournamentID."/gruppe/".$filteredDivID."'";
 } else {
 	$groupallClass = "selected='selected'";
 }
@@ -95,7 +99,12 @@ foreach ($leagues as $league) {
 	} else {
 		$divClass = "";
 	}
-	echo "<option value='".$league["OPL_ID"]."'$divClass>Liga ".$league["number"]."</option>";
+    if ($league["format"] == "swiss") {
+        $swissClass = "swiss_league";
+	} else {
+		$swissClass = "";
+	}
+	echo "<option value='".$league["OPL_ID"]."'$divClass class='$swissClass'>Liga ".$league["number"]."</option>";
 }
 echo "
                 </select>

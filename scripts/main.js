@@ -175,7 +175,15 @@ function filter_teams_list_division(division) {
 	}
 
 	let group_button = $('div.team-filter-wrap a.b-group');
-	group_button.removeClass('shown')
+
+	let div_selection = $(`select.divisions option[value='${division}']`).eq(0);
+	if(div_selection.hasClass("swiss_league")) {
+		group_button.addClass('shown')
+		let url = new URL(window.location.href);
+		group_button.attr('href',`turnier/${url.pathname.split("turnier/")[1].split("/")[0]}/gruppe/${division}`);
+	} else {
+		group_button.removeClass('shown')
+	}
 
 
 	let url = new URL(window.location.href);
