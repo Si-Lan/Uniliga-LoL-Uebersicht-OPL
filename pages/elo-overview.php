@@ -32,6 +32,9 @@ if (preg_match("/^(winter|sommer)([0-9]{2})$/",strtolower($tournamentID),$url_pa
 
 $tournament = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID = ? AND eventType = 'tournament'", [$tournamentID])->fetch_assoc();
 $leagues = $dbcn->execute_query("SELECT * FROM tournaments WHERE eventType='league' AND OPL_ID_parent = ? AND deactivated = FALSE ORDER BY number", [$tournamentID])->fetch_all(MYSQLI_ASSOC);
+$second_ranked_split = get_second_ranked_split_for_tournament($dbcn, $tournamentID, string:true);
+$current_split = get_current_ranked_split($dbcn,$tournamentID);
+$use_second_split = ($second_ranked_split == $current_split);
 
 if ($tournament == NULL) {
 	echo create_html_head_elements(title: "Kein Turnier gefunden | Uniliga LoL - Übersicht");
@@ -51,7 +54,7 @@ echo create_html_head_elements(css: ["elo"], title: "Elo-Übersicht - $t_name_cl
 
 echo create_header($dbcn, title: "tournament", tournament_id: $tournamentID);
 
-echo create_tournament_nav_buttons(tournament_id: $tournament_url_path, active: "elo");
+echo create_tournament_nav_buttons(tournament_id: $tournament_url_path, dbcn: $dbcn, active: "elo");
 
 echo "<h2 class='pagetitle'>Elo/Rang-Übersicht</h2>";
 echo "<div class='search-wrapper'>
@@ -114,21 +117,21 @@ echo "
             <div class='main-content$color'>";
 if ($filtered == "liga") {
 	foreach ($leagues as $league) {
-		echo generate_elo_list($dbcn,"div",$tournamentID,$league["OPL_ID"]);
+		echo generate_elo_list($dbcn,"div",$tournamentID,$league["OPL_ID"],second_ranked_split: $use_second_split);
 	}
 } elseif ($filtered == "gruppe") {
 	foreach ($leagues as $league) {
         if ($league["format"] == "swiss") {
-            echo generate_elo_list($dbcn,"group",$tournamentID,$league["OPL_ID"],$league["OPL_ID"]);
+            echo generate_elo_list($dbcn,"group",$tournamentID,$league["OPL_ID"],$league["OPL_ID"],second_ranked_split: $use_second_split);
             continue;
         }
 		$groups_of_div = $dbcn->execute_query("SELECT * FROM tournaments WHERE eventType='group' AND OPL_ID_parent = ? ORDER BY Number",[$league['OPL_ID']])->fetch_all(MYSQLI_ASSOC);
 		foreach ($groups_of_div as $group) {
-			echo generate_elo_list($dbcn,"group",$tournamentID,$league["OPL_ID"],$group["OPL_ID"]);
+			echo generate_elo_list($dbcn,"group",$tournamentID,$league["OPL_ID"],$group["OPL_ID"],second_ranked_split: $use_second_split);
 		}
 	}
 } else {
-	echo generate_elo_list($dbcn,"all",$tournamentID);
+	echo generate_elo_list($dbcn,"all",$tournamentID,second_ranked_split: $use_second_split);
 }
 echo "
             </div>"; // main-content

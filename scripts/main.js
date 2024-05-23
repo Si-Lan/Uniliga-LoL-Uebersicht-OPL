@@ -175,7 +175,15 @@ function filter_teams_list_division(division) {
 	}
 
 	let group_button = $('div.team-filter-wrap a.b-group');
-	group_button.removeClass('shown')
+
+	let div_selection = $(`select.divisions option[value='${division}']`).eq(0);
+	if(div_selection.hasClass("swiss_league")) {
+		group_button.addClass('shown')
+		let url = new URL(window.location.href);
+		group_button.attr('href',`turnier/${url.pathname.split("turnier/")[1].split("/")[0]}/gruppe/${division}`);
+	} else {
+		group_button.removeClass('shown')
+	}
 
 
 	let url = new URL(window.location.href);
@@ -350,6 +358,7 @@ async function popup_team(teamID, tournamentID = null) {
 		"    </g>\n" +
 		"</svg>";
 
+	teamID = parseInt(teamID);
 	if (current_team_in_popup === teamID) {
 		popupbg.css("opacity","0");
 		popupbg.css("display","block");
@@ -420,8 +429,14 @@ async function popup_team(teamID, tournamentID = null) {
 				}
 				$('button.exp_coll_sc').on("click",expand_collapse_summonercard);
 				if (team_data["team"]["avg_rank_tier"] !== null && team_data["team"]["avg_rank_tier"] !== "") {
+					let rank_hide = (team_data["ranked_splits"][1] === team_data["ranked_splits"]["current"]) ? "" : "display:none";
 					team_data["team"]["avg_rank_tier"] = team_data["team"]["avg_rank_tier"][0].toUpperCase() + team_data["team"]["avg_rank_tier"].substring(1).toLowerCase();
-					popup.append("<div class='team-avg-rank'>Teams avg. Rang: <img class='rank-emblem-mini' src='ddragon/img/ranks/mini-crests/" + team_data["team"]["avg_rank_tier"].toLowerCase() + ".svg' alt=''><span>" + team_data["team"]["avg_rank_tier"] + " " + team_data["team"]["avg_rank_div"] + "</span></div>");
+					popup.append(`<div class='team-avg-rank split_rank_element ranked-split-${team_data["ranked_splits"][1]}' style='${rank_hide}'>Teams avg. Rang: <img class='rank-emblem-mini' src='ddragon/img/ranks/mini-crests/` + team_data["team"]["avg_rank_tier"].toLowerCase() + ".svg' alt=''><span>" + team_data["team"]["avg_rank_tier"] + " " + team_data["team"]["avg_rank_div"] + "</span></div>");
+				}
+				if (team_data["team"]["avg_rank_tier_2"] !== null && team_data["team"]["avg_rank_tier_2"] !== "") {
+					let rank_hide = (team_data["ranked_splits"][2] === team_data["ranked_splits"]["current"]) ? "" : "display:none";
+					team_data["team"]["avg_rank_tier_2"] = team_data["team"]["avg_rank_tier_2"][0].toUpperCase() + team_data["team"]["avg_rank_tier_2"].substring(1).toLowerCase();
+					popup.append(`<div class='team-avg-rank split_rank_element ranked-split-${team_data["ranked_splits"][2]}' style='${rank_hide}'>Teams avg. Rang: <img class='rank-emblem-mini' src='ddragon/img/ranks/mini-crests/` + team_data["team"]["avg_rank_tier_2"].toLowerCase() + ".svg' alt=''><span>" + team_data["team"]["avg_rank_tier_2"] + " " + team_data["team"]["avg_rank_div_2"] + "</span></div>");
 				}
 				popup.append("<div class='summoner-card-container'></div>");
 				let card_container = $('div.summoner-card-container');
@@ -492,12 +507,13 @@ async function popup_match(matchID,teamID=null,matchtype="groups",tournamentID=n
 	let popupbg = $('.mh-popup-bg');
 	let pagebody = $("body");
 
+	matchID = parseInt(matchID);
 	if (current_match_in_popup === matchID) {
 		popupbg.css("opacity","0");
 		popupbg.css("display","block");
 		await new Promise(r => setTimeout(r, 10));
 		popupbg.css("opacity","1");
-		pagebody.css("popup_open");
+		pagebody.addClass("popup_open");
 		let url = new URL(window.location.href);
 		url.searchParams.set("match",matchID);
 		window.history.replaceState({}, '', url);
@@ -2329,6 +2345,46 @@ function header_search() {
 $(document).ready(function () {
 	$(".header_search_button").on("click",()=>{toggle_search_popup()});
 	$('header .header-search .searchbar input').on("input",header_search);
+});
+
+function toggle_active_rankedsplit(tournament_id, season_split) {
+	let radio_buttons = $('.ranked-settings-popover input');
+	radio_buttons.prop("disabled", true);
+
+	let splits = getCookie("tournament_ranked_splits");
+	splits = (splits === "") ? {} : JSON.parse(splits);
+	splits[tournament_id] = season_split;
+	let cookiejson = JSON.stringify(splits);
+
+	let cookie_expiry = new Date();
+	cookie_expiry.setFullYear(cookie_expiry.getFullYear()+1);
+	document.cookie = `tournament_ranked_splits=${cookiejson}; expires=${cookie_expiry}; path=/`;
+
+	let url = new URL(window.location.href);
+	if (url.pathname.endsWith("/elo")) {
+		let filter_button = $(`.filter-button-wrapper .button.filterb.active`).eq(0);
+		if (filter_button.hasClass("all-teams")) {
+			switch_elo_view(tournament_id, "all-teams");
+		} else if (filter_button.hasClass("div-teams")) {
+			switch_elo_view(tournament_id, "div-teams");
+		} else if (filter_button.hasClass("group-teams")) {
+			switch_elo_view(tournament_id, "group-teams");
+		}
+	}
+
+	let ranked_elements = $(".split_rank_element");
+	let current_ranked_elements = $(`.ranked-split-${season_split}`);
+
+	ranked_elements.css("display", "none");
+	current_ranked_elements.css("display","");
+
+	let ranked_split_display = $("button.ranked-settings span");
+	ranked_split_display.text(season_split);
+
+	radio_buttons.prop("disabled", false);
+}
+$(document).ready(function () {
+	$('.ranked-settings-popover input').on("change",function () {toggle_active_rankedsplit(this.getAttribute("data-tournament"), this.value)});
 });
 
 // allgemeine Helper

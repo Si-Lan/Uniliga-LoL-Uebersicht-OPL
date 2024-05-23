@@ -37,6 +37,10 @@ $team_groups = $dbcn->execute_query("SELECT * FROM teams JOIN teams_in_tournamen
 $team_playoffs = $dbcn->execute_query("SELECT * FROM teams JOIN teams_in_tournaments tit ON teams.OPL_ID = tit.OPL_ID_team WHERE OPL_ID = ? AND OPL_ID_group IN (SELECT OPL_ID FROM tournaments WHERE eventType='playoffs' AND OPL_ID_parent = ?)", [$teamID, $tournamentID])->fetch_all(MYSQLI_ASSOC);
 $team_solo = $dbcn->execute_query("SELECT * FROM teams WHERE OPL_ID = ?", [$teamID])->fetch_assoc();
 $team_rank = $dbcn->execute_query("SELECT tsr.* FROM teams t LEFT JOIN teams_tournament_rank tsr ON tsr.OPL_ID_team = t.OPL_ID AND tsr.OPL_ID_tournament = ? AND tsr.second_ranked_split = FALSE WHERE t.OPL_ID = ?", [$tournamentID, $teamID])->fetch_assoc();
+$team_rank_2 = $dbcn->execute_query("SELECT tsr.* FROM teams t LEFT JOIN teams_tournament_rank tsr ON tsr.OPL_ID_team = t.OPL_ID AND tsr.OPL_ID_tournament = ? AND tsr.second_ranked_split = TRUE WHERE t.OPL_ID = ?", [$tournamentID, $teamID])->fetch_assoc();
+$ranked_split_1 = "{$tournament["ranked_season"]}-{$tournament["ranked_split"]}";
+$ranked_split_2 = get_second_ranked_split_for_tournament($dbcn,$tournamentID,string:true);
+$current_split = get_current_ranked_split($dbcn, $tournamentID);
 
 if ($tournament == NULL) {
 	echo create_html_head_elements(title: "Turnier nicht gefunden | Uniliga LoL - Übersicht");
@@ -163,14 +167,33 @@ if ($collapsed) {
 }
 echo "
                      </div>";
+
+if ($current_split == $ranked_split_2) {
+	$rank_hide_1 = "display: none";
+	$rank_hide_2 = "";
+} else {
+	$rank_hide_1 = "";
+	$rank_hide_2 = "display: none";
+}
+
 if ($team_rank['avg_rank_tier'] != NULL) {
 	$avg_rank = strtolower($team_rank['avg_rank_tier']);
 	$avg_rank_cap = ucfirst($avg_rank);
 	echo "
-                    <div class='team-avg-rank'>
+                    <div class='team-avg-rank split_rank_element ranked-split-$ranked_split_1' style='$rank_hide_1'>
                         Team-Rang: 
                         <img class='rank-emblem-mini' src='ddragon/img/ranks/mini-crests/{$avg_rank}.svg' alt='$avg_rank_cap'>
                         <span>{$avg_rank_cap} {$team_rank['avg_rank_div']}</span>
+                    </div>";
+}
+if ($team_rank_2['avg_rank_tier'] != NULL) {
+	$avg_rank = strtolower($team_rank_2['avg_rank_tier']);
+	$avg_rank_cap = ucfirst($avg_rank);
+	echo "
+                    <div class='team-avg-rank split_rank_element ranked-split-$ranked_split_2' style='$rank_hide_2'>
+                        Team-Rang: 
+                        <img class='rank-emblem-mini' src='ddragon/img/ranks/mini-crests/{$avg_rank}.svg' alt='$avg_rank_cap'>
+                        <span>{$avg_rank_cap} {$team_rank_2['avg_rank_div']}</span>
                     </div>";
 }
 echo "

@@ -33,7 +33,7 @@ $group = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID = ? AND ev
 if ($group == null) {
     $group = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID = ? AND eventType = 'league' AND format = 'swiss'", [$groupID])->fetch_assoc();
 }
-$swiss = ($group["format"]??"" == 'swiss');
+$swiss = (($group["format"]??"") == 'swiss');
 
 if ($tournament == NULL || $group == NULL) {
 	echo create_html_head_elements(title: "Gruppe nicht gefunden | Uniliga LoL - Übersicht");
