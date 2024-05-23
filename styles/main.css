@@ -1491,7 +1491,7 @@ div.team.title .team-titlebutton-wrapper a.active {
 .turnier-bonus-buttons {
 	display: flex;
 	flex-direction: row;
-	gap: 20px;
+	gap: 12px;
 	align-items: center;
 	justify-content: center;
 	margin-bottom: 20px;
@@ -1522,6 +1522,69 @@ div.team.title .team-titlebutton-wrapper a.active {
 .turnier-nav-buttons a.active {
 	border: var(--main-button-active-border) solid 1px;
 }
+div.ranked-settings-wrapper {
+	position: relative;
+}
+button.ranked-settings {
+	background-color: transparent;
+	box-shadow: none;
+	padding: 0;
+	position: relative;
+}
+button.ranked-settings:hover {
+	background-color: var(--main-button-color);
+}
+button.ranked-settings span {
+	position: absolute;
+	z-index: 1;
+	font-weight: 600;
+	font-size: 0.8em;
+	bottom: 8px;
+	color: var(--text-secondary);
+}
+button.ranked-settings img {
+	position: relative;
+	aspect-ratio: 1/1;
+	height: 64px;
+	filter: contrast(0.85);
+	transition: filter 0.2s ease-out;
+}
+body.light button.ranked-settings img {
+	filter: contrast(0.95) brightness(1.8) invert(1) grayscale(1);
+}
+button.ranked-settings:hover img {
+	filter: contrast(0.85) brightness(1.2);
+}
+body.light button.ranked-settings:hover img {
+	filter: contrast(0.85) brightness(1.8) invert(1) grayscale(1);
+}
+div.ranked-settings-popover {
+	display: none;
+	position: absolute;
+	background-color: var(--main-button-color);
+	border-radius: 8px;
+	padding: 12px 16px;
+	left: 50%;
+	transform: translate(-50%);
+	flex-direction: column;
+	min-width: 128px;
+	gap: 8px;
+	z-index: 1;
+	box-shadow: 2px 2px 5px rgb(0 0 0 / 0.2);
+}
+button.ranked-settings:hover~div.ranked-settings-popover,
+div.ranked-settings-popover:hover {
+	display: flex;
+}
+div.ranked-settings-popover>span {
+	white-space: nowrap;
+}
+div.ranked-settings-popover>div {
+	display: flex;
+	flex-direction: row;
+	gap: 8px;
+}
+
 div.title img {
 	border-radius: 6px;
 	max-height: 105px;

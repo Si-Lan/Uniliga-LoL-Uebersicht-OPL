@@ -1,7 +1,16 @@
 <?php
 function create_summonercard(mysqli $dbcn, $playerID, $tournamentID, $teamID = NULL, bool $collapsed=FALSE, bool $echo=FALSE):string {
+	$tournament = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID = ?",[$tournamentID])->fetch_assoc();
+	$season_1 = $tournament["ranked_season"];
+	$split_1 = $tournament["ranked_split"];
 	$player = $dbcn->execute_query("SELECT * FROM players p JOIN players_in_teams_in_tournament pitit on p.OPL_ID = pitit.OPL_ID_player AND OPL_ID_tournament = ? AND OPL_ID_team = ? LEFT JOIN stats_players_teams_tournaments spit ON p.OPL_ID = spit.OPL_ID_player AND pitit.OPL_ID_team = spit.OPL_ID_team AND pitit.OPL_ID_tournament = spit.OPL_ID_tournament WHERE p.OPL_ID = ?", [$tournamentID, $teamID, $playerID])->fetch_assoc();
-	$player_rank = $dbcn->execute_query("SELECT * FROM players_season_rank WHERE OPL_ID_player = ? AND season = (SELECT tournaments.season FROM tournaments WHERE tournaments.OPL_ID = ?)", [$playerID, $tournamentID])->fetch_assoc();
+	$player_rank = $dbcn->execute_query("SELECT * FROM players_season_rank WHERE OPL_ID_player = ? AND season = ? AND split = ?", [$playerID, $season_1, $split_1])->fetch_assoc();
+	$next_split = get_second_ranked_split_for_tournament($dbcn,$tournamentID);
+	$season_2 = $next_split["season"];
+	$split_2 = $next_split["split"];
+	$player_rank_2 = $dbcn->execute_query("SELECT * FROM players_season_rank WHERE OPL_ID_player = ? AND season = ? AND split = ?", [$playerID, $season_2, $split_2])->fetch_assoc();
+	$current_split = get_current_ranked_split($dbcn, $tournamentID);
+
 	$return = "";
 	$player_removed_class =  ($player["removed"] == 1) ? "player-removed" : "";
     if ($collapsed) {
@@ -9,9 +18,11 @@ function create_summonercard(mysqli $dbcn, $playerID, $tournamentID, $teamID = N
     } else {
 		$sc_collapsed_state = "";
     }
+
 	$enc_riotid = urlencode($player['riotID_name']??"")."-".urlencode($player['riotID_tag']??"");
 	$riotid_full = $player['riotID_name']."#".$player['riotID_tag'];
 	$riot_tag = ($player['riotID_tag'] != NULL && $player['riotID_tag'] != "") ? "#".$player['riotID_tag'] : "";
+
 	$player_tier = $player_rank['rank_tier'] ?? null;
 	$player_div = $player_rank['rank_div'] ?? null;
 	$player_LP = NULL;
@@ -19,6 +30,14 @@ function create_summonercard(mysqli $dbcn, $playerID, $tournamentID, $teamID = N
 		$player_div = "";
 		$player_LP = $player_rank["rank_LP"] ?? null;
 	}
+	$player_tier_2 = $player_rank_2['rank_tier'] ?? null;
+	$player_div_2 = $player_rank_2['rank_div'] ?? null;
+	$player_LP_2 = NULL;
+	if ($player_tier_2 == "CHALLENGER" || $player_tier_2 == "GRANDMASTER" || $player_tier_2 == "MASTER") {
+		$player_div_2 = "";
+		$player_LP_2 = $player_rank_2["rank_LP"] ?? null;
+	}
+
 	$return .= "<div class='summoner-card-wrapper'>";
 	if ($player["riotID_name"] == null) {
 		$return .= "<div class='summoner-card {$player['OPL_ID']} $sc_collapsed_state $player_removed_class'>";
@@ -42,6 +61,14 @@ function create_summonercard(mysqli $dbcn, $playerID, $tournamentID, $teamID = N
 			<span>{$player['riotID_name']}</span><span class='riot-id-tag'>$riot_tag</span>
 		</span>";
 
+	if ($current_split == "$season_2-$split_2") {
+		$rank_hide_1 = "display: none";
+		$rank_hide_2 = "";
+	} else {
+		$rank_hide_1 = "";
+		$rank_hide_2 = "display: none";
+	}
+
 	if ($player_tier != NULL) {
 		$player_tier = strtolower($player_tier);
         $player_tier_cap = ucfirst($player_tier);
@@ -51,9 +78,23 @@ function create_summonercard(mysqli $dbcn, $playerID, $tournamentID, $teamID = N
 			$player_LP = "";
 		}
 		$return .= "
-		<div class='card-rank'>
+		<div class='card-rank split_rank_element ranked-split-$season_1-$split_1' style='$rank_hide_1'>
 			<img class='rank-emblem-mini' src='ddragon/img/ranks/mini-crests/{$player_tier}.svg' alt='$player_tier_cap'>
 			$player_tier_cap $player_div $player_LP
+		</div>";
+	}
+	if ($player_tier_2 != NULL) {
+		$player_tier_2 = strtolower($player_tier_2);
+		$player_tier_cap_2 = ucfirst($player_tier_2);
+		if ($player_LP_2 != NULL) {
+			$player_LP_2 = "(".$player_LP_2." LP)";
+		} else {
+			$player_LP_2 = "";
+		}
+		$return .= "
+		<div class='card-rank split_rank_element ranked-split-$season_2-$split_2' style='$rank_hide_2'>
+			<img class='rank-emblem-mini' src='ddragon/img/ranks/mini-crests/{$player_tier_2}.svg' alt='$player_tier_cap_2'>
+			$player_tier_cap_2 $player_div_2 $player_LP_2
 		</div>";
 	}
 

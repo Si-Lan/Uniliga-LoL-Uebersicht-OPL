@@ -84,3 +84,34 @@ function get_top_parent_tournament(mysqli $dbcn, $event_id) {
 		return NULL;
 	}
 }
+
+function get_second_ranked_split_for_tournament(mysqli $dbcn, $tournament_id, $string=FALSE) {
+	$tournament = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID = ?", [$tournament_id])->fetch_assoc();
+	$split = $dbcn->execute_query("SELECT * FROM lol_ranked_splits WHERE season > ? OR (season = ? AND split > ?) ORDER BY season, split LIMIT 1",[$tournament["ranked_season"], $tournament["ranked_season"], $tournament["ranked_split"]])->fetch_assoc();
+	$split_string = "{$split['season']}-{$split['split']}";
+	return ($string) ? $split_string : $split;
+}
+
+function get_current_ranked_split(mysqli $dbcn, $tournament_id) {
+	$tournament = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID = ?", [$tournament_id])->fetch_assoc();
+	$ranked_season = $tournament["ranked_season"];
+	$ranked_split = $tournament["ranked_split"];
+	$ranked_season_comb = "$ranked_season-$ranked_split";
+	$next_split = get_second_ranked_split_for_tournament($dbcn,$tournament_id);
+	$ranked_season_2 = $next_split["season"];
+	$ranked_split_2 = $next_split["split"];
+	$ranked_season_comb_2 = "$ranked_season_2-$ranked_split_2";
+
+	if (!isset($_COOKIE["tournament_ranked_splits"])) {
+		$current_split = $ranked_season_comb;
+	} else {
+		$splits = json_decode($_COOKIE["tournament_ranked_splits"], true) ?? [];
+		if (array_key_exists($tournament_id, $splits) && ($splits[$tournament_id] == $ranked_season_comb || $splits[$tournament_id] == $ranked_season_comb_2)) {
+			$current_split = $splits[$tournament_id];
+		} else {
+			$current_split = $ranked_season_comb;
+		}
+	}
+
+	return $current_split;
+}

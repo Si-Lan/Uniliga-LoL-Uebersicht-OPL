@@ -48,7 +48,7 @@ echo create_html_head_elements(title: "Team-Liste - $t_name_clean | Uniliga LoL 
 
 echo create_header($dbcn, title: "tournament", tournament_id: $tournamentID);
 
-echo create_tournament_nav_buttons(tournament_id: $tournament_url_path, active: "list");
+echo create_tournament_nav_buttons(tournament_id: $tournament_url_path, dbcn: $dbcn, active: "list");
 
 $leaguesDB = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID_parent = ? AND eventType = 'league' AND deactivated = FALSE ORDER BY number", [$tournamentID])->fetch_all(MYSQLI_ASSOC);
 $leagues = $groups = [];
@@ -201,7 +201,7 @@ foreach ($teams as $i_teams=>$team) {
 	}
 
 	echo "
-                <div class=\"team-button $tournamentID $currTeamID $currTeamGroupID $currTeamDivID$filterDClass$filterGClass\" onclick='popup_team(\"$currTeamID\",\"$tournamentID\")'>
+                <div class=\"team-button $tournamentID $currTeamID $currTeamGroupID $currTeamDivID$filterDClass$filterGClass\" onclick='popup_team($currTeamID,$tournamentID)'>
                     <div class='team-name'>";
 	if ($img_url != NULL) {
 		echo "

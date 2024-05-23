@@ -166,16 +166,32 @@ if ($type == "team-and-players") {
 	$tournamentID = $_SERVER["HTTP_TOURNAMENTID"] ?? NULL;
 	$teams_season_rank = $_SERVER["HTTP_TEAMS_SEASON_RANK"] ?? NULL;
 	if ($teams_season_rank != NULL && $tournamentID != NULL) {
-		$teamDB = $dbcn->execute_query("SELECT *, tsr.avg_rank_tier, tsr.avg_rank_div, tsr.avg_rank_num FROM teams LEFT JOIN teams_tournament_rank as tsr ON teams.OPL_ID = tsr.OPL_ID_team AND tsr.OPL_ID_tournament = ? AND tsr.second_ranked_split = FALSE WHERE OPL_ID = ?", [$tournamentID,$teamID])->fetch_assoc();
+		$teamDB = $dbcn->execute_query("
+									SELECT teams.*, tsr.avg_rank_tier, tsr.avg_rank_div, tsr.avg_rank_num, tsr2.avg_rank_tier as avg_rank_tier_2, tsr2.avg_rank_div as avg_rank_div_2, tsr2.avg_rank_num as avg_rank_num_2
+									FROM teams
+									    LEFT JOIN teams_tournament_rank as tsr
+									        ON teams.OPL_ID = tsr.OPL_ID_team
+									               AND tsr.OPL_ID_tournament = ?
+									               AND tsr.second_ranked_split = FALSE
+										LEFT JOIN teams_tournament_rank as tsr2
+									        ON teams.OPL_ID = tsr2.OPL_ID_team
+									               AND tsr2.OPL_ID_tournament = ?
+									               AND tsr2.second_ranked_split = TRUE
+									WHERE OPL_ID = ?", [$tournamentID,$tournamentID,$teamID])->fetch_assoc();
 		$tournament = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID = ?", [$tournamentID])->fetch_assoc();
 		$t_teamname = $dbcn->execute_query("SELECT * FROM team_name_history WHERE OPL_ID_team = ? AND (update_time < ? OR ? IS NULL) ORDER BY update_time DESC", [$teamID,$tournament["dateEnd"],$tournament["dateEnd"]])->fetch_assoc();
 		$teamDB["name"] = $t_teamname["name"];
 		$teamDB["shortName"] = $t_teamname["shortName"];
+		$ranked_split_1 = $tournament["ranked_season"]."-".$tournament["ranked_split"];
+		$ranked_split_2 = get_second_ranked_split_for_tournament($dbcn,$tournamentID,string:true);
+		$current_split = get_current_ranked_split($dbcn,$tournamentID);
+		$ranked_splits = [1=>$ranked_split_1, 2=>$ranked_split_2, "current"=>$current_split];
 	} else {
 		$teamDB = $dbcn->execute_query("SELECT * FROM teams WHERE OPL_ID = ?", [$teamID])->fetch_assoc();
+		$ranked_splits = [];
 	}
 	$playersDB = $dbcn->execute_query("SELECT * FROM players JOIN players_in_teams_in_tournament pit on players.OPL_ID = pit.OPL_ID_player WHERE pit.OPL_ID_team = ? AND pit.OPL_ID_tournament = ?", [$teamID, $tournamentID])->fetch_all(MYSQLI_ASSOC);
-	echo json_encode(["team"=>$teamDB, "players"=>$playersDB]);
+	echo json_encode(["team"=>$teamDB, "players"=>$playersDB, "ranked_splits"=>$ranked_splits]);
 }
 
 if ($type == "players-in-match") {

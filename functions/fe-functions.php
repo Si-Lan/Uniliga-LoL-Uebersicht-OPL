@@ -12,9 +12,9 @@ function create_html_head_elements(array $css = [], array $js = [], string $titl
 	$result .= "<meta name='viewport' content='width=device-width, initial-scale=1'>";
 	$result .= "<link rel='icon' href='https://silence.lol/favicon-dark.ico' media='(prefers-color-scheme: dark)'/>";
 	$result .= "<link rel='icon' href='https://silence.lol/favicon-light.ico' media='(prefers-color-scheme: light)'/>";
-	$result .= "<link rel='stylesheet' href='styles/main.css'>";
+	$result .= "<link rel='stylesheet' href='styles/main.css?2'>";
 	$result .= "<script src='scripts/jquery-3.7.1.min.js'></script>";
-	$result .= "<script src='scripts/main.js'></script>";
+	$result .= "<script src='scripts/main.js?2'></script>";
 	// additional css
 	if (in_array("elo",$css)) {
 		$result .= "<link rel='stylesheet' href='styles/elo-rank-colors.css'>";
@@ -213,7 +213,7 @@ function create_header(mysqli $dbcn = NULL, string $title = "home", string|int $
 	return $result;
 }
 
-function create_tournament_nav_buttons(string|int $tournament_id, mysqli $dbcn = NULL, $active="",$division_id=NULL,$group_id=NULL):string {
+function create_tournament_nav_buttons(string|int $tournament_id, mysqli $dbcn, $active="",$division_id=NULL,$group_id=NULL):string {
 	$result = "";
 
 	$overview = $list = $elo = $group_a = "";
@@ -267,13 +267,42 @@ function create_tournament_nav_buttons(string|int $tournament_id, mysqli $dbcn =
             </a>";
 	}
 
+	$tournament = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID = ?", [$tournament_id])->fetch_assoc();
+	$ranked_season = $tournament["ranked_season"];
+	$ranked_split = $tournament["ranked_split"];
+	$ranked_season_comb = "$ranked_season-$ranked_split";
+	$next_split = get_second_ranked_split_for_tournament($dbcn,$tournament_id);
+	$ranked_season_2 = $next_split["season"];
+	$ranked_split_2 = $next_split["split"];
+	$ranked_season_comb_2 = "$ranked_season_2-$ranked_split_2";
+
+	$current_split = get_current_ranked_split($dbcn, $tournament_id);
+
+	$button1_checked = ($current_split == $ranked_season_comb) ? "checked" : "";
+	$button2_checked = ($current_split == $ranked_season_comb_2) ? "checked" : "";
+
+	$result .= "<div class='ranked-settings-wrapper'>";
+	$result .= "<button type='button' class='ranked-settings'><span>$current_split</span><img src='ddragon/img/ranks/emblems/unranked.webp' alt='Rank-Einstellungen'></button>";
+	$result .= "<div class='ranked-settings-popover'>
+					<span>Angezeigter Rang</span>
+					<div>
+						<input type='radio' id='ranked-split-radio-1' value='$ranked_season-$ranked_split' name='ranked-split' data-tournament='$tournament_id' $button1_checked>
+						<label for='ranked-split-radio-1'>Season $ranked_season Split $ranked_split</label>
+					</div>
+					<div>
+						<input type='radio' id='ranked-split-radio-2' value='$ranked_season_2-$ranked_split_2' name='ranked-split' data-tournament='$tournament_id' $button2_checked>
+						<label for='ranked-split-radio-2'>Season $ranked_season_2 Split $ranked_split_2</label>
+					</div>
+				</div>";
+	$result .= "</div>";
+
 	$result .= "</div>";
 	$result .= "<div class='divider bot-space'></div>";
 
 	return $result;
 }
 
-function generate_elo_list(mysqli $dbcn,$view,$tournamentID,$divisionID=null,$groupID=null):string {
+function generate_elo_list(mysqli $dbcn,$view,$tournamentID,$divisionID=null,$groupID=null,$second_ranked_split=false):string {
 	$division = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID = ?", [$divisionID])->fetch_assoc();
 	$group = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID = ?", [$groupID])->fetch_assoc();
 	$results = "";
@@ -293,18 +322,18 @@ function generate_elo_list(mysqli $dbcn,$view,$tournamentID,$divisionID=null,$gr
 		$teams = $dbcn->execute_query("SELECT t.OPL_ID, t.name, t.OPL_ID_logo, ttr.avg_rank_div, ttr.avg_rank_tier, ttr.avg_rank_num, tit.OPL_ID_group
 												FROM teams t
 												    JOIN teams_in_tournaments tit ON t.OPL_ID = tit.OPL_ID_team
-												LEFT JOIN teams_tournament_rank as ttr ON ttr.OPL_ID_team = t.OPL_ID AND ttr.OPL_ID_tournament = ? AND second_ranked_split = FALSE
-												WHERE tit.OPL_ID_group IN (SELECT OPL_ID FROM tournaments WHERE OPL_ID_top_parent = ?) AND t.OPL_ID <> -1
-												ORDER BY ttr.avg_rank_num DESC", [$tournamentID,$tournamentID])->fetch_all(MYSQLI_ASSOC);
+												LEFT JOIN teams_tournament_rank as ttr ON ttr.OPL_ID_team = t.OPL_ID AND ttr.OPL_ID_tournament = ? AND second_ranked_split = ?
+												WHERE tit.OPL_ID_group IN (SELECT OPL_ID FROM tournaments WHERE eventType='group' AND OPL_ID_top_parent = ?) AND t.OPL_ID <> -1
+												ORDER BY ttr.avg_rank_num DESC", [$tournamentID,$second_ranked_split,$tournamentID])->fetch_all(MYSQLI_ASSOC);
 	} elseif ($view == "div") {
 		$results .= "
                     <h3 class='liga{$division['number']}'>Liga {$division['number']}</h3>";
 		$teams = $dbcn->execute_query("SELECT *
 												FROM teams t
 													JOIN teams_in_tournaments tit ON t.OPL_ID = tit.OPL_ID_team
-												LEFT JOIN teams_tournament_rank as ttr ON ttr.OPL_ID_team = t.OPL_ID AND ttr.OPL_ID_tournament = ? AND second_ranked_split = FALSE
+												LEFT JOIN teams_tournament_rank as ttr ON ttr.OPL_ID_team = t.OPL_ID AND ttr.OPL_ID_tournament = ? AND second_ranked_split = ?
 												WHERE (tit.OPL_ID_group IN (SELECT OPL_ID FROM tournaments WHERE OPL_ID_parent = ?) OR tit.OPL_ID_group = ?) AND t.OPL_ID <> -1
-												ORDER BY ttr.avg_rank_num DESC", [$tournamentID,$division["OPL_ID"],$division["OPL_ID"]])->fetch_all(MYSQLI_ASSOC);
+												ORDER BY ttr.avg_rank_num DESC", [$tournamentID,$second_ranked_split,$division["OPL_ID"],$division["OPL_ID"]])->fetch_all(MYSQLI_ASSOC);
 	} elseif ($view == "group") {
 		if ($division["format"] === "swiss") {
 			$results .= "
@@ -316,9 +345,9 @@ function generate_elo_list(mysqli $dbcn,$view,$tournamentID,$divisionID=null,$gr
 		$teams = $dbcn->execute_query("SELECT *
 												FROM teams t
 													JOIN teams_in_tournaments tit ON t.OPL_ID = tit.OPL_ID_team
-												LEFT JOIN teams_tournament_rank as ttr ON ttr.OPL_ID_team = t.OPL_ID AND ttr.OPL_ID_tournament = ? AND second_ranked_split = FALSE
+												LEFT JOIN teams_tournament_rank as ttr ON ttr.OPL_ID_team = t.OPL_ID AND ttr.OPL_ID_tournament = ? AND second_ranked_split = ?
 												WHERE tit.OPL_ID_group = ? AND t.OPL_ID <> -1
-												ORDER BY ttr.avg_rank_num DESC", [$tournamentID,$group["OPL_ID"]])->fetch_all(MYSQLI_ASSOC);
+												ORDER BY ttr.avg_rank_num DESC", [$tournamentID,$second_ranked_split,$group["OPL_ID"]])->fetch_all(MYSQLI_ASSOC);
 	}
 	$results .= "
                     <div class='elo-list-row elo-list-header'>
@@ -360,7 +389,7 @@ function generate_elo_list(mysqli $dbcn,$view,$tournamentID,$divisionID=null,$gr
 		$results .= "
                     <div class='elo-list-row elo-list-team {$team['OPL_ID']}$color_class'>
                         <div class='elo-list-pre league'>Liga {$league['number']}</div>
-                        <a href='./team/".$team['OPL_ID']."' onclick='popup_team(\"{$team['OPL_ID']}\",\"{$tournamentID}\")' class='elo-list-item-wrapper'>
+                        <a href='./team/".$team['OPL_ID']."' onclick='popup_team({$team['OPL_ID']},$tournamentID)' class='elo-list-item-wrapper'>
                             <div class='elo-list-item team'>";
 		if ($team['OPL_ID_logo'] != NULL && file_exists(__DIR__."/../$local_team_img{$team['OPL_ID_logo']}/logo.webp")) {
 			$results .= "
@@ -406,17 +435,32 @@ function create_standings(mysqli $dbcn, $tournament_id, $group_id, $team_id=NULL
 	$opgg_logo_svg = file_get_contents(__DIR__."/../img/opgglogo.svg");
 	$group = $dbcn->execute_query("SELECT * FROM tournaments WHERE (eventType = 'group' OR (eventType = 'league' AND format = 'swiss')) AND OPL_ID = ?",[$group_id])->fetch_assoc();
 	$div = $dbcn->execute_query("SELECT * FROM tournaments WHERE eventType = 'league' AND OPL_ID = ?",[$group['OPL_ID_parent']])->fetch_assoc();
-	$teams_from_groupDB = $dbcn->execute_query("SELECT *
+	$teams_from_groupDB = $dbcn->execute_query("SELECT teams.*, tit.*, ttr.*, ttr2.avg_rank_tier as avg_rank_tier_2, ttr2.avg_rank_div as avg_rank_div_2
 														FROM teams
 														    JOIN teams_in_tournaments tit
 														        ON teams.OPL_ID = tit.OPL_ID_team
 															LEFT JOIN teams_tournament_rank ttr
 																ON teams.OPL_ID = ttr.OPL_ID_team
 																	AND ttr.OPL_ID_tournament = ?
-																	AND second_ranked_split = false
+																	AND ttr.second_ranked_split = false
+															LEFT JOIN teams_tournament_rank ttr2
+																ON teams.OPL_ID = ttr2.OPL_ID_team
+																	AND ttr2.OPL_ID_tournament = ?
+																	AND ttr2.second_ranked_split = true
 														WHERE tit.OPL_ID_group = ?
 															AND teams.OPL_ID <> -1
-														ORDER BY IF((standing=0 OR standing IS NULL), 1, 0), standing",[$tournament_id,$group_id])->fetch_all(MYSQLI_ASSOC);
+														ORDER BY IF((standing=0 OR standing IS NULL), 1, 0), standing",[$tournament_id,$tournament_id,$group_id])->fetch_all(MYSQLI_ASSOC);
+	$tournament = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID = ?", [$tournament_id])->fetch_assoc();
+	$ranked_split_1 = "{$tournament['ranked_season']}-{$tournament['ranked_split']}";
+	$ranked_split_2 = get_second_ranked_split_for_tournament($dbcn,$tournament_id,string:true);
+	$current_split = get_current_ranked_split($dbcn,$tournament_id);
+	if ($current_split == $ranked_split_2) {
+		$rank_hide_1 = "display: none";
+		$rank_hide_2 = "";
+	} else {
+		$rank_hide_1 = "";
+		$rank_hide_2 = "display: none";
+	}
 
 	$result .= "<div class='standings'>";
 	if ($team_id == NULL) {
@@ -456,7 +500,6 @@ function create_standings(mysqli $dbcn, $tournament_id, $group_id, $team_id=NULL
 			}
 			$curr_opgglink .= urlencode($curr_player["riotID_name"]."#".$curr_player["riotID_tag"]);
 		}
-		$tournament = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID = ?", [$tournament_id])->fetch_assoc();
 		$team_name_now = $dbcn->execute_query("SELECT name FROM team_name_history WHERE OPL_ID_team = ? AND (update_time < ? OR ? IS NULL) ORDER BY update_time DESC", [$currteam["OPL_ID"],$tournament["dateEnd"],$tournament["dateEnd"]])->fetch_column();
 		$currteam["name"] = $team_name_now;
 		if ($team_id != NULL) {
@@ -475,16 +518,26 @@ function create_standings(mysqli $dbcn, $tournament_id, $group_id, $team_id=NULL
 		if ($currteam['OPL_ID_logo'] != NULL && file_exists(__DIR__."/../$local_img_path{$currteam['OPL_ID_logo']}/logo.webp")) {
 			$result .= "<img class='color-switch' src='$local_img_path{$currteam['OPL_ID']}/$logo_filename' alt=\"Teamlogo\">";
 		}
-		if ($currteam['avg_rank_tier'] != NULL) {
-			$team_tier = strtolower($currteam['avg_rank_tier']);
-			$team_tier_cap = ucfirst($team_tier);
+		if ($currteam['avg_rank_tier'] != NULL || $currteam['avg_rank_tier_2'] != NULL) {
 			$result .= "<div class='team-name-rank'>
-                        <span>{$currteam['name']}</span>
-                        <span class='rank'>
+                        <span>{$currteam['name']}</span>";
+			if ($currteam['avg_rank_tier'] != NULL) {
+				$team_tier = strtolower($currteam['avg_rank_tier']);
+				$team_tier_cap = ucfirst($team_tier);
+				$result .= "<span class='rank split_rank_element ranked-split-$ranked_split_1' style='$rank_hide_1' >
                             <img class='rank-emblem-mini' src='ddragon/img/ranks/mini-crests/$team_tier.svg' alt='$team_tier_cap'>
                             $team_tier_cap ".$currteam['avg_rank_div']."
-                        </span>
-                      </div>
+                        </span>";
+			}
+			if ($currteam['avg_rank_tier_2'] != NULL) {
+				$team_tier = strtolower($currteam['avg_rank_tier_2']);
+				$team_tier_cap = ucfirst($team_tier);
+				$result .= "<span class='rank split_rank_element ranked-split-$ranked_split_2' style='$rank_hide_2'>
+                            <img class='rank-emblem-mini' src='ddragon/img/ranks/mini-crests/$team_tier.svg' alt='$team_tier_cap'>
+                            $team_tier_cap ".$currteam['avg_rank_div_2']."
+                        </span>";
+			}
+			$result .= "</div>
                   </div>";
 		} else {
 			$result .= "<span>{$currteam['name']}</span></div>";
@@ -581,7 +634,7 @@ function create_matchbutton(mysqli $dbcn,$match_id,$type,$team_id=NULL,$tourname
 		$result .= "<div class='match-button-wrapper' data-matchid='$match_id' data-matchtype='$type' data-tournamentid='$tournament_id'>";
 		$team_id_pass = ($team_id != null) ? "\"$team_id\"" : "null";
 		$tournament_id_pass = ($tournament_id != null) ? "\"$tournament_id\"" : "null";
-		$result .= "<a class='button match sideext-right' href='$pageurl' onclick='popup_match(\"{$match['OPL_ID']}\",$team_id_pass,\"$type\",$tournament_id_pass)'>";
+		$result .= "<a class='button match sideext-right' href='$pageurl' onclick='popup_match({$match['OPL_ID']},$team_id_pass,\"$type\",$tournament_id_pass)'>";
 		$result .= "<div class='teams score'>
 				<div class='team 1 $state1$current1'><div class='name'>$team1Name</div><div class='score'>{$t1score}</div></div>
 				<div class='team 2 $state2$current2'><div class='name'>$team2Name</div><div class='score'>{$t2score}</div></div>
