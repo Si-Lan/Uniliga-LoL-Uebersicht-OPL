@@ -28,7 +28,7 @@ if ($type == "matchbutton") {
 	$matchtype = $_SERVER["HTTP_MATCHTYPE"] ?? $_REQUEST['mtype'] ?? 'groups';
 
 	$group_ID = $dbcn->execute_query("SELECT OPL_ID_tournament FROM matchups WHERE OPL_ID = ?", [$match_ID])->fetch_column();
-	echo create_matchbutton($dbcn, $match_ID, $matchtype, $team_ID, $tournament_ID);
+	echo create_matchbutton($dbcn, $match_ID, $matchtype, $tournament_ID,  $team_ID);
 }
 if ($type == "summoner-card-container") {
 	$team_ID = $_SERVER['HTTP_TEAMID'] ?? $_REQUEST["team"] ?? NULL;
