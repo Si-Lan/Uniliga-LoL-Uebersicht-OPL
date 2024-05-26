@@ -61,6 +61,16 @@ if ($loggedin) {
                 <div class="clear-button" onclick="clear_results('gen-admin')">Clear</div>
                 <div class="result-content"></div>
             </div>
+            <button class="open_ranked_split_popup"><span>LoL Ranked Splits</span></button>
+            <dialog id="ranked-split-popup" class="dismissable-popup">
+                <div class="dialog-content">
+                    <button class="close-popup"><span class="material-symbol"><?php echo file_get_contents(__DIR__."/../../icons/material/close.svg") ?></span></button>
+                    <div class="close-button-space"></div>
+					<?php
+					echo create_ranked_split_list($dbcn);
+					?>
+                </div>
+            </dialog>
         </div>
 
 		<h2>Turniere in Datenbank:</h2>

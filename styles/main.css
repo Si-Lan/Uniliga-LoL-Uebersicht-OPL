@@ -150,6 +150,15 @@ button.user_updating .material-symbol {
 @keyframes ease_rotating {
 	to { transform: rotate(-360deg)}
 }
+button.sec-button {
+	background: transparent;
+	box-shadow: none;
+}
+button.sec-button:hover, button.sec-button:focus {
+	background-color: var(--main-button-color);
+	text-decoration: underline;
+}
+
 header {
 	height: 60px;
 	width: 100%;
@@ -3693,6 +3702,76 @@ input[type=date] {
 	.tournament-write-button-wrapper button {
 		padding: 10px 10px;
 	}
+}
+
+.ranked-split-list {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+}
+.ranked-split-list .button-row {
+	margin-top: 16px;
+}
+.ranked-split-edit {
+	display: flex;
+	flex-direction: row;
+	align-items: flex-end;
+	gap: 4px;
+}
+.ranked-split-edit input {
+	height: 44px;
+	background-color: var(--input-bg);
+}
+.ranked-split-edit input:focus {
+	background-color: var(--input-bg-focus);
+}
+.ranked-split-edit label.write_ranked_split_season input {
+	width: 52px;
+}
+.ranked-split-edit label.write_ranked_split_split input {
+	width: 40px;
+}
+.ranked-split-edit label {
+	display: flex;
+	flex-direction: column;
+}
+.ranked-split-edit button {
+	height: 44px;
+	width: 44px;
+	padding: 15px 20px;
+}
+input.input_changed {
+	position: relative;
+	background-color: #193649 !important;
+}
+input.input_changed::after {
+	content: "";
+	position: absolute;
+	inset: 0;
+	border: 1px solid #1e6391;
+	pointer-events: none;
+	z-index: 2;
+	border-radius: 6px;
+}
+div.button-row {
+	display: flex;
+	flex-direction: row;
+	gap: 4px;
+}
+div.button-row button {
+	flex: 1;
+}
+button.save_ranked_split_changes {
+	position: relative;
+}
+.ranked-split-edit:has(input.input_changed)~.button-row button.save_ranked_split_changes::after {
+	content: "";
+	position: absolute;
+	inset: 0;
+	border: 1px solid #854c25;
+	pointer-events: none;
+	z-index: 2;
+	border-radius: 6px;
 }
 
 .related-event-button-list {
