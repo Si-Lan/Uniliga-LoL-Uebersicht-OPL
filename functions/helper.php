@@ -74,14 +74,14 @@ function max_time_from_timestamp($timestamp):string {
 function get_top_parent_tournament(mysqli $dbcn, $event_id) {
 	$current_tournament = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID = ?", [$event_id])->fetch_assoc();
 
+	if ($current_tournament == NULL) {
+		return NULL;
+	}
+
 	if ($current_tournament["eventType"] == "tournament") {
 		return $current_tournament["OPL_ID"];
-	} elseif ($current_tournament["eventType"] == "league" || $current_tournament["eventType"] == "playoffs") {
-		return $current_tournament["OPL_ID_parent"];
-	} elseif ($current_tournament["eventType"] == "group") {
-		return $dbcn->execute_query("SELECT OPL_ID_parent FROM tournaments WHERE eventType='league' AND OPL_ID = ?", [$current_tournament["OPL_ID_parent"]])->fetch_column();
 	} else {
-		return NULL;
+		return $current_tournament["OPL_ID_top_parent"];
 	}
 }
 

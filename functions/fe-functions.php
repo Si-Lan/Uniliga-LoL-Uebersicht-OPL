@@ -556,7 +556,7 @@ function create_standings(mysqli $dbcn, $tournament_id, $group_id, $team_id=NULL
 	return $result;
 }
 
-function create_matchbutton(mysqli $dbcn,$match_id,$type,$team_id=NULL,$tournament_id=NULL):string {
+function create_matchbutton(mysqli $dbcn,$match_id,$type,$tournament_id,$team_id=NULL):string {
 	$result = "";
 	$pageurl = $_SERVER['REQUEST_URI'];
 	$opl_match_url = "https://www.opleague.pro/match/";
@@ -598,7 +598,7 @@ function create_matchbutton(mysqli $dbcn,$match_id,$type,$team_id=NULL,$tourname
 		$datetime = date_create($match['plannedDate']);
 		$date = date_format($datetime, 'd M');
 		$time = date_format($datetime, 'H:i');
-		$result .= "<div class='match-button-wrapper' data-matchid='$match_id' data-matchtype='$type'>
+		$result .= "<div class='match-button-wrapper' data-matchid='$match_id' data-matchtype='$type' data-tournamentid='$tournament_id'>
                             <a class='button match nolink sideext-right'>
                                 <div class='teams'>
                                     <div class='team 1$current1'><div class='name'>$team1Name</div></div>

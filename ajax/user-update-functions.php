@@ -2,6 +2,7 @@
 include_once __DIR__."/../setup/data.php";
 include_once __DIR__."/../admin/functions/get-opl-data.php";
 include_once __DIR__."/../admin/functions/get-rgapi-data.php";
+include_once __DIR__."/../functions/helper.php";
 
 $type = $_SERVER['HTTP_TYPE'] ?? $_REQUEST["type"] ?? NULL;
 
@@ -107,6 +108,8 @@ if ($type == "recalc_team_stats") {
 	$dbcn = create_dbcn();
 	$teamID = $_SERVER['HTTP_TEAMID'] ?? NULL;
 	$tournamentID = $_SERVER['HTTP_TOURNAMENTID'] ?? NULL;
+
+	$tournamentID = get_top_parent_tournament($dbcn,$tournamentID);
 
 	get_stats_for_players($teamID,$tournamentID);
 	calculate_teamstats($teamID,$tournamentID);

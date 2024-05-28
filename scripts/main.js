@@ -2009,6 +2009,7 @@ async function user_update_match(button) {
 
 	let last_update;
 
+	// check latest Updatetime
 	await fetch(`ajax/get-data.php`, {
 		method: "GET",
 		headers: {
@@ -2036,6 +2037,7 @@ async function user_update_match(button) {
 		return;
 	}
 
+	// set new Updatetime
 	await fetch(`ajax/user-update-functions.php`, {
 		method: "POST",
 		headers: {
@@ -2050,6 +2052,7 @@ async function user_update_match(button) {
 	loading_width = 1;
 	button.style.setProperty("--update-loading-bar-width", `${loading_width}%`);
 
+	// get matchresult
 	await fetch(`ajax/user-update-functions.php`, {
 		method: "GET",
 		headers: {
@@ -2062,8 +2065,8 @@ async function user_update_match(button) {
 	loading_width = 20;
 	button.style.setProperty("--update-loading-bar-width", `${loading_width}%`);
 
+	// get tournamentID
 	let tournamentID;
-
 	await fetch(`ajax/get-data.php`, {
 		method: "GET",
 		headers: {
@@ -2076,6 +2079,7 @@ async function user_update_match(button) {
 		.then(id => tournamentID = id)
 		.catch(e => console.error(e));
 
+	// get games for players in match
 	await fetch(`ajax/get-data.php`, {
 		method: "GET",
 		headers: {
@@ -2109,6 +2113,7 @@ async function user_update_match(button) {
 	loading_width = 50;
 	button.style.setProperty("--update-loading-bar-width", `${loading_width}%`);
 
+	// assign games from players in match
 	await fetch(`ajax/get-data.php`, {
 		method: "GET",
 		headers: {
@@ -2141,6 +2146,7 @@ async function user_update_match(button) {
 	loading_width = 90;
 	button.style.setProperty("--update-loading-bar-width", `${loading_width}%`);
 
+	// recalc teamstats
 	await fetch(`ajax/user-update-functions.php`, {
 		method: "GET",
 		headers: {
@@ -2160,7 +2166,7 @@ async function user_update_match(button) {
 	loading_width = 0;
 	button.style.setProperty("--update-loading-bar-width", "0");
 
-
+	// render Games in Matchpopup
 	await fetch(`ajax/get-data.php`, {
 		method: "GET",
 		headers: {
