@@ -297,7 +297,7 @@ if ($type == "games-from-players-in-match") {
 
 if ($type == "all-games") {
 	if (isset($_SERVER["HTTP_NO_DATA_ONLY"])) {
-		$games = $dbcn->execute_query("SELECT RIOT_matchID FROM games WHERE matchdata IS NULL")->fetch_all(MYSQLI_ASSOC);
+		$games = $dbcn->execute_query("SELECT RIOT_matchID FROM games WHERE played_at IS NULL")->fetch_all(MYSQLI_ASSOC);
 	} else {
 		$games = $dbcn->execute_query("SELECT RIOT_matchID FROM games")->fetch_all(MYSQLI_ASSOC);
 	}
