@@ -149,7 +149,7 @@ function write_tournament(array $data):string {
 		$returnInfo .= "<span style='color: lawngreen'>- Turnier ist noch nicht in DB, schreibe in DB<br></span>";
 		$dbcn->execute_query("INSERT INTO
 			tournaments (OPL_ID, OPL_ID_parent, OPL_ID_top_parent, name, split, season, eventType, format, number, numberRangeTo, dateStart, dateEnd, OPL_logo_url, OPL_ID_logo, finished, deactivated, ranked_season, ranked_split)
-			VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", [$data["OPL_ID"], $data["OPL_ID_parent"], $data["OPL_ID_top_parent"], $data["name"], $data["split"], $data["season"], $data["eventType"], $data["format"], $data["number"], $data["numberRangeTo"], $data["dateStart"], $data["dateEnd"], $data["OPL_logo_url"], $data["OPL_ID_logo"], $data["finished"], $data["deactivated"], $data["ranked_season"], $data["ranked_split"]]);
+			VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", [$data["OPL_ID"], $data["OPL_ID_parent"], $data["OPL_ID_top_parent"], $data["name"], $data["split"], $data["season"], $data["eventType"], $data["format"], $data["number"], $data["numberRangeTo"], $data["dateStart"], $data["dateEnd"], $data["OPL_logo_url"], $data["OPL_ID_logo"], intval($data["finished"]), intval($data["deactivated"]), $data["ranked_season"], $data["ranked_split"]]);
 	} else {
 		$changed = false;
 		foreach ($tournament as $key=>$item) {
@@ -160,7 +160,7 @@ function write_tournament(array $data):string {
 		}
 		if ($changed) {
 			$returnInfo .= "<span style='color: yellow'>- Turnier wurde geupdatet, aktualisiere DB<br></span>";
-			$dbcn->execute_query("UPDATE tournaments SET OPL_ID_parent = ?, OPL_ID_top_parent = ?, name = ?, split = ?, season = ?, eventType = ?, format = ?, number = ?, numberRangeTo = ?, dateStart = ?, dateEnd = ?, OPL_logo_url = ?, OPL_ID_logo = ?, finished = ?, deactivated = ?, ranked_season = ?, ranked_split = ? WHERE OPL_ID = ?", [$data["OPL_ID_parent"], $data["OPL_ID_top_parent"], $data["name"], $data["split"], $data["season"], $data["eventType"], $data["format"], $data["number"], $data["numberRangeTo"], $data["dateStart"], $data["dateEnd"], $data["OPL_logo_url"], $data["OPL_ID_logo"], $data["finished"], $data["deactivated"], $data["ranked_season"], $data["ranked_split"], $data["OPL_ID"]]);
+			$dbcn->execute_query("UPDATE tournaments SET OPL_ID_parent = ?, OPL_ID_top_parent = ?, name = ?, split = ?, season = ?, eventType = ?, format = ?, number = ?, numberRangeTo = ?, dateStart = ?, dateEnd = ?, OPL_logo_url = ?, OPL_ID_logo = ?, finished = ?, deactivated = ?, ranked_season = ?, ranked_split = ? WHERE OPL_ID = ?", [$data["OPL_ID_parent"], $data["OPL_ID_top_parent"], $data["name"], $data["split"], $data["season"], $data["eventType"], $data["format"], $data["number"], $data["numberRangeTo"], $data["dateStart"], $data["dateEnd"], $data["OPL_logo_url"], $data["OPL_ID_logo"], intval($data["finished"]), intval($data["deactivated"]), $data["ranked_season"], $data["ranked_split"], $data["OPL_ID"]]);
 		} else {
 			$returnInfo .= "- neue Daten identisch zu vorhandenen Daten<br>";
 		}
@@ -197,7 +197,7 @@ function create_tournament_get_button(array $data, bool $in_write_popup = false)
 	$formatselect_swiss = (strtolower($data["format"]??"") == "swiss") ? "selected" : "";
 
 	$dateStart = explode(" ",$data["dateStart"])[0];
-	$dateEnd = explode(" ",$data["dateEnd"])[0];
+	$dateEnd = explode(" ",$data["dateEnd"]??"")[0];
 
 	$deactivated_check = ($data["deactivated"]) ? "" : "checked";
 	$finished_check = ($data["finished"]) ? "checked" : "";
@@ -931,8 +931,8 @@ function get_results_for_matchup($matchID):array {
 		"played" => intval($response["data"]["state_key"]) >= 4,
 		"winner" => (count($data["win_IDs"]??[])>0) ? $data["win_IDs"][0] : null,
 		"loser" => (count($data["win_IDs"]??[])>0) ? $data["loss_IDs"][0] : null,
-		"draw" => (intval($response["data"]["state_key"]) >= 4) ? count($data["draw_IDs"]) > 0 : null,
-		"def_win" => (intval($response["data"]["state_key"]) >= 4) ? count($data["defwin"]) > 0 : null,
+		"draw" => (intval($response["data"]["state_key"]) >= 4) ? count($data["draw_IDs"]) > 0 : 0,
+		"def_win" => (intval($response["data"]["state_key"]) >= 4) ? count($data["defwin"]) > 0 : 0,
 	];
 
 	$updated = [];
@@ -943,7 +943,7 @@ function get_results_for_matchup($matchID):array {
 		}
 	}
 	if (count($updated) > 0) {
-		$dbcn->execute_query("UPDATE matchups SET team1Score = ?, team2Score = ?, played = ?, winner = ?, loser = ?, draw = ?, def_win = ? WHERE OPL_ID = ?", [$match_data["team1Score"], $match_data["team2Score"], $match_data["played"], $match_data["winner"], $match_data["loser"], $match_data["draw"], $match_data["def_win"], $matchID]);
+		$dbcn->execute_query("UPDATE matchups SET team1Score = ?, team2Score = ?, played = ?, winner = ?, loser = ?, draw = ?, def_win = ? WHERE OPL_ID = ?", [$match_data["team1Score"], $match_data["team2Score"], intval($match_data["played"]), $match_data["winner"], $match_data["loser"], intval($match_data["draw"]), intval($match_data["def_win"]), $matchID]);
 	}
 
 	$dbcn->close();
