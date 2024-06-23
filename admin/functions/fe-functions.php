@@ -78,8 +78,8 @@ function create_ranked_split_rows(mysqli $dbcn):string {
 						<label class=\"write_ranked_split_split\">Split<input type=\"text\" value=\"{$split["split"]}\" readonly></label>
 						<label class=\"write_ranked_split_startdate\">Start<input type=\"date\" value=\"{$split["split_start"]}\"></label>
 						<label class=\"write_ranked_split_enddate\">Ende<input type=\"date\" value=\"{$split["split_end"]}\"></label>
-						<button class='sec-button reset_inputs'><div class='material-symbol'>".file_get_contents(dirname(__FILE__)."/../../icons/material/restart.svg")."</div></button>
-						<button class='sec-button delete_ranked_split'><div class='material-symbol'>".file_get_contents(dirname(__FILE__)."/../../icons/material/delete.svg")."</div></button>
+						<button class='sec-button reset_inputs' title='Zurücksetzen'><div class='material-symbol'>".file_get_contents(dirname(__FILE__)."/../../icons/material/restart.svg")."</div></button>
+						<button class='sec-button delete_ranked_split' title='Löschen'><div class='material-symbol'>".file_get_contents(dirname(__FILE__)."/../../icons/material/delete.svg")."</div></button>
 					</div>";
 	}
 	return $result;
@@ -90,8 +90,8 @@ function create_ranked_split_addition() {
 						<label class=\"write_ranked_split_split\">Split<input type=\"text\"></label>
 						<label class=\"write_ranked_split_startdate\">Start<input type=\"date\"></label>
 						<label class=\"write_ranked_split_enddate\">Ende<input type=\"date\"></label>
-						<button class='sec-button save_ranked_split'><div class='material-symbol'>".file_get_contents(dirname(__FILE__)."/../../icons/material/save.svg")."</div></button>
-						<button class='sec-button delete_ranked_split'><div class='material-symbol'>".file_get_contents(dirname(__FILE__)."/../../icons/material/close.svg")."</div></button>
+						<button class='sec-button save_ranked_split' title='Zurücksetzen'><div class='material-symbol'>".file_get_contents(dirname(__FILE__)."/../../icons/material/save.svg")."</div></button>
+						<button class='sec-button delete_ranked_split' title='Löschen'><div class='material-symbol'>".file_get_contents(dirname(__FILE__)."/../../icons/material/close.svg")."</div></button>
 					</div>";
 }
 
