@@ -274,7 +274,7 @@ function assign_and_filter_game($RiotMatchID,$tournamentID):array {
 
 	// check for Data
 	$returnArr["echo"] .= "<span style='color: royalblue'>Sorting $RiotMatchID<br></span>";
-	$gameDB = $dbcn->execute_query("SELECT * FROM games WHERE RIOT_matchID = ? AND (played_at BETWEEN ? AND ?)", [$RiotMatchID, $tournament["dateStart"], $tournament["dateEnd"]])->fetch_assoc();
+	$gameDB = $dbcn->execute_query("SELECT * FROM games WHERE RIOT_matchID = ?", [$RiotMatchID])->fetch_assoc();
 	$data = json_decode($gameDB['matchdata'], true);
 	if ($data == NULL) {
 		$returnArr["echo"] .= "<span style='color: orange'>-Game has no Data<br></span>";
@@ -330,7 +330,7 @@ function assign_and_filter_game($RiotMatchID,$tournamentID):array {
 
 	// check from which match the game is
 	$matchDB = [];
-	if ($tournament["eventType"] == "group") {
+	if ($tournament["eventType"] == "group" || $tournament["eventType"] == "playoffs" || ($tournament["eventType"] == "league" && $tournament["format"] == "swiss")) {
 		$matchDB = $dbcn->execute_query("SELECT * FROM matchups WHERE ((OPL_ID_team1 = ? AND OPL_ID_team2 = ?) OR (OPL_ID_team1 = ? AND OPL_ID_team2 = ?)) AND OPL_ID_tournament = ?", [$BlueTeamID, $RedTeamID, $RedTeamID, $BlueTeamID, $tournamentID])->fetch_all(MYSQLI_ASSOC);
 	} elseif ($tournament["eventType"] == "league") {
 		$matchDB = $dbcn->execute_query("SELECT * FROM matchups WHERE ((OPL_ID_team1 = ? AND OPL_ID_team2 = ?) OR (OPL_ID_team1 = ? AND OPL_ID_team2 = ?)) AND OPL_ID_tournament IN (SELECT OPL_ID FROM tournaments WHERE eventType = 'group' AND OPL_ID_parent = ?)", [$BlueTeamID, $RedTeamID, $RedTeamID, $BlueTeamID, $tournamentID])->fetch_all(MYSQLI_ASSOC);
@@ -385,7 +385,7 @@ function get_teamID_by_puuids(mysqli $dbcn, $PUUIDs, $tournamentID) {
 	$team_counts = [];
 	foreach ($PUUIDs as $player) {
 		$player_data = NULL;
-		if ($tournament["eventType"] == "group" || ($tournament["eventType"] == "league" && $tournament["format"] == "swiss")) {
+		if ($tournament["eventType"] == "group" || ($tournament["eventType"] == "league" && $tournament["format"] == "swiss") || $tournament["eventType"] == "playoffs") {
 			$player_data = $dbcn->execute_query("SELECT p.*, pit.OPL_ID_team AS OPL_ID_team FROM players p JOIN players_in_teams pit ON p.OPL_ID = pit.OPL_ID_player JOIN teams_in_tournaments tit on pit.OPL_ID_team = tit.OPL_ID_team WHERE PUUID = ? AND tit.OPL_ID_group = ?", [$player, $tournamentID])->fetch_assoc();
 		} elseif ($tournament["eventType"] == "league") {
 			$player_data = $dbcn->execute_query("SELECT p.*, pit.OPL_ID_team AS OPL_ID_team FROM players p JOIN players_in_teams pit ON p.OPL_ID = pit.OPL_ID_player JOIN teams_in_tournaments tit on pit.OPL_ID_team = tit.OPL_ID_team WHERE PUUID = ? AND tit.OPL_ID_group IN (SELECT OPL_ID FROM tournaments WHERE eventType = 'group' AND OPL_ID_parent = ?)", [$player, $tournamentID])->fetch_assoc();
