@@ -275,6 +275,11 @@ function assign_and_filter_game($RiotMatchID,$tournamentID):array {
 	// check for Data
 	$returnArr["echo"] .= "<span style='color: royalblue'>Sorting $RiotMatchID<br></span>";
 	$gameDB = $dbcn->execute_query("SELECT * FROM games WHERE RIOT_matchID = ? AND (played_at BETWEEN ? AND ?)", [$RiotMatchID, $tournament["dateStart"], $tournament["dateEnd"]])->fetch_assoc();
+	if ($gameDB == null) {
+		$returnArr["echo"] .= "<span style='color: orange'>-Game not during Tournament<br></span>";
+		$returnArr["return"] = 1;
+		return $returnArr;
+	}
 	$data = json_decode($gameDB['matchdata'], true);
 	if ($data == NULL) {
 		$returnArr["echo"] .= "<span style='color: orange'>-Game has no Data<br></span>";
@@ -298,7 +303,7 @@ function assign_and_filter_game($RiotMatchID,$tournamentID):array {
 		if ($game_in_tournament_written) {
 			$dbcn->execute_query("UPDATE games_in_tournament SET not_ul_game = TRUE WHERE RIOT_matchID = ? AND OPL_ID_tournament = ?", [$RiotMatchID, $top_tournamentID]);
 		} else {
-			$dbcn->execute_query("INSERT INTO games_in_tournament (RIOT_matchID, OPL_ID_tournament, not_ul_game) VALUES (?,?,true)", [$RiotMatchID, $top_tournamentID]);
+			$dbcn->execute_query("INSERT INTO games_in_tournament (RIOT_matchID, OPL_ID_tournament, not_ul_game) VALUES (?,?,1)", [$RiotMatchID, $top_tournamentID]);
 			$game_in_tournament = true;
 		}
 		return $returnArr;
@@ -330,7 +335,7 @@ function assign_and_filter_game($RiotMatchID,$tournamentID):array {
 
 	// check from which match the game is
 	$matchDB = [];
-	if ($tournament["eventType"] == "group") {
+	if ($tournament["eventType"] == "group" || $tournament["eventType"] == "playoffs" || ($tournament["eventType"] == "league" && $tournament["format"] == "swiss")) {
 		$matchDB = $dbcn->execute_query("SELECT * FROM matchups WHERE ((OPL_ID_team1 = ? AND OPL_ID_team2 = ?) OR (OPL_ID_team1 = ? AND OPL_ID_team2 = ?)) AND OPL_ID_tournament = ?", [$BlueTeamID, $RedTeamID, $RedTeamID, $BlueTeamID, $tournamentID])->fetch_all(MYSQLI_ASSOC);
 	} elseif ($tournament["eventType"] == "league") {
 		$matchDB = $dbcn->execute_query("SELECT * FROM matchups WHERE ((OPL_ID_team1 = ? AND OPL_ID_team2 = ?) OR (OPL_ID_team1 = ? AND OPL_ID_team2 = ?)) AND OPL_ID_tournament IN (SELECT OPL_ID FROM tournaments WHERE eventType = 'group' AND OPL_ID_parent = ?)", [$BlueTeamID, $RedTeamID, $RedTeamID, $BlueTeamID, $tournamentID])->fetch_all(MYSQLI_ASSOC);
@@ -385,7 +390,7 @@ function get_teamID_by_puuids(mysqli $dbcn, $PUUIDs, $tournamentID) {
 	$team_counts = [];
 	foreach ($PUUIDs as $player) {
 		$player_data = NULL;
-		if ($tournament["eventType"] == "group" || ($tournament["eventType"] == "league" && $tournament["format"] == "swiss")) {
+		if ($tournament["eventType"] == "group" || ($tournament["eventType"] == "league" && $tournament["format"] == "swiss") || $tournament["eventType"] == "playoffs") {
 			$player_data = $dbcn->execute_query("SELECT p.*, pit.OPL_ID_team AS OPL_ID_team FROM players p JOIN players_in_teams pit ON p.OPL_ID = pit.OPL_ID_player JOIN teams_in_tournaments tit on pit.OPL_ID_team = tit.OPL_ID_team WHERE PUUID = ? AND tit.OPL_ID_group = ?", [$player, $tournamentID])->fetch_assoc();
 		} elseif ($tournament["eventType"] == "league") {
 			$player_data = $dbcn->execute_query("SELECT p.*, pit.OPL_ID_team AS OPL_ID_team FROM players p JOIN players_in_teams pit ON p.OPL_ID = pit.OPL_ID_player JOIN teams_in_tournaments tit on pit.OPL_ID_team = tit.OPL_ID_team WHERE PUUID = ? AND tit.OPL_ID_group IN (SELECT OPL_ID FROM tournaments WHERE eventType = 'group' AND OPL_ID_parent = ?)", [$player, $tournamentID])->fetch_assoc();
@@ -678,7 +683,7 @@ function calculate_avg_team_rank($teamID, $tournamentID=null):array {
 			if ($team_season_rank != null) {
 				$dbcn->execute_query("UPDATE teams_tournament_rank SET avg_rank_tier = NULL, avg_rank_div = NULL, avg_rank_num = NULL WHERE OPL_ID_team = ? AND OPL_ID_tournament = ? AND second_ranked_split = false", [$teamID, $tournament["OPL_ID"]]);
 			} else {
-				$dbcn->execute_query("INSERT INTO teams_tournament_rank (OPL_ID_team, OPL_ID_tournament, second_ranked_split, avg_rank_tier, avg_rank_div, avg_rank_num) VALUES (?,?,false,null,null,null)", [$teamID, $tournament["OPL_ID"]]);
+				$dbcn->execute_query("INSERT INTO teams_tournament_rank (OPL_ID_team, OPL_ID_tournament, second_ranked_split, avg_rank_tier, avg_rank_div, avg_rank_num) VALUES (?,?,0,null,null,null)", [$teamID, $tournament["OPL_ID"]]);
 			}
 			$returnArr["echo"] .= "- ".$tournamentID."_S".$ranked_split["season"]."-".$ranked_split["split"].": kein Rang<br>";
 		} else {
@@ -698,7 +703,7 @@ function calculate_avg_team_rank($teamID, $tournamentID=null):array {
 			if ($team_season_rank != null) {
 				$dbcn->execute_query("UPDATE teams_tournament_rank SET avg_rank_tier = ?, avg_rank_div = ?, avg_rank_num = ? WHERE OPL_ID_team = ? AND OPL_ID_tournament = ? AND second_ranked_split = false", [$ranks_rev[$rank][0], $ranks_rev[$rank][1], $rank_num, $teamID, $tournament["OPL_ID"]]);
 			} else {
-				$dbcn->execute_query("INSERT INTO teams_tournament_rank (OPL_ID_team, OPL_ID_tournament, second_ranked_split, avg_rank_tier, avg_rank_div, avg_rank_num) VALUES (?,?,false,?,?,?)", [$teamID, $tournament["OPL_ID"], $ranks_rev[$rank][0], $ranks_rev[$rank][1], $rank_num]);
+				$dbcn->execute_query("INSERT INTO teams_tournament_rank (OPL_ID_team, OPL_ID_tournament, second_ranked_split, avg_rank_tier, avg_rank_div, avg_rank_num) VALUES (?,?,0,?,?,?)", [$teamID, $tournament["OPL_ID"], $ranks_rev[$rank][0], $ranks_rev[$rank][1], $rank_num]);
 			}
 			$returnArr["echo"] .= "- ".$tournamentID."_S".$ranked_split["season"]."-".$ranked_split["split"].": ". $ranks_rev[$rank][0] . $ranks_rev[$rank][1] . " " . $rank_num."<br>";
 		} else {
@@ -725,7 +730,7 @@ function calculate_avg_team_rank($teamID, $tournamentID=null):array {
 			if ($team_season_rank_2 != null) {
 				$dbcn->execute_query("UPDATE teams_tournament_rank SET avg_rank_tier = NULL, avg_rank_div = NULL, avg_rank_num = NULL WHERE OPL_ID_team = ? AND OPL_ID_tournament = ? AND second_ranked_split = true", [$teamID, $tournament["OPL_ID"]]);
 			} else {
-				$dbcn->execute_query("INSERT INTO teams_tournament_rank (OPL_ID_team, OPL_ID_tournament, second_ranked_split, avg_rank_tier, avg_rank_div, avg_rank_num) VALUES (?,?,true,null,null,null)", [$teamID, $tournament["OPL_ID"]]);
+				$dbcn->execute_query("INSERT INTO teams_tournament_rank (OPL_ID_team, OPL_ID_tournament, second_ranked_split, avg_rank_tier, avg_rank_div, avg_rank_num) VALUES (?,?,1,null,null,null)", [$teamID, $tournament["OPL_ID"]]);
 			}
 			$returnArr["echo"] .= "- ".$tournamentID."_S".$next_split["season"]."-".$next_split["split"].": kein Rang<br>";
 		} else {
@@ -738,7 +743,7 @@ function calculate_avg_team_rank($teamID, $tournamentID=null):array {
 			if ($team_season_rank_2 != null) {
 				$dbcn->execute_query("UPDATE teams_tournament_rank SET avg_rank_tier = ?, avg_rank_div = ?, avg_rank_num = ? WHERE OPL_ID_team = ? AND OPL_ID_tournament = ? AND second_ranked_split = true", [$ranks_rev[$rank][0], $ranks_rev[$rank][1], $rank_num, $teamID, $tournament["OPL_ID"]]);
 			} else {
-				$dbcn->execute_query("INSERT INTO teams_tournament_rank (OPL_ID_team, OPL_ID_tournament, second_ranked_split, avg_rank_tier, avg_rank_div, avg_rank_num) VALUES (?,?,true,?,?,?)", [$teamID, $tournament["OPL_ID"], $ranks_rev[$rank][0], $ranks_rev[$rank][1], $rank_num]);
+				$dbcn->execute_query("INSERT INTO teams_tournament_rank (OPL_ID_team, OPL_ID_tournament, second_ranked_split, avg_rank_tier, avg_rank_div, avg_rank_num) VALUES (?,?,1,?,?,?)", [$teamID, $tournament["OPL_ID"], $ranks_rev[$rank][0], $ranks_rev[$rank][1], $rank_num]);
 			}
 			$returnArr["writes"] = 1;
 			$returnArr["echo"] .= "- ".$tournamentID."_S".$next_split["season"]."-".$next_split["split"].": ". $ranks_rev[$rank][0] . $ranks_rev[$rank][1] . " " . $rank_num."<br>";
@@ -763,6 +768,10 @@ function calculate_teamstats($teamID, $tournamentID) {
 	if ($games_played == 0) {
 		$returnArr["echo"] .= "Team ".$teamID." has not played any Games<br>";
 		$returnArr["without"]++;
+		$teamstats = $dbcn->execute_query("SELECT * FROM stats_teams_in_tournaments WHERE OPL_ID_team = ? AND OPL_ID_tournament = ?", [$teamID,$tournamentID])->fetch_assoc();
+		if ($teamstats != null) {
+			$dbcn->execute_query("DELETE FROM stats_teams_in_tournaments WHERE OPL_ID_team = ? AND OPL_ID_tournament = ?", [$teamID,$tournamentID]);
+		}
 		return $returnArr;
 	}
 

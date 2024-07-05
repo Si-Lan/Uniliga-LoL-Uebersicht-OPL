@@ -155,7 +155,7 @@ function square_logo($img) {
 	$transparency = imagecolorallocatealpha($img_square, 0,0,0,127);
 	imagefill($img_square, 0, 0, $transparency);
 	imagesavealpha($img_square, true);
-	imagecopy($img_square, $img,($img_size-imagesx($img))/2,($img_size-imagesy($img))/2, 0, 0, imagesx($img), imagesy($img));
+	imagecopy($img_square, $img,intval(($img_size-imagesx($img))/2),intval(($img_size-imagesy($img))/2), 0, 0, imagesx($img), imagesy($img));
 	return $img_square;
 }
 

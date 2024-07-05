@@ -18,7 +18,7 @@ $tournament_id = $_GET['t'];
 echo "\n---- get Gamedata for Games without Data \n";
 file_put_contents("cron_logs/cron_log_$day.log","\n----- Gamedata for Games without Data starting -----\n".date("d.m.y H:i:s")." : Gamedata for $tournament_id\n", FILE_APPEND);
 
-$games = $dbcn->execute_query("SELECT * FROM games WHERE matchdata IS NULL")->fetch_all(MYSQLI_ASSOC);
+$games = $dbcn->execute_query("SELECT RIOT_matchID FROM games WHERE played_at IS NULL")->fetch_all(MYSQLI_ASSOC);
 $gamedata_gotten = $inT = $notinT = $sorted = $notsorted = 0;
 foreach ($games as $gindex=>$game) {
 	if (($gindex) % 50 === 0 && $gindex != 0) {
