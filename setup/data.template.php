@@ -9,7 +9,9 @@ function create_dbcn():mysqli {
 	$dbusername = "";
 	$dbpassword = "";
 	$dbport = NULL;
-	return new mysqli($dbservername,$dbusername,$dbpassword,$dbdatabase,$dbport);
+	$conn = new mysqli($dbservername, $dbusername, $dbpassword, $dbdatabase, $dbport);
+	$conn->set_charset("utf8");
+	return $conn;
 }
 
 function get_rgapi_key():string {

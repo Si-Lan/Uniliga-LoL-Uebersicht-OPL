@@ -933,7 +933,7 @@ function create_game(mysqli $dbcn,$gameID,$curr_team=NULL,$tournamentID=null, $r
 		$logo_red = "<img class='color-switch' alt='' src='$local_team_img{$team_red['OPL_ID_logo']}/$logo_filename'>";
 	}
 
-	$gamedate = date("d.m.y",$info["gameCreation"]/1000);
+	$gamedate = date("d.m.y",intval($info["gameCreation"]/1000));
 
 	$result_minimized .= "<div class='game-details-mini $general_class $score_current_class'>";
 	// gamedetails
