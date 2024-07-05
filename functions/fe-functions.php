@@ -719,6 +719,7 @@ function create_game(mysqli $dbcn,$gameID,$curr_team=NULL,$tournamentID=null, $r
 	$result = "";
 	// TODO: tournamentID integrieren, falls ein game in mehreren turnieren eingetragen ist (aktuell wird einfach das erste geholt)
 	$gameDB = $dbcn->execute_query("SELECT * FROM games JOIN games_in_tournament git on games.RIOT_matchID = git.RIOT_matchID WHERE games.RIOT_matchID = ?",[$gameID])->fetch_assoc();
+	if ($gameDB == null) return "";
 	$team_blue_ID = $gameDB['OPL_ID_blueTeam'];
 	$team_red_ID = $gameDB['OPL_ID_redTeam'];
 	$team_blue = $dbcn->execute_query("SELECT * FROM teams WHERE OPL_ID = ?",[$team_blue_ID])->fetch_assoc();
@@ -1078,7 +1079,7 @@ function create_game(mysqli $dbcn,$gameID,$curr_team=NULL,$tournamentID=null, $r
 			$summoner_rank_div = "";
 			$puuid = $player['puuid'];
 			if (array_key_exists($puuid, $players_PUUID)) {
-				$summoner_rank = strtolower($players_PUUID[$puuid]['rank_tier']);
+				$summoner_rank = strtolower($players_PUUID[$puuid]['rank_tier'] ?? "");
 				if ($summoner_rank != "master" && $summoner_rank != "grandmaster" && $summoner_rank != "challenger") {
 					$summoner_rank_div = $players_PUUID[$puuid]['rank_div'];
 				}

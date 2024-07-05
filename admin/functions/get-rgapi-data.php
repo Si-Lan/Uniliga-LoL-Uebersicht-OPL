@@ -274,7 +274,12 @@ function assign_and_filter_game($RiotMatchID,$tournamentID):array {
 
 	// check for Data
 	$returnArr["echo"] .= "<span style='color: royalblue'>Sorting $RiotMatchID<br></span>";
-	$gameDB = $dbcn->execute_query("SELECT * FROM games WHERE RIOT_matchID = ?", [$RiotMatchID])->fetch_assoc();
+	$gameDB = $dbcn->execute_query("SELECT * FROM games WHERE RIOT_matchID = ? AND (played_at BETWEEN ? AND ?)", [$RiotMatchID, $tournament["dateStart"], $tournament["dateEnd"]])->fetch_assoc();
+	if ($gameDB == null) {
+		$returnArr["echo"] .= "<span style='color: orange'>-Game not during Tournament<br></span>";
+		$returnArr["return"] = 1;
+		return $returnArr;
+	}
 	$data = json_decode($gameDB['matchdata'], true);
 	if ($data == NULL) {
 		$returnArr["echo"] .= "<span style='color: orange'>-Game has no Data<br></span>";
@@ -763,6 +768,10 @@ function calculate_teamstats($teamID, $tournamentID) {
 	if ($games_played == 0) {
 		$returnArr["echo"] .= "Team ".$teamID." has not played any Games<br>";
 		$returnArr["without"]++;
+		$teamstats = $dbcn->execute_query("SELECT * FROM stats_teams_in_tournaments WHERE OPL_ID_team = ? AND OPL_ID_tournament = ?", [$teamID,$tournamentID])->fetch_assoc();
+		if ($teamstats != null) {
+			$dbcn->execute_query("DELETE FROM stats_teams_in_tournaments WHERE OPL_ID_team = ? AND OPL_ID_tournament = ?", [$teamID,$tournamentID]);
+		}
 		return $returnArr;
 	}
 
