@@ -297,9 +297,9 @@ echo "</div>"; // main-content
 if ($logged_in) {
 	echo "<div class='writing-wrapper'>";
 	echo "<div class='divider big-space'></div>";
-	echo "<a class='button write games-team $teamID {$tournament['OPL_ID']}' onclick='get_games_for_team(\"{$tournament['OPL_ID']}\",\"$teamID\")'>Lade Spiele für {$team['name']}</a>";
+	echo "<a class='deprecated-admin-btn button write games-team $teamID {$tournament['OPL_ID']}' onclick='get_games_for_team(\"{$tournament['OPL_ID']}\",\"$teamID\")'>Lade Spiele für {$team['name']}</a>";
 	echo "<a class='button write gamedata {$tournament['OPL_ID']}' onclick='get_game_data(\"{$tournament['OPL_ID']}\",\"$teamID\")'>Lade Spiel-Daten für geladene Spiele</a>";
-	echo "<a class='button write assign-una {$tournament['OPL_ID']}' onclick='assign_and_filter_games(\"{$tournament['OPL_ID']}\",\"$teamID\")'>sortiere unsortierte Spiele</a>";
+	echo "<a class='deprecated-admin-btn button write assign-una {$tournament['OPL_ID']}' onclick='assign_and_filter_games(\"{$tournament['OPL_ID']}\",\"$teamID\")'>sortiere unsortierte Spiele</a>";
 	echo "<div class='result-wrapper no-res $teamID {$tournament['OPL_ID']}'>
                         <div class='clear-button' onclick='clear_results(\"$teamID\")'>Clear</div>
                         <div class='result-content'></div>

@@ -43,10 +43,10 @@ if ($loggedin) {
 		echo "<a class='button write riotids-puuids {$tournament['OPL_ID']}' onclick='get_riotids_by_puuids(\"{$tournament['OPL_ID']}\")'>get RiotIDs for all Players</a>";
 		echo "<a class='button write get-ranks {$tournament['OPL_ID']}' onclick='get_ranks(\"{$tournament['OPL_ID']}\")'>get Ranks for Players</a>";
 		echo "<a class='button write calc-team-rank {$tournament['OPL_ID']}' onclick='get_average_team_ranks(\"{$tournament['OPL_ID']}\")'>calculate average Ranks for Teams</a>";
-		echo "<a class='button write games {$tournament['OPL_ID']}' onclick='' style='color: #ff6161'>get all Games (API-Calls)</a>";
+		echo "<a class='deprecated-admin-btn button write games {$tournament['OPL_ID']}' onclick=''>get all Games (API-Calls)</a>";
 		echo "<a class='button write gamedata {$tournament['OPL_ID']}' onclick='get_game_data(\"{$tournament['OPL_ID']}\")'>get Gamedata for Games without Data</a>";
-		echo "<a class='button write assign-una {$tournament['OPL_ID']}' onclick='assign_and_filter_games(\"{$tournament['OPL_ID']}\")'>sort all unsorted Games</a>";
-		echo "<a class='button write assign-all {$tournament['OPL_ID']}' onclick='assign_and_filter_games(\"{$tournament['OPL_ID']}\",0,1)'>sort all Games</a>";
+		echo "<a class='deprecated-admin-btn button write assign-una {$tournament['OPL_ID']}' onclick='assign_and_filter_games(\"{$tournament['OPL_ID']}\")'>sort all unsorted Games</a>";
+		echo "<a class='deprecated-admin-btn button write assign-all {$tournament['OPL_ID']}' onclick='assign_and_filter_games(\"{$tournament['OPL_ID']}\",0,1)'>sort all Games</a>";
 		echo "<a class='button write get-pstats {$tournament['OPL_ID']}' onclick='get_stats_for_players(\"{$tournament['OPL_ID']}\")'>calculate Playerstats</a>";
 		echo "<a class='button write teamstats {$tournament['OPL_ID']}' onclick='get_teamstats(\"{$tournament['OPL_ID']}\")'>calculate Teamstats</a>";
 		echo "<div class='result-wrapper no-res {$tournament['OPL_ID']}'>

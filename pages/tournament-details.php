@@ -63,7 +63,7 @@ foreach ($leagues as $league) {
 	echo "<div class='division'>
                         <div class='group-title-wrapper'><h2>Liga {$league['number']}</h2>";
 	if ($logged_in) {
-		echo "<a class='button write games-div {$league['OPL_ID']}' onclick='get_games_for_division(\"$tournamentID\",\"{$league['OPL_ID']}\")'><div class='material-symbol'>". file_get_contents("../icons/material/place_item.svg") ."</div>Lade Spiele</a>";
+		echo "<a class='deprecated-admin-btn button write games-div {$league['OPL_ID']}' onclick='get_games_for_division(\"$tournamentID\",\"{$league['OPL_ID']}\")'><div class='material-symbol'>". file_get_contents("../icons/material/place_item.svg") ."</div>Lade Spiele</a>";
 	}
 	echo "</div>";
 	if ($logged_in) {
@@ -99,7 +99,7 @@ foreach ($leagues as $league) {
                             <a href='turnier/{$tournament_url_path}/teams?liga={$league['OPL_ID']}&gruppe={$group['OPL_ID']}' class='button'><div class='material-symbol'>". file_get_contents("../icons/material/group.svg") ."</div>Teams</a>";
 		echo "</div>"; // group
 		if ($logged_in) {
-			echo "<a class='button write games- {$group['OPL_ID']}' onclick='get_games_for_group(\"$tournamentID\",\"{$group['OPL_ID']}\")'><div class='material-symbol'>". file_get_contents("../icons/material/place_item.svg") ."</div>Lade Spiele</a>";
+			echo "<a class='deprecated-admin-btn button write games- {$group['OPL_ID']}' onclick='get_games_for_group(\"$tournamentID\",\"{$group['OPL_ID']}\")'><div class='material-symbol'>". file_get_contents("../icons/material/place_item.svg") ."</div>Lade Spiele</a>";
 		}
 		echo "</div>";
 		if ($logged_in) {
