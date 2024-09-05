@@ -30,8 +30,12 @@ function create_tournament_buttons() {
 	if (ref_button != null) {
 		ref_button.innerHTML = "Refreshing...";
 	}
+	const open_accordeons = sessionStorage.getItem("open_admin_accordeons");
 	fetch(`./admin/ajax/create_admin_buttons.php`, {
 		method: "GET",
+		headers: {
+			"open-accordeons": open_accordeons,
+		}
 	})
 		.then(res => res.text())
 		.then(content => {
@@ -434,6 +438,11 @@ function calculate_standings_from_matchups(tournamentID) {
 function toggle_turnier_select_accordeon(tournamentID) {
 	$(".turnier-sl-accordeon."+tournamentID).toggleClass("open");
 	$(`.toggle-turnierselect-accordeon[data-id=${tournamentID}]`).toggleClass("open");
+
+	const open_accordeons = $(`.toggle-turnierselect-accordeon.open`);
+	let open_accordeon_ids = [];
+	open_accordeons.each(function() {open_accordeon_ids.push(this.getAttribute("data-id"))})
+	sessionStorage.setItem("open_admin_accordeons",JSON.stringify(open_accordeon_ids));
 }
 
 // ddragon update
