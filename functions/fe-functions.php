@@ -1221,8 +1221,8 @@ function create_playercard(mysqli $dbcn, $playerID, $teamID, $tournamentID, $det
 	$league = $dbcn->execute_query("SELECT * FROM tournaments WHERE eventType='league' AND OPL_ID = ?", [$group["OPL_ID_parent"]])->fetch_assoc();
 	if ($group["format"]=="swiss") $league = $group;
 	if ($detail_stats) {
-		$roles = json_decode($player['roles'], true);
-		$champions = json_decode($player['champions'], true);
+		$roles = $player['roles'] != null ? json_decode($player['roles'], true) : null;
+		$champions = $player['champions'] != null ? json_decode($player['champions'], true) : null;
 		$rendered_rows = 0;
 		if ($roles != null && $champions != null) {
 			if (array_sum($roles)>0 && count($champions)>0) {
@@ -1460,14 +1460,14 @@ function search_all(mysqli $dbcn, string $search_input) {
 
 	$compare_searchresults = function($a,$b) use ($search_input) {
 		if ($a["type"] == "player") {
-			$a_compare = min(levenshtein($search_input,$a["name"]), levenshtein($search_input,$a["riotID_name"]));
+			$a_compare = min(levenshtein($search_input,$a["name"]??""), levenshtein($search_input,$a["riotID_name"]??""));
 		} else {
-			$a_compare = levenshtein($search_input,$a["name"]);
+			$a_compare = levenshtein($search_input,$a["name"]??"");
 		}
 		if ($b["type"] == "player") {
-			$b_compare = min(levenshtein($search_input,$b["name"]), levenshtein($search_input,$b["riotID_name"]));
+			$b_compare = min(levenshtein($search_input,$b["name"]??""), levenshtein($search_input,$b["riotID_name"]??""));
 		} else {
-			$b_compare = levenshtein($search_input,$b["name"],1,1,1);
+			$b_compare = levenshtein($search_input,$b["name"]??"",1,1,1);
 		}
 		return $a_compare <=> $b_compare;
 	};
