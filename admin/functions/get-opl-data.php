@@ -956,12 +956,17 @@ function get_results_for_matchup($matchID):array {
 
 		$game_DB = $dbcn->execute_query("SELECT RIOT_matchID FROM games WHERE RIOT_matchID = ?", [$game_id])->fetch_row();
 		$gtm_DB = $dbcn->execute_query("SELECT * FROM games_to_matches WHERE RIOT_matchID = ? AND OPL_ID_matches = ?", [$game_id, $matchID])->fetch_row();
-		$git_DB = $dbcn->execute_query("SELECT * FROM games_in_tournament WHERE RIOT_matchID = ? AND OPL_ID_tournament = 
-                                                             (SELECT OPL_ID_top_parent
-                                                              FROM matchups
-                                                                  LEFT JOIN tournaments
-                                                                      ON matchups.OPL_ID_tournament = tournaments.OPL_ID
-                                                              WHERE matchups.OPL_ID = ?)", [$game_id, $matchID])->fetch_row();
+		$git_DB = $dbcn->execute_query("SELECT * FROM games_in_tournament WHERE RIOT_matchID = ? AND OPL_ID_tournament = ?", [$game_id, $tournamentID])->fetch_row();
+
+		$blue_team_win = $game['info']['teams'][0]['win'];
+		$game_result = $response["result"]["result_segments"][$game_num];
+		if ($blue_team_win) {
+			$OPL_blue = intval($game_result["win_IDs"][0]);
+			$OPL_red = intval($game_result["loss_IDs"][0]);
+		} else {
+			$OPL_blue = intval($game_result["loss_IDs"][0]);
+			$OPL_red = intval($game_result["win_IDs"][0]);
+		}
 
 		if ($game_DB == null) {
 			$dbcn->execute_query("INSERT INTO games (RIOT_matchID) VALUES (?)", [$game_id]);
@@ -970,10 +975,14 @@ function get_results_for_matchup($matchID):array {
 
 		if ($gtm_DB == null) {
 			$dbcn->execute_query("INSERT INTO games_to_matches (RIOT_matchID, OPL_ID_matches, opl_confirmed) VALUES (?,?,?)", [$game_id, $matchID, 1]);
+		} else {
+			$dbcn->execute_query("UPDATE games_to_matches SET opl_confirmed = 1 WHERE RIOT_matchID = ? AND OPL_ID_matches = ?", [$game_id, $matchID]);
 		}
 
 		if ($git_DB == null) {
-			$dbcn->execute_query("INSERT INTO games_in_tournament (RIOT_matchID,OPL_ID_tournament) VALUES (?,?)", [$game_id,$tournamentID]);
+			$dbcn->execute_query("INSERT INTO games_in_tournament (RIOT_matchID, OPL_ID_tournament, OPL_ID_blueTeam, OPL_ID_redTeam) VALUES (?,?,?,?)", [$game_id,$tournamentID,$OPL_blue,$OPL_red]);
+		} else {
+			$dbcn->execute_query("UPDATE games_in_tournament SET OPL_ID_blueTeam = ?, OPL_ID_redTeam = ? WHERE RIOT_matchID = ? AND OPL_ID_tournament = ?", [$OPL_blue,$OPL_red,$game_id,$tournamentID]);
 		}
 	}
 
