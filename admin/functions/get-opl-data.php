@@ -974,9 +974,9 @@ function get_results_for_matchup($matchID):array {
 		}
 
 		if ($gtm_DB == null) {
-			$dbcn->execute_query("INSERT INTO games_to_matches (RIOT_matchID, OPL_ID_matches, opl_confirmed) VALUES (?,?,?)", [$game_id, $matchID, 1]);
+			$dbcn->execute_query("INSERT INTO games_to_matches (RIOT_matchID, OPL_ID_matches, OPL_ID_blueTeam, OPL_ID_redTeam, opl_confirmed) VALUES (?,?,?,?,?)", [$game_id, $matchID, $OPL_blue, $OPL_red, 1]);
 		} else {
-			$dbcn->execute_query("UPDATE games_to_matches SET opl_confirmed = 1 WHERE RIOT_matchID = ? AND OPL_ID_matches = ?", [$game_id, $matchID]);
+			$dbcn->execute_query("UPDATE games_to_matches SET OPL_ID_blueTeam = ?, OPL_ID_redTeam = ?, opl_confirmed = 1 WHERE RIOT_matchID = ? AND OPL_ID_matches = ?", [$OPL_blue, $OPL_red, $game_id, $matchID]);
 		}
 
 		if ($git_DB == null) {

@@ -718,8 +718,10 @@ function create_game(mysqli $dbcn,$gameID,$curr_team=NULL,$tournamentID=null, $r
 	$result_minimized = "";
 	$result = "";
 	// TODO: tournamentID integrieren, falls ein game in mehreren turnieren eingetragen ist (aktuell wird einfach das erste geholt)
-	$gameDB = $dbcn->execute_query("SELECT * FROM games JOIN games_in_tournament git on games.RIOT_matchID = git.RIOT_matchID WHERE games.RIOT_matchID = ?",[$gameID])->fetch_assoc();
+	//$gameDB = $dbcn->execute_query("SELECT * FROM games JOIN games_in_tournament git on games.RIOT_matchID = git.RIOT_matchID WHERE games.RIOT_matchID = ?",[$gameID])->fetch_assoc();
+	$gameDB = $dbcn->execute_query("SELECT * FROM games g JOIN games_to_matches gtm on g.RIOT_matchID = gtm.RIOT_matchID WHERE g.RIOT_matchID = ?", [$gameID])->fetch_assoc();
 	if ($gameDB == null) return "";
+	$matchup = $dbcn->execute_query("SELECT * FROM matchups WHERE OPL_ID IN (SELECT OPL_ID_matches FROM games_to_matches WHERE RIOT_matchID = ?)", [$gameID])->fetch_assoc();
 	$team_blue_ID = $gameDB['OPL_ID_blueTeam'];
 	$team_red_ID = $gameDB['OPL_ID_redTeam'];
 	$team_blue = $dbcn->execute_query("SELECT * FROM teams WHERE OPL_ID = ?",[$team_blue_ID])->fetch_assoc();
@@ -732,7 +734,7 @@ function create_game(mysqli $dbcn,$gameID,$curr_team=NULL,$tournamentID=null, $r
 		$players_red_DB = $dbcn->execute_query("SELECT PUUID, riotID_name, riotID_tag, rank_tier, rank_div
 														FROM players
 														    JOIN players_in_teams_in_tournament pit on players.OPL_ID = pit.OPL_ID_player
-														WHERE OPL_ID_team = ?",[$team_blue['OPL_ID']])->fetch_all(MYSQLI_ASSOC);
+														WHERE OPL_ID_team = ?",[$team_red['OPL_ID']])->fetch_all(MYSQLI_ASSOC);
 	} else {
 		$players_blue_DB = $dbcn->execute_query("SELECT PUUID, riotID_name, riotID_tag, psr.rank_tier, psr.rank_div
 														FROM players
@@ -746,9 +748,11 @@ function create_game(mysqli $dbcn,$gameID,$curr_team=NULL,$tournamentID=null, $r
 														WHERE OPL_ID_team = ?",[$tournamentID,$team_red['OPL_ID']])->fetch_all(MYSQLI_ASSOC);
 	}
 
-	$tournamentID = $gameDB["OPL_ID_tournament"];
+	//$tournamentID = $gameDB["OPL_ID_tournament"];
+	$tournament = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID = (SELECT OPL_ID_top_parent FROM tournaments WHERE OPL_ID = ?)", [$matchup["OPL_ID_tournament"]])->fetch_assoc();
+	$tournamentID = $tournament["OPL_ID"];
 
-	$tournament = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID = ?", [$tournamentID])->fetch_assoc();
+	//$tournament = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID = ?", [$tournamentID])->fetch_assoc();
 
 	$team_name_blue = $dbcn->execute_query("SELECT * FROM team_name_history WHERE OPL_ID_team = ? AND (update_time < ? OR ? IS NULL) ORDER BY update_time DESC", [$team_blue_ID,$tournament["dateEnd"],$tournament["dateEnd"]])->fetch_assoc();
 	$team_name_red = $dbcn->execute_query("SELECT * FROM team_name_history WHERE OPL_ID_team = ? AND (update_time < ? OR ? IS NULL) ORDER BY update_time DESC", [$team_red_ID,$tournament["dateEnd"],$tournament["dateEnd"]])->fetch_assoc();

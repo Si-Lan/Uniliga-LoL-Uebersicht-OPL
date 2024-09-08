@@ -506,7 +506,25 @@ function get_stats_for_players($teamID, $tournamentID) {
 	$players = $dbcn->query("SELECT p.*, pit.OPL_ID_team FROM players p JOIN players_in_teams pit on p.OPL_ID = pit.OPL_ID_player WHERE OPL_ID_team = $teamID")->fetch_all(MYSQLI_ASSOC);
 
 	foreach ($players as $player) {
-		$games = $dbcn->query("SELECT matchdata FROM games JOIN games_in_tournament git on games.RIOT_matchID = git.RIOT_matchID WHERE ((OPL_ID_blueTeam = {$player['OPL_ID_team']} AND OPL_ID_redTeam IS NOT NULL) OR (OPL_ID_redTeam = {$player['OPL_ID_team']} AND OPL_ID_blueTeam IS NOT NULL )) AND git.OPL_ID_tournament = {$tournamentID}")->fetch_all(MYSQLI_ASSOC);
+		/*$games = $dbcn->query("
+				SELECT matchdata
+				FROM games
+				    JOIN games_in_tournament git
+				        ON games.RIOT_matchID = git.RIOT_matchID
+				WHERE (
+				    (OPL_ID_blueTeam = {$player['OPL_ID_team']} AND OPL_ID_redTeam IS NOT NULL) 
+				        OR (OPL_ID_redTeam = {$player['OPL_ID_team']} AND OPL_ID_blueTeam IS NOT NULL )
+				    ) 
+				  AND git.OPL_ID_tournament = {$tournamentID}")->fetch_all(MYSQLI_ASSOC);*/
+		$games = $dbcn->execute_query("
+				SELECT g.matchdata
+				FROM games g
+					JOIN games_to_matches gtm
+						ON g.RIOT_matchID = gtm.RIOT_matchID
+				WHERE (OPL_ID_blueTeam = ? OR OPL_ID_redTeam = ?)
+					AND OPL_ID_matches IN (
+					    SELECT OPL_ID FROM matchups WHERE OPL_ID_tournament IN (SELECT OPL_ID FROM tournaments WHERE OPL_ID_top_parent = ?)
+					)", [$player["OPL_ID_team"], $player["OPL_ID_team"], $tournamentID])->fetch_all(MYSQLI_ASSOC);
 		$roles = array("top"=>0,"jungle"=>0,"middle"=>0,"bottom"=>0,"utility"=>0);
 		$champions = array();
 		foreach ($games as $game) {
@@ -532,7 +550,7 @@ function get_stats_for_players($teamID, $tournamentID) {
 			}
 		}
 
-		$returnArr["echo"] .= "-{$player['summonerName']}:<br>
+		$returnArr["echo"] .= "-{$player['riotID_name']}#{$player['riotID_tag']}:<br>
 					--- TOP: {$roles['top']}<br>
 					--- JGL: {$roles['jungle']}<br>
 					--- MID: {$roles['middle']}<br>
@@ -762,7 +780,23 @@ function calculate_teamstats($teamID, $tournamentID) {
 		$returnArr["echo"] .= "<span style='color: red'>Database Connection failed : " . $dbcn->connect_error . "<br><br></span>";
 		return $returnArr;
 	}
-	$games = $dbcn->execute_query("SELECT matchdata, OPL_ID_blueTeam, OPL_ID_redTeam FROM games JOIN games_in_tournament git on games.RIOT_matchID = git.RIOT_matchID WHERE ((OPL_ID_blueTeam = ? AND OPL_ID_redTeam IS NOT NULL) OR (OPL_ID_blueTeam IS NOT NULL AND OPL_ID_redTeam = ?)) AND git.OPL_ID_tournament = ?", [$teamID, $teamID, $tournamentID])->fetch_all(MYSQLI_ASSOC);
+	/*$games = $dbcn->execute_query("
+				SELECT matchdata, OPL_ID_blueTeam, OPL_ID_redTeam
+				FROM games
+				    JOIN games_in_tournament git
+				        ON games.RIOT_matchID = git.RIOT_matchID
+				WHERE ((OPL_ID_blueTeam = ? AND OPL_ID_redTeam IS NOT NULL)
+				           OR (OPL_ID_blueTeam IS NOT NULL AND OPL_ID_redTeam = ?))
+				  AND git.OPL_ID_tournament = ?", [$teamID, $teamID, $tournamentID])->fetch_all(MYSQLI_ASSOC);*/
+	$games = $dbcn->execute_query("
+				SELECT matchdata, OPL_ID_blueTeam, OPL_ID_redTeam
+				FROM games g
+					JOIN games_to_matches gtm
+						ON g.RIOT_matchID = gtm.RIOT_matchID
+				WHERE (OPL_ID_blueTeam = ? OR OPL_ID_redTeam = ?)
+					AND OPL_ID_matches IN (
+						SELECT OPL_ID FROM matchups WHERE OPL_ID_tournament IN (SELECT OPL_ID FROM tournaments WHERE OPL_ID_top_parent = ?)
+					)", [$teamID, $teamID, $tournamentID])->fetch_all(MYSQLI_ASSOC);
 	$games_played = count($games);
 
 	if ($games_played == 0) {
