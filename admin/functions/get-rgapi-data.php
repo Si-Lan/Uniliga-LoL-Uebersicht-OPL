@@ -528,6 +528,7 @@ function get_stats_for_players($teamID, $tournamentID) {
 		$roles = array("top"=>0,"jungle"=>0,"middle"=>0,"bottom"=>0,"utility"=>0);
 		$champions = array();
 		foreach ($games as $game) {
+			if ($game["matchdata"] == null) continue;
 			$game_data = json_decode($game['matchdata'],true);
 			if (in_array($player['PUUID'],$game_data['metadata']['participants'])) {
 				$index = array_search($player['PUUID'],$game_data['metadata']['participants']);
@@ -831,6 +832,10 @@ function calculate_teamstats($teamID, $tournamentID) {
 	}
 
 	foreach ($games as $gindex=>$game) {
+		if ($game["matchdata"] == null) {
+			$games_played--;
+			continue;
+		}
 		$game_data = json_decode($game['matchdata'],true);
 		if ($game['OPL_ID_blueTeam'] == $teamID) {
 			$side = 0;

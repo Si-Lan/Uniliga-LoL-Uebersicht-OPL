@@ -49,11 +49,19 @@ if ($group_id != NULL) {
 
 
 $updates = 0;
+$game_updates = 0;
 foreach ($results as $result) {
-	if (count($result) > 0) $updates++;
+	if (count($result["results"]) > 0) $updates++;
+	foreach ($result["games"] as $game) {
+		if ($game["newgame"] || $game["updated_gtm"]) {
+			$game_updates++;
+			break;
+		}
+	}
 }
 
 file_put_contents("cron_logs/cron_log_$day.log","$updates Matchresults updated\n"."----- Matchresults done -----\n", FILE_APPEND);
 
 echo "-------- $updates Matchresults updated\n";
+echo "-------- $game_updates Matches had Games updated\n";
 $dbcn->close();

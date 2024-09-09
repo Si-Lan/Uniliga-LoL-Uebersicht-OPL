@@ -937,29 +937,33 @@ function get_results_for_matchup($matchID):array {
 		"def_win" => (intval($response["data"]["state_key"]) >= 4) ? count($data["defwin"]) > 0 : 0,
 	];
 
-	$updated = [];
+	$updated = ["results"=>[], "games"=>[]];
 
 	foreach ($match_data as $key=>$item) {
 		if ($matchDB[$key] != $item) {
-			$updated[$key] = ["old"=>$matchDB[$key], "new"=>$item];
+			$updated["results"][$key] = ["old"=>$matchDB[$key], "new"=>$item];
 		}
 	}
-	if (count($updated) > 0) {
+	if (count($updated["results"]) > 0) {
 		$dbcn->execute_query("UPDATE matchups SET team1Score = ?, team2Score = ?, played = ?, winner = ?, loser = ?, draw = ?, def_win = ? WHERE OPL_ID = ?", [$match_data["team1Score"], $match_data["team2Score"], intval($match_data["played"]), $match_data["winner"], $match_data["loser"], intval($match_data["draw"]), intval($match_data["def_win"]), $matchID]);
 	}
 
 	$games = $response["data"]["statistics"];
+	if ($games == null) {
+		$dbcn->close();
+		return $updated;
+	}
 
-	$new_game_ids = [];
 	foreach ($games as $game_num=>$game) {
 		$game_id = $game["metadata"]["matchId"];
+		$updated["games"][$game_id]  = ["newgame"=>false, "updated_gtm"=>false];
 
 		$game_DB = $dbcn->execute_query("SELECT RIOT_matchID FROM games WHERE RIOT_matchID = ?", [$game_id])->fetch_row();
 		$gtm_DB = $dbcn->execute_query("SELECT * FROM games_to_matches WHERE RIOT_matchID = ? AND OPL_ID_matches = ?", [$game_id, $matchID])->fetch_row();
 		$git_DB = $dbcn->execute_query("SELECT * FROM games_in_tournament WHERE RIOT_matchID = ? AND OPL_ID_tournament = ?", [$game_id, $tournamentID])->fetch_row();
 
 		$blue_team_win = $game['info']['teams'][0]['win'];
-		$game_result = $response["result"]["result_segments"][$game_num];
+		$game_result = $response["data"]["result"]["result_segments"][$game_num];
 		if ($blue_team_win) {
 			$OPL_blue = intval($game_result["win_IDs"][0]);
 			$OPL_red = intval($game_result["loss_IDs"][0]);
@@ -970,18 +974,20 @@ function get_results_for_matchup($matchID):array {
 
 		if ($game_DB == null) {
 			$dbcn->execute_query("INSERT INTO games (RIOT_matchID) VALUES (?)", [$game_id]);
-			$new_game_ids[] = $game_id;
+			$updated["games"][$game_id]["newgame"] = true;
 		}
 
 		if ($gtm_DB == null) {
 			$dbcn->execute_query("INSERT INTO games_to_matches (RIOT_matchID, OPL_ID_matches, OPL_ID_blueTeam, OPL_ID_redTeam, opl_confirmed) VALUES (?,?,?,?,?)", [$game_id, $matchID, $OPL_blue, $OPL_red, 1]);
-		} else {
+			$updated["games"][$game_id]["updated_gtm"] = true;
+		} elseif ($OPL_blue != $gtm_DB["OPL_ID_blueTeam"] OR $OPL_red != $gtm_DB["OPL_ID_redTeam"]) {
 			$dbcn->execute_query("UPDATE games_to_matches SET OPL_ID_blueTeam = ?, OPL_ID_redTeam = ?, opl_confirmed = 1 WHERE RIOT_matchID = ? AND OPL_ID_matches = ?", [$OPL_blue, $OPL_red, $game_id, $matchID]);
+			$updated["games"][$game_id]["updated_gtm"] = true;
 		}
 
 		if ($git_DB == null) {
 			$dbcn->execute_query("INSERT INTO games_in_tournament (RIOT_matchID, OPL_ID_tournament, OPL_ID_blueTeam, OPL_ID_redTeam) VALUES (?,?,?,?)", [$game_id,$tournamentID,$OPL_blue,$OPL_red]);
-		} else {
+		} elseif ($OPL_blue != $git_DB["OPL_ID_blueTeam"] OR $OPL_red != $git_DB["OPL_ID_redTeam"]) {
 			$dbcn->execute_query("UPDATE games_in_tournament SET OPL_ID_blueTeam = ?, OPL_ID_redTeam = ? WHERE RIOT_matchID = ? AND OPL_ID_tournament = ?", [$OPL_blue,$OPL_red,$game_id,$tournamentID]);
 		}
 	}

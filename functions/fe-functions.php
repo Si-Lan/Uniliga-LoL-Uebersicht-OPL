@@ -720,7 +720,7 @@ function create_game(mysqli $dbcn,$gameID,$curr_team=NULL,$tournamentID=null, $r
 	// TODO: tournamentID integrieren, falls ein game in mehreren turnieren eingetragen ist (aktuell wird einfach das erste geholt)
 	//$gameDB = $dbcn->execute_query("SELECT * FROM games JOIN games_in_tournament git on games.RIOT_matchID = git.RIOT_matchID WHERE games.RIOT_matchID = ?",[$gameID])->fetch_assoc();
 	$gameDB = $dbcn->execute_query("SELECT * FROM games g JOIN games_to_matches gtm on g.RIOT_matchID = gtm.RIOT_matchID WHERE g.RIOT_matchID = ?", [$gameID])->fetch_assoc();
-	if ($gameDB == null) return "";
+	if ($gameDB == null || $gameDB["matchdata"] == null) return "";
 	$matchup = $dbcn->execute_query("SELECT * FROM matchups WHERE OPL_ID IN (SELECT OPL_ID_matches FROM games_to_matches WHERE RIOT_matchID = ?)", [$gameID])->fetch_assoc();
 	$team_blue_ID = $gameDB['OPL_ID_blueTeam'];
 	$team_red_ID = $gameDB['OPL_ID_redTeam'];
