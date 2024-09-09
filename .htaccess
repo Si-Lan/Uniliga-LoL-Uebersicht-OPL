@@ -1,6 +1,9 @@
 RewriteEngine On
 RewriteBase /uniliga
 
+RewriteCond %{HTTPS} off
+RewriteRule (.*) https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
 # manage maintenance mode
 RewriteCond %{HTTP_COOKIE} !admin-login=(.+);? [NC]
 RewriteCond %{DOCUMENT_ROOT}/uniliga/setup/maintenance.enable -f
@@ -11,10 +14,6 @@ RewriteCond %{REQUEST_URI} !./scripts/
 RewriteRule ^(.*)$ ./pages/maintenance.php [R=503,L]
 
 ErrorDocument 503 /uniliga/pages/maintenance.php
-
-RewriteCond %{REQUEST_FILENAME} !-d
-RewriteCond %{REQUEST_URI} /(.*)/$
-RewriteRule ^ /%1 [R,L]
 
 # redirect Pages
 RewriteRule ^$ ./pages/startpage.php [NC,L]

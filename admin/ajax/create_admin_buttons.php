@@ -3,4 +3,6 @@ include_once dirname(__FILE__)."/../../setup/data.php";
 include_once dirname(__FILE__)."/../functions/fe-functions.php";
 $dbcn = create_dbcn();
 
-echo create_tournament_buttons($dbcn);
+$open_accordeons = $_SERVER["HTTP_OPEN_ACCORDEONS"] ?? "[]";
+$open_accordeons = json_decode($open_accordeons);
+echo create_tournament_buttons($dbcn, $open_accordeons);

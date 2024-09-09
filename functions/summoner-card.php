@@ -100,7 +100,7 @@ function create_summonercard(mysqli $dbcn, $playerID, $tournamentID, $teamID = N
 
 	$return .= "
 			<div class='played-positions'>";
-	$roles = json_decode($player['roles']);
+	$roles = $player['roles'] != null ? json_decode($player['roles']) : null;
 	if ($roles != NULL) {
 		foreach ($roles as $role=>$role_amount) {
 			if ($role_amount != 0) {
@@ -117,7 +117,7 @@ function create_summonercard(mysqli $dbcn, $playerID, $tournamentID, $teamID = N
 
 	$return .= "
 		<div class='played-champions'>";
-	$champions = json_decode($player['champions'],true);
+	$champions = $player['champions'] != null ? json_decode($player['champions'],true) : null;
 	if ($champions != NULL) {
 		arsort($champions);
 		$champs_cut = FALSE;

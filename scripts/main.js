@@ -553,28 +553,32 @@ async function popup_match(matchID,teamID=null,matchtype="groups",tournamentID=n
 			}
 			let teamid_data = "";
 			if (teamID !== null) teamid_data = `data-team='${teamID}'`;
-			buttonwrapper += `<div class='updatebuttonwrapper'><button type='button' class='icononly user_update_match update_data' data-match='${matchID}' data-matchformat='${matchtype}' ${teamid_data}>${get_material_icon('sync')}</button><span>letztes Update:<br>&nbsp;</span></div>`;
+			if (!data["tournament"]["archived"]) {
+				buttonwrapper += `<div class='updatebuttonwrapper'><button type='button' class='icononly user_update_match update_data' data-match='${matchID}' data-matchformat='${matchtype}' ${teamid_data}>${get_material_icon('sync')}</button><span>letztes Update:<br>&nbsp;</span></div>`;
+			}
 			buttonwrapper += "</div>";
 			popup.append(buttonwrapper);
 
-			$(".user_update_match").on("click", function () {
-				user_update_match(this);
-			});
+			if (!data["tournament"]["archived"]) {
+				$(".user_update_match").on("click", function () {
+					user_update_match(this);
+				});
 
-			fetch(`ajax/get-data.php`, {
-				method: "GET",
-				headers: {
-					type: "last-update-time",
-					itemid: matchID,
-					updatetype: "match",
-					relativetime: "true",
-				}
-			})
-				.then(res => res.text())
-				.then(time => {
-					$(".mh-popup .updatebuttonwrapper span").html(`letztes Update:<br>${time}`);
+				fetch(`ajax/get-data.php`, {
+					method: "GET",
+					headers: {
+						type: "last-update-time",
+						itemid: matchID,
+						updatetype: "match",
+						relativetime: "true",
+					}
 				})
-				.catch(error => console.error(error));
+					.then(res => res.text())
+					.then(time => {
+						$(".mh-popup .updatebuttonwrapper span").html(`letztes Update:<br>${time}`);
+					})
+					.catch(error => console.error(error));
+			}
 
 			let team1score;
 			let team2score;
@@ -2065,8 +2069,9 @@ async function user_update_match(button) {
 	loading_width = 20;
 	button.style.setProperty("--update-loading-bar-width", `${loading_width}%`);
 
-	// get tournamentID
 	let tournamentID;
+	/*
+	// get tournamentID
 	await fetch(`ajax/get-data.php`, {
 		method: "GET",
 		headers: {
@@ -2078,7 +2083,8 @@ async function user_update_match(button) {
 		.then(res => res.text())
 		.then(id => tournamentID = id)
 		.catch(e => console.error(e));
-
+	*/
+	/*
 	// get games for players in match
 	await fetch(`ajax/get-data.php`, {
 		method: "GET",
@@ -2112,7 +2118,8 @@ async function user_update_match(button) {
 
 	loading_width = 50;
 	button.style.setProperty("--update-loading-bar-width", `${loading_width}%`);
-
+	*/
+	/*
 	// assign games from players in match
 	await fetch(`ajax/get-data.php`, {
 		method: "GET",
@@ -2145,13 +2152,67 @@ async function user_update_match(button) {
 
 	loading_width = 90;
 	button.style.setProperty("--update-loading-bar-width", `${loading_width}%`);
+	*/
+
+	let games = [];
+	let team1 = [];
+	let team2 = [];
+	// get tournament-id / games / teams
+	await fetch(`ajax/get-data.php`, {
+		method: "GET",
+		headers: {
+			type: "match-games-teams-by-matchid",
+			matchid: match_ID,
+		}
+	})
+		.then(res => res.json())
+		.then(data => {
+			games = data["games"];
+			team1 = data["team1"];
+			team2 = data["team2"];
+			tournamentID = data["match"]["OPL_ID_tournament"];
+		})
+		.catch(e => console.error(e));
+
+	loading_width = 25;
+	button.style.setProperty("--update-loading-bar-width", `${loading_width}%`);
+
+	// gamedata holen
+	for (const game of games) {
+		await fetch(`admin/ajax/get-rgapi-data`, {
+			method: "GET",
+			headers: {
+				type: "add-match-data",
+				matchID: game["RIOT_matchID"],
+				tournamentID: tournamentID,
+			}
+		})
+			.then(() => {
+				loading_width = loading_width + 65/games.length;
+				button.style.setProperty("--update-loading-bar-width", `${loading_width}%`);
+			})
+			.catch(e => console.error(e));
+	}
 
 	// recalc teamstats
 	await fetch(`ajax/user-update-functions.php`, {
 		method: "GET",
 		headers: {
 			type: "recalc_team_stats",
-			teamID: team_ID,
+			teamID: team1["OPL_ID"],
+			tournamentID: tournamentID,
+		}
+	})
+		.catch(e => console.error(e));
+
+	loading_width = 90;
+	button.style.setProperty("--update-loading-bar-width", `${loading_width}%`);
+
+	await fetch(`ajax/user-update-functions.php`, {
+		method: "GET",
+		headers: {
+			type: "recalc_team_stats",
+			teamID: team2["OPL_ID"],
 			tournamentID: tournamentID,
 		}
 	})
@@ -2167,52 +2228,40 @@ async function user_update_match(button) {
 	button.style.setProperty("--update-loading-bar-width", "0");
 
 	// render Games in Matchpopup
-	await fetch(`ajax/get-data.php`, {
-		method: "GET",
-		headers: {
-			type: "match-games-teams-by-matchid",
-			matchID: match_ID,
+	let popup = $('.mh-popup');
+
+	if (games.length > 0) {
+		$(".no-game-found").remove();
+		$(".game").remove();
+	}
+	let game_counter = 0;
+	for (const [i, game] of games.entries()) {
+		if (current_match_in_popup === parseInt(match_ID)) {
+			popup.append(`<div class='game game${i}'></div>`);
 		}
-	})
-		.then(res => res.json())
-		.then(data => {
-			let games = data['games'];
-			let popup = $('.mh-popup');
+		let gameID = game['RIOT_matchID'];
 
-			if (games.length > 0) {
-				$(".no-game-found").remove();
-				$(".game").remove();
-			}
-			let game_counter = 0;
-			for (const [i, game] of games.entries()) {
-				if (current_match_in_popup === parseInt(match_ID)) {
-					popup.append(`<div class='game game${i}'></div>`);
-				}
-				let gameID = game['RIOT_matchID'];
-
-				let fetchheaders = new Headers({
-					gameid: gameID
-				});
-				if (team_ID !== null) {
-					fetchheaders.append("teamid", team_ID)
-				}
-				fetch(`ajax/game.php`, {
-					method: "GET",
-					headers: fetchheaders,
-				})
-					.then(res => res.text())
-					.then(data => {
-						let game_wrap = popup.find('.game' + i);
-						if (current_match_in_popup === parseInt(match_ID)) {
-							game_wrap.empty();
-							game_wrap.append(data);
-							game_counter++;
-						}
-					})
-					.catch(e => console.error(e));
-			}
+		let fetchheaders = new Headers({
+			gameid: gameID
+		});
+		if (team_ID !== null) {
+			fetchheaders.append("teamid", team_ID)
+		}
+		fetch(`ajax/game.php`, {
+			method: "GET",
+			headers: fetchheaders,
 		})
-		.catch(e => console.error(e));
+			.then(res => res.text())
+			.then(data => {
+				let game_wrap = popup.find('.game' + i);
+				if (current_match_in_popup === parseInt(match_ID)) {
+					game_wrap.empty();
+					game_wrap.append(data);
+					game_counter++;
+				}
+			})
+			.catch(e => console.error(e));
+	}
 }
 $(document).ready(function () {
 	$(".user_update_match").on("click", function () {

@@ -1,4 +1,5 @@
 RewriteEngine On
 # Hier eigene Domain einfügen
-RewriteCond %{HTTP_REFERER} !^http?://localhost/
+RewriteCond %{HTTP_REFERER} !^http?s?://localhost/
+RewriteCond %{HTTP_REFERER} !^http?s?://silence.local/
 RewriteRule .* - [L,F]

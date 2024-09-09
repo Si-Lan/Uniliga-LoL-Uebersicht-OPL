@@ -112,6 +112,7 @@ function get_tournament($id):array {
 		"OPL_ID_logo" => $logo_id,
 		"finished" => false,
 		"deactivated" => true,
+		"archived" => false,
 		"ranked_season" => null,
 		"ranked_split" => null,
 	];
@@ -160,7 +161,7 @@ function write_tournament(array $data):string {
 		}
 		if ($changed) {
 			$returnInfo .= "<span style='color: yellow'>- Turnier wurde geupdatet, aktualisiere DB<br></span>";
-			$dbcn->execute_query("UPDATE tournaments SET OPL_ID_parent = ?, OPL_ID_top_parent = ?, name = ?, split = ?, season = ?, eventType = ?, format = ?, number = ?, numberRangeTo = ?, dateStart = ?, dateEnd = ?, OPL_logo_url = ?, OPL_ID_logo = ?, finished = ?, deactivated = ?, ranked_season = ?, ranked_split = ? WHERE OPL_ID = ?", [$data["OPL_ID_parent"], $data["OPL_ID_top_parent"], $data["name"], $data["split"], $data["season"], $data["eventType"], $data["format"], $data["number"], $data["numberRangeTo"], $data["dateStart"], $data["dateEnd"], $data["OPL_logo_url"], $data["OPL_ID_logo"], intval($data["finished"]), intval($data["deactivated"]), $data["ranked_season"], $data["ranked_split"], $data["OPL_ID"]]);
+			$dbcn->execute_query("UPDATE tournaments SET OPL_ID_parent = ?, OPL_ID_top_parent = ?, name = ?, split = ?, season = ?, eventType = ?, format = ?, number = ?, numberRangeTo = ?, dateStart = ?, dateEnd = ?, OPL_logo_url = ?, OPL_ID_logo = ?, finished = ?, deactivated = ?, archived = ?, ranked_season = ?, ranked_split = ? WHERE OPL_ID = ?", [$data["OPL_ID_parent"], $data["OPL_ID_top_parent"], $data["name"], $data["split"], $data["season"], $data["eventType"], $data["format"], $data["number"], $data["numberRangeTo"], $data["dateStart"], $data["dateEnd"], $data["OPL_logo_url"], $data["OPL_ID_logo"], intval($data["finished"]), intval($data["deactivated"]), intval($data["archived"]), $data["ranked_season"], $data["ranked_split"], $data["OPL_ID"]]);
 		} else {
 			$returnInfo .= "- neue Daten identisch zu vorhandenen Daten<br>";
 		}
@@ -201,6 +202,9 @@ function create_tournament_get_button(array $data, bool $in_write_popup = false)
 
 	$deactivated_check = ($data["deactivated"]) ? "" : "checked";
 	$finished_check = ($data["finished"]) ? "checked" : "";
+	$archived_check = ($data["archived"]) ? "checked" : "";
+
+	$disabled_for_sub_events = (strtolower($data["eventType"]) == "tournament") ? "" : "disabled";
 
 	$result .= "
 				<div class='write_tournament_row wtrow-1'>
@@ -253,11 +257,12 @@ function create_tournament_get_button(array $data, bool $in_write_popup = false)
 				</div>
 				<div class='write_tournament_row wtrow-3'>
 					<label class=\"write_tournament_show\">Anzeigen:<input type=\"checkbox\" $deactivated_check></label>
-					<label class=\"write_tournament_finished\">Beendet:<input type=\"checkbox\" $finished_check></label>
+					<label class=\"write_tournament_finished\">Beendet:<input type=\"checkbox\" $finished_check $disabled_for_sub_events></label>
+					<label class=\"write_tournament_archived\">Archiviert:<input type=\"checkbox\" $archived_check $disabled_for_sub_events></label>
 					<label class=\"write_tournament_logoid\">Logo:<input type=\"number\" value=\"{$data["OPL_ID_logo"]}\" readonly></label>
 					<label class=\"write_tournament_logourl\"><input type=\"text\" value=\"{$data["OPL_logo_url"]}\" readonly></label>
-					<label class=\"write_tournament_ranked_season\">Rank-Season:<input type=\"text\" value=\"{$data["ranked_season"]}\" placeholder='##'></label>
-					<label class=\"write_tournament_ranked_split\">Rank-Split:<input type=\"text\" value=\"{$data["ranked_split"]}\" placeholder='#'></label>
+					<label class=\"write_tournament_ranked_season\">Rank-Season:<input type=\"text\" value=\"{$data["ranked_season"]}\" placeholder='##' $disabled_for_sub_events></label>
+					<label class=\"write_tournament_ranked_split\">Rank-Split:<input type=\"text\" value=\"{$data["ranked_split"]}\" placeholder='#' $disabled_for_sub_events></label>
 				</div>";
 
 	$result .= "</div>";
@@ -279,7 +284,7 @@ function create_tournament_get_button(array $data, bool $in_write_popup = false)
 					<button class='get-riotids $id_class' data-id='$id_class'><span>Spieler-Accounts im Turnier updaten (pro Team > pro Spieler)</span></button>
 					<button class='get-matchups $id_class' data-id='$id_class'><span>Matches im Turnier updaten (Gruppenweise)</span></button>
 					<button class='get-matchups-delete $id_class' data-id='$id_class'><span>Matches im Turnier updaten + entfernen (Gruppenweise)</span></button>
-					<button class='get-results $id_class' data-id='$id_class'><span>Match-Ergebnisse im Turnier updaten (pro Match)</span></button>
+					<button class='get-results $id_class' data-id='$id_class'><span>Match-Ergebnisse im Turnier updaten + Spiele (pro Match)</span></button>
 					<button class='calculate-standings $id_class' data-id='$id_class'><span>Tabelle des Turniers aktualisieren (Berechnung pro Gruppe)</span></button>
 				</div>
 			</dialog>";
@@ -903,12 +908,14 @@ function get_results_for_matchup($matchID):array {
 	}
 
 	$matchDB = $dbcn->execute_query("SELECT * FROM matchups WHERE OPL_ID = ?", [$matchID])->fetch_assoc();
+	$groupID = $matchDB["OPL_ID_tournament"];
+	$tournamentID = $dbcn->execute_query("SELECT OPL_ID_top_parent FROM tournaments WHERE OPL_ID = ?", [$groupID])->fetch_column();
 
 	if ($matchDB == NULL) {
 		return [];
 	}
 
-	$url = "https://www.opleague.pro/api/v4/matchup/$matchID/result";
+	$url = "https://www.opleague.pro/api/v4/matchup/$matchID/result,statistics";
 	$options = ["http" => [
 		"header" => [
 			"Authorization: Bearer $bearer_token",
@@ -935,15 +942,59 @@ function get_results_for_matchup($matchID):array {
 		"def_win" => (intval($response["data"]["state_key"]) >= 4) ? count($data["defwin"]) > 0 : 0,
 	];
 
-	$updated = [];
+	$updated = ["results"=>[], "games"=>[]];
 
 	foreach ($match_data as $key=>$item) {
 		if ($matchDB[$key] != $item) {
-			$updated[$key] = ["old"=>$matchDB[$key], "new"=>$item];
+			$updated["results"][$key] = ["old"=>$matchDB[$key], "new"=>$item];
 		}
 	}
-	if (count($updated) > 0) {
+	if (count($updated["results"]) > 0) {
 		$dbcn->execute_query("UPDATE matchups SET team1Score = ?, team2Score = ?, played = ?, winner = ?, loser = ?, draw = ?, def_win = ? WHERE OPL_ID = ?", [$match_data["team1Score"], $match_data["team2Score"], intval($match_data["played"]), $match_data["winner"], $match_data["loser"], intval($match_data["draw"]), intval($match_data["def_win"]), $matchID]);
+	}
+
+	$games = $response["data"]["statistics"];
+	if ($games == null) {
+		$dbcn->close();
+		return $updated;
+	}
+
+	foreach ($games as $game_num=>$game) {
+		$game_id = $game["metadata"]["matchId"];
+		$updated["games"][$game_id]  = ["newgame"=>false, "updated_gtm"=>false];
+
+		$game_DB = $dbcn->execute_query("SELECT RIOT_matchID FROM games WHERE RIOT_matchID = ?", [$game_id])->fetch_row();
+		$gtm_DB = $dbcn->execute_query("SELECT * FROM games_to_matches WHERE RIOT_matchID = ? AND OPL_ID_matches = ?", [$game_id, $matchID])->fetch_row();
+		$git_DB = $dbcn->execute_query("SELECT * FROM games_in_tournament WHERE RIOT_matchID = ? AND OPL_ID_tournament = ?", [$game_id, $tournamentID])->fetch_row();
+
+		$blue_team_win = $game['info']['teams'][0]['win'];
+		$game_result = $response["data"]["result"]["result_segments"][$game_num];
+		if ($blue_team_win) {
+			$OPL_blue = intval($game_result["win_IDs"][0]);
+			$OPL_red = intval($game_result["loss_IDs"][0]);
+		} else {
+			$OPL_blue = intval($game_result["loss_IDs"][0]);
+			$OPL_red = intval($game_result["win_IDs"][0]);
+		}
+
+		if ($game_DB == null) {
+			$dbcn->execute_query("INSERT INTO games (RIOT_matchID) VALUES (?)", [$game_id]);
+			$updated["games"][$game_id]["newgame"] = true;
+		}
+
+		if ($gtm_DB == null) {
+			$dbcn->execute_query("INSERT INTO games_to_matches (RIOT_matchID, OPL_ID_matches, OPL_ID_blueTeam, OPL_ID_redTeam, opl_confirmed) VALUES (?,?,?,?,?)", [$game_id, $matchID, $OPL_blue, $OPL_red, 1]);
+			$updated["games"][$game_id]["updated_gtm"] = true;
+		} elseif ($OPL_blue != $gtm_DB["OPL_ID_blueTeam"] OR $OPL_red != $gtm_DB["OPL_ID_redTeam"]) {
+			$dbcn->execute_query("UPDATE games_to_matches SET OPL_ID_blueTeam = ?, OPL_ID_redTeam = ?, opl_confirmed = 1 WHERE RIOT_matchID = ? AND OPL_ID_matches = ?", [$OPL_blue, $OPL_red, $game_id, $matchID]);
+			$updated["games"][$game_id]["updated_gtm"] = true;
+		}
+
+		if ($git_DB == null) {
+			$dbcn->execute_query("INSERT INTO games_in_tournament (RIOT_matchID, OPL_ID_tournament, OPL_ID_blueTeam, OPL_ID_redTeam) VALUES (?,?,?,?)", [$game_id,$tournamentID,$OPL_blue,$OPL_red]);
+		} elseif ($OPL_blue != $git_DB["OPL_ID_blueTeam"] OR $OPL_red != $git_DB["OPL_ID_redTeam"]) {
+			$dbcn->execute_query("UPDATE games_in_tournament SET OPL_ID_blueTeam = ?, OPL_ID_redTeam = ? WHERE RIOT_matchID = ? AND OPL_ID_tournament = ?", [$OPL_blue,$OPL_red,$game_id,$tournamentID]);
+		}
 	}
 
 	$dbcn->close();

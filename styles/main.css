@@ -3544,6 +3544,10 @@ button#turnier-button-get:hover {
 	border-radius: 6px;
 }
 
+.deprecated-admin-btn {
+	color: #ff6161;
+}
+
 div.turnier-select {
 	display: flex;
 	flex-direction: column;

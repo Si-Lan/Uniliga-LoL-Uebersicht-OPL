@@ -196,6 +196,11 @@ async function get_riotids_by_puuids(tournamentID) {
 }
 
 function get_games_for_team(tournID,teamID) {
+	let cont = confirm("Funktion ist für neue Turniere (ab Winter 24/25) nicht mehr unterstützt. Wirklich fortfahren?");
+	if (!cont) return;
+	cont = confirm("Funktion sollte wirklich nicht mehr benutzt werden. Fortfahren?");
+	if (!cont) return;
+
 	console.log("----- Start getting Games (by Team) -----");
 	let currButton = $("a.button.write.games-team."+ tournID);
 	if (!currButton.hasClass("loading-data")) {
@@ -270,6 +275,11 @@ function get_games_for_team(tournID,teamID) {
 }
 
 function get_games_for_division(tournID,divID) {
+	let cont = confirm("Funktion ist für neue Turniere (ab Winter 24/25) nicht mehr unterstützt. Wirklich fortfahren?");
+	if (!cont) return;
+	cont = confirm("Funktion sollte wirklich nicht mehr benutzt werden. Fortfahren?");
+	if (!cont) return;
+
 	console.log("----- Start getting Games (by Division) -----");
 	let currButton = $("a.button.write.games-div."+divID);
 	if (!currButton.hasClass("loading-data")) {
@@ -369,6 +379,11 @@ function get_games_for_division(tournID,divID) {
 }
 
 function get_games_for_group(tournID, groupID) {
+	let cont = confirm("Funktion ist für neue Turniere (ab Winter 24/25) nicht mehr unterstützt. Wirklich fortfahren?");
+	if (!cont) return;
+	cont = confirm("Funktion sollte wirklich nicht mehr benutzt werden. Fortfahren?");
+	if (!cont) return;
+
 	console.log("----- Start getting Games (by Group) -----");
 	let currButton = $("a.button.write.games-group."+groupID);
 	if (!currButton.hasClass("loading-data")) {
@@ -549,6 +564,11 @@ function get_game_data(tournamentID, teamID = 0, all = 0) {
 }
 
 function assign_and_filter_games(tournamentID,teamID = 0, all = 0) {
+	let cont = confirm("Funktion ist für neue Turniere (ab Winter 24/25) nicht mehr unterstützt. Wirklich fortfahren?");
+	if (!cont) return;
+	cont = confirm("Funktion sollte wirklich nicht mehr benutzt werden. Fortfahren?");
+	if (!cont) return;
+
 	console.log("----- Start sorting Games -----");
 	let currButton;
 	if (all === 0) {

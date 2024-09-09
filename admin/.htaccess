@@ -1,5 +1,6 @@
 RewriteEngine On
 RewriteBase /uniliga
+RewriteOptions Inherit
 
 RewriteRule ^$ ./admin/pages/admin.php [NC,L]
 RewriteRule ^ddragon$ ./admin/pages/ddragon-updates.php [NC,L]
