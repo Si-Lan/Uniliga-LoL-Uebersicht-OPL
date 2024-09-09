@@ -112,6 +112,7 @@ function get_tournament($id):array {
 		"OPL_ID_logo" => $logo_id,
 		"finished" => false,
 		"deactivated" => true,
+		"archived" => false,
 		"ranked_season" => null,
 		"ranked_split" => null,
 	];
@@ -160,7 +161,7 @@ function write_tournament(array $data):string {
 		}
 		if ($changed) {
 			$returnInfo .= "<span style='color: yellow'>- Turnier wurde geupdatet, aktualisiere DB<br></span>";
-			$dbcn->execute_query("UPDATE tournaments SET OPL_ID_parent = ?, OPL_ID_top_parent = ?, name = ?, split = ?, season = ?, eventType = ?, format = ?, number = ?, numberRangeTo = ?, dateStart = ?, dateEnd = ?, OPL_logo_url = ?, OPL_ID_logo = ?, finished = ?, deactivated = ?, ranked_season = ?, ranked_split = ? WHERE OPL_ID = ?", [$data["OPL_ID_parent"], $data["OPL_ID_top_parent"], $data["name"], $data["split"], $data["season"], $data["eventType"], $data["format"], $data["number"], $data["numberRangeTo"], $data["dateStart"], $data["dateEnd"], $data["OPL_logo_url"], $data["OPL_ID_logo"], intval($data["finished"]), intval($data["deactivated"]), $data["ranked_season"], $data["ranked_split"], $data["OPL_ID"]]);
+			$dbcn->execute_query("UPDATE tournaments SET OPL_ID_parent = ?, OPL_ID_top_parent = ?, name = ?, split = ?, season = ?, eventType = ?, format = ?, number = ?, numberRangeTo = ?, dateStart = ?, dateEnd = ?, OPL_logo_url = ?, OPL_ID_logo = ?, finished = ?, deactivated = ?, archived = ?, ranked_season = ?, ranked_split = ? WHERE OPL_ID = ?", [$data["OPL_ID_parent"], $data["OPL_ID_top_parent"], $data["name"], $data["split"], $data["season"], $data["eventType"], $data["format"], $data["number"], $data["numberRangeTo"], $data["dateStart"], $data["dateEnd"], $data["OPL_logo_url"], $data["OPL_ID_logo"], intval($data["finished"]), intval($data["deactivated"]), intval($data["archived"]), $data["ranked_season"], $data["ranked_split"], $data["OPL_ID"]]);
 		} else {
 			$returnInfo .= "- neue Daten identisch zu vorhandenen Daten<br>";
 		}
@@ -201,6 +202,9 @@ function create_tournament_get_button(array $data, bool $in_write_popup = false)
 
 	$deactivated_check = ($data["deactivated"]) ? "" : "checked";
 	$finished_check = ($data["finished"]) ? "checked" : "";
+	$archived_check = ($data["archived"]) ? "checked" : "";
+
+	$disabled_for_sub_events = (strtolower($data["eventType"]) == "tournament") ? "" : "disabled";
 
 	$result .= "
 				<div class='write_tournament_row wtrow-1'>
@@ -253,11 +257,12 @@ function create_tournament_get_button(array $data, bool $in_write_popup = false)
 				</div>
 				<div class='write_tournament_row wtrow-3'>
 					<label class=\"write_tournament_show\">Anzeigen:<input type=\"checkbox\" $deactivated_check></label>
-					<label class=\"write_tournament_finished\">Beendet:<input type=\"checkbox\" $finished_check></label>
+					<label class=\"write_tournament_finished\">Beendet:<input type=\"checkbox\" $finished_check $disabled_for_sub_events></label>
+					<label class=\"write_tournament_archived\">Archiviert:<input type=\"checkbox\" $archived_check $disabled_for_sub_events></label>
 					<label class=\"write_tournament_logoid\">Logo:<input type=\"number\" value=\"{$data["OPL_ID_logo"]}\" readonly></label>
 					<label class=\"write_tournament_logourl\"><input type=\"text\" value=\"{$data["OPL_logo_url"]}\" readonly></label>
-					<label class=\"write_tournament_ranked_season\">Rank-Season:<input type=\"text\" value=\"{$data["ranked_season"]}\" placeholder='##'></label>
-					<label class=\"write_tournament_ranked_split\">Rank-Split:<input type=\"text\" value=\"{$data["ranked_split"]}\" placeholder='#'></label>
+					<label class=\"write_tournament_ranked_season\">Rank-Season:<input type=\"text\" value=\"{$data["ranked_season"]}\" placeholder='##' $disabled_for_sub_events></label>
+					<label class=\"write_tournament_ranked_split\">Rank-Split:<input type=\"text\" value=\"{$data["ranked_split"]}\" placeholder='#' $disabled_for_sub_events></label>
 				</div>";
 
 	$result .= "</div>";

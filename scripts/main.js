@@ -553,28 +553,32 @@ async function popup_match(matchID,teamID=null,matchtype="groups",tournamentID=n
 			}
 			let teamid_data = "";
 			if (teamID !== null) teamid_data = `data-team='${teamID}'`;
-			buttonwrapper += `<div class='updatebuttonwrapper'><button type='button' class='icononly user_update_match update_data' data-match='${matchID}' data-matchformat='${matchtype}' ${teamid_data}>${get_material_icon('sync')}</button><span>letztes Update:<br>&nbsp;</span></div>`;
+			if (!data["tournament"]["archived"]) {
+				buttonwrapper += `<div class='updatebuttonwrapper'><button type='button' class='icononly user_update_match update_data' data-match='${matchID}' data-matchformat='${matchtype}' ${teamid_data}>${get_material_icon('sync')}</button><span>letztes Update:<br>&nbsp;</span></div>`;
+			}
 			buttonwrapper += "</div>";
 			popup.append(buttonwrapper);
 
-			$(".user_update_match").on("click", function () {
-				user_update_match(this);
-			});
+			if (!data["tournament"]["archived"]) {
+				$(".user_update_match").on("click", function () {
+					user_update_match(this);
+				});
 
-			fetch(`ajax/get-data.php`, {
-				method: "GET",
-				headers: {
-					type: "last-update-time",
-					itemid: matchID,
-					updatetype: "match",
-					relativetime: "true",
-				}
-			})
-				.then(res => res.text())
-				.then(time => {
-					$(".mh-popup .updatebuttonwrapper span").html(`letztes Update:<br>${time}`);
+				fetch(`ajax/get-data.php`, {
+					method: "GET",
+					headers: {
+						type: "last-update-time",
+						itemid: matchID,
+						updatetype: "match",
+						relativetime: "true",
+					}
 				})
-				.catch(error => console.error(error));
+					.then(res => res.text())
+					.then(time => {
+						$(".mh-popup .updatebuttonwrapper span").html(`letztes Update:<br>${time}`);
+					})
+					.catch(error => console.error(error));
+			}
 
 			let team1score;
 			let team2score;

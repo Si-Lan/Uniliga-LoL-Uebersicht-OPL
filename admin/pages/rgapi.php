@@ -38,6 +38,9 @@ if ($loggedin) {
 		}
 		echo "<div class='writing-wrapper ".$tournament['OPL_ID'].$hiddenclass."'>";
 		echo "<h2>{$tournament["name"]}</h2>";
+        if ($tournament["archived"]) {
+            echo "<span style='color: #ff6161; text-align: center'>Dieses Turnier ist archiviert!</span>";
+        }
 		echo "<a class='button write puuids {$tournament['OPL_ID']}' onclick='get_puuids(\"{$tournament['OPL_ID']}\")'>get PUUIDs for Players without ID</a>";
 		echo "<a class='button write puuids-all {$tournament['OPL_ID']}' onclick='get_puuids(\"{$tournament['OPL_ID']}\",false)'>get PUUIDs for all Players</a>";
 		echo "<a class='button write riotids-puuids {$tournament['OPL_ID']}' onclick='get_riotids_by_puuids(\"{$tournament['OPL_ID']}\")'>get RiotIDs for all Players</a>";

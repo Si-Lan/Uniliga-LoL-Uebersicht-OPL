@@ -85,6 +85,7 @@ function write_tournament(tournamentID = null, from_related = false) {
 	data.OPL_ID_logo = $(`${additional_related} .${id_class} label.write_tournament_logoid input`).val();
 	data.finished = $(`${additional_related} .${id_class} label.write_tournament_finished input`).prop("checked") ? 1 : 0;
 	data.deactivated = !$(`${additional_related} .${id_class} label.write_tournament_show input`).prop("checked") ? 1 : 0;
+	data.archived = $(`${additional_related} .${id_class} label.write_tournament_archived input`).prop("checked") ? 1 : 0;
 	data.ranked_season = $(`${additional_related} .${id_class} label.write_tournament_ranked_season input`).val();
 	data.ranked_split = $(`${additional_related} .${id_class} label.write_tournament_ranked_split input`).val();
 	console.log(data);
