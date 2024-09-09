@@ -245,7 +245,9 @@ function add_match_data($RiotMatchID,$tournamentID) {
 			$returnArr["echo"] .= "<span style='color: limegreen'>-got time: $played_at<br></span>";
 			$returnArr["echo"] .= "<span style='color: lawngreen'>--write MatchData to DB<br></span>";
 			$returnArr["writes"]++;
-			$dbcn->execute_query("UPDATE games SET matchdata = ?, played_at = ? WHERE RIOT_matchID = ?", [$content, $played_at, $RiotMatchID]);
+			$data = shorten_matchdata($data);
+			$data = json_encode($data);
+			$dbcn->execute_query("UPDATE games SET matchdata = ?, played_at = ? WHERE RIOT_matchID = ?", [$data, $played_at, $RiotMatchID]);
 		} else {
 			$response = explode(" ", $http_response_header[0])[1];
 			$returnArr["echo"] .= "<span style='color: orangered'>-could not get MatchData, response-code: $response<br></span>";
@@ -918,4 +920,57 @@ function calculate_teamstats($teamID, $tournamentID) {
 	}
 
 	return $returnArr;
+}
+
+function shorten_matchdata(array $matchdata):array {
+	$save_values = [
+		"assists",
+		"champLevel",
+		"championId",
+		"championName",
+		"championTransform",
+		"deaths",
+		"gameEndedInEarlySurrender",
+		"gameEndedInSurrender",
+		"goldEarned",
+		"individualPosition",
+		"item0",
+		"item1",
+		"item2",
+		"item3",
+		"item4",
+		"item5",
+		"item6",
+		"kills",
+		"lane",
+		"participantId",
+		"perks",
+		"profileIcon",
+		"puuid",
+		"riotIdName",
+		"riotIdGameName",
+		"riotIdTagline",
+		"role",
+		"summoner1Id",
+		"summoner2Id",
+		"summonerId",
+		"summonerLevel",
+		"summonerName",
+		"teamId",
+		"teamPosition",
+		"totalMinionsKilled",
+		"visionScore",
+		"win",
+	];
+
+	foreach ($matchdata["info"]["participants"] as $pid=>$participant) {
+		unset($matchdata["info"]["participants"][$pid]["challenges"]);
+		foreach ($participant as $key=>$value) {
+			if (!in_array($key, $save_values)) {
+				unset($matchdata["info"]["participants"][$pid][$key]);
+			}
+		}
+	}
+
+	return $matchdata;
 }
