@@ -336,7 +336,7 @@ function get_teams_for_tournament($tournamentID, bool $deletemissing = false):ar
 	}
 
 	$tournament = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID = ?", [$tournamentID])->fetch_assoc();
-	if (!($tournament["eventType"] == "group" || $tournament["eventType"] == "playoffs" || ($tournament["eventType"] == "league" && $tournament["format"] == "swiss"))) {
+	if (!($tournament["eventType"] == "group" || $tournament["eventType"] == "playoffs" || ($tournament["eventType"] == "league" && $tournament["format"] == "swiss") || $tournament["eventType"] == "wildcard")) {
 		return [];
 	}
 
@@ -584,7 +584,7 @@ function update_team($teamID):array {
 	];
 }
 
-// works only for tournaments with eventType group
+// works only for tournaments with eventType group/playoffs/swiss-league/wildcard
 function get_players_for_tournament($tournamentID):array {
 	$returnArr = [];
 	$dbcn = create_dbcn();
@@ -595,7 +595,7 @@ function get_players_for_tournament($tournamentID):array {
 
 	$tournament = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID = ?", [$tournamentID])->fetch_assoc();
 
-	if (!($tournament["eventType"] == "group" || $tournament["eventType"] == "playoffs" || ($tournament["eventType"] == "league" && $tournament["format"] == "swiss"))) {
+	if (!($tournament["eventType"] == "group" || $tournament["eventType"] == "playoffs" || ($tournament["eventType"] == "league" && $tournament["format"] == "swiss")  || $tournament["eventType"] == "wildcard")) {
 		return [];
 	}
 
@@ -813,7 +813,7 @@ function get_matchups_for_tournament($tournamentID, bool $deletemissing = false)
 
 	$tournament = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID = ?", [$tournamentID])->fetch_assoc();
 
-	if (!($tournament["eventType"] == "group" || $tournament["eventType"] == "playoffs" || ($tournament["eventType"] == "league" && $tournament["format"] == "swiss"))) {
+	if (!($tournament["eventType"] == "group" || $tournament["eventType"] == "playoffs" || ($tournament["eventType"] == "league" && $tournament["format"] == "swiss") || $tournament["eventType"] == "wildcard")) {
 		return [];
 	}
 
@@ -1009,7 +1009,7 @@ function calculate_standings_from_matchups($tournamentID):array {
 
 	$tournament = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID = ?", [$tournamentID])->fetch_assoc();
 
-	if (!($tournament["eventType"] == "group" || ($tournament["eventType"] == "league" && $tournament["format"] == "swiss"))) {
+	if (!($tournament["eventType"] == "group" || ($tournament["eventType"] == "league" && $tournament["format"] == "swiss") || $tournament["eventType"] == "wildcard")) {
 		return [];
 	}
 
