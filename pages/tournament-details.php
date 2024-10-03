@@ -142,7 +142,7 @@ foreach ($wildcards as $wildcard) {
 
 	echo "<div>";
 	echo "<div class='group'>
-                            <a href='turnier/{$tournament_url_path}/gruppe/{$wildcard['OPL_ID']}' class='button'>$group_title</a>
+                            <a href='turnier/{$tournament_url_path}/wildcard/{$wildcard['OPL_ID']}' class='button'>$group_title</a>
                             <a href='turnier/{$tournament_url_path}/teams?liga={$wildcard['OPL_ID']}' class='button'><div class='material-symbol'>" . file_get_contents("../icons/material/group.svg") . "</div>Teams</a>";
 	echo "</div>"; // group
     /*

@@ -1531,6 +1531,31 @@ div.team.title .team-titlebutton-wrapper a.active {
 .turnier-nav-buttons a.active {
 	border: var(--main-button-active-border) solid 1px;
 }
+#teampage_switch_group_buttons {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+}
+#teampage_switch_group_buttons button {
+	white-space: nowrap;
+	box-sizing: border-box;
+	border-left: var(--nav-button-divider) solid 1px;
+	border-radius: 0;
+}
+#teampage_switch_group_buttons button:first-child {
+	border-left: 0;
+	border-radius: 6px 0 0 6px;
+}
+#teampage_switch_group_buttons button:last-child {
+	border-radius: 0 6px 6px 0;
+}
+#teampage_switch_group_buttons button.teampage_switch_group.active {
+	background-color: var(--main-button-active);
+	pointer-events: none;
+	transform: scale(1.05);
+	box-sizing: border-box;
+	border: var(--main-button-active-border) solid 1px;
+}
 div.ranked-settings-wrapper {
 	position: relative;
 }

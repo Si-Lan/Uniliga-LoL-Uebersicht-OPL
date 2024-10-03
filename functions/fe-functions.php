@@ -251,20 +251,27 @@ function create_tournament_nav_buttons(string|int $tournament_id, mysqli $dbcn, 
             </div>";
 
 	if ($group_id != NULL && $active != "group") {
-		$group = $dbcn->execute_query("SELECT * FROM tournaments WHERE (eventType = 'group' OR (eventType = 'league' AND format = 'swiss')) AND OPL_ID = ?",[$group_id])->fetch_assoc();
+		$group = $dbcn->execute_query("SELECT * FROM tournaments WHERE (eventType = 'group' OR (eventType = 'league' AND format = 'swiss') OR eventType = 'wildcard') AND OPL_ID = ?",[$group_id])->fetch_assoc();
 		$div = $dbcn->execute_query("SELECT * FROM tournaments WHERE eventType = 'league' AND OPL_ID = ?",[$group['OPL_ID_parent']])->fetch_assoc();
 		if ($group["format"] === "swiss") {
 			$group_title = "Swiss-Gruppe";
 			$div = $group;
+		} elseif ($group["eventType"] === "wildcard") {
+			$wildcard_numbers_combined = ($group["numberRangeTo"] == null) ? $group["number"] : $group["number"]."-".$group["numberRangeTo"];
+			$group_title = "Wildcard-Turnier Liga ".$wildcard_numbers_combined;
 		} else {
 			$group_title = "Gruppe {$group['number']}";
 		}
 		$result .= "
 			<div class='divider-vert'></div>
 			<a href='turnier/{$tournament_id}/gruppe/$group_id' class='button$group_a'>
-                <div class='material-symbol'>". file_get_contents(__DIR__."/../icons/material/table_rows.svg") ."</div>
-                Liga ".$div['number']." - $group_title
-            </a>";
+                <div class='material-symbol'>". file_get_contents(__DIR__."/../icons/material/table_rows.svg") ."</div>";
+		if ($group["eventType"] == "wildcard") {
+			$result .= $group_title;
+		} else {
+			$result .= "Liga ".$div['number']." - $group_title";
+		}
+		$result .= "</a>";
 	}
 
 	$tournament = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID = ?", [$tournament_id])->fetch_assoc();
@@ -433,7 +440,7 @@ function create_standings(mysqli $dbcn, $tournament_id, $group_id, $team_id=NULL
 	$local_img_path = "img/team_logos/";
     $logo_filename = is_light_mode() ? "logo_light.webp" : "logo.webp";
 	$opgg_logo_svg = file_get_contents(__DIR__."/../img/opgglogo.svg");
-	$group = $dbcn->execute_query("SELECT * FROM tournaments WHERE (eventType = 'group' OR (eventType = 'league' AND format = 'swiss')) AND OPL_ID = ?",[$group_id])->fetch_assoc();
+	$group = $dbcn->execute_query("SELECT * FROM tournaments WHERE (eventType = 'group' OR (eventType = 'league' AND format = 'swiss') OR eventType = 'wildcard') AND OPL_ID = ?",[$group_id])->fetch_assoc();
 	$div = $dbcn->execute_query("SELECT * FROM tournaments WHERE eventType = 'league' AND OPL_ID = ?",[$group['OPL_ID_parent']])->fetch_assoc();
 	$teams_from_groupDB = $dbcn->execute_query("SELECT teams.*, tit.*, ttr.*, ttr2.avg_rank_tier as avg_rank_tier_2, ttr2.avg_rank_div as avg_rank_div_2
 														FROM teams
@@ -465,6 +472,9 @@ function create_standings(mysqli $dbcn, $tournament_id, $group_id, $team_id=NULL
 	$result .= "<div class='standings'>";
 	if ($team_id == NULL) {
 		$result .= "<div class='title'><h3>Standings</h3></div>";
+	} elseif ($group["eventType"] == "wildcard") {
+		$wildcard_numbering = ($group["numberRangeTo"] == null) ? "{$group['number']}" : "{$group['number']}-{$group["numberRangeTo"]}";
+		$result .= "<div class='title'><h3>Standings Wildcard-Turnier Liga $wildcard_numbering</h3></div>";
 	} elseif ($group["format"] == "swiss") {
 		$result .= "<div class='title'><h3>Standings Liga {$group['number']}</h3></div>";
 	} else {
@@ -560,7 +570,8 @@ function create_matchbutton(mysqli $dbcn,$match_id,$type,$tournament_id,$team_id
 	$result = "";
 	$pageurl = $_SERVER['REQUEST_URI'];
 	$opl_match_url = "https://www.opleague.pro/match/";
-	if ($type == "groups" || $type == "playoffs") {
+	$type = ($type == "group") ? "groups" : $type;
+	if ($type == "groups" || $type == "playoffs" || $type == "wildcard") {
 		$match = $dbcn->execute_query("SELECT * FROM matchups WHERE OPL_ID = ?",[$match_id])->fetch_assoc();
 	} else {
 		return "";

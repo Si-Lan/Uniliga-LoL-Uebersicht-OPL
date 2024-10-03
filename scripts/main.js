@@ -2487,3 +2487,65 @@ function getCookie(cname) {
 function close_warningheader() {
 	$(".warning-header").remove();
 }
+
+let team_event_switch_control = null;
+function switch_team_event(event_id, team_id, playoff_id = null) {
+	const buttons = $(`#teampage_switch_group_buttons .teampage_switch_group`);
+	const button = $(`#teampage_switch_group_buttons .teampage_switch_group[data-group=${event_id}]`);
+
+	buttons.removeClass("active");
+	button.addClass("active");
+
+	if (team_event_switch_control !== null) team_event_switch_control.abort();
+	team_event_switch_control = new AbortController();
+
+	fetch(`ajax/create-page-elements`, {
+		method: "GET",
+		headers: {
+			"type": "standings",
+			"groupid": event_id,
+			"teamid": team_id,
+		},
+		signal: team_event_switch_control.signal,
+	})
+		.then(res => res.text())
+		.then(standings => {
+			$(".inner-content .standings").replaceWith(standings);
+		})
+		.catch(error => {
+			if (error.name === "AbortError") {
+				console.warn(error)
+			} else {
+				console.error(error)
+			}
+		});
+	fetch(`ajax/create-page-elements`, {
+		method: "GET",
+		headers: {
+			"type": "matchbutton-list-team",
+			"groupid": event_id,
+			"teamid": team_id,
+			"playoffid": playoff_id,
+		},
+		signal: team_event_switch_control.signal,
+	})
+		.then(res => res.text())
+		.then(matchlist => {
+			$(".inner-content .matches .match-content").replaceWith(matchlist);
+		})
+		.catch(error => {
+			if (error.name === "AbortError") {
+				console.warn(error)
+			} else {
+				console.error(error)
+			}
+		});
+}
+$(()=>{
+	$(".teampage_switch_group").on("click", function () {
+		const groupID = $(this).attr("data-group");
+		const teamID = $(this).attr("data-team");
+		const playoffID = $(this).attr("data-playoff") ?? null;
+		switch_team_event(groupID,teamID,playoffID);
+	});
+})

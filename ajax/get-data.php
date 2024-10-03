@@ -250,7 +250,7 @@ if ($type == "matchups") {
 		array_push($groups, ...$playoffs);
 	} elseif ($tournament["eventType"] == "league" && $tournament["format"] != "swiss") {
 		$groups = $dbcn->execute_query("SELECT * FROM tournaments WHERE eventType = 'group' AND OPL_ID_parent = ?", [$tournamentID])->fetch_all(MYSQLI_ASSOC);
-	} elseif ($tournament["eventType"] == "group" || $tournament["eventType"] == "playoffs" || ($tournament["eventType"] == "league" && $tournament["format"] == "swiss")) {
+	} elseif ($tournament["eventType"] == "group" || $tournament["eventType"] == "playoffs" || ($tournament["eventType"] == "league" && $tournament["format"] == "swiss") || $tournament["eventType"] == "wildcard") {
 		$groups[] = $tournament;
 	}
 	$matchups = [];

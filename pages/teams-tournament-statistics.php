@@ -116,6 +116,7 @@ echo "<div class='main-content'>";
 if ($games_played == 0) {
 	echo "<span>Dieses Team hat noch keine Spiele gespielt</span>";
 } else {
+    /*
     echo "<span class='infotext-container tooltip'>
             <span class='material-symbol'>".file_get_contents(__DIR__."/../icons/material/info.svg")."</span>
             <span>
@@ -125,6 +126,7 @@ if ($games_played == 0) {
                 </span>
             </span>
           </span>";
+    */
 	echo "<span>Spiele: ".$games_played." | Siege: ".$teamstats['games_won']." (".round($teamstats['games_won']/$games_played*100,2)."%)</span>";
 	echo "<span>durchschn. Zeit zum Sieg: ".date("i:s",$teamstats['avg_win_time'])."</span>";
 
