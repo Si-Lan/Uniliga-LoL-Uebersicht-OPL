@@ -1535,6 +1535,7 @@ div.team.title .team-titlebutton-wrapper a.active {
 	display: flex;
 	flex-direction: row;
 	align-items: center;
+	justify-content: center;
 }
 #teampage_switch_group_buttons button {
 	white-space: nowrap;

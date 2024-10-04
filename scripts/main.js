@@ -2489,7 +2489,7 @@ function close_warningheader() {
 }
 
 let team_event_switch_control = null;
-function switch_team_event(event_id, team_id, playoff_id = null) {
+function switch_team_event(page, event_id, team_id, playoff_id = null,tournament_ID = null) {
 	const buttons = $(`#teampage_switch_group_buttons .teampage_switch_group`);
 	const button = $(`#teampage_switch_group_buttons .teampage_switch_group[data-group=${event_id}]`);
 
@@ -2499,53 +2499,82 @@ function switch_team_event(event_id, team_id, playoff_id = null) {
 	if (team_event_switch_control !== null) team_event_switch_control.abort();
 	team_event_switch_control = new AbortController();
 
-	fetch(`ajax/create-page-elements`, {
-		method: "GET",
-		headers: {
-			"type": "standings",
-			"groupid": event_id,
-			"teamid": team_id,
-		},
-		signal: team_event_switch_control.signal,
-	})
-		.then(res => res.text())
-		.then(standings => {
-			$(".inner-content .standings").replaceWith(standings);
+	if (page === "details") {
+		fetch(`ajax/create-page-elements`, {
+			method: "GET",
+			headers: {
+				"type": "standings",
+				"groupid": event_id,
+				"teamid": team_id,
+			},
+			signal: team_event_switch_control.signal,
 		})
-		.catch(error => {
-			if (error.name === "AbortError") {
-				console.warn(error)
-			} else {
-				console.error(error)
-			}
-		});
-	fetch(`ajax/create-page-elements`, {
-		method: "GET",
-		headers: {
-			"type": "matchbutton-list-team",
-			"groupid": event_id,
-			"teamid": team_id,
-			"playoffid": playoff_id,
-		},
-		signal: team_event_switch_control.signal,
-	})
-		.then(res => res.text())
-		.then(matchlist => {
-			$(".inner-content .matches .match-content").replaceWith(matchlist);
+			.then(res => res.text())
+			.then(standings => {
+				$(".inner-content .standings").replaceWith(standings);
+			})
+			.catch(error => {
+				if (error.name === "AbortError") {
+					console.warn(error)
+				} else {
+					console.error(error)
+				}
+			});
+		fetch(`ajax/create-page-elements`, {
+			method: "GET",
+			headers: {
+				"type": "matchbutton-list-team",
+				"groupid": event_id,
+				"teamid": team_id,
+				"playoffid": playoff_id,
+			},
+			signal: team_event_switch_control.signal,
 		})
-		.catch(error => {
-			if (error.name === "AbortError") {
-				console.warn(error)
-			} else {
-				console.error(error)
-			}
-		});
+			.then(res => res.text())
+			.then(matchlist => {
+				$(".inner-content .matches .match-content").replaceWith(matchlist);
+			})
+			.catch(error => {
+				if (error.name === "AbortError") {
+					console.warn(error)
+				} else {
+					console.error(error)
+				}
+			});
+	} else if (page === "matchhistory") {
+		fetch(`ajax/create-page-elements`, {
+			method: "GET",
+			headers: {
+				"type": "matchhistory",
+				"groupid": event_id,
+				"teamid": team_id,
+				"tournamentid": tournament_ID,
+			},
+			signal: team_event_switch_control.signal,
+		})
+			.then(res => res.text())
+			.then(matchhistory => {
+				$("div.round-wrapper").remove();
+				$("div.divider.rounds").remove();
+				$("#teampage_switch_group_buttons").after(matchhistory);
+				$('button.expand-game-details').on("click", expand_collapse_game);
+			})
+			.catch(error => {
+				if (error.name === "AbortError") {
+					console.warn(error)
+				} else {
+					console.error(error)
+				}
+			});
+	}
 }
 $(()=>{
 	$(".teampage_switch_group").on("click", function () {
 		const groupID = $(this).attr("data-group");
 		const teamID = $(this).attr("data-team");
 		const playoffID = $(this).attr("data-playoff") ?? null;
-		switch_team_event(groupID,teamID,playoffID);
+		const tournamentID = $(this).attr("data-tournament") ?? null;
+		const pagetype = $("body").hasClass("match-history") ? "matchhistory" : "details";
+		switch_team_event(pagetype,groupID,teamID,playoffID,tournamentID);
 	});
 })
