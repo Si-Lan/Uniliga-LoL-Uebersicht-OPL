@@ -33,7 +33,7 @@ if ($type == "matchbutton") {
 if ($type == "matchbutton-list-team") {
 	$team_ID = $_SERVER["HTTP_TEAMID"] ?? $_REQUEST['team'] ?? NULL;
 	$group_ID = $_SERVER["HTTP_GROUPID"] ?? $_REQUEST['group'] ?? NULL;
-	$playoff_ID = $_SERVER["HTTP_PLAYOFFID"] ?? $_REQUEST['group'] ?? NULL;
+	$playoff_ID = $_SERVER["HTTP_PLAYOFFID"] ?? $_REQUEST['playoff'] ?? NULL;
 
 	$matches = $dbcn->execute_query("SELECT * FROM matchups WHERE OPL_ID_tournament = ? AND (OPL_ID_team1 = ? OR OPL_ID_team2 = ?)", [$group_ID,$team_ID,$team_ID])->fetch_all(MYSQLI_ASSOC);
 	$group = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID = ?", [$group_ID])->fetch_assoc();
@@ -87,4 +87,13 @@ if ($type == "summoner-card-container") {
 	}
 	echo "</div>";
 }
+
+if ($type == "matchhistory") {
+	$team_ID = $_SERVER["HTTP_TEAMID"] ?? $_REQUEST['team'] ?? NULL;
+	$group_ID = $_SERVER["HTTP_GROUPID"] ?? $_REQUEST['group'] ?? NULL;
+	$tournament_ID = $_SERVER["HTTP_TOURNAMENTID"] ?? $_REQUEST['tournament'] ?? NULL;
+
+	create_matchhistory($dbcn, $tournament_ID, $group_ID, $team_ID);
+}
+
 $dbcn->close();

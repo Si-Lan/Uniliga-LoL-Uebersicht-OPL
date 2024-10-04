@@ -436,6 +436,58 @@ function generate_elo_list(mysqli $dbcn,$view,$tournamentID,$divisionID=null,$gr
 	return $results;
 }
 
+function create_matchhistory(mysqli $dbcn, $tournament_ID, $group_ID, $team_ID) {
+	$tournament = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID = ? AND eventType = 'tournament'", [$tournament_ID])->fetch_assoc();
+	$group = $dbcn->execute_query("SELECT * FROM tournaments WHERE (eventType='group' OR (eventType = 'league' AND format = 'swiss') OR eventType='wildcard') AND OPL_ID = ?", [$group_ID])->fetch_assoc();
+
+	$teams_from_groupDB = $dbcn->execute_query("SELECT * FROM teams JOIN teams_in_tournaments tit on teams.OPL_ID = tit.OPL_ID_team WHERE OPL_ID_group = ?", [$group["OPL_ID"]])->fetch_all(MYSQLI_ASSOC);
+	$teams_from_group = [];
+	foreach ($teams_from_groupDB as $i=>$team_from_group) {
+		$teams_from_group[$team_from_group['OPL_ID']] = $team_from_group;
+	}
+
+	$matches = $dbcn->execute_query("SELECT * FROM matchups WHERE OPL_ID_tournament = ? AND (OPL_ID_team1 = ? OR OPL_ID_team2 = ?) AND played IS TRUE", [$group["OPL_ID"],$team_ID,$team_ID])->fetch_all(MYSQLI_ASSOC);
+
+	foreach ($matches as $m=>$match) {
+		$games = $dbcn->execute_query("SELECT * FROM games g JOIN games_to_matches gtm on g.RIOT_matchID = gtm.RIOT_matchID WHERE OPL_ID_matches = ? ORDER BY g.RIOT_matchID",[$match['OPL_ID']])->fetch_all(MYSQLI_ASSOC);
+		$team1 = $teams_from_group[$match['OPL_ID_team1']];
+		$team2 = $teams_from_group[$match['OPL_ID_team2']];
+		$team1name = $dbcn->execute_query("SELECT * FROM team_name_history WHERE OPL_ID_team = ? AND (update_time < ? OR ? IS NULL) ORDER BY update_time DESC", [$team1["OPL_ID"],$tournament["dateEnd"],$tournament["dateEnd"]])->fetch_assoc();
+		$team2name = $dbcn->execute_query("SELECT * FROM team_name_history WHERE OPL_ID_team = ? AND (update_time < ? OR ? IS NULL) ORDER BY update_time DESC", [$team2["OPL_ID"],$tournament["dateEnd"],$tournament["dateEnd"]])->fetch_assoc();
+
+		if ($match['winner'] == $match['OPL_ID_team1']) {
+			$team1score = "win";
+			$team2score = "loss";
+		} elseif ($match['winner'] == $match['OPL_ID_team2']) {
+			$team1score = "loss";
+			$team2score = "win";
+		} else {
+			$team1score = "draw";
+			$team2score = "draw";
+		}
+		if ($m != 0) {
+			echo "<div class='divider rounds'></div>";
+		}
+		echo "<div id='{$match['OPL_ID']}' class='round-wrapper'>";
+		echo "
+                <h2 class='round-title'>
+                    <span class='round'>Runde {$match['playday']}: &nbsp</span>
+                    <span class='team $team1score'>{$team1name['name']}</span>
+                    <span class='score'><span class='$team1score'>{$match['team1Score']}</span>:<span class='$team2score'>{$match['team2Score']}</span></span>
+                    <span class='team $team2score'>{$team2name['name']}</span>
+                </h2>";
+		if ($games == NULL) {
+			echo "</div>";
+			continue;
+		}
+		foreach ($games as $game) {
+			$gameID = $game['RIOT_matchID'];
+			echo create_game($dbcn,$gameID,$team_ID,tournamentID: $tournament_ID);
+		}
+		echo "</div>";
+	}
+}
+
 function create_standings(mysqli $dbcn, $tournament_id, $group_id, $team_id=NULL):string {
 	$result = "";
 	$opgg_url = "https://www.op.gg/multisearch/euw?summoners=";

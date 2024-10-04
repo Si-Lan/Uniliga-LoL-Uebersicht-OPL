@@ -32,7 +32,7 @@ if (preg_match("/^(winter|sommer)([0-9]{2})$/",strtolower($tournamentID),$url_pa
 	$tournamentID = $dbcn->execute_query("SELECT OPL_ID FROM tournaments WHERE season = ? AND split = ? AND eventType = 'tournament'", [$season, $split])->fetch_column();
 }
 $tournament = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID = ? AND eventType = 'tournament'", [$tournamentID])->fetch_assoc();
-$team_groups = $dbcn->execute_query("SELECT * FROM teams JOIN teams_in_tournaments tit ON teams.OPL_ID = tit.OPL_ID_team WHERE OPL_ID = ? AND OPL_ID_group IN (SELECT OPL_ID FROM tournaments WHERE (eventType='group' OR (eventType = 'league' AND format = 'swiss')) AND OPL_ID_top_parent = ?)", [$teamID, $tournamentID])->fetch_all(MYSQLI_ASSOC);
+$team_groups = $dbcn->execute_query("SELECT * FROM teams JOIN teams_in_tournaments tit ON teams.OPL_ID = tit.OPL_ID_team WHERE OPL_ID = ? AND OPL_ID_group IN (SELECT OPL_ID FROM tournaments WHERE (eventType='group' OR (eventType = 'league' AND format = 'swiss') OR eventType='wildcard') AND OPL_ID_top_parent = ?) ORDER BY OPL_ID_group", [$teamID, $tournamentID])->fetch_all(MYSQLI_ASSOC);
 $team_solo = $dbcn->execute_query("SELECT * FROM teams WHERE OPL_ID = ?", [$teamID])->fetch_assoc();
 
 if ($tournament == NULL) {
@@ -49,7 +49,7 @@ if ($team_groups == NULL && $team_solo != NULL) {
 	echo "<div style='text-align: center'>Dieses Team spielt nicht im angegebenen Turnier!</div><div style='display: flex; flex-direction: column; align-items: center;'><a class='button' href='team/$teamID'>zur Team-Seite</a></div></body>";
 	exit();
 }
-if ($team_groups == NULL && $team_solo == NULL) {
+if ($team_solo == NULL) {
 	echo create_html_head_elements(title: "Team nicht gefunden | Uniliga LoL - Übersicht");
 	echo "<body class='$lightmode'>";
 	echo create_header(title: "error");
@@ -57,17 +57,11 @@ if ($team_groups == NULL && $team_solo == NULL) {
 	exit();
 }
 
-// TODO: möglichkeit zwischen gruppen zu wechseln hinzufügen
-if (count($team_groups) > 1) {
-	// TODO: prüfen welche gruppe initial aufgerufen wurde
-	$team = $team_groups[0];
-} else {
-	$team = $team_groups[0];
-}
+$team = end($team_groups);
 
-$group = $dbcn->execute_query("SELECT * FROM tournaments WHERE (eventType='group' OR (eventType = 'league' AND format = 'swiss')) AND OPL_ID = ?", [$team["OPL_ID_group"]])->fetch_assoc();
+$group = $dbcn->execute_query("SELECT * FROM tournaments WHERE (eventType='group' OR (eventType = 'league' AND format = 'swiss') OR eventType='wildcard') AND OPL_ID = ?", [$team["OPL_ID_group"]])->fetch_assoc();
 $league = $dbcn->execute_query("SELECT * FROM tournaments WHERE eventType='league' AND OPL_ID = ?", [$group["OPL_ID_parent"]])->fetch_assoc();
-if ($group["format"] == "swiss") $league = $group;
+if ($group["format"] == "swiss" || $group["eventType"] == "wildcard") $league = $group;
 
 $teams_from_groupDB = $dbcn->execute_query("SELECT * FROM teams JOIN teams_in_tournaments tit on teams.OPL_ID = tit.OPL_ID_team WHERE OPL_ID_group = ?", [$group["OPL_ID"]])->fetch_all(MYSQLI_ASSOC);
 $teams_from_group = [];
@@ -93,46 +87,32 @@ echo create_header($dbcn,"tournament", $tournamentID);
 echo create_tournament_nav_buttons($tournamentID, $dbcn,"",$league['OPL_ID'],$group['OPL_ID']);
 echo create_team_nav_buttons($tournamentID,$group["OPL_ID"],$team,"matchhistory");
 
-$matches = $dbcn->execute_query("SELECT * FROM matchups WHERE OPL_ID_tournament = ? AND (OPL_ID_team1 = ? OR OPL_ID_team2 = ?) AND played IS TRUE", [$group["OPL_ID"],$teamID,$teamID])->fetch_all(MYSQLI_ASSOC);
+if (count($team_groups)>1) {
+	echo "<div id='teampage_switch_group_buttons'>";
 
-foreach ($matches as $m=>$match) {
-	$games = $dbcn->execute_query("SELECT * FROM games g JOIN games_to_matches gtm on g.RIOT_matchID = gtm.RIOT_matchID WHERE OPL_ID_matches = ? ORDER BY g.RIOT_matchID",[$match['OPL_ID']])->fetch_all(MYSQLI_ASSOC);
-	$team1 = $teams_from_group[$match['OPL_ID_team1']];
-	$team2 = $teams_from_group[$match['OPL_ID_team2']];
-	$team1name = $dbcn->execute_query("SELECT * FROM team_name_history WHERE OPL_ID_team = ? AND (update_time < ? OR ? IS NULL) ORDER BY update_time DESC", [$team1["OPL_ID"],$tournament["dateEnd"],$tournament["dateEnd"]])->fetch_assoc();
-	$team2name = $dbcn->execute_query("SELECT * FROM team_name_history WHERE OPL_ID_team = ? AND (update_time < ? OR ? IS NULL) ORDER BY update_time DESC", [$team2["OPL_ID"],$tournament["dateEnd"],$tournament["dateEnd"]])->fetch_assoc();
+	foreach ($team_groups as $team_group) {
+		$group_details = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID = ?", [$team_group["OPL_ID_group"]])->fetch_assoc();
+		if ($group_details["eventType"] == "group") {
+			$league = $dbcn->execute_query("SELECT * FROM tournaments WHERE eventType = 'league' AND OPL_ID = ?", [$group_details["OPL_ID_parent"]])->fetch_assoc();
+			$group_title = "Liga {$league['number']} - Gruppe {$group_details['number']}";
+		} elseif ($group_details["eventType"] == "wildcard") {
+			$wildcard_numbers_combined = ($group_details["numberRangeTo"] == null) ? $group_details["number"] : $group_details["number"]."-".$group_details["numberRangeTo"];
+			$group_title = "Wildcard Liga ".$wildcard_numbers_combined;
+		} elseif ($group_details["eventType"] == "league" && $group_details["format"] == "swiss") {
+			$group_title = "Liga {$group_details['number']} Swiss-Gruppe";
+		} else {
+			$group_title = "Gruppe {$group_details['number']}";
+		}
+		$active_group = ($team_group["OPL_ID_group"] == $group["OPL_ID"]) ? "active" : "";
+		echo "<button type='button' class='teampage_switch_group $active_group' data-group='{$team_group["OPL_ID_group"]}' data-team='$teamID' data-tournament='$tournamentID'>
+                $group_title
+              </button>";
+	}
 
-	if ($match['winner'] == $match['OPL_ID_team1']) {
-		$team1score = "win";
-		$team2score = "loss";
-	} elseif ($match['winner'] == $match['OPL_ID_team2']) {
-		$team1score = "loss";
-		$team2score = "win";
-	} else {
-		$team1score = "draw";
-		$team2score = "draw";
-	}
-	if ($m != 0) {
-		echo "<div class='divider rounds'></div>";
-	}
-	echo "<div id='{$match['OPL_ID']}' class='round-wrapper'>";
-	echo "
-                <h2 class='round-title'>
-                    <span class='round'>Runde {$match['playday']}: &nbsp</span>
-                    <span class='team $team1score'>{$team1name['name']}</span>
-                    <span class='score'><span class='$team1score'>{$match['team1Score']}</span>:<span class='$team2score'>{$match['team2Score']}</span></span>
-                    <span class='team $team2score'>{$team2name['name']}</span>
-                </h2>";
-	if ($games == NULL) {
-		echo "</div>";
-		continue;
-	}
-	foreach ($games as $game) {
-		$gameID = $game['RIOT_matchID'];
-		echo create_game($dbcn,$gameID,$teamID,tournamentID: $tournamentID);
-	}
 	echo "</div>";
 }
+
+create_matchhistory($dbcn, $tournamentID, $group["OPL_ID"], $teamID);
 
 ?>
 </body>
