@@ -2578,3 +2578,17 @@ $(()=>{
 		switch_team_event(pagetype,groupID,teamID,playoffID,tournamentID);
 	});
 })
+
+function switch_tournament_stage(stage) {
+	$(`div.divisions-list`).css("display", "none");
+	$(`div.divisions-list.${stage}`).css("display", "flex");
+	$(`button.tournamentpage_switch_stage`).removeClass("active");
+	$(`button.tournamentpage_switch_stage[data-stage=${stage}]`).addClass("active");
+
+}
+$(()=>{
+	$(".tournamentpage_switch_stage").on("click", function () {
+		const stage = $(this).attr("data-stage");
+		switch_tournament_stage(stage);
+	});
+})
