@@ -253,18 +253,20 @@ function create_tournament_nav_buttons(string|int $tournament_id, mysqli $dbcn, 
 	if ($group_id != NULL && $active != "group") {
 		$group = $dbcn->execute_query("SELECT * FROM tournaments WHERE (eventType = 'group' OR (eventType = 'league' AND format = 'swiss') OR eventType = 'wildcard') AND OPL_ID = ?",[$group_id])->fetch_assoc();
 		$div = $dbcn->execute_query("SELECT * FROM tournaments WHERE eventType = 'league' AND OPL_ID = ?",[$group['OPL_ID_parent']])->fetch_assoc();
+		$group_url_segment = "gruppe";
 		if ($group["format"] === "swiss") {
 			$group_title = "Swiss-Gruppe";
 			$div = $group;
 		} elseif ($group["eventType"] === "wildcard") {
 			$wildcard_numbers_combined = ($group["numberRangeTo"] == null) ? $group["number"] : $group["number"]."-".$group["numberRangeTo"];
 			$group_title = "Wildcard-Turnier Liga ".$wildcard_numbers_combined;
+			$group_url_segment = "wildcard";
 		} else {
 			$group_title = "Gruppe {$group['number']}";
 		}
 		$result .= "
 			<div class='divider-vert'></div>
-			<a href='turnier/{$tournament_id}/gruppe/$group_id' class='button$group_a'>
+			<a href='turnier/{$tournament_id}/$group_url_segment/$group_id' class='button$group_a'>
                 <div class='material-symbol'>". file_get_contents(__DIR__."/../icons/material/table_rows.svg") ."</div>";
 		if ($group["eventType"] == "wildcard") {
 			$result .= $group_title;
@@ -1554,7 +1556,8 @@ function create_teamcard(mysqli $dbcn, $teamID, $tournamentID) {
 	// Liga und Gruppe
 	$league_number = ($league["numberRangeTo"] == NULL) ? $league["number"] : $league["number"]."-".$league["numberRangeTo"];
 	$group_title = ($tournament["eventType"] == "wildcard") ? "Wildcard-Turnier" : (($tournament["format"] == "swiss") ? "Swiss-Gruppe" : "Gruppe {$tournament["number"]}");
-	$result .= "<a class='team-card-div team-card-league' href='turnier/{$parent_tournament["OPL_ID"]}/gruppe/{$tournament["OPL_ID"]}'>";
+	$group_url_segment = ($tournament["eventType"] == "wildcard") ? "wildcard" : "gruppe";
+	$result .= "<a class='team-card-div team-card-league' href='turnier/{$parent_tournament["OPL_ID"]}/$group_url_segment/{$tournament["OPL_ID"]}'>";
 	$result .= "Liga ".$league_number." - $group_title";
 	$result .= "</a>";
 
