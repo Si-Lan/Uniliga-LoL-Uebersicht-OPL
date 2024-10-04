@@ -330,7 +330,7 @@ function generate_elo_list(mysqli $dbcn,$view,$tournamentID,$divisionID=null,$gr
 												FROM teams t
 												    JOIN teams_in_tournaments tit ON t.OPL_ID = tit.OPL_ID_team
 												LEFT JOIN teams_tournament_rank as ttr ON ttr.OPL_ID_team = t.OPL_ID AND ttr.OPL_ID_tournament = ? AND second_ranked_split = ?
-												WHERE tit.OPL_ID_group IN (SELECT OPL_ID FROM tournaments WHERE eventType='group' AND OPL_ID_top_parent = ?) AND t.OPL_ID <> -1
+												WHERE tit.OPL_ID_group IN (SELECT OPL_ID FROM tournaments WHERE (eventType='group' OR (eventType='league' AND format='swiss')) AND OPL_ID_top_parent = ?) AND t.OPL_ID <> -1
 												ORDER BY ttr.avg_rank_num DESC", [$tournamentID,$second_ranked_split,$tournamentID])->fetch_all(MYSQLI_ASSOC);
 	} elseif ($view == "div") {
 		$results .= "
@@ -1511,9 +1511,12 @@ function create_teamcard(mysqli $dbcn, $teamID, $tournamentID) {
 	} elseif ($tournament["eventType"] == "league" && $tournament["format"] == "swiss") {
 		$league = $tournament;
 		$parent_tournament = $dbcn->execute_query("SELECT * FROM tournaments WHERE eventType = 'tournament' AND OPL_ID = ?",[$tournament["OPL_ID_top_parent"]])->fetch_assoc();
+	} elseif ($tournament["eventType"] == "wildcard") {
+		$league = $tournament;
+		$parent_tournament = $dbcn->execute_query("SELECT * FROM tournaments WHERE eventType = 'tournament' AND OPL_ID = ?",[$tournament["OPL_ID_top_parent"]])->fetch_assoc();
 	} else {
 		//TODO: playoffs
-		return;
+		return "";
 	}
 	$team_name_current = $dbcn->execute_query("SELECT * FROM team_name_history WHERE OPL_ID_team = ? AND (update_time < ? OR ? IS NULL) ORDER BY update_time DESC",[$teamID,$tournament["dateEnd"],$tournament["dateEnd"]])->fetch_assoc();
 	$team_logo_current = $dbcn->execute_query("SELECT * FROM team_logo_history WHERE OPL_ID_team = ? AND (update_time < ? OR ? IS NULL) ORDER BY update_time DESC",[$teamID,$tournament["dateEnd"],$tournament["dateEnd"]])->fetch_assoc();
@@ -1549,9 +1552,10 @@ function create_teamcard(mysqli $dbcn, $teamID, $tournamentID) {
 	$result .= "</a>";
 
 	// Liga und Gruppe
-	$group_title = ($tournament["format"] == "swiss") ? "Swiss-Gruppe" : "Gruppe {$tournament["number"]}";
+	$league_number = ($league["numberRangeTo"] == NULL) ? $league["number"] : $league["number"]."-".$league["numberRangeTo"];
+	$group_title = ($tournament["eventType"] == "wildcard") ? "Wildcard-Turnier" : (($tournament["format"] == "swiss") ? "Swiss-Gruppe" : "Gruppe {$tournament["number"]}");
 	$result .= "<a class='team-card-div team-card-league' href='turnier/{$parent_tournament["OPL_ID"]}/gruppe/{$tournament["OPL_ID"]}'>";
-	$result .= "Liga ".$league["number"]." - $group_title";
+	$result .= "Liga ".$league_number." - $group_title";
 	$result .= "</a>";
 
 	// Link zu Teamseite
