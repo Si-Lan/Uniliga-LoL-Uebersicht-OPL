@@ -713,7 +713,7 @@ function create_matchbutton(mysqli $dbcn,$match_id,$type,$tournament_id,$team_id
 	return $result;
 }
 
-function create_team_nav_buttons($tournamentID,$groupID,$team,$active,$playoffID=null,$updatediff="unbekannt", bool $hide_update = false):string {
+function create_team_nav_buttons($tournamentID,$groupID,$team,$active,$allGroupIDs=null,$playoffID=null,$updatediff="unbekannt", bool $hide_update = false):string {
 	$result = "";
 	$details_a = $matchhistory_a = $stats_a = "";
 	if ($active == "details") {
@@ -747,7 +747,7 @@ function create_team_nav_buttons($tournamentID,$groupID,$team,$active,$playoffID
 	if ($active == "details" && !$hide_update) {
 		$result .= "
 				<div class='updatebuttonwrapper'>
-           			<button type='button' class='icononly user_update_team update_data' data-team='$team_id' data-tournament='$tournamentID' data-group='$groupID' $data_playoff><div class='material-symbol'>".file_get_contents(__DIR__."/../icons/material/sync.svg")."</div></button>
+           			<button type='button' class='icononly user_update_team update_data' data-team='$team_id' data-tournament='$tournamentID' data-group='$groupID' data-groups='$allGroupIDs' $data_playoff><div class='material-symbol'>".file_get_contents(__DIR__."/../icons/material/sync.svg")."</div></button>
 					<span>letztes Update:<br>$updatediff</span>
 				</div>";
 	}
