@@ -74,6 +74,12 @@ if (count($team_playoffs) == 0) {
     $playoff_ID = $team_playoffs[0]["OPL_ID_group"];
 }
 
+$all_groupids_string = "";
+foreach ($team_groups as $i_tg=>$team_group) {
+    if ($i_tg != 0) $all_groupids_string .= " ";
+    $all_groupids_string .= $team_group["OPL_ID_group"];
+}
+
 $group = $dbcn->execute_query("SELECT * FROM tournaments WHERE (eventType='group' OR (eventType = 'league' AND format = 'swiss') OR eventType = 'wildcard') AND OPL_ID = ?", [$team["OPL_ID_group"]])->fetch_assoc();
 $league = $dbcn->execute_query("SELECT * FROM tournaments WHERE eventType='league' AND OPL_ID = ?", [$group["OPL_ID_parent"]])->fetch_assoc();
 if ($group["format"] == "swiss" || $group["eventType"] == "wildcard") $league = $group;
@@ -147,7 +153,7 @@ echo create_header(dbcn: $dbcn, title: "tournament", tournament_id: $tournamentI
 
 echo create_tournament_nav_buttons($tournamentID, $dbcn,"",$league['OPL_ID'],$group["OPL_ID"]);
 
-echo create_team_nav_buttons($tournamentID,$group["OPL_ID"],$team,"details",playoffID: $playoff_ID,updatediff: $updatediff, hide_update: $tournament["archived"]);
+echo create_team_nav_buttons($tournamentID,$group["OPL_ID"],$team,"details",allGroupIDs: $all_groupids_string,playoffID: $playoff_ID,updatediff: $updatediff, hide_update: $tournament["archived"]);
 
 echo "<div class='main-content'>";
 echo "

@@ -1675,6 +1675,8 @@ async function user_update_team(button) {
 	let team_ID = button.getAttribute("data-team");
 	let tournamentID = button.getAttribute("data-tournament");
 	let groupID = button.getAttribute("data-group");
+	let groupIDs = button.getAttribute("data-groups");
+	groupIDs = groupIDs.split(" ");
 	let playoffID = button.getAttribute("data-playoff") ?? null;
 	$(button).addClass("user_updating");
 	button.disabled = true;
@@ -1796,30 +1798,38 @@ async function user_update_team(button) {
 	loading_width = 35;
 	button.style.setProperty("--update-loading-bar-width", `${loading_width}%`);
 
-	await fetch(`ajax/user-update-functions.php`, {
-		method: "GET",
-		headers: {
-			type: "teams_from_group",
-			groupID: groupID,
-		}
-	})
-		.catch(e => console.error(e));
+	for (const groupID1 of groupIDs) {
+		await fetch(`ajax/user-update-functions.php`, {
+            method: "GET",
+            headers: {
+                type: "teams_from_group",
+                groupID: groupID1,
+            }
+        })
+            .catch(e => console.error(e));
 
-	await new Promise(r => setTimeout(r, 1000));
+		await new Promise(r => setTimeout(r, 1000));
+		loading_width += 10/groupIDs.length;
+		button.style.setProperty("--update-loading-bar-width", `${loading_width}%`);
+    }
 
 	loading_width = 45;
 	button.style.setProperty("--update-loading-bar-width", `${loading_width}%`);
 
-	await fetch(`ajax/user-update-functions.php`, {
-		method: "GET",
-		headers: {
-			type: "matchups_from_group",
-			groupid: groupID,
-		}
-	})
-		.catch(e => console.error(e));
+    for (const groupID1 of groupIDs) {
+		await fetch(`ajax/user-update-functions.php`, {
+            method: "GET",
+            headers: {
+                type: "matchups_from_group",
+                groupid: groupID1,
+            }
+        })
+            .catch(e => console.error(e));
 
-	await new Promise(r => setTimeout(r, 1000));
+		await new Promise(r => setTimeout(r, 1000));
+		loading_width += 15/groupIDs.length;
+		button.style.setProperty("--update-loading-bar-width", `${loading_width}%`);
+    }
 
 	loading_width = 60;
 	button.style.setProperty("--update-loading-bar-width", `${loading_width}%`);
@@ -1838,34 +1848,39 @@ async function user_update_team(button) {
 	loading_width = 70;
 	button.style.setProperty("--update-loading-bar-width", `${loading_width}%`);
 
-	await fetch(`ajax/get-data.php`, {
-		method: "GET",
-		headers: {
-			type: "matchups",
-			tournamentID: groupID,
-			teamid: team_ID,
-			idonly: "true",
-		}
-	})
-		.then(res => res.json())
-		.then(async matchids => {
-			for (const match of matchids) {
-				await fetch(`ajax/user-update-functions.php`, {
-					method: "GET",
-					headers: {
-						type: "matchresult",
-						matchid: match,
-					}
-				})
-					.then(() => {
-						loading_width = loading_width + 25/matchids.length;
-						button.style.setProperty("--update-loading-bar-width", `${loading_width}%`);
-					})
-					.catch(e => console.error(e));
-				await new Promise(r => setTimeout(r, 1000));
+	for (const groupID1 of groupIDs) {
+		await fetch(`ajax/get-data.php`, {
+			method: "GET",
+			headers: {
+				type: "matchups",
+				tournamentID: groupID1,
+				teamid: team_ID,
+				idonly: "true",
 			}
 		})
-		.catch(e => console.error(e));
+			.then(res => res.json())
+			.then(async matchids => {
+				for (const match of matchids) {
+					await fetch(`ajax/user-update-functions.php`, {
+						method: "GET",
+						headers: {
+							type: "matchresult",
+							matchid: match,
+						}
+					})
+						.then(() => {
+							loading_width = loading_width + 25/matchids.length;
+							button.style.setProperty("--update-loading-bar-width", `${loading_width}%`);
+						})
+						.catch(e => console.error(e));
+					await new Promise(r => setTimeout(r, 1000));
+				}
+			})
+			.catch(e => console.error(e));
+
+		loading_width += 20/groupIDs.length;
+		button.style.setProperty("--update-loading-bar-width", `${loading_width}%`);
+	}
 
 	loading_width = 90;
 	button.style.setProperty("--update-loading-bar-width", `${loading_width}%`);
@@ -1902,14 +1917,16 @@ async function user_update_team(button) {
 	loading_width = 95;
 	button.style.setProperty("--update-loading-bar-width", `${loading_width}%`);
 
-	await fetch(`./admin/ajax/get-opl-data.php`, {
-		method: "GET",
-		headers: {
-			"type": "calculate_standings_from_matchups",
-			"id": groupID,
-		}
-	})
-		.catch(e => console.error(e));
+	for (const groupID1 of groupIDs) {
+		await fetch(`./admin/ajax/get-opl-data.php`, {
+			method: "GET",
+			headers: {
+				"type": "calculate_standings_from_matchups",
+				"id": groupID,
+			}
+		})
+			.catch(e => console.error(e));
+	}
 
 	loading_width = 100;
 	button.style.setProperty("--update-loading-bar-width", `${loading_width}%`);
@@ -1958,11 +1975,17 @@ async function user_update_team(button) {
 		})
 		.catch(e => console.error(e));
 
+	const groupButtons = $("button.teampage_switch_group");
+	const activeGroupButton = $("button.teampage_switch_group.active");
+	let activeGroupID = (activeGroupButton.length === 0) ? groupID : activeGroupButton.eq(0).attr("data-group");
+
+	groupButtons.prop("disabled", true);
+
 	fetch(`ajax/create-page-elements.php`, {
 		method: "GET",
 		headers: {
 			type: "standings",
-			groupID: groupID,
+			groupID: activeGroupID,
 			teamid: team_ID,
 		}
 	})
@@ -1972,28 +1995,33 @@ async function user_update_team(button) {
 		})
 		.catch(e => console.error(e));
 
+	let match_fetches = [];
 	let matchbuttons = $("div.match-button-wrapper");
 	for (const matchbutton of matchbuttons) {
 		let match_ID = matchbutton.getAttribute("data-matchid");
 		let tournament_ID = matchbutton.getAttribute("data-tournamentid");
 		let matchtype = matchbutton.getAttribute("data-matchtype");
-		fetch(`ajax/create-page-elements.php`, {
-			method: "GET",
-			headers: {
-				type: "matchbutton",
-				matchid: match_ID,
-				tournamentid: tournament_ID,
-				matchtype: matchtype,
-				teamid: team_ID,
-			}
-		})
-			.then(res => res.text())
-			.then(new_matchbutton => {
-				$(matchbutton).replaceWith(new_matchbutton);
+		match_fetches.push(
+			fetch(`ajax/create-page-elements.php`, {
+				method: "GET",
+				headers: {
+					type: "matchbutton",
+					matchid: match_ID,
+					tournamentid: tournament_ID,
+					matchtype: matchtype,
+					teamid: team_ID,
+				}
 			})
-			.catch(e => console.error(e));
+				.then(res => res.text())
+				.then(new_matchbutton => {
+					$(matchbutton).replaceWith(new_matchbutton);
+				})
+				.catch(e => console.error(e))
+		);
 	}
-
+	Promise.all(match_fetches).then(() => {
+		groupButtons.prop("disabled", false);
+	});
 }
 $(document).ready(function () {
 	$(".user_update_team").on("click", function () {
