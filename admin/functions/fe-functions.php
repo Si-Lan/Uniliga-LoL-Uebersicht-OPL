@@ -46,6 +46,17 @@ function create_tournament_buttons(mysqli $dbcn, array $open_accordeons = []):st
 			$result .= create_tournament_get_button($playoff);
 		}
 		$result .= "</div></div>"; //close playoff accordeon
+
+        $wildcards = $dbcn->execute_query("SELECT * FROM tournaments WHERE eventType='wildcard' AND OPL_ID_top_parent = ? ORDER BY number, numberRangeTo",[$tournament["OPL_ID"]])->fetch_all(MYSQLI_ASSOC);
+        $events = array_filter($events, function ($element) use ($wildcards) {return !in_array($element,$wildcards);});
+        $open = in_array("wildcards",$open_accordeons) ? " open" : "";
+        if ($wildcards != null) $result .= "<span class='tsl-heading'><h4>-Wildcards</h4><button class='toggle-turnierselect-accordeon$open' type='button' data-id='wildcards'><div class='material-symbol'>".file_get_contents(__DIR__."/../../icons/material/expand_more.svg")."</div></button></span>";
+        $result .= "<div class='turnier-sl-accordeon wildcards$open'><div class='tsl-acc-content'>";
+        foreach ($wildcards as $wildcard) {
+            $result .= create_tournament_get_button($wildcard);
+        }
+        $result .= "</div></div>"; //close wildcard accordeon
+
 		$result .= "</div></div>"; //close tournament accordeon
 	}
 
