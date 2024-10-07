@@ -146,23 +146,14 @@ foreach ($leagues as $league) {
 }
 echo "</div>";
 
-echo "<div class='divisions-list wildcard' style='display: none'>";
+
+?>
+<div class='divisions-list wildcard'<?php if (!$wildcard_active) echo " style='display: none'"; ?>>
+<?php
+
 echo "<div class='division'>
                         <div class='group-title-wrapper'><h2>Wildcard</h2>";
-/*
-if ($logged_in) {
-	echo "<a class='button write games-div {$league['OPL_ID']}' onclick='get_games_for_division(\"$tournamentID\",\"{$league['OPL_ID']}\")'><div class='material-symbol'>" . file_get_contents("../icons/material/place_item.svg") . "</div>Lade Spiele</a>";
-}
-*/
 echo "</div>";
-/*
-if ($logged_in) {
-	echo "<div class='result-wrapper no-res {$league['OPL_ID']} {$tournamentID}'>
-                            <div class='clear-button' onclick='clear_results(\"{$league['OPL_ID']}\")'>Clear</div>
-                            <div class='result-content'></div>
-                          </div>";
-}
-*/
 echo "<div class='divider'></div>";
 
 
@@ -175,21 +166,20 @@ foreach ($wildcards as $wildcard) {
                             <a href='turnier/{$tournament_url_path}/wildcard/{$wildcard['OPL_ID']}' class='button'>$group_title</a>
                             <a href='turnier/{$tournament_url_path}/teams?liga={$wildcard['OPL_ID']}' class='button'><div class='material-symbol'>" . file_get_contents("../icons/material/group.svg") . "</div>Teams</a>";
 	echo "</div>"; // group
-	/*
+
 	if ($logged_in) {
-		echo "<a class='button write games- {$group['OPL_ID']}' onclick='get_games_for_group(\"$tournamentID\",\"{$group['OPL_ID']}\")'><div class='material-symbol'>" . file_get_contents("../icons/material/place_item.svg") . "</div>Lade Spiele</a>";
+		echo "<a class='button write games- {$wildcard['OPL_ID']}' onclick='get_games_for_group(\"$tournamentID\",\"{$wildcard['OPL_ID']}\")'><div class='material-symbol'>" . file_get_contents("../icons/material/place_item.svg") . "</div>Lade Spiele</a>";
 	}
-	*/
+
 	echo "</div>";
-	/*
+
 	if ($logged_in) {
 		echo "
-							<div class='result-wrapper no-res {$group['OPL_ID']} {$tournamentID}'>
-								<div class='clear-button' onclick='clear_results(\"{$group['OPL_ID']}\")'>Clear</div>
+							<div class='result-wrapper no-res {$wildcard['OPL_ID']} {$tournamentID}'>
+								<div class='clear-button' onclick='clear_results(\"{$wildcard['OPL_ID']}\")'>Clear</div>
 								<div class='result-content'></div>
 							</div>";
 	}
-	*/
 }
 echo "</div>"; //groups
 echo "</div>"; //division
