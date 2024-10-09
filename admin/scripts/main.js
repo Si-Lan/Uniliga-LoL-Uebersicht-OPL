@@ -262,10 +262,10 @@ function get_players_for_tournament(tournamentID) {
 					.then(res => res.json())
 					.then(result => {
 						console.log(result);
-						loadingbar_width += 100/teams.length;
-						button.attr("style",`--loading-bar-width:${loadingbar_width}%`);
 					})
 					.catch(e => console.error(e));
+				loadingbar_width += 100/teams.length;
+				button.attr("style",`--loading-bar-width:${loadingbar_width}%`);
 				await new Promise(r => setTimeout(r, 1000));
 			}
 			button.prop("disabled", false);
@@ -302,10 +302,10 @@ function get_summonerNames_for_tournament(tournamentID) {
 					.then(res => res.json())
 					.then(result => {
 						console.log(result);
-						loadingbar_width += 100/teams.length;
-						button.attr("style",`--loading-bar-width:${loadingbar_width}%`);
 					})
 					.catch(e => console.error(e));
+				loadingbar_width += 100/teams.length;
+				button.attr("style",`--loading-bar-width:${loadingbar_width}%`);
 				// no need to wait here, fetched php script sleeps for 1 sec at the end
 			}
 			button.prop("disabled", false);
@@ -341,10 +341,10 @@ function get_riotids_for_tournament(tournamentID) {
 					.then(res => res.json())
 					.then(result => {
 						console.log(result);
-						loadingbar_width += 100/teams.length;
-						button.attr("style",`--loading-bar-width:${loadingbar_width}%`);
 					})
 					.catch(e => console.error(e));
+				loadingbar_width += 100/teams.length;
+				button.attr("style",`--loading-bar-width:${loadingbar_width}%`);
 				// no need to wait here, fetched php script sleeps for 1 sec at the end
 			}
 			button.prop("disabled", false);
@@ -403,10 +403,10 @@ function get_results_for_tournament(tournamentID) {
 					.then(res => res.json())
 					.then(result => {
 						console.log(result);
-						loadingbar_width += 100/matches.length;
-						button.attr("style",`--loading-bar-width:${loadingbar_width}%`);
 					})
 					.catch(e => console.error(e));
+				loadingbar_width += 100/matches.length;
+				button.attr("style",`--loading-bar-width:${loadingbar_width}%`);
 				await new Promise(r => setTimeout(r, 1000));
 			}
 			button.prop("disabled", false);
