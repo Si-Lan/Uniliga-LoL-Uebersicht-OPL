@@ -1532,30 +1532,38 @@ div.team.title .team-titlebutton-wrapper a.active {
 	border: var(--main-button-active-border) solid 1px;
 }
 #teampage_switch_group_buttons,
-#tournamentpage_switch_stage_buttons {
+#tournamentpage_switch_stage_buttons,
+#elolist_switch_stage_buttons {
 	display: flex;
 	flex-direction: row;
 	align-items: center;
 	justify-content: center;
 }
+#elolist_switch_stage_buttons {
+	margin-bottom: 16px;
+}
 #teampage_switch_group_buttons button,
-#tournamentpage_switch_stage_buttons button {
+#tournamentpage_switch_stage_buttons button,
+#elolist_switch_stage_buttons button {
 	white-space: nowrap;
 	box-sizing: border-box;
 	border-left: var(--nav-button-divider) solid 1px;
 	border-radius: 0;
 }
 #teampage_switch_group_buttons button:first-child,
-#tournamentpage_switch_stage_buttons button:first-child {
+#tournamentpage_switch_stage_buttons button:first-child,
+#elolist_switch_stage_buttons button:first-child {
 	border-left: 0;
 	border-radius: 6px 0 0 6px;
 }
 #teampage_switch_group_buttons button:last-child,
-#tournamentpage_switch_stage_buttons button:last-child {
+#tournamentpage_switch_stage_buttons button:last-child,
+#elolist_switch_stage_buttons button:last-child {
 	border-radius: 0 6px 6px 0;
 }
 #teampage_switch_group_buttons button.teampage_switch_group.active,
-#tournamentpage_switch_stage_buttons button.tournamentpage_switch_stage.active {
+#tournamentpage_switch_stage_buttons button.tournamentpage_switch_stage.active,
+#elolist_switch_stage_buttons button.elolist_switch_stage.active {
 	background-color: var(--main-button-active);
 	pointer-events: none;
 	transform: scale(1.05);
@@ -2312,6 +2320,9 @@ body.elo-overview .main-content .content {
 .elo-list-pre-header.league {
 	font-size: 18px;
 	padding: 10px 20px;
+}
+.teams-elo-list.all-wildcard-teams .elo-list-team.liga1 .elo-list-pre.league {
+	padding-right: 36px;
 }
 .elo-list-item.team {
 	justify-content: flex-start;
