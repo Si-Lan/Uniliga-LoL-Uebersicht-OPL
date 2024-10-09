@@ -357,7 +357,26 @@ function generate_elo_list(mysqli $dbcn,$view,$tournamentID,$divisionID=null,$gr
 												LEFT JOIN teams_tournament_rank as ttr ON ttr.OPL_ID_team = t.OPL_ID AND ttr.OPL_ID_tournament = ? AND second_ranked_split = ?
 												WHERE tit.OPL_ID_group = ? AND t.OPL_ID <> -1
 												ORDER BY ttr.avg_rank_num DESC", [$tournamentID,$second_ranked_split,$group["OPL_ID"]])->fetch_all(MYSQLI_ASSOC);
-	}
+	} elseif ($view == "all-wildcard") {
+        $results .= "
+                    <h3>Wildcard-Turniere</h3>";
+        $teams = $dbcn->execute_query("SELECT *
+                                                FROM teams t
+                                                    JOIN teams_in_tournaments tit ON t.OPL_ID = tit.OPL_ID_team
+                                                LEFT JOIN teams_tournament_rank as ttr ON ttr.OPL_ID_team = t.OPL_ID AND ttr.OPL_ID_tournament = ? AND second_ranked_split = ?
+                                                WHERE tit.OPL_ID_group IN (SELECT OPL_ID FROM tournaments WHERE OPL_ID_top_parent = ? AND eventType = 'wildcard') AND t.OPL_ID > -1
+                                                ORDER BY ttr.avg_rank_num DESC", [$tournamentID,$second_ranked_split,$tournamentID])->fetch_all(MYSQLI_ASSOC);
+    } elseif ($view == "wildcard") {
+        $comb_wc_num = ($division["numberRangeTo"] == null) ? $division["number"]."  " : $division["number"]."-".$division["numberRangeTo"];
+        $results .= "
+                    <h3>Wildcard-Turnier Liga $comb_wc_num</h3>";
+        $teams = $dbcn->execute_query("SELECT *
+                                                FROM teams t
+                                                    JOIN teams_in_tournaments tit ON t.OPL_ID = tit.OPL_ID_team
+                                                LEFT JOIN teams_tournament_rank as ttr ON ttr.OPL_ID_team = t.OPL_ID AND ttr.OPL_ID_tournament = ? AND second_ranked_split = ?
+                                                WHERE tit.OPL_ID_group = ? AND t.OPL_ID > -1
+                                                ORDER BY ttr.avg_rank_num DESC", [$tournamentID,$second_ranked_split,$divisionID])->fetch_all(MYSQLI_ASSOC);
+    }
 	$results .= "
                     <div class='elo-list-row elo-list-header'>
                         <div class='elo-list-pre-header league'>Liga #</div>
@@ -370,7 +389,11 @@ function generate_elo_list(mysqli $dbcn,$view,$tournamentID,$divisionID=null,$gr
                     </div>";
 	$tournament = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID = ?", [$tournamentID])->fetch_assoc();
 	foreach ($teams as $team) {
-		$league = $dbcn->execute_query("SELECT * FROM tournaments WHERE eventType = 'league' AND (OPL_ID = ? OR OPL_ID = (SELECT OPL_ID_parent FROM tournaments WHERE OPL_ID = ?))", [$team["OPL_ID_group"],$team["OPL_ID_group"]])->fetch_assoc();
+        if (str_contains($view, "wildcard")) {
+            $league = $dbcn->execute_query("SELECT * FROM tournaments WHERE eventType='wildcard' AND OPL_ID = ?", [$team["OPL_ID_group"]])->fetch_assoc();
+        } else {
+            $league = $dbcn->execute_query("SELECT * FROM tournaments WHERE eventType = 'league' AND (OPL_ID = ? OR OPL_ID = (SELECT OPL_ID_parent FROM tournaments WHERE OPL_ID = ?))", [$team["OPL_ID_group"],$team["OPL_ID_group"]])->fetch_assoc();
+        }
 		$team_name = $dbcn->execute_query("SELECT * FROM team_name_history WHERE OPL_ID_team = ? AND (update_time < ? OR ? IS NULL) ORDER BY update_time DESC", [$team["OPL_ID"],$tournament["dateEnd"],$tournament["dateEnd"]])->fetch_assoc();
 		$curr_players = $dbcn->execute_query(
 			"SELECT p.*, pit.removed
@@ -383,10 +406,10 @@ function generate_elo_list(mysqli $dbcn,$view,$tournamentID,$divisionID=null,$gr
 		)->fetch_all(MYSQLI_ASSOC);
 		$curr_opgglink = $opgg_url;
 		$color_class = "";
-		if ($view == "all") {
+		if ($view == "all" || $view == "all-wildcard") {
 			$color_class = " liga".$league['number'];
-		} elseif ($view == "div" || $view == "group") {
-			$color_class = " rank".floor($team['avg_rank_num']);
+		} elseif ($view == "div" || $view == "group" || $view == "wildcard") {
+			$color_class = " rank".floor($team['avg_rank_num']??0);
 		}
 		foreach ($curr_players as $i_cop => $curr_player) {
 			if ($curr_player["removed"] || $curr_player["riotID_name"] == null) continue;
@@ -396,8 +419,14 @@ function generate_elo_list(mysqli $dbcn,$view,$tournamentID,$divisionID=null,$gr
 			$curr_opgglink .= urlencode($curr_player["riotID_name"]."#".$curr_player["riotID_tag"]);
 		}
 		$results .= "
-                    <div class='elo-list-row elo-list-team {$team['OPL_ID']}$color_class'>
-                        <div class='elo-list-pre league'>Liga {$league['number']}</div>
+                    <div class='elo-list-row elo-list-team {$team['OPL_ID']}$color_class'>";
+        if (str_contains($view, "wildcard")) {
+            $comb_wc_num = ($league["numberRangeTo"] == null) ? $league["number"]."  " : $league["number"]."-".$league["numberRangeTo"];
+            $results .= "<div class='elo-list-pre league'>Wc Liga $comb_wc_num</div>";
+        } else {
+            $results .= "<div class='elo-list-pre league'>Liga {$league['number']}</div>";
+        }
+        $results .= "
                         <a href='./team/".$team['OPL_ID']."' onclick='popup_team({$team['OPL_ID']},$tournamentID)' class='elo-list-item-wrapper'>
                             <div class='elo-list-item team'>";
 		if ($team['OPL_ID_logo'] != NULL && file_exists(__DIR__."/../$local_team_img{$team['OPL_ID_logo']}/logo.webp")) {

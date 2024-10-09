@@ -705,28 +705,54 @@ function switch_elo_view(tournamentID,view) {
 	let group_b = $('.filter-button-wrapper .group-teams');
 	let color_b = $('.settings-button-wrapper .button span');
 
-	if (view === "all-teams") {
+    stage = $(`button.elolist_switch_stage.active`).attr("data-stage");
+
+	if (view === "all-teams" && stage === "groups") {
 		but.removeClass('active');
 		all_b.addClass('active');
+		group_b.css("display","");
 		url.searchParams.delete("view");
+		url.searchParams.delete("stage");
 		window.history.replaceState({}, '', url);
 		add_elo_team_list(area,tournamentID,"all");
 		color_b.text("Nach Liga einfärben");
-	} else if (view === "div-teams") {
+	} else if (view === "div-teams" && stage === "groups") {
 		but.removeClass('active');
 		div_b.addClass('active');
+		group_b.css("display","");
 		url.searchParams.set("view","liga");
+		url.searchParams.delete("stage");
 		window.history.replaceState({}, '', url);
 		add_elo_team_list(area,tournamentID,"div");
 		color_b.text("Nach Rang einfärben");
-	} else if (view === "group-teams") {
+	} else if (view === "group-teams" && stage === "groups") {
 		but.removeClass('active');
 		group_b.addClass('active');
+		group_b.css("display","");
 		url.searchParams.set("view","gruppe");
+		url.searchParams.delete("stage");
 		window.history.replaceState({}, '', url);
 		add_elo_team_list(area,tournamentID,"group");
 		color_b.text("Nach Rang einfärben");
-	}
+	} else if (view === "all-teams" && stage === "wildcard") {
+		but.removeClass('active');
+		all_b.addClass('active');
+		group_b.css("display","none");
+		url.searchParams.delete("view");
+		url.searchParams.set("stage","wildcard");
+		window.history.replaceState({}, '', url);
+		add_elo_team_list(area,tournamentID,"all","wildcard");
+		color_b.text("Nach Liga einfärben");
+	} else if (view === "div-teams" && stage === "wildcard") {
+        but.removeClass('active');
+        div_b.addClass('active');
+        group_b.css("display","none");
+        url.searchParams.set("view","liga");
+        url.searchParams.set("stage","wildcard");
+        window.history.replaceState({}, '', url);
+        add_elo_team_list(area,tournamentID,"div","wildcard");
+        color_b.text("Nach Liga einfärben");
+    }
 }
 
 function jump_to_league_elo(div_num) {
@@ -736,7 +762,7 @@ function jump_to_league_elo(div_num) {
 }
 
 let elo_list_fetch_control = null;
-function add_elo_team_list(area,tournamentID,type) {
+function add_elo_team_list(area,tournamentID,type,stage="groups") {
 	let displaytype = "none";
 	if (type === "div" || type === "group") {
 		displaytype = ""
@@ -750,6 +776,7 @@ function add_elo_team_list(area,tournamentID,type) {
 		headers: {
 			"TournamentID": tournamentID,
 			"type": type,
+			"stage": stage,
 		},
 		signal: elo_list_fetch_control.signal,
 	})
@@ -2612,11 +2639,20 @@ function switch_tournament_stage(stage) {
 	$(`div.divisions-list.${stage}`).css("display", "flex");
 	$(`button.tournamentpage_switch_stage`).removeClass("active");
 	$(`button.tournamentpage_switch_stage[data-stage=${stage}]`).addClass("active");
-
+}
+function switch_elolist_stage(tournamentID,stage) {
+    $(`button.elolist_switch_stage`).removeClass("active");
+    $(`button.elolist_switch_stage[data-stage=${stage}]`).addClass("active");
+	switch_elo_view(tournamentID,"all-teams",stage);
 }
 $(()=>{
 	$(".tournamentpage_switch_stage").on("click", function () {
 		const stage = $(this).attr("data-stage");
 		switch_tournament_stage(stage);
+	});
+	$(".elolist_switch_stage").on("click", function () {
+		const stage = $(this).attr("data-stage");
+		const tournamentID = $(this).attr("data-tournament");
+		switch_elolist_stage(tournamentID,stage);
 	});
 })
