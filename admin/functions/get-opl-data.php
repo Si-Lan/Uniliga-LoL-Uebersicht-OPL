@@ -963,9 +963,9 @@ function get_results_for_matchup($matchID):array {
 		$game_id = $game["metadata"]["matchId"];
 		$updated["games"][$game_id]  = ["newgame"=>false, "updated_gtm"=>false];
 
-		$game_DB = $dbcn->execute_query("SELECT RIOT_matchID FROM games WHERE RIOT_matchID = ?", [$game_id])->fetch_row();
-		$gtm_DB = $dbcn->execute_query("SELECT * FROM games_to_matches WHERE RIOT_matchID = ? AND OPL_ID_matches = ?", [$game_id, $matchID])->fetch_row();
-		$git_DB = $dbcn->execute_query("SELECT * FROM games_in_tournament WHERE RIOT_matchID = ? AND OPL_ID_tournament = ?", [$game_id, $tournamentID])->fetch_row();
+		$game_DB = $dbcn->execute_query("SELECT RIOT_matchID FROM games WHERE RIOT_matchID = ?", [$game_id])->fetch_assoc();
+		$gtm_DB = $dbcn->execute_query("SELECT * FROM games_to_matches WHERE RIOT_matchID = ? AND OPL_ID_matches = ?", [$game_id, $matchID])->fetch_assoc();
+		$git_DB = $dbcn->execute_query("SELECT * FROM games_in_tournament WHERE RIOT_matchID = ? AND OPL_ID_tournament = ?", [$game_id, $tournamentID])->fetch_assoc();
 
 		$blue_team_win = $game['info']['teams'][0]['win'];
 		$game_result = $response["data"]["result"]["result_segments"][$game_num];
