@@ -1315,7 +1315,10 @@ function create_playercard(mysqli $dbcn, $playerID, $teamID, $tournamentID, $det
     $team = $dbcn->execute_query("SELECT * FROM teams WHERE OPL_ID = ?", [$teamID])->fetch_assoc();
 	$team_name = $dbcn->execute_query("SELECT * FROM team_name_history WHERE OPL_ID_team = ? AND (update_time < ? OR ? IS NULL) ORDER BY update_time DESC", [$team["OPL_ID"],$tournament["dateEnd"],$tournament["dateEnd"]])->fetch_assoc();
 	$team_in_tournament = $dbcn->execute_query("SELECT * FROM teams_in_tournaments WHERE OPL_ID_team = ? AND OPL_ID_group IN (SELECT OPL_ID FROM tournaments WHERE (eventType = 'group' OR (eventType='league' AND format='swiss')) AND OPL_ID_top_parent = ?)", [$teamID, $tournamentID])->fetch_assoc();
-    $group = $dbcn->execute_query("SELECT * FROM tournaments WHERE (eventType='group' OR (eventType='league' AND format='swiss')) AND OPL_ID = ?", [$team_in_tournament["OPL_ID_group"]])->fetch_assoc();
+	if ($team_in_tournament == null) {
+		$team_in_tournament = $dbcn->execute_query("SELECT * FROM teams_in_tournaments WHERE OPL_ID_team = ? AND OPL_ID_group IN (SELECT OPL_ID FROM tournaments WHERE eventType = 'wildcard' AND OPL_ID_top_parent = ?)", [$teamID, $tournamentID])->fetch_assoc();
+	}
+	$group = $dbcn->execute_query("SELECT * FROM tournaments WHERE (eventType='group' OR (eventType='league' AND format='swiss') OR eventType = 'wildcard') AND OPL_ID = ?", [$team_in_tournament["OPL_ID_group"]])->fetch_assoc();
 	$league = $dbcn->execute_query("SELECT * FROM tournaments WHERE eventType='league' AND OPL_ID = ?", [$group["OPL_ID_parent"]])->fetch_assoc();
 	if ($group["format"]=="swiss") $league = $group;
 	if ($detail_stats) {
@@ -1361,8 +1364,14 @@ function create_playercard(mysqli $dbcn, $playerID, $teamID, $tournamentID, $det
 	$result .= "</a>";
 	// Team Details im Turnier
 	$group_title = ($group["format"] == "swiss") ? "Swiss-Gruppe" : " Gruppe {$group["number"]}";
-	$result .= "<a class='player-card-div player-card-group' href='turnier/$tournamentID/gruppe/{$group["OPL_ID"]}'>";
-	$result .= "<span>Liga {$league["number"]} - $group_title</span>";
+	if ($group["eventType"] == "wildcard") {
+		$wc_comb_num = ($group["numberRangeTo"] == null) ? $group["number"] : $group["number"]."-".$group["numberRangeTo"];
+		$result .= "<a class='player-card-div player-card-group' href='turnier/$tournamentID/wildcard/{$group["OPL_ID"]}'>";
+		$result .= "<span> Wildcard Liga $wc_comb_num</span>";
+	} else {
+		$result .= "<a class='player-card-div player-card-group' href='turnier/$tournamentID/gruppe/{$group["OPL_ID"]}'>";
+		$result .= "<span>Liga {$league["number"]} - $group_title</span>";
+	}
 	$result .= "</a>";
 	// detailed Stats
 	if ($detail_stats) {
