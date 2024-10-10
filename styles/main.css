@@ -85,9 +85,16 @@ body {
 	background-color: var(--main-bg-color);
 	margin: 0;
 }
+@font-face {
+	font-family: 'DM Sans';
+	font-stretch: normal;
+	font-style: normal;
+	font-weight: 100 900;
+	src: url('/fonts/DMSans-VariableFont.ttf') format('truetype');
+}
 * {
 	color: var(--text-color);
-	font-family: "Arial","sans-serif";
+	font-family: "DM Sans","Arial","sans-serif";
 }
 span {
 	color: var(--text-color);
