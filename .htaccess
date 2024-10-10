@@ -24,6 +24,10 @@ RewriteRule ^turnier/(.+)/teams$ ./pages/teams-list?tournament=$1 [NC,L,QSA]
 ## redirect elo-overview
 RewriteRule ^turnier/(.+)/elo$ ./pages/elo-overview?tournament=$1 [NC,L,QSA]
 
+## redirect wildcard-tournaments
+RewriteRule ^turnier/(.+)/wildcard$ ./pages/tournament-details?tournament=$1 [NC,L]
+RewriteRule ^turnier/(.+)/wildcard/(.+)$ ./pages/wildcard-details?tournament=$1&wildcard=$2 [NC,L,QSA]
+
 ## redirect groups
 RewriteRule ^turnier/(.+)/gruppe$ ./pages/tournament-details?tournament=$1 [NC,L]
 RewriteRule ^turnier/(.+)/gruppe/(.+)$ ./pages/group-details?tournament=$1&group=$2 [NC,L,QSA]

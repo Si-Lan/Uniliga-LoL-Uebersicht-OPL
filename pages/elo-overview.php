@@ -32,6 +32,7 @@ if (preg_match("/^(winter|sommer)([0-9]{2})$/",strtolower($tournamentID),$url_pa
 
 $tournament = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID = ? AND eventType = 'tournament'", [$tournamentID])->fetch_assoc();
 $leagues = $dbcn->execute_query("SELECT * FROM tournaments WHERE eventType='league' AND OPL_ID_parent = ? AND deactivated = FALSE ORDER BY number", [$tournamentID])->fetch_all(MYSQLI_ASSOC);
+$wildcards = $dbcn->execute_query("SELECT * FROM tournaments WHERE eventType='wildcard' AND OPL_ID_top_parent = ? AND deactivated = FALSE ORDER BY number", [$tournamentID])->fetch_all(MYSQLI_ASSOC);
 $second_ranked_split = get_second_ranked_split_for_tournament($dbcn, $tournamentID, string:true);
 $current_split = get_current_ranked_split($dbcn,$tournamentID);
 $use_second_split = ($second_ranked_split == $current_split);
@@ -57,6 +58,38 @@ echo create_header($dbcn, title: "tournament", tournament_id: $tournamentID);
 echo create_tournament_nav_buttons(tournament_id: $tournament_url_path, dbcn: $dbcn, active: "elo");
 
 echo "<h2 class='pagetitle'>Elo/Rang-Übersicht</h2>";
+
+$stage_loaded = $_REQUEST['stage'] ?? null;
+if ($stage_loaded == null) {
+    if (count($leagues)>0) {
+        $stage_loaded = "groups";
+        $groups_active = "active";
+    } else {
+        $groups_active = "";
+    }
+    if (count($wildcards)>0 && count($leagues)==0) {
+        $stage_loaded = "wildcard";
+        $wildcard_active = "active";
+    } else {
+        $wildcard_active = "";
+    }
+
+} else {
+    if ($stage_loaded == "wildcard" && count($wildcards)>0) {
+        $wildcard_active = "active";
+        $groups_active = "";
+    } else {
+        $wildcard_active = "";
+        $groups_active = "active";
+    }
+}
+?>
+    <div id="elolist_switch_stage_buttons" <?php if (count($leagues) == 0 || count($wildcards) == 0) echo "style='display:none'" ?>>
+            <button type="button" class="elolist_switch_stage <?php echo $wildcard_active?>" data-stage="wildcard" data-tournament="<?php echo $tournamentID ?>">Wildcard-Turnier</button>
+            <button type="button" class="elolist_switch_stage <?php echo $groups_active?>" data-stage="groups" data-tournament="<?php echo $tournamentID ?>">Gruppenphase</button>
+    </div>
+<?php
+
 echo "<div class='search-wrapper'>
                 <span class='searchbar'>
                     <input class=\"search-teams-elo $tournamentID deletable-search\" oninput='search_teams_elo()' placeholder='Team suchen' type='text'>
@@ -77,12 +110,14 @@ if ($filtered === "liga") {
 	$active_all = " active";
 	$color_by = "Liga";
 }
-echo "
+
+?>
             <div class='filter-button-wrapper'>
-                <a class='button filterb all-teams$active_all' onclick='switch_elo_view(\"{$tournamentID}\",\"all-teams\")' href='turnier/$tournament_url_path/elo'>Alle Ligen</a>
-                <a class='button filterb div-teams$active_div' onclick='switch_elo_view(\"{$tournamentID}\",\"div-teams\")' href='turnier/$tournament_url_path/elo?view=liga'>Pro Liga</a>
-                <a class='button filterb group-teams$active_group' onclick='switch_elo_view(\"{$tournamentID}\",\"group-teams\")' href='turnier/$tournament_url_path/elo?view=gruppe'>Pro Gruppe</a>
-            </div>";
+                <a class='button filterb all-teams<?php echo $active_all?>' onclick='switch_elo_view("<?php echo $tournamentID?>","all-teams")' href='turnier/<?php echo $tournament_url_path?>/elo'>Alle Ligen</a>
+                <a class='button filterb div-teams<?php echo $active_div?>' onclick='switch_elo_view("<?php echo $tournamentID?>","div-teams")' href='turnier/<?php echo $tournament_url_path?>/elo?view=liga'>Pro Liga</a>
+                <a class='button filterb group-teams<?php echo $active_group?>' onclick='switch_elo_view("<?php echo $tournamentID?>","group-teams")' href='turnier/<?php echo $tournament_url_path?>/elo?view=gruppe' <?php if ($stage_loaded != "groups") echo "style='display: none'" ?>>Pro Gruppe</a>
+            </div>
+<?php
 if (isset($_GET['colored'])) {
 	echo "
             <div class='settings-button-wrapper'>
@@ -115,11 +150,11 @@ echo "
             </div>";
 echo "
             <div class='main-content$color'>";
-if ($filtered == "liga") {
+if ($filtered == "liga" && $stage_loaded == "groups") {
 	foreach ($leagues as $league) {
 		echo generate_elo_list($dbcn,"div",$tournamentID,$league["OPL_ID"],second_ranked_split: $use_second_split);
 	}
-} elseif ($filtered == "gruppe") {
+} elseif ($filtered == "gruppe" && $stage_loaded == "groups") {
 	foreach ($leagues as $league) {
         if ($league["format"] == "swiss") {
             echo generate_elo_list($dbcn,"group",$tournamentID,$league["OPL_ID"],$league["OPL_ID"],second_ranked_split: $use_second_split);
@@ -130,6 +165,12 @@ if ($filtered == "liga") {
 			echo generate_elo_list($dbcn,"group",$tournamentID,$league["OPL_ID"],$group["OPL_ID"],second_ranked_split: $use_second_split);
 		}
 	}
+} elseif ($filtered == "liga" && $stage_loaded == "wildcard") {
+    foreach ($wildcards as $wildcard) {
+        echo generate_elo_list($dbcn,"wildcard",$tournamentID,$wildcard["OPL_ID"],second_ranked_split: $use_second_split);
+    }
+} elseif ($stage_loaded == "wildcard") {
+    echo generate_elo_list($dbcn,"all-wildcard",$tournamentID,second_ranked_split: $use_second_split);
 } else {
 	echo generate_elo_list($dbcn,"all",$tournamentID,second_ranked_split: $use_second_split);
 }

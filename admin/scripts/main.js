@@ -89,6 +89,7 @@ function write_tournament(tournamentID = null, from_related = false) {
 	data.ranked_season = $(`${additional_related} .${id_class} label.write_tournament_ranked_season input`).val();
 	data.ranked_split = $(`${additional_related} .${id_class} label.write_tournament_ranked_split input`).val();
 	console.log(data);
+	if ($('.content-loading-indicator').length === 0) $('body').append("<div class='content-loading-indicator'></div>");
 	fetch(`./admin/ajax/get-opl-data.php`, {
 		method: "GET",
 		headers: {
@@ -98,12 +99,16 @@ function write_tournament(tournamentID = null, from_related = false) {
 	})
 		.then(res => res.text())
 		.then(result => {
+			$('.content-loading-indicator').remove();
 			const dialog_content = $("dialog.write-result-popup .dialog-content");
 			dialog_content.html("");
 			dialog_content.append(result);
 			$("dialog.write-result-popup")[0].showModal();
 		})
-		.catch(e => console.error(e));
+		.catch(e => {
+			$('.content-loading-indicator').remove();
+			console.error(e);
+		});
 }
 
 let related_events_fetch_control = null;
@@ -262,10 +267,10 @@ function get_players_for_tournament(tournamentID) {
 					.then(res => res.json())
 					.then(result => {
 						console.log(result);
-						loadingbar_width += 100/teams.length;
-						button.attr("style",`--loading-bar-width:${loadingbar_width}%`);
 					})
 					.catch(e => console.error(e));
+				loadingbar_width += 100/teams.length;
+				button.attr("style",`--loading-bar-width:${loadingbar_width}%`);
 				await new Promise(r => setTimeout(r, 1000));
 			}
 			button.prop("disabled", false);
@@ -302,10 +307,10 @@ function get_summonerNames_for_tournament(tournamentID) {
 					.then(res => res.json())
 					.then(result => {
 						console.log(result);
-						loadingbar_width += 100/teams.length;
-						button.attr("style",`--loading-bar-width:${loadingbar_width}%`);
 					})
 					.catch(e => console.error(e));
+				loadingbar_width += 100/teams.length;
+				button.attr("style",`--loading-bar-width:${loadingbar_width}%`);
 				// no need to wait here, fetched php script sleeps for 1 sec at the end
 			}
 			button.prop("disabled", false);
@@ -341,10 +346,10 @@ function get_riotids_for_tournament(tournamentID) {
 					.then(res => res.json())
 					.then(result => {
 						console.log(result);
-						loadingbar_width += 100/teams.length;
-						button.attr("style",`--loading-bar-width:${loadingbar_width}%`);
 					})
 					.catch(e => console.error(e));
+				loadingbar_width += 100/teams.length;
+				button.attr("style",`--loading-bar-width:${loadingbar_width}%`);
 				// no need to wait here, fetched php script sleeps for 1 sec at the end
 			}
 			button.prop("disabled", false);
@@ -403,10 +408,10 @@ function get_results_for_tournament(tournamentID) {
 					.then(res => res.json())
 					.then(result => {
 						console.log(result);
-						loadingbar_width += 100/matches.length;
-						button.attr("style",`--loading-bar-width:${loadingbar_width}%`);
 					})
 					.catch(e => console.error(e));
+				loadingbar_width += 100/matches.length;
+				button.attr("style",`--loading-bar-width:${loadingbar_width}%`);
 				await new Promise(r => setTimeout(r, 1000));
 			}
 			button.prop("disabled", false);

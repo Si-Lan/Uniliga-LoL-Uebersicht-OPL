@@ -59,6 +59,11 @@ foreach ($leaguesDB as $league) {
 		$groups[$group["OPL_ID"]] = $group;
 	}
 }
+$wildcardsDB = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID_parent = ? AND eventType = 'wildcard'",[$tournamentID])->fetch_all(MYSQLI_ASSOC);
+$wildcards = [];
+foreach ($wildcardsDB as $wildcard) {
+    $wildcards[$wildcard["OPL_ID"]] = $wildcard;
+}
 
 
 echo "<h2 class='pagetitle'>Team-Liste</h2>";
@@ -143,13 +148,27 @@ $teams = $dbcn->execute_query("SELECT *
                                         FROM teams
                                             JOIN teams_in_tournaments tit ON teams.OPL_ID = tit.OPL_ID_team
                                         WHERE teams.OPL_ID <> -1
-                                            AND tit.OPL_ID_group IN (
+                                            AND (tit.OPL_ID_group IN (
                                                 SELECT OPL_ID
                                                 FROM tournaments
                                                 WHERE (eventType = 'group' OR (eventType = 'league' AND format = 'swiss'))
                                                     AND OPL_ID_top_parent = ?
-                                            )
-                                        ORDER BY teams.name", [$tournamentID])->fetch_all(MYSQLI_ASSOC);
+                                                )
+                                                OR (tit.OPL_ID_group IN (
+                                                        SELECT OPL_ID
+                                                        FROM tournaments
+                                                        WHERE eventType='wildcard' AND OPL_ID_top_parent = ?
+                                                        ) 
+                                                    AND teams.OPL_ID NOT IN (
+                                                        SELECT OPL_ID_team
+                                                        FROM teams_in_tournaments tit JOIN tournaments t ON tit.OPL_ID_group = t.OPL_ID
+                                                        WHERE (eventType = 'group' OR (eventType = 'league' AND format = 'swiss')) AND OPL_ID_top_parent = ?
+                                                        )
+                                                    )
+                                                ) 
+                                        ORDER BY teams.name", [$tournamentID,$tournamentID,$tournamentID])->fetch_all(MYSQLI_ASSOC);
+
+
 
 $local_img_path = "img/team_logos/";
 $logo_filename = is_light_mode() ? "logo_light.webp" : "logo.webp";
@@ -158,7 +177,8 @@ foreach ($teams as $i_teams=>$team) {
 	$currTeam = $team["name"];
 	$currTeamID = $team["OPL_ID"];
 	$currTeamGroupID = $team["OPL_ID_group"];
-    if (array_key_exists($currTeamGroupID,$leagues)) {
+
+    if (array_key_exists($currTeamGroupID,$leagues) || array_key_exists($currTeamGroupID,$wildcards)) {
         $currTeamDivID = $currTeamGroupID;
     } else {
 		$currTeamDivID = $groups[$team["OPL_ID_group"]]["OPL_ID_parent"];
@@ -178,7 +198,10 @@ foreach ($teams as $i_teams=>$team) {
 				$team_rank .= " Gruppe {$groups[$currTeamGroupID]["number"]}";
 			}
 		}
-	}
+	} elseif (array_key_exists($currTeamGroupID,$wildcards)) {
+		$wildcard_numbers_combined = ($wildcards[$currTeamGroupID]["numberRangeTo"] == null) ? $wildcards[$currTeamGroupID]["number"] : $wildcards[$currTeamGroupID]["number"]."-".$wildcards[$currTeamGroupID]["numberRangeTo"];
+        $team_rank = "Wildcard-Turnier Liga ".$wildcard_numbers_combined;
+    }
 
 
 	if ($currTeamImgID == NULL || !file_exists("../$local_img_path{$currTeamImgID}/logo.webp")) {

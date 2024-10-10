@@ -251,20 +251,29 @@ function create_tournament_nav_buttons(string|int $tournament_id, mysqli $dbcn, 
             </div>";
 
 	if ($group_id != NULL && $active != "group") {
-		$group = $dbcn->execute_query("SELECT * FROM tournaments WHERE (eventType = 'group' OR (eventType = 'league' AND format = 'swiss')) AND OPL_ID = ?",[$group_id])->fetch_assoc();
+		$group = $dbcn->execute_query("SELECT * FROM tournaments WHERE (eventType = 'group' OR (eventType = 'league' AND format = 'swiss') OR eventType = 'wildcard') AND OPL_ID = ?",[$group_id])->fetch_assoc();
 		$div = $dbcn->execute_query("SELECT * FROM tournaments WHERE eventType = 'league' AND OPL_ID = ?",[$group['OPL_ID_parent']])->fetch_assoc();
+		$group_url_segment = "gruppe";
 		if ($group["format"] === "swiss") {
 			$group_title = "Swiss-Gruppe";
 			$div = $group;
+		} elseif ($group["eventType"] === "wildcard") {
+			$wildcard_numbers_combined = ($group["numberRangeTo"] == null) ? $group["number"] : $group["number"]."-".$group["numberRangeTo"];
+			$group_title = "Wildcard-Turnier Liga ".$wildcard_numbers_combined;
+			$group_url_segment = "wildcard";
 		} else {
 			$group_title = "Gruppe {$group['number']}";
 		}
 		$result .= "
 			<div class='divider-vert'></div>
-			<a href='turnier/{$tournament_id}/gruppe/$group_id' class='button$group_a'>
-                <div class='material-symbol'>". file_get_contents(__DIR__."/../icons/material/table_rows.svg") ."</div>
-                Liga ".$div['number']." - $group_title
-            </a>";
+			<a href='turnier/{$tournament_id}/$group_url_segment/$group_id' class='button$group_a'>
+                <div class='material-symbol'>". file_get_contents(__DIR__."/../icons/material/table_rows.svg") ."</div>";
+		if ($group["eventType"] == "wildcard") {
+			$result .= $group_title;
+		} else {
+			$result .= "Liga ".$div['number']." - $group_title";
+		}
+		$result .= "</a>";
 	}
 
 	$tournament = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID = ?", [$tournament_id])->fetch_assoc();
@@ -272,8 +281,8 @@ function create_tournament_nav_buttons(string|int $tournament_id, mysqli $dbcn, 
 	$ranked_split = $tournament["ranked_split"];
 	$ranked_season_comb = "$ranked_season-$ranked_split";
 	$next_split = get_second_ranked_split_for_tournament($dbcn,$tournament_id);
-	$ranked_season_2 = $next_split["season"];
-	$ranked_split_2 = $next_split["split"];
+	$ranked_season_2 = $next_split["season"] ?? null;
+	$ranked_split_2 = $next_split["split"] ?? null;
 	$ranked_season_comb_2 = "$ranked_season_2-$ranked_split_2";
 
 	$current_split = get_current_ranked_split($dbcn, $tournament_id);
@@ -288,12 +297,13 @@ function create_tournament_nav_buttons(string|int $tournament_id, mysqli $dbcn, 
 					<div>
 						<input type='radio' id='ranked-split-radio-1' value='$ranked_season-$ranked_split' name='ranked-split' data-tournament='$tournament_id' $button1_checked>
 						<label for='ranked-split-radio-1'>Season $ranked_season Split $ranked_split</label>
-					</div>
+					</div>";
+	if ($next_split != null) $result .= "
 					<div>
 						<input type='radio' id='ranked-split-radio-2' value='$ranked_season_2-$ranked_split_2' name='ranked-split' data-tournament='$tournament_id' $button2_checked>
 						<label for='ranked-split-radio-2'>Season $ranked_season_2 Split $ranked_split_2</label>
-					</div>
-				</div>";
+					</div>";
+	$result .= "</div>";
 	$result .= "</div>";
 
 	$result .= "</div>";
@@ -323,7 +333,7 @@ function generate_elo_list(mysqli $dbcn,$view,$tournamentID,$divisionID=null,$gr
 												FROM teams t
 												    JOIN teams_in_tournaments tit ON t.OPL_ID = tit.OPL_ID_team
 												LEFT JOIN teams_tournament_rank as ttr ON ttr.OPL_ID_team = t.OPL_ID AND ttr.OPL_ID_tournament = ? AND second_ranked_split = ?
-												WHERE tit.OPL_ID_group IN (SELECT OPL_ID FROM tournaments WHERE eventType='group' AND OPL_ID_top_parent = ?) AND t.OPL_ID <> -1
+												WHERE tit.OPL_ID_group IN (SELECT OPL_ID FROM tournaments WHERE (eventType='group' OR (eventType='league' AND format='swiss')) AND OPL_ID_top_parent = ?) AND t.OPL_ID <> -1
 												ORDER BY ttr.avg_rank_num DESC", [$tournamentID,$second_ranked_split,$tournamentID])->fetch_all(MYSQLI_ASSOC);
 	} elseif ($view == "div") {
 		$results .= "
@@ -348,7 +358,26 @@ function generate_elo_list(mysqli $dbcn,$view,$tournamentID,$divisionID=null,$gr
 												LEFT JOIN teams_tournament_rank as ttr ON ttr.OPL_ID_team = t.OPL_ID AND ttr.OPL_ID_tournament = ? AND second_ranked_split = ?
 												WHERE tit.OPL_ID_group = ? AND t.OPL_ID <> -1
 												ORDER BY ttr.avg_rank_num DESC", [$tournamentID,$second_ranked_split,$group["OPL_ID"]])->fetch_all(MYSQLI_ASSOC);
-	}
+	} elseif ($view == "all-wildcard") {
+        $results .= "
+                    <h3>Wildcard-Turniere</h3>";
+        $teams = $dbcn->execute_query("SELECT *
+                                                FROM teams t
+                                                    JOIN teams_in_tournaments tit ON t.OPL_ID = tit.OPL_ID_team
+                                                LEFT JOIN teams_tournament_rank as ttr ON ttr.OPL_ID_team = t.OPL_ID AND ttr.OPL_ID_tournament = ? AND second_ranked_split = ?
+                                                WHERE tit.OPL_ID_group IN (SELECT OPL_ID FROM tournaments WHERE OPL_ID_top_parent = ? AND eventType = 'wildcard') AND t.OPL_ID > -1
+                                                ORDER BY ttr.avg_rank_num DESC", [$tournamentID,$second_ranked_split,$tournamentID])->fetch_all(MYSQLI_ASSOC);
+    } elseif ($view == "wildcard") {
+        $comb_wc_num = ($division["numberRangeTo"] == null) ? $division["number"]."  " : $division["number"]."-".$division["numberRangeTo"];
+        $results .= "
+                    <h3>Wildcard-Turnier Liga $comb_wc_num</h3>";
+        $teams = $dbcn->execute_query("SELECT *
+                                                FROM teams t
+                                                    JOIN teams_in_tournaments tit ON t.OPL_ID = tit.OPL_ID_team
+                                                LEFT JOIN teams_tournament_rank as ttr ON ttr.OPL_ID_team = t.OPL_ID AND ttr.OPL_ID_tournament = ? AND second_ranked_split = ?
+                                                WHERE tit.OPL_ID_group = ? AND t.OPL_ID > -1
+                                                ORDER BY ttr.avg_rank_num DESC", [$tournamentID,$second_ranked_split,$divisionID])->fetch_all(MYSQLI_ASSOC);
+    }
 	$results .= "
                     <div class='elo-list-row elo-list-header'>
                         <div class='elo-list-pre-header league'>Liga #</div>
@@ -361,7 +390,11 @@ function generate_elo_list(mysqli $dbcn,$view,$tournamentID,$divisionID=null,$gr
                     </div>";
 	$tournament = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID = ?", [$tournamentID])->fetch_assoc();
 	foreach ($teams as $team) {
-		$league = $dbcn->execute_query("SELECT * FROM tournaments WHERE eventType = 'league' AND (OPL_ID = ? OR OPL_ID = (SELECT OPL_ID_parent FROM tournaments WHERE OPL_ID = ?))", [$team["OPL_ID_group"],$team["OPL_ID_group"]])->fetch_assoc();
+        if (str_contains($view, "wildcard")) {
+            $league = $dbcn->execute_query("SELECT * FROM tournaments WHERE eventType='wildcard' AND OPL_ID = ?", [$team["OPL_ID_group"]])->fetch_assoc();
+        } else {
+            $league = $dbcn->execute_query("SELECT * FROM tournaments WHERE eventType = 'league' AND (OPL_ID = ? OR OPL_ID = (SELECT OPL_ID_parent FROM tournaments WHERE OPL_ID = ?))", [$team["OPL_ID_group"],$team["OPL_ID_group"]])->fetch_assoc();
+        }
 		$team_name = $dbcn->execute_query("SELECT * FROM team_name_history WHERE OPL_ID_team = ? AND (update_time < ? OR ? IS NULL) ORDER BY update_time DESC", [$team["OPL_ID"],$tournament["dateEnd"],$tournament["dateEnd"]])->fetch_assoc();
 		$curr_players = $dbcn->execute_query(
 			"SELECT p.*, pit.removed
@@ -374,10 +407,10 @@ function generate_elo_list(mysqli $dbcn,$view,$tournamentID,$divisionID=null,$gr
 		)->fetch_all(MYSQLI_ASSOC);
 		$curr_opgglink = $opgg_url;
 		$color_class = "";
-		if ($view == "all") {
+		if ($view == "all" || $view == "all-wildcard") {
 			$color_class = " liga".$league['number'];
-		} elseif ($view == "div" || $view == "group") {
-			$color_class = " rank".floor($team['avg_rank_num']);
+		} elseif ($view == "div" || $view == "group" || $view == "wildcard") {
+			$color_class = " rank".floor($team['avg_rank_num']??0);
 		}
 		foreach ($curr_players as $i_cop => $curr_player) {
 			if ($curr_player["removed"] || $curr_player["riotID_name"] == null) continue;
@@ -387,8 +420,14 @@ function generate_elo_list(mysqli $dbcn,$view,$tournamentID,$divisionID=null,$gr
 			$curr_opgglink .= urlencode($curr_player["riotID_name"]."#".$curr_player["riotID_tag"]);
 		}
 		$results .= "
-                    <div class='elo-list-row elo-list-team {$team['OPL_ID']}$color_class'>
-                        <div class='elo-list-pre league'>Liga {$league['number']}</div>
+                    <div class='elo-list-row elo-list-team {$team['OPL_ID']}$color_class'>";
+        if (str_contains($view, "wildcard")) {
+            $comb_wc_num = ($league["numberRangeTo"] == null) ? $league["number"]."  " : $league["number"]."-".$league["numberRangeTo"];
+            $results .= "<div class='elo-list-pre league'>Wc Liga $comb_wc_num</div>";
+        } else {
+            $results .= "<div class='elo-list-pre league'>Liga {$league['number']}</div>";
+        }
+        $results .= "
                         <a href='./team/".$team['OPL_ID']."' onclick='popup_team({$team['OPL_ID']},$tournamentID)' class='elo-list-item-wrapper'>
                             <div class='elo-list-item team'>";
 		if ($team['OPL_ID_logo'] != NULL && file_exists(__DIR__."/../$local_team_img{$team['OPL_ID_logo']}/logo.webp")) {
@@ -427,13 +466,65 @@ function generate_elo_list(mysqli $dbcn,$view,$tournamentID,$divisionID=null,$gr
 	return $results;
 }
 
+function create_matchhistory(mysqli $dbcn, $tournament_ID, $group_ID, $team_ID) {
+	$tournament = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID = ? AND eventType = 'tournament'", [$tournament_ID])->fetch_assoc();
+	$group = $dbcn->execute_query("SELECT * FROM tournaments WHERE (eventType='group' OR (eventType = 'league' AND format = 'swiss') OR eventType='wildcard') AND OPL_ID = ?", [$group_ID])->fetch_assoc();
+
+	$teams_from_groupDB = $dbcn->execute_query("SELECT * FROM teams JOIN teams_in_tournaments tit on teams.OPL_ID = tit.OPL_ID_team WHERE OPL_ID_group = ?", [$group["OPL_ID"]])->fetch_all(MYSQLI_ASSOC);
+	$teams_from_group = [];
+	foreach ($teams_from_groupDB as $i=>$team_from_group) {
+		$teams_from_group[$team_from_group['OPL_ID']] = $team_from_group;
+	}
+
+	$matches = $dbcn->execute_query("SELECT * FROM matchups WHERE OPL_ID_tournament = ? AND (OPL_ID_team1 = ? OR OPL_ID_team2 = ?) AND played IS TRUE", [$group["OPL_ID"],$team_ID,$team_ID])->fetch_all(MYSQLI_ASSOC);
+
+	foreach ($matches as $m=>$match) {
+		$games = $dbcn->execute_query("SELECT * FROM games g JOIN games_to_matches gtm on g.RIOT_matchID = gtm.RIOT_matchID WHERE OPL_ID_matches = ? ORDER BY g.RIOT_matchID",[$match['OPL_ID']])->fetch_all(MYSQLI_ASSOC);
+		$team1 = $teams_from_group[$match['OPL_ID_team1']];
+		$team2 = $teams_from_group[$match['OPL_ID_team2']];
+		$team1name = $dbcn->execute_query("SELECT * FROM team_name_history WHERE OPL_ID_team = ? AND (update_time < ? OR ? IS NULL) ORDER BY update_time DESC", [$team1["OPL_ID"],$tournament["dateEnd"],$tournament["dateEnd"]])->fetch_assoc();
+		$team2name = $dbcn->execute_query("SELECT * FROM team_name_history WHERE OPL_ID_team = ? AND (update_time < ? OR ? IS NULL) ORDER BY update_time DESC", [$team2["OPL_ID"],$tournament["dateEnd"],$tournament["dateEnd"]])->fetch_assoc();
+
+		if ($match['winner'] == $match['OPL_ID_team1']) {
+			$team1score = "win";
+			$team2score = "loss";
+		} elseif ($match['winner'] == $match['OPL_ID_team2']) {
+			$team1score = "loss";
+			$team2score = "win";
+		} else {
+			$team1score = "draw";
+			$team2score = "draw";
+		}
+		if ($m != 0) {
+			echo "<div class='divider rounds'></div>";
+		}
+		echo "<div id='{$match['OPL_ID']}' class='round-wrapper'>";
+		echo "
+                <h2 class='round-title'>
+                    <span class='round'>Runde {$match['playday']}: &nbsp</span>
+                    <span class='team $team1score'>{$team1name['name']}</span>
+                    <span class='score'><span class='$team1score'>{$match['team1Score']}</span>:<span class='$team2score'>{$match['team2Score']}</span></span>
+                    <span class='team $team2score'>{$team2name['name']}</span>
+                </h2>";
+		if ($games == NULL) {
+			echo "</div>";
+			continue;
+		}
+		foreach ($games as $game) {
+			$gameID = $game['RIOT_matchID'];
+			echo create_game($dbcn,$gameID,$team_ID,tournamentID: $tournament_ID);
+		}
+		echo "</div>";
+	}
+}
+
 function create_standings(mysqli $dbcn, $tournament_id, $group_id, $team_id=NULL):string {
 	$result = "";
 	$opgg_url = "https://www.op.gg/multisearch/euw?summoners=";
 	$local_img_path = "img/team_logos/";
     $logo_filename = is_light_mode() ? "logo_light.webp" : "logo.webp";
 	$opgg_logo_svg = file_get_contents(__DIR__."/../img/opgglogo.svg");
-	$group = $dbcn->execute_query("SELECT * FROM tournaments WHERE (eventType = 'group' OR (eventType = 'league' AND format = 'swiss')) AND OPL_ID = ?",[$group_id])->fetch_assoc();
+	$group = $dbcn->execute_query("SELECT * FROM tournaments WHERE (eventType = 'group' OR (eventType = 'league' AND format = 'swiss') OR eventType = 'wildcard') AND OPL_ID = ?",[$group_id])->fetch_assoc();
 	$div = $dbcn->execute_query("SELECT * FROM tournaments WHERE eventType = 'league' AND OPL_ID = ?",[$group['OPL_ID_parent']])->fetch_assoc();
 	$teams_from_groupDB = $dbcn->execute_query("SELECT teams.*, tit.*, ttr.*, ttr2.avg_rank_tier as avg_rank_tier_2, ttr2.avg_rank_div as avg_rank_div_2
 														FROM teams
@@ -465,6 +556,9 @@ function create_standings(mysqli $dbcn, $tournament_id, $group_id, $team_id=NULL
 	$result .= "<div class='standings'>";
 	if ($team_id == NULL) {
 		$result .= "<div class='title'><h3>Standings</h3></div>";
+	} elseif ($group["eventType"] == "wildcard") {
+		$wildcard_numbering = ($group["numberRangeTo"] == null) ? "{$group['number']}" : "{$group['number']}-{$group["numberRangeTo"]}";
+		$result .= "<div class='title'><h3>Standings Wildcard-Turnier Liga $wildcard_numbering</h3></div>";
 	} elseif ($group["format"] == "swiss") {
 		$result .= "<div class='title'><h3>Standings Liga {$group['number']}</h3></div>";
 	} else {
@@ -560,7 +654,8 @@ function create_matchbutton(mysqli $dbcn,$match_id,$type,$tournament_id,$team_id
 	$result = "";
 	$pageurl = $_SERVER['REQUEST_URI'];
 	$opl_match_url = "https://www.opleague.pro/match/";
-	if ($type == "groups" || $type == "playoffs") {
+	$type = ($type == "group") ? "groups" : $type;
+	if ($type == "groups" || $type == "playoffs" || $type == "wildcard") {
 		$match = $dbcn->execute_query("SELECT * FROM matchups WHERE OPL_ID = ?",[$match_id])->fetch_assoc();
 	} else {
 		return "";
@@ -648,7 +743,7 @@ function create_matchbutton(mysqli $dbcn,$match_id,$type,$tournament_id,$team_id
 	return $result;
 }
 
-function create_team_nav_buttons($tournamentID,$groupID,$team,$active,$playoffID=null,$updatediff="unbekannt", bool $hide_update = false):string {
+function create_team_nav_buttons($tournamentID,$groupID,$team,$active,$allGroupIDs=null,$playoffID=null,$updatediff="unbekannt", bool $hide_update = false):string {
 	$result = "";
 	$details_a = $matchhistory_a = $stats_a = "";
 	if ($active == "details") {
@@ -682,7 +777,7 @@ function create_team_nav_buttons($tournamentID,$groupID,$team,$active,$playoffID
 	if ($active == "details" && !$hide_update) {
 		$result .= "
 				<div class='updatebuttonwrapper'>
-           			<button type='button' class='icononly user_update_team update_data' data-team='$team_id' data-tournament='$tournamentID' data-group='$groupID' $data_playoff><div class='material-symbol'>".file_get_contents(__DIR__."/../icons/material/sync.svg")."</div></button>
+           			<button type='button' class='icononly user_update_team update_data' data-team='$team_id' data-tournament='$tournamentID' data-group='$groupID' data-groups='$allGroupIDs' $data_playoff><div class='material-symbol'>".file_get_contents(__DIR__."/../icons/material/sync.svg")."</div></button>
 					<span>letztes Update:<br>$updatediff</span>
 				</div>";
 	}
@@ -1221,7 +1316,10 @@ function create_playercard(mysqli $dbcn, $playerID, $teamID, $tournamentID, $det
     $team = $dbcn->execute_query("SELECT * FROM teams WHERE OPL_ID = ?", [$teamID])->fetch_assoc();
 	$team_name = $dbcn->execute_query("SELECT * FROM team_name_history WHERE OPL_ID_team = ? AND (update_time < ? OR ? IS NULL) ORDER BY update_time DESC", [$team["OPL_ID"],$tournament["dateEnd"],$tournament["dateEnd"]])->fetch_assoc();
 	$team_in_tournament = $dbcn->execute_query("SELECT * FROM teams_in_tournaments WHERE OPL_ID_team = ? AND OPL_ID_group IN (SELECT OPL_ID FROM tournaments WHERE (eventType = 'group' OR (eventType='league' AND format='swiss')) AND OPL_ID_top_parent = ?)", [$teamID, $tournamentID])->fetch_assoc();
-    $group = $dbcn->execute_query("SELECT * FROM tournaments WHERE (eventType='group' OR (eventType='league' AND format='swiss')) AND OPL_ID = ?", [$team_in_tournament["OPL_ID_group"]])->fetch_assoc();
+	if ($team_in_tournament == null) {
+		$team_in_tournament = $dbcn->execute_query("SELECT * FROM teams_in_tournaments WHERE OPL_ID_team = ? AND OPL_ID_group IN (SELECT OPL_ID FROM tournaments WHERE eventType = 'wildcard' AND OPL_ID_top_parent = ?)", [$teamID, $tournamentID])->fetch_assoc();
+	}
+	$group = $dbcn->execute_query("SELECT * FROM tournaments WHERE (eventType='group' OR (eventType='league' AND format='swiss') OR eventType = 'wildcard') AND OPL_ID = ?", [$team_in_tournament["OPL_ID_group"]])->fetch_assoc();
 	$league = $dbcn->execute_query("SELECT * FROM tournaments WHERE eventType='league' AND OPL_ID = ?", [$group["OPL_ID_parent"]])->fetch_assoc();
 	if ($group["format"]=="swiss") $league = $group;
 	if ($detail_stats) {
@@ -1267,8 +1365,14 @@ function create_playercard(mysqli $dbcn, $playerID, $teamID, $tournamentID, $det
 	$result .= "</a>";
 	// Team Details im Turnier
 	$group_title = ($group["format"] == "swiss") ? "Swiss-Gruppe" : " Gruppe {$group["number"]}";
-	$result .= "<a class='player-card-div player-card-group' href='turnier/$tournamentID/gruppe/{$group["OPL_ID"]}'>";
-	$result .= "<span>Liga {$league["number"]} - $group_title</span>";
+	if ($group["eventType"] == "wildcard") {
+		$wc_comb_num = ($group["numberRangeTo"] == null) ? $group["number"] : $group["number"]."-".$group["numberRangeTo"];
+		$result .= "<a class='player-card-div player-card-group' href='turnier/$tournamentID/wildcard/{$group["OPL_ID"]}'>";
+		$result .= "<span> Wildcard Liga $wc_comb_num</span>";
+	} else {
+		$result .= "<a class='player-card-div player-card-group' href='turnier/$tournamentID/gruppe/{$group["OPL_ID"]}'>";
+		$result .= "<span>Liga {$league["number"]} - $group_title</span>";
+	}
 	$result .= "</a>";
 	// detailed Stats
 	if ($detail_stats) {
@@ -1500,9 +1604,12 @@ function create_teamcard(mysqli $dbcn, $teamID, $tournamentID) {
 	} elseif ($tournament["eventType"] == "league" && $tournament["format"] == "swiss") {
 		$league = $tournament;
 		$parent_tournament = $dbcn->execute_query("SELECT * FROM tournaments WHERE eventType = 'tournament' AND OPL_ID = ?",[$tournament["OPL_ID_top_parent"]])->fetch_assoc();
+	} elseif ($tournament["eventType"] == "wildcard") {
+		$league = $tournament;
+		$parent_tournament = $dbcn->execute_query("SELECT * FROM tournaments WHERE eventType = 'tournament' AND OPL_ID = ?",[$tournament["OPL_ID_top_parent"]])->fetch_assoc();
 	} else {
 		//TODO: playoffs
-		return;
+		return "";
 	}
 	$team_name_current = $dbcn->execute_query("SELECT * FROM team_name_history WHERE OPL_ID_team = ? AND (update_time < ? OR ? IS NULL) ORDER BY update_time DESC",[$teamID,$tournament["dateEnd"],$tournament["dateEnd"]])->fetch_assoc();
 	$team_logo_current = $dbcn->execute_query("SELECT * FROM team_logo_history WHERE OPL_ID_team = ? AND (update_time < ? OR ? IS NULL) ORDER BY update_time DESC",[$teamID,$tournament["dateEnd"],$tournament["dateEnd"]])->fetch_assoc();
@@ -1538,9 +1645,11 @@ function create_teamcard(mysqli $dbcn, $teamID, $tournamentID) {
 	$result .= "</a>";
 
 	// Liga und Gruppe
-	$group_title = ($tournament["format"] == "swiss") ? "Swiss-Gruppe" : "Gruppe {$tournament["number"]}";
-	$result .= "<a class='team-card-div team-card-league' href='turnier/{$parent_tournament["OPL_ID"]}/gruppe/{$tournament["OPL_ID"]}'>";
-	$result .= "Liga ".$league["number"]." - $group_title";
+	$league_number = ($league["numberRangeTo"] == NULL) ? $league["number"] : $league["number"]."-".$league["numberRangeTo"];
+	$group_title = ($tournament["eventType"] == "wildcard") ? "Wildcard-Turnier" : (($tournament["format"] == "swiss") ? "Swiss-Gruppe" : "Gruppe {$tournament["number"]}");
+	$group_url_segment = ($tournament["eventType"] == "wildcard") ? "wildcard" : "gruppe";
+	$result .= "<a class='team-card-div team-card-league' href='turnier/{$parent_tournament["OPL_ID"]}/$group_url_segment/{$tournament["OPL_ID"]}'>";
+	$result .= "Liga ".$league_number." - $group_title";
 	$result .= "</a>";
 
 	// Link zu Teamseite

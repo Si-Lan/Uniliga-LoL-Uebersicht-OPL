@@ -437,7 +437,7 @@ function get_Rank_by_SummonerId($playerID) {
 	$returnArr["echo"] .= "<span style='color: royalblue'>writing Rank for {$player['name']} :<br></span>";
 
 	$today = date("Y-m-d");
-	$current_ranked_split = $dbcn->execute_query("SELECT * FROM lol_ranked_splits WHERE split_start < ? AND (split_end > ? OR split_end IS NULL) ORDER BY season DESC, split DESC", [$today, $today])->fetch_assoc();
+	$current_ranked_split = $dbcn->execute_query("SELECT * FROM lol_ranked_splits WHERE split_start < ? AND (split_end > ? OR split_end IS NULL OR split_end = '0000-00-00') ORDER BY season DESC, split DESC", [$today, $today])->fetch_assoc();
 
 	if ($player["summonerID"] == NULL) {
 		$returnArr["echo"] .= "<span style='color: orangered'>--could not get Rank, SummonerID is missing<br></span>";
@@ -484,7 +484,7 @@ function get_Rank_by_SummonerId($playerID) {
 		} else {
 			$returnArr["echo"] .= "<span style='color: orangered'>--no matching Ranked Split found for today, is today between two splits, or is the current splits date not set?<br></span>";
 		}
-		$dbcn->query("UPDATE players SET rank_tier = '{$tier}', rank_div = '{$div}', rank_LP = '{$league_points}' WHERE OPL_ID = {$playerID}");
+		$dbcn->execute_query("UPDATE players SET rank_tier = ?, rank_div = ?, rank_LP = ? WHERE OPL_ID = ?",[$tier,$div,$league_points,$playerID]);
 		$returnArr["echo"] .= "<span>---writing for current Rank<br></span>";
 
 		$returnArr["echo"] .= "<span style='color: lawngreen'>---write Rank to DB<br></span>";

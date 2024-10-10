@@ -45,7 +45,7 @@ if ($type == "get_teams_for_tournament") {
 	$deletemissing = ($deletemissing == "true");
 	$tournament = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID = ?", [$id])->fetch_assoc();
 	if ($tournament["eventType"] == "tournament") {
-		$groups = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID_top_parent = ? AND (eventType = 'group' OR (eventType = 'league' AND format = 'swiss'))",[$tournament["OPL_ID"]])->fetch_all(MYSQLI_ASSOC);
+		$groups = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID_top_parent = ? AND (eventType = 'group' OR (eventType = 'league' AND format = 'swiss') OR eventType='wildcard')",[$tournament["OPL_ID"]])->fetch_all(MYSQLI_ASSOC);
 		foreach ($groups as $group) {
 			array_push($result, ...get_teams_for_tournament($group["OPL_ID"], $deletemissing));
 			sleep(1);

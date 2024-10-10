@@ -336,7 +336,7 @@ function get_teams_for_tournament($tournamentID, bool $deletemissing = false):ar
 	}
 
 	$tournament = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID = ?", [$tournamentID])->fetch_assoc();
-	if (!($tournament["eventType"] == "group" || $tournament["eventType"] == "playoffs" || ($tournament["eventType"] == "league" && $tournament["format"] == "swiss"))) {
+	if (!($tournament["eventType"] == "group" || $tournament["eventType"] == "playoffs" || ($tournament["eventType"] == "league" && $tournament["format"] == "swiss") || $tournament["eventType"] == "wildcard")) {
 		return [];
 	}
 
@@ -584,7 +584,7 @@ function update_team($teamID):array {
 	];
 }
 
-// works only for tournaments with eventType group
+// works only for tournaments with eventType group/playoffs/swiss-league/wildcard
 function get_players_for_tournament($tournamentID):array {
 	$returnArr = [];
 	$dbcn = create_dbcn();
@@ -595,7 +595,7 @@ function get_players_for_tournament($tournamentID):array {
 
 	$tournament = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID = ?", [$tournamentID])->fetch_assoc();
 
-	if (!($tournament["eventType"] == "group" || $tournament["eventType"] == "playoffs" || ($tournament["eventType"] == "league" && $tournament["format"] == "swiss"))) {
+	if (!($tournament["eventType"] == "group" || $tournament["eventType"] == "playoffs" || ($tournament["eventType"] == "league" && $tournament["format"] == "swiss")  || $tournament["eventType"] == "wildcard")) {
 		return [];
 	}
 
@@ -624,7 +624,7 @@ function get_players_for_team($teamID, $tournamentID):array {
 	$current_time = time();
 	$parent_tournament = $dbcn->execute_query("SELECT * FROM tournaments WHERE eventType='tournament' AND OPL_ID = ? OR (OPL_ID = (SELECT OPL_ID_top_parent FROM tournaments WHERE OPL_ID = ?))",[$tournamentID, $tournamentID])->fetch_assoc();
 	$parent_tournamentID = $parent_tournament["OPL_ID"];
-	$tournament_end = strtotime($parent_tournament["dateEnd"]);
+	$tournament_end = strtotime($parent_tournament["dateEnd"]??"");
 
 	$url = "https://www.opleague.pro/api/v4/team/$teamID/users";
 	$options = ["http" => [
@@ -813,7 +813,7 @@ function get_matchups_for_tournament($tournamentID, bool $deletemissing = false)
 
 	$tournament = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID = ?", [$tournamentID])->fetch_assoc();
 
-	if (!($tournament["eventType"] == "group" || $tournament["eventType"] == "playoffs" || ($tournament["eventType"] == "league" && $tournament["format"] == "swiss"))) {
+	if (!($tournament["eventType"] == "group" || $tournament["eventType"] == "playoffs" || ($tournament["eventType"] == "league" && $tournament["format"] == "swiss") || $tournament["eventType"] == "wildcard")) {
 		return [];
 	}
 
@@ -963,9 +963,9 @@ function get_results_for_matchup($matchID):array {
 		$game_id = $game["metadata"]["matchId"];
 		$updated["games"][$game_id]  = ["newgame"=>false, "updated_gtm"=>false];
 
-		$game_DB = $dbcn->execute_query("SELECT RIOT_matchID FROM games WHERE RIOT_matchID = ?", [$game_id])->fetch_row();
-		$gtm_DB = $dbcn->execute_query("SELECT * FROM games_to_matches WHERE RIOT_matchID = ? AND OPL_ID_matches = ?", [$game_id, $matchID])->fetch_row();
-		$git_DB = $dbcn->execute_query("SELECT * FROM games_in_tournament WHERE RIOT_matchID = ? AND OPL_ID_tournament = ?", [$game_id, $tournamentID])->fetch_row();
+		$game_DB = $dbcn->execute_query("SELECT RIOT_matchID FROM games WHERE RIOT_matchID = ?", [$game_id])->fetch_assoc();
+		$gtm_DB = $dbcn->execute_query("SELECT * FROM games_to_matches WHERE RIOT_matchID = ? AND OPL_ID_matches = ?", [$game_id, $matchID])->fetch_assoc();
+		$git_DB = $dbcn->execute_query("SELECT * FROM games_in_tournament WHERE RIOT_matchID = ? AND OPL_ID_tournament = ?", [$game_id, $tournamentID])->fetch_assoc();
 
 		$blue_team_win = $game['info']['teams'][0]['win'];
 		$game_result = $response["data"]["result"]["result_segments"][$game_num];
@@ -1009,7 +1009,7 @@ function calculate_standings_from_matchups($tournamentID):array {
 
 	$tournament = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID = ?", [$tournamentID])->fetch_assoc();
 
-	if (!($tournament["eventType"] == "group" || ($tournament["eventType"] == "league" && $tournament["format"] == "swiss"))) {
+	if (!($tournament["eventType"] == "group" || ($tournament["eventType"] == "league" && $tournament["format"] == "swiss") || $tournament["eventType"] == "wildcard")) {
 		return [];
 	}
 

@@ -705,28 +705,54 @@ function switch_elo_view(tournamentID,view) {
 	let group_b = $('.filter-button-wrapper .group-teams');
 	let color_b = $('.settings-button-wrapper .button span');
 
-	if (view === "all-teams") {
+    stage = $(`button.elolist_switch_stage.active`).attr("data-stage");
+
+	if (view === "all-teams" && stage === "groups") {
 		but.removeClass('active');
 		all_b.addClass('active');
+		group_b.css("display","");
 		url.searchParams.delete("view");
+		url.searchParams.delete("stage");
 		window.history.replaceState({}, '', url);
 		add_elo_team_list(area,tournamentID,"all");
 		color_b.text("Nach Liga einfärben");
-	} else if (view === "div-teams") {
+	} else if (view === "div-teams" && stage === "groups") {
 		but.removeClass('active');
 		div_b.addClass('active');
+		group_b.css("display","");
 		url.searchParams.set("view","liga");
+		url.searchParams.delete("stage");
 		window.history.replaceState({}, '', url);
 		add_elo_team_list(area,tournamentID,"div");
 		color_b.text("Nach Rang einfärben");
-	} else if (view === "group-teams") {
+	} else if (view === "group-teams" && stage === "groups") {
 		but.removeClass('active');
 		group_b.addClass('active');
+		group_b.css("display","");
 		url.searchParams.set("view","gruppe");
+		url.searchParams.delete("stage");
 		window.history.replaceState({}, '', url);
 		add_elo_team_list(area,tournamentID,"group");
 		color_b.text("Nach Rang einfärben");
-	}
+	} else if (view === "all-teams" && stage === "wildcard") {
+		but.removeClass('active');
+		all_b.addClass('active');
+		group_b.css("display","none");
+		url.searchParams.delete("view");
+		url.searchParams.set("stage","wildcard");
+		window.history.replaceState({}, '', url);
+		add_elo_team_list(area,tournamentID,"all","wildcard");
+		color_b.text("Nach Liga einfärben");
+	} else if (view === "div-teams" && stage === "wildcard") {
+        but.removeClass('active');
+        div_b.addClass('active');
+        group_b.css("display","none");
+        url.searchParams.set("view","liga");
+        url.searchParams.set("stage","wildcard");
+        window.history.replaceState({}, '', url);
+        add_elo_team_list(area,tournamentID,"div","wildcard");
+        color_b.text("Nach Liga einfärben");
+    }
 }
 
 function jump_to_league_elo(div_num) {
@@ -736,11 +762,13 @@ function jump_to_league_elo(div_num) {
 }
 
 let elo_list_fetch_control = null;
-function add_elo_team_list(area,tournamentID,type) {
+function add_elo_team_list(area,tournamentID,type,stage="groups") {
 	let displaytype = "none";
 	if (type === "div" || type === "group") {
 		displaytype = ""
 	}
+
+	if ($('.content-loading-indicator').length === 0) $('body').append("<div class='content-loading-indicator'></div>");
 
 	if (elo_list_fetch_control !== null) elo_list_fetch_control.abort();
 	elo_list_fetch_control = new AbortController();
@@ -750,6 +778,7 @@ function add_elo_team_list(area,tournamentID,type) {
 		headers: {
 			"TournamentID": tournamentID,
 			"type": type,
+			"stage": stage,
 		},
 		signal: elo_list_fetch_control.signal,
 	})
@@ -758,8 +787,10 @@ function add_elo_team_list(area,tournamentID,type) {
 			area.empty();
 			area.append(list);
 			$('.jump-button-wrapper').css("display",displaytype);
+			$('.content-loading-indicator').remove();
 		})
 		.catch(error => {
+			$('.content-loading-indicator').remove();
 			if (error.name === "AbortError") {
 				console.warn(error)
 			} else {
@@ -1675,6 +1706,8 @@ async function user_update_team(button) {
 	let team_ID = button.getAttribute("data-team");
 	let tournamentID = button.getAttribute("data-tournament");
 	let groupID = button.getAttribute("data-group");
+	let groupIDs = button.getAttribute("data-groups");
+	groupIDs = groupIDs.split(" ");
 	let playoffID = button.getAttribute("data-playoff") ?? null;
 	$(button).addClass("user_updating");
 	button.disabled = true;
@@ -1796,30 +1829,38 @@ async function user_update_team(button) {
 	loading_width = 35;
 	button.style.setProperty("--update-loading-bar-width", `${loading_width}%`);
 
-	await fetch(`ajax/user-update-functions.php`, {
-		method: "GET",
-		headers: {
-			type: "teams_from_group",
-			groupID: groupID,
-		}
-	})
-		.catch(e => console.error(e));
+	for (const groupID1 of groupIDs) {
+		await fetch(`ajax/user-update-functions.php`, {
+            method: "GET",
+            headers: {
+                type: "teams_from_group",
+                groupID: groupID1,
+            }
+        })
+            .catch(e => console.error(e));
 
-	await new Promise(r => setTimeout(r, 1000));
+		await new Promise(r => setTimeout(r, 1000));
+		loading_width += 10/groupIDs.length;
+		button.style.setProperty("--update-loading-bar-width", `${loading_width}%`);
+    }
 
 	loading_width = 45;
 	button.style.setProperty("--update-loading-bar-width", `${loading_width}%`);
 
-	await fetch(`ajax/user-update-functions.php`, {
-		method: "GET",
-		headers: {
-			type: "matchups_from_group",
-			groupid: groupID,
-		}
-	})
-		.catch(e => console.error(e));
+    for (const groupID1 of groupIDs) {
+		await fetch(`ajax/user-update-functions.php`, {
+            method: "GET",
+            headers: {
+                type: "matchups_from_group",
+                groupid: groupID1,
+            }
+        })
+            .catch(e => console.error(e));
 
-	await new Promise(r => setTimeout(r, 1000));
+		await new Promise(r => setTimeout(r, 1000));
+		loading_width += 15/groupIDs.length;
+		button.style.setProperty("--update-loading-bar-width", `${loading_width}%`);
+    }
 
 	loading_width = 60;
 	button.style.setProperty("--update-loading-bar-width", `${loading_width}%`);
@@ -1838,34 +1879,39 @@ async function user_update_team(button) {
 	loading_width = 70;
 	button.style.setProperty("--update-loading-bar-width", `${loading_width}%`);
 
-	await fetch(`ajax/get-data.php`, {
-		method: "GET",
-		headers: {
-			type: "matchups",
-			tournamentID: groupID,
-			teamid: team_ID,
-			idonly: "true",
-		}
-	})
-		.then(res => res.json())
-		.then(async matchids => {
-			for (const match of matchids) {
-				await fetch(`ajax/user-update-functions.php`, {
-					method: "GET",
-					headers: {
-						type: "matchresult",
-						matchid: match,
-					}
-				})
-					.then(() => {
-						loading_width = loading_width + 25/matchids.length;
-						button.style.setProperty("--update-loading-bar-width", `${loading_width}%`);
-					})
-					.catch(e => console.error(e));
-				await new Promise(r => setTimeout(r, 1000));
+	for (const groupID1 of groupIDs) {
+		await fetch(`ajax/get-data.php`, {
+			method: "GET",
+			headers: {
+				type: "matchups",
+				tournamentID: groupID1,
+				teamid: team_ID,
+				idonly: "true",
 			}
 		})
-		.catch(e => console.error(e));
+			.then(res => res.json())
+			.then(async matchids => {
+				for (const match of matchids) {
+					await fetch(`ajax/user-update-functions.php`, {
+						method: "GET",
+						headers: {
+							type: "matchresult",
+							matchid: match,
+						}
+					})
+						.then(() => {
+							loading_width = loading_width + 25/matchids.length;
+							button.style.setProperty("--update-loading-bar-width", `${loading_width}%`);
+						})
+						.catch(e => console.error(e));
+					await new Promise(r => setTimeout(r, 1000));
+				}
+			})
+			.catch(e => console.error(e));
+
+		loading_width += 20/groupIDs.length;
+		button.style.setProperty("--update-loading-bar-width", `${loading_width}%`);
+	}
 
 	loading_width = 90;
 	button.style.setProperty("--update-loading-bar-width", `${loading_width}%`);
@@ -1902,14 +1948,16 @@ async function user_update_team(button) {
 	loading_width = 95;
 	button.style.setProperty("--update-loading-bar-width", `${loading_width}%`);
 
-	await fetch(`./admin/ajax/get-opl-data.php`, {
-		method: "GET",
-		headers: {
-			"type": "calculate_standings_from_matchups",
-			"id": groupID,
-		}
-	})
-		.catch(e => console.error(e));
+	for (const groupID1 of groupIDs) {
+		await fetch(`./admin/ajax/get-opl-data.php`, {
+			method: "GET",
+			headers: {
+				"type": "calculate_standings_from_matchups",
+				"id": groupID,
+			}
+		})
+			.catch(e => console.error(e));
+	}
 
 	loading_width = 100;
 	button.style.setProperty("--update-loading-bar-width", `${loading_width}%`);
@@ -1958,11 +2006,17 @@ async function user_update_team(button) {
 		})
 		.catch(e => console.error(e));
 
+	const groupButtons = $("button.teampage_switch_group");
+	const activeGroupButton = $("button.teampage_switch_group.active");
+	let activeGroupID = (activeGroupButton.length === 0) ? groupID : activeGroupButton.eq(0).attr("data-group");
+
+	groupButtons.prop("disabled", true);
+
 	fetch(`ajax/create-page-elements.php`, {
 		method: "GET",
 		headers: {
 			type: "standings",
-			groupID: groupID,
+			groupID: activeGroupID,
 			teamid: team_ID,
 		}
 	})
@@ -1972,28 +2026,33 @@ async function user_update_team(button) {
 		})
 		.catch(e => console.error(e));
 
+	let match_fetches = [];
 	let matchbuttons = $("div.match-button-wrapper");
 	for (const matchbutton of matchbuttons) {
 		let match_ID = matchbutton.getAttribute("data-matchid");
 		let tournament_ID = matchbutton.getAttribute("data-tournamentid");
 		let matchtype = matchbutton.getAttribute("data-matchtype");
-		fetch(`ajax/create-page-elements.php`, {
-			method: "GET",
-			headers: {
-				type: "matchbutton",
-				matchid: match_ID,
-				tournamentid: tournament_ID,
-				matchtype: matchtype,
-				teamid: team_ID,
-			}
-		})
-			.then(res => res.text())
-			.then(new_matchbutton => {
-				$(matchbutton).replaceWith(new_matchbutton);
+		match_fetches.push(
+			fetch(`ajax/create-page-elements.php`, {
+				method: "GET",
+				headers: {
+					type: "matchbutton",
+					matchid: match_ID,
+					tournamentid: tournament_ID,
+					matchtype: matchtype,
+					teamid: team_ID,
+				}
 			})
-			.catch(e => console.error(e));
+				.then(res => res.text())
+				.then(new_matchbutton => {
+					$(matchbutton).replaceWith(new_matchbutton);
+				})
+				.catch(e => console.error(e))
+		);
 	}
-
+	Promise.all(match_fetches).then(() => {
+		groupButtons.prop("disabled", false);
+	});
 }
 $(document).ready(function () {
 	$(".user_update_team").on("click", function () {
@@ -2487,3 +2546,127 @@ function getCookie(cname) {
 function close_warningheader() {
 	$(".warning-header").remove();
 }
+
+let team_event_switch_control = null;
+function switch_team_event(page, event_id, team_id, playoff_id = null,tournament_ID = null) {
+	const buttons = $(`#teampage_switch_group_buttons .teampage_switch_group`);
+	const button = $(`#teampage_switch_group_buttons .teampage_switch_group[data-group=${event_id}]`);
+
+	buttons.removeClass("active");
+	button.addClass("active");
+
+	if (team_event_switch_control !== null) team_event_switch_control.abort();
+	team_event_switch_control = new AbortController();
+
+	if (page === "details") {
+		if ($('.content-loading-indicator').length === 0) $('body').append("<div class='content-loading-indicator'></div>");
+		let page_updates = [];
+		page_updates.push(
+			fetch(`ajax/create-page-elements`, {
+				method: "GET",
+				headers: {
+					"type": "standings",
+					"groupid": event_id,
+					"teamid": team_id,
+				},
+				signal: team_event_switch_control.signal,
+			})
+				.then(res => res.text())
+				.then(standings => {
+					$(".inner-content .standings").replaceWith(standings);
+				})
+				.catch(error => {
+					if (error.name === "AbortError") {
+						console.warn(error)
+					} else {
+						console.error(error)
+					}
+				}));
+		page_updates.push(
+			fetch(`ajax/create-page-elements`, {
+				method: "GET",
+				headers: {
+					"type": "matchbutton-list-team",
+					"groupid": event_id,
+					"teamid": team_id,
+					"playoffid": playoff_id,
+				},
+				signal: team_event_switch_control.signal,
+			})
+				.then(res => res.text())
+				.then(matchlist => {
+					$(".inner-content .matches .match-content").replaceWith(matchlist);
+				})
+				.catch(error => {
+					if (error.name === "AbortError") {
+						console.warn(error)
+					} else {
+						console.error(error)
+					}
+				}));
+		Promise.all(page_updates).then(()=>{
+			$('.content-loading-indicator').remove();
+		})
+	} else if (page === "matchhistory") {
+		if ($('.content-loading-indicator').length === 0) $('body').append("<div class='content-loading-indicator'></div>");
+		fetch(`ajax/create-page-elements`, {
+			method: "GET",
+			headers: {
+				"type": "matchhistory",
+				"groupid": event_id,
+				"teamid": team_id,
+				"tournamentid": tournament_ID,
+			},
+			signal: team_event_switch_control.signal,
+		})
+			.then(res => res.text())
+			.then(matchhistory => {
+				$("div.round-wrapper").remove();
+				$("div.divider.rounds").remove();
+				$("#teampage_switch_group_buttons").after(matchhistory);
+				$('button.expand-game-details').on("click", expand_collapse_game);
+				$('.content-loading-indicator').remove();
+			})
+			.catch(error => {
+				$('.content-loading-indicator').remove();
+				if (error.name === "AbortError") {
+					console.warn(error)
+				} else {
+					console.error(error)
+				}
+			});
+	}
+}
+$(()=>{
+	$(".teampage_switch_group").on("click", function () {
+		const groupID = $(this).attr("data-group");
+		const teamID = $(this).attr("data-team");
+		const playoffID = $(this).attr("data-playoff") ?? null;
+		const tournamentID = $(this).attr("data-tournament") ?? null;
+		const pagetype = $("body").hasClass("match-history") ? "matchhistory" : "details";
+		switch_team_event(pagetype,groupID,teamID,playoffID,tournamentID);
+	});
+})
+
+function switch_tournament_stage(stage) {
+	$(`div.divisions-list`).css("display", "none");
+	$(`div.divisions-list.${stage}`).css("display", "flex");
+	$(`button.tournamentpage_switch_stage`).removeClass("active");
+	$(`button.tournamentpage_switch_stage[data-stage=${stage}]`).addClass("active");
+}
+function switch_elolist_stage(tournamentID,stage) {
+    $(`button.elolist_switch_stage`).removeClass("active");
+    $(`button.elolist_switch_stage[data-stage=${stage}]`).addClass("active");
+	switch_elo_view(tournamentID,"all-teams",stage);
+}
+$(()=>{
+	$(".tournamentpage_switch_stage").on("click", function () {
+		const stage = $(this).attr("data-stage");
+		switch_tournament_stage(stage);
+	});
+	$(".elolist_switch_stage").on("click", function () {
+		const stage = $(this).attr("data-stage");
+		const tournamentID = $(this).attr("data-tournament");
+		switch_elolist_stage(tournamentID,stage);
+	});
+})

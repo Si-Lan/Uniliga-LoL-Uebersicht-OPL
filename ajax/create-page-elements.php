@@ -17,8 +17,8 @@ if ($type == "standings") {
 	}
 
 	$group = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID = ?", [$group_ID])->fetch_assoc();
-	if ($group["eventType"] != "group") exit;
-	$tourn_ID = $dbcn->execute_query("SELECT OPL_ID_parent FROM tournaments WHERE eventType='league' AND OPL_ID = ?", [$group["OPL_ID_parent"]])->fetch_column();
+	if (!($group["eventType"] == "group" || ($group["eventType"] == "league" && $group["format"] == "swiss") || $group["eventType"] == "wildcard")) exit;
+	$tourn_ID = $group["OPL_ID_top_parent"];
 	echo create_standings($dbcn, $tourn_ID, $group_ID, $team_ID);
 }
 if ($type == "matchbutton") {
@@ -29,6 +29,32 @@ if ($type == "matchbutton") {
 
 	$group_ID = $dbcn->execute_query("SELECT OPL_ID_tournament FROM matchups WHERE OPL_ID = ?", [$match_ID])->fetch_column();
 	echo create_matchbutton($dbcn, $match_ID, $matchtype, $tournament_ID,  $team_ID);
+}
+if ($type == "matchbutton-list-team") {
+	$team_ID = $_SERVER["HTTP_TEAMID"] ?? $_REQUEST['team'] ?? NULL;
+	$group_ID = $_SERVER["HTTP_GROUPID"] ?? $_REQUEST['group'] ?? NULL;
+	$playoff_ID = $_SERVER["HTTP_PLAYOFFID"] ?? $_REQUEST['playoff'] ?? NULL;
+
+	$matches = $dbcn->execute_query("SELECT * FROM matchups WHERE OPL_ID_tournament = ? AND (OPL_ID_team1 = ? OR OPL_ID_team2 = ?)", [$group_ID,$team_ID,$team_ID])->fetch_all(MYSQLI_ASSOC);
+	$group = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID = ?", [$group_ID])->fetch_assoc();
+	$tournament_ID = $group["OPL_ID_top_parent"];
+	$matchtype = $group["eventType"];
+
+	echo "<div class='match-content content'>";
+	foreach ($matches as $match) {
+		echo create_matchbutton($dbcn,$match['OPL_ID'],$matchtype,$tournament_ID,$team_ID);
+	}
+
+	$matches_playoffs = $dbcn->execute_query("SELECT * FROM matchups WHERE OPL_ID_tournament = ? AND (OPL_ID_team1 = ? OR OPL_ID_team2 = ?)", [$playoff_ID,$team_ID,$team_ID])->fetch_all(MYSQLI_ASSOC);
+
+	if ($matches_playoffs != null && count($matches_playoffs) > 0) {
+		echo "<h4>Playoffs</h4>";
+	}
+	foreach ($matches_playoffs as $match) {
+		echo create_matchbutton($dbcn,$match['OPL_ID'],"playoffs",$tournament_ID,$team_ID);
+	}
+
+	echo "</div>";
 }
 if ($type == "summoner-card-container") {
 	$team_ID = $_SERVER['HTTP_TEAMID'] ?? $_REQUEST["team"] ?? NULL;
@@ -61,4 +87,13 @@ if ($type == "summoner-card-container") {
 	}
 	echo "</div>";
 }
+
+if ($type == "matchhistory") {
+	$team_ID = $_SERVER["HTTP_TEAMID"] ?? $_REQUEST['team'] ?? NULL;
+	$group_ID = $_SERVER["HTTP_GROUPID"] ?? $_REQUEST['group'] ?? NULL;
+	$tournament_ID = $_SERVER["HTTP_TOURNAMENTID"] ?? $_REQUEST['tournament'] ?? NULL;
+
+	create_matchhistory($dbcn, $tournament_ID, $group_ID, $team_ID);
+}
+
 $dbcn->close();

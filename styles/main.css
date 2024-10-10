@@ -85,9 +85,16 @@ body {
 	background-color: var(--main-bg-color);
 	margin: 0;
 }
+@font-face {
+	font-family: 'DM Sans';
+	font-stretch: normal;
+	font-style: normal;
+	font-weight: 100 900;
+	src: url('/fonts/DMSans-VariableFont.ttf') format('truetype');
+}
 * {
 	color: var(--text-color);
-	font-family: "Arial","sans-serif";
+	font-family: "DM Sans","Arial","sans-serif";
 }
 span {
 	color: var(--text-color);
@@ -1531,6 +1538,45 @@ div.team.title .team-titlebutton-wrapper a.active {
 .turnier-nav-buttons a.active {
 	border: var(--main-button-active-border) solid 1px;
 }
+#teampage_switch_group_buttons,
+#tournamentpage_switch_stage_buttons,
+#elolist_switch_stage_buttons {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: center;
+}
+#elolist_switch_stage_buttons {
+	margin-bottom: 16px;
+}
+#teampage_switch_group_buttons button,
+#tournamentpage_switch_stage_buttons button,
+#elolist_switch_stage_buttons button {
+	white-space: nowrap;
+	box-sizing: border-box;
+	border-left: var(--nav-button-divider) solid 1px;
+	border-radius: 0;
+}
+#teampage_switch_group_buttons button:first-child,
+#tournamentpage_switch_stage_buttons button:first-child,
+#elolist_switch_stage_buttons button:first-child {
+	border-left: 0;
+	border-radius: 6px 0 0 6px;
+}
+#teampage_switch_group_buttons button:last-child,
+#tournamentpage_switch_stage_buttons button:last-child,
+#elolist_switch_stage_buttons button:last-child {
+	border-radius: 0 6px 6px 0;
+}
+#teampage_switch_group_buttons button.teampage_switch_group.active,
+#tournamentpage_switch_stage_buttons button.tournamentpage_switch_stage.active,
+#elolist_switch_stage_buttons button.elolist_switch_stage.active {
+	background-color: var(--main-button-active);
+	pointer-events: none;
+	transform: scale(1.05);
+	box-sizing: border-box;
+	border: var(--main-button-active-border) solid 1px;
+}
 div.ranked-settings-wrapper {
 	position: relative;
 }
@@ -1578,7 +1624,7 @@ div.ranked-settings-popover {
 	flex-direction: column;
 	min-width: 128px;
 	gap: 8px;
-	z-index: 1;
+	z-index: 2;
 	box-shadow: 2px 2px 5px rgb(0 0 0 / 0.2);
 }
 button.ranked-settings:hover~div.ranked-settings-popover,
@@ -2282,6 +2328,9 @@ body.elo-overview .main-content .content {
 	font-size: 18px;
 	padding: 10px 20px;
 }
+.teams-elo-list.all-wildcard-teams .elo-list-team.liga1 .elo-list-pre.league {
+	padding-right: 36px;
+}
 .elo-list-item.team {
 	justify-content: flex-start;
 	flex: 4;
@@ -2664,6 +2713,37 @@ a.button.write.loading-data:hover {
 	100% {
 		transform: rotate(360deg);
 	}
+}
+.content-loading-indicator {
+	position: fixed;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+}
+.content-loading-indicator:after {
+	content: "";
+	display: block;
+	width: 28px;
+	aspect-ratio: 1 / 1;
+	margin: 8px;
+	border-radius: 50%;
+	border: 4px solid;
+	border-color: var(--text-color) transparent;
+	animation: lds-dual-ring 3s linear infinite;
+	pointer-events: none;
+}
+.content-loading-indicator:before {
+	content: "";
+	display: block;
+	position: fixed;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%,-50%);
+	height: 36px;
+	aspect-ratio: 2/1;
+	border-radius: 50%;
+	background: #1e1e1ea1;
+	box-shadow: 0 0 24px 24px #1e1e1ea1;
 }
 .popup-loading-indicator {
 	transition: opacity 200ms;
