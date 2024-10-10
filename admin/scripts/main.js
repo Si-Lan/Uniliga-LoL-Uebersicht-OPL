@@ -89,6 +89,7 @@ function write_tournament(tournamentID = null, from_related = false) {
 	data.ranked_season = $(`${additional_related} .${id_class} label.write_tournament_ranked_season input`).val();
 	data.ranked_split = $(`${additional_related} .${id_class} label.write_tournament_ranked_split input`).val();
 	console.log(data);
+	if ($('.content-loading-indicator').length === 0) $('body').append("<div class='content-loading-indicator'></div>");
 	fetch(`./admin/ajax/get-opl-data.php`, {
 		method: "GET",
 		headers: {
@@ -98,12 +99,16 @@ function write_tournament(tournamentID = null, from_related = false) {
 	})
 		.then(res => res.text())
 		.then(result => {
+			$('.content-loading-indicator').remove();
 			const dialog_content = $("dialog.write-result-popup .dialog-content");
 			dialog_content.html("");
 			dialog_content.append(result);
 			$("dialog.write-result-popup")[0].showModal();
 		})
-		.catch(e => console.error(e));
+		.catch(e => {
+			$('.content-loading-indicator').remove();
+			console.error(e);
+		});
 }
 
 let related_events_fetch_control = null;
