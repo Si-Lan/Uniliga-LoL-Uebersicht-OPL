@@ -281,8 +281,8 @@ function create_tournament_nav_buttons(string|int $tournament_id, mysqli $dbcn, 
 	$ranked_split = $tournament["ranked_split"];
 	$ranked_season_comb = "$ranked_season-$ranked_split";
 	$next_split = get_second_ranked_split_for_tournament($dbcn,$tournament_id);
-	$ranked_season_2 = $next_split["season"];
-	$ranked_split_2 = $next_split["split"];
+	$ranked_season_2 = $next_split["season"] ?? null;
+	$ranked_split_2 = $next_split["split"] ?? null;
 	$ranked_season_comb_2 = "$ranked_season_2-$ranked_split_2";
 
 	$current_split = get_current_ranked_split($dbcn, $tournament_id);
@@ -297,12 +297,13 @@ function create_tournament_nav_buttons(string|int $tournament_id, mysqli $dbcn, 
 					<div>
 						<input type='radio' id='ranked-split-radio-1' value='$ranked_season-$ranked_split' name='ranked-split' data-tournament='$tournament_id' $button1_checked>
 						<label for='ranked-split-radio-1'>Season $ranked_season Split $ranked_split</label>
-					</div>
+					</div>";
+	if ($next_split != null) $result .= "
 					<div>
 						<input type='radio' id='ranked-split-radio-2' value='$ranked_season_2-$ranked_split_2' name='ranked-split' data-tournament='$tournament_id' $button2_checked>
 						<label for='ranked-split-radio-2'>Season $ranked_season_2 Split $ranked_split_2</label>
-					</div>
-				</div>";
+					</div>";
+	$result .= "</div>";
 	$result .= "</div>";
 
 	$result .= "</div>";
