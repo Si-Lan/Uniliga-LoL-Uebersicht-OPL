@@ -254,13 +254,13 @@ function create_tournament_nav_buttons(string|int $tournament_id, mysqli $dbcn, 
 		$group = $dbcn->execute_query("SELECT * FROM tournaments WHERE (eventType = 'group' OR (eventType = 'league' AND format = 'swiss') OR eventType = 'wildcard') AND OPL_ID = ?",[$group_id])->fetch_assoc();
 		$div = $dbcn->execute_query("SELECT * FROM tournaments WHERE eventType = 'league' AND OPL_ID = ?",[$group['OPL_ID_parent']])->fetch_assoc();
 		$group_url_segment = "gruppe";
-		if ($group["format"] === "swiss") {
-			$group_title = "Swiss-Gruppe";
-			$div = $group;
-		} elseif ($group["eventType"] === "wildcard") {
+		if ($group["eventType"] === "wildcard") {
 			$wildcard_numbers_combined = ($group["numberRangeTo"] == null) ? $group["number"] : $group["number"]."-".$group["numberRangeTo"];
 			$group_title = "Wildcard-Turnier Liga ".$wildcard_numbers_combined;
 			$group_url_segment = "wildcard";
+		} elseif ($group["format"] === "swiss") {
+			$group_title = "Swiss-Gruppe";
+			$div = $group;
 		} else {
 			$group_title = "Gruppe {$group['number']}";
 		}
