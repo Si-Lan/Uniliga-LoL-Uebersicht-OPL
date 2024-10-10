@@ -2707,6 +2707,37 @@ a.button.write.loading-data:hover {
 		transform: rotate(360deg);
 	}
 }
+.content-loading-indicator {
+	position: fixed;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+}
+.content-loading-indicator:after {
+	content: "";
+	display: block;
+	width: 28px;
+	aspect-ratio: 1 / 1;
+	margin: 8px;
+	border-radius: 50%;
+	border: 4px solid;
+	border-color: var(--text-color) transparent;
+	animation: lds-dual-ring 3s linear infinite;
+	pointer-events: none;
+}
+.content-loading-indicator:before {
+	content: "";
+	display: block;
+	position: fixed;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%,-50%);
+	height: 36px;
+	aspect-ratio: 2/1;
+	border-radius: 50%;
+	background: #1e1e1ea1;
+	box-shadow: 0 0 24px 24px #1e1e1ea1;
+}
 .popup-loading-indicator {
 	transition: opacity 200ms;
 }

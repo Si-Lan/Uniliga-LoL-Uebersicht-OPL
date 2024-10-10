@@ -768,6 +768,8 @@ function add_elo_team_list(area,tournamentID,type,stage="groups") {
 		displaytype = ""
 	}
 
+	if ($('.content-loading-indicator').length === 0) $('body').append("<div class='content-loading-indicator'></div>");
+
 	if (elo_list_fetch_control !== null) elo_list_fetch_control.abort();
 	elo_list_fetch_control = new AbortController();
 
@@ -785,8 +787,10 @@ function add_elo_team_list(area,tournamentID,type,stage="groups") {
 			area.empty();
 			area.append(list);
 			$('.jump-button-wrapper').css("display",displaytype);
+			$('.content-loading-indicator').remove();
 		})
 		.catch(error => {
+			$('.content-loading-indicator').remove();
 			if (error.name === "AbortError") {
 				console.warn(error)
 			} else {
@@ -2555,48 +2559,56 @@ function switch_team_event(page, event_id, team_id, playoff_id = null,tournament
 	team_event_switch_control = new AbortController();
 
 	if (page === "details") {
-		fetch(`ajax/create-page-elements`, {
-			method: "GET",
-			headers: {
-				"type": "standings",
-				"groupid": event_id,
-				"teamid": team_id,
-			},
-			signal: team_event_switch_control.signal,
-		})
-			.then(res => res.text())
-			.then(standings => {
-				$(".inner-content .standings").replaceWith(standings);
+		if ($('.content-loading-indicator').length === 0) $('body').append("<div class='content-loading-indicator'></div>");
+		let page_updates = [];
+		page_updates.push(
+			fetch(`ajax/create-page-elements`, {
+				method: "GET",
+				headers: {
+					"type": "standings",
+					"groupid": event_id,
+					"teamid": team_id,
+				},
+				signal: team_event_switch_control.signal,
 			})
-			.catch(error => {
-				if (error.name === "AbortError") {
-					console.warn(error)
-				} else {
-					console.error(error)
-				}
-			});
-		fetch(`ajax/create-page-elements`, {
-			method: "GET",
-			headers: {
-				"type": "matchbutton-list-team",
-				"groupid": event_id,
-				"teamid": team_id,
-				"playoffid": playoff_id,
-			},
-			signal: team_event_switch_control.signal,
-		})
-			.then(res => res.text())
-			.then(matchlist => {
-				$(".inner-content .matches .match-content").replaceWith(matchlist);
+				.then(res => res.text())
+				.then(standings => {
+					$(".inner-content .standings").replaceWith(standings);
+				})
+				.catch(error => {
+					if (error.name === "AbortError") {
+						console.warn(error)
+					} else {
+						console.error(error)
+					}
+				}));
+		page_updates.push(
+			fetch(`ajax/create-page-elements`, {
+				method: "GET",
+				headers: {
+					"type": "matchbutton-list-team",
+					"groupid": event_id,
+					"teamid": team_id,
+					"playoffid": playoff_id,
+				},
+				signal: team_event_switch_control.signal,
 			})
-			.catch(error => {
-				if (error.name === "AbortError") {
-					console.warn(error)
-				} else {
-					console.error(error)
-				}
-			});
+				.then(res => res.text())
+				.then(matchlist => {
+					$(".inner-content .matches .match-content").replaceWith(matchlist);
+				})
+				.catch(error => {
+					if (error.name === "AbortError") {
+						console.warn(error)
+					} else {
+						console.error(error)
+					}
+				}));
+		Promise.all(page_updates).then(()=>{
+			$('.content-loading-indicator').remove();
+		})
 	} else if (page === "matchhistory") {
+		if ($('.content-loading-indicator').length === 0) $('body').append("<div class='content-loading-indicator'></div>");
 		fetch(`ajax/create-page-elements`, {
 			method: "GET",
 			headers: {
@@ -2613,8 +2625,10 @@ function switch_team_event(page, event_id, team_id, playoff_id = null,tournament
 				$("div.divider.rounds").remove();
 				$("#teampage_switch_group_buttons").after(matchhistory);
 				$('button.expand-game-details').on("click", expand_collapse_game);
+				$('.content-loading-indicator').remove();
 			})
 			.catch(error => {
+				$('.content-loading-indicator').remove();
 				if (error.name === "AbortError") {
 					console.warn(error)
 				} else {
