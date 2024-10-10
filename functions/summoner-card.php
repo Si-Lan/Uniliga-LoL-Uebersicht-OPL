@@ -6,8 +6,8 @@ function create_summonercard(mysqli $dbcn, $playerID, $tournamentID, $teamID = N
 	$player = $dbcn->execute_query("SELECT * FROM players p JOIN players_in_teams_in_tournament pitit on p.OPL_ID = pitit.OPL_ID_player AND OPL_ID_tournament = ? AND OPL_ID_team = ? LEFT JOIN stats_players_teams_tournaments spit ON p.OPL_ID = spit.OPL_ID_player AND pitit.OPL_ID_team = spit.OPL_ID_team AND pitit.OPL_ID_tournament = spit.OPL_ID_tournament WHERE p.OPL_ID = ?", [$tournamentID, $teamID, $playerID])->fetch_assoc();
 	$player_rank = $dbcn->execute_query("SELECT * FROM players_season_rank WHERE OPL_ID_player = ? AND season = ? AND split = ?", [$playerID, $season_1, $split_1])->fetch_assoc();
 	$next_split = get_second_ranked_split_for_tournament($dbcn,$tournamentID);
-	$season_2 = $next_split["season"];
-	$split_2 = $next_split["split"];
+	$season_2 = $next_split["season"] ?? null;
+	$split_2 = $next_split["split"] ?? null;
 	$player_rank_2 = $dbcn->execute_query("SELECT * FROM players_season_rank WHERE OPL_ID_player = ? AND season = ? AND split = ?", [$playerID, $season_2, $split_2])->fetch_assoc();
 	$current_split = get_current_ranked_split($dbcn, $tournamentID);
 
