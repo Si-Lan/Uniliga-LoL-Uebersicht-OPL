@@ -705,7 +705,7 @@ function switch_elo_view(tournamentID,view) {
 	let group_b = $('.filter-button-wrapper .group-teams');
 	let color_b = $('.settings-button-wrapper .button span');
 
-    stage = $(`button.elolist_switch_stage.active`).attr("data-stage");
+    let stage = $(`button.elolist_switch_stage.active`).attr("data-stage");
 
 	if (view === "all-teams" && stage === "groups") {
 		but.removeClass('active');
