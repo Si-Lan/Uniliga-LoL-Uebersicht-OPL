@@ -1900,7 +1900,7 @@ async function user_update_team(button) {
 						}
 					})
 						.then(() => {
-							loading_width = loading_width + 25/matchids.length;
+							loading_width = loading_width + (25/groupIDs.length)/matchids.length;
 							button.style.setProperty("--update-loading-bar-width", `${loading_width}%`);
 						})
 						.catch(e => console.error(e));
