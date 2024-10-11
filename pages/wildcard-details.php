@@ -56,7 +56,12 @@ if (isset($_GET['match'])) {
 $pageurl = $_SERVER['REQUEST_URI'];
 $opl_tourn_url = "https://www.opleague.pro/event/";
 
-$matches = $dbcn->execute_query("SELECT * FROM matchups WHERE OPL_ID_tournament = ? ORDER BY playday",[$wildcard['OPL_ID']])->fetch_all(MYSQLI_ASSOC);
+$matches = $dbcn->execute_query("
+                                        SELECT *
+                                        FROM matchups
+                                        WHERE OPL_ID_tournament = ?
+                                          AND NOT ((OPL_ID_team1 IS NULL || matchups.OPL_ID_team1 < 0) AND (OPL_ID_team2 IS NULL OR OPL_ID_team2 < 0))
+                                        ORDER BY playday",[$wildcard['OPL_ID']])->fetch_all(MYSQLI_ASSOC);
 $matches_grouped = [];
 foreach ($matches as $match) {
 	$matches_grouped[$match['playday']][] = $match;
