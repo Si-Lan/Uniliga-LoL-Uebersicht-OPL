@@ -61,10 +61,12 @@ $matches = $dbcn->execute_query("
                                         FROM matchups
                                         WHERE OPL_ID_tournament = ?
                                           AND NOT ((OPL_ID_team1 IS NULL || matchups.OPL_ID_team1 < 0) AND (OPL_ID_team2 IS NULL OR OPL_ID_team2 < 0))
-                                        ORDER BY playday",[$wildcard['OPL_ID']])->fetch_all(MYSQLI_ASSOC);
+                                        ORDER BY plannedDate",[$wildcard['OPL_ID']])->fetch_all(MYSQLI_ASSOC);
 $matches_grouped = [];
 foreach ($matches as $match) {
-	$matches_grouped[$match['playday']][] = $match;
+    $plannedDate = new DateTime($match['plannedDate']);
+    $plannedDay = $plannedDate->format("Y-m-d H");
+	$matches_grouped[$plannedDay][] = $match;
 }
 $teams_from_groupDB = $dbcn->execute_query("SELECT * FROM teams JOIN teams_in_tournaments tit ON teams.OPL_ID = tit.OPL_ID_team WHERE tit.OPL_ID_group = ? ORDER BY standing",[$wildcard['OPL_ID']])->fetch_all(MYSQLI_ASSOC);
 $teams_from_group = [];
@@ -179,9 +181,11 @@ if ($curr_matchID != NULL) {
                      </div>";
 }
 echo "<div class='match-content content'>";
+$roundCounter = 0;
 foreach ($matches_grouped as $roundNum=>$round) {
+    $roundCounter++;
 	echo "<div class='match-round'>
-                    <h4>Runde $roundNum</h4>
+                    <h4>Runde $roundCounter</h4>
                     <div class='divider'></div>
                     <div class='match-wrapper'>";
 	foreach ($round as $match) {
