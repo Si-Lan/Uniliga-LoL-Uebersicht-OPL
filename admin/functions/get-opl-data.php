@@ -1013,7 +1013,7 @@ function calculate_standings_from_matchups($tournamentID):array {
 		return [];
 	}
 
-	$teams = $dbcn->execute_query("SELECT * FROM teams JOIN teams_in_tournaments tit on teams.OPL_ID = tit.OPL_ID_team WHERE tit.OPL_ID_group = ? AND teams.OPL_ID <> -1", [$tournamentID])->fetch_all(MYSQLI_ASSOC);
+	$teams = $dbcn->execute_query("SELECT * FROM teams JOIN teams_in_tournaments tit on teams.OPL_ID = tit.OPL_ID_team WHERE tit.OPL_ID_group = ? AND teams.OPL_ID > -1", [$tournamentID])->fetch_all(MYSQLI_ASSOC);
 
 	$teams_standings = [];
 
