@@ -376,6 +376,11 @@ function get_teams_for_tournament($tournamentID, bool $deletemissing = false):ar
 		$updated = [];
 		$written = $logo_dl = false;
 
+		if ($team_data["OPL_ID"] < 0) {
+			$team_data["OPL_ID_logo"] = null;
+			$team_data["OPL_logo_url"] = null;
+		}
+
 		// in Datenbank nach Team suchen
 		$teamDB = $dbcn->execute_query("SELECT * FROM teams WHERE OPL_ID = ?", [$team_data["OPL_ID"]])->fetch_assoc();
 
@@ -829,6 +834,8 @@ function get_matchups_for_tournament($tournamentID, bool $deletemissing = false)
 
 	$data = $response["data"]["matches"];
 
+	$datetime_today = date("Y-m-d H:i:s");
+
 	$match_ids = [];
 
 	foreach ($data as $match) {
@@ -852,6 +859,22 @@ function get_matchups_for_tournament($tournamentID, bool $deletemissing = false)
 		$matchDB = $dbcn->execute_query("SELECT * FROM matchups WHERE OPL_ID = ?", [$match_data["OPL_ID"]])->fetch_assoc();
 
 		if ($matchDB == NULL) {
+			if ($match_data["OPL_ID_team1"] < 0) {
+				$defwin_test = $dbcn->execute_query("SELECT * FROM teams WHERE OPL_ID = ?",[$match_data["OPL_ID_team1"]])->fetch_assoc();
+				if ($defwin_test == null) {
+					$dbcn->execute_query("INSERT INTO teams (OPL_ID, name, shortName) VALUES (?,'Default Win','Def Win')",[$match_data["OPL_ID_team1"]]);
+					$dbcn->execute_query("INSERT INTO team_name_history (OPL_ID_team, name, shortName, update_time)
+										VALUES (?,'Default Win','Def Win',?)",[$match_data["OPL_ID_team1"], $datetime_today]);
+				}
+			}
+			if ($match_data["OPL_ID_team2"] < 0) {
+				$defwin_test = $dbcn->execute_query("SELECT * FROM teams WHERE OPL_ID = ?",[$match_data["OPL_ID_team2"]])->fetch_assoc();
+				if ($defwin_test == null) {
+					$dbcn->execute_query("INSERT INTO teams (OPL_ID, name, shortName) VALUES (?,'Default Win','Def Win')",[$match_data["OPL_ID_team2"]]);
+					$dbcn->execute_query("INSERT INTO team_name_history (OPL_ID_team, name, shortName, update_time)
+										VALUES (?,'Default Win','Def Win',?)",[$match_data["OPL_ID_team2"], $datetime_today]);
+				}
+			}
 			$written = true;
 			$dbcn->execute_query("INSERT INTO matchups (OPL_ID, OPL_ID_tournament, OPL_ID_team1, OPL_ID_team2, plannedDate, playday, bestOf, played)
 										VALUES (?, ?, ?, ?, ?, ?, ?, false)", [$match_data["OPL_ID"], $match_data["OPL_ID_tournament"], $match_data["OPL_ID_team1"], $match_data["OPL_ID_team2"], $match_data["plannedDate"], $match_data["playday"], $match_data["bestOf"]]);
@@ -1013,7 +1036,7 @@ function calculate_standings_from_matchups($tournamentID):array {
 		return [];
 	}
 
-	$teams = $dbcn->execute_query("SELECT * FROM teams JOIN teams_in_tournaments tit on teams.OPL_ID = tit.OPL_ID_team WHERE tit.OPL_ID_group = ? AND teams.OPL_ID <> -1", [$tournamentID])->fetch_all(MYSQLI_ASSOC);
+	$teams = $dbcn->execute_query("SELECT * FROM teams JOIN teams_in_tournaments tit on teams.OPL_ID = tit.OPL_ID_team WHERE tit.OPL_ID_group = ? AND teams.OPL_ID > -1", [$tournamentID])->fetch_all(MYSQLI_ASSOC);
 
 	$teams_standings = [];
 

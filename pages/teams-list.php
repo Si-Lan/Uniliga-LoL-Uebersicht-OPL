@@ -147,7 +147,7 @@ echo "<div class='no-search-res-text $tournamentID' style='display: none'>Kein T
 $teams = $dbcn->execute_query("SELECT *
                                         FROM teams
                                             JOIN teams_in_tournaments tit ON teams.OPL_ID = tit.OPL_ID_team
-                                        WHERE teams.OPL_ID <> -1
+                                        WHERE teams.OPL_ID > -1
                                             AND (tit.OPL_ID_group IN (
                                                 SELECT OPL_ID
                                                 FROM tournaments

@@ -12,9 +12,9 @@ function create_html_head_elements(array $css = [], array $js = [], string $titl
 	$result .= "<meta name='viewport' content='width=device-width, initial-scale=1'>";
 	$result .= "<link rel='icon' href='https://silence.lol/favicon-dark.ico' media='(prefers-color-scheme: dark)'/>";
 	$result .= "<link rel='icon' href='https://silence.lol/favicon-light.ico' media='(prefers-color-scheme: light)'/>";
-	$result .= "<link rel='stylesheet' href='styles/main.css?2'>";
+	$result .= "<link rel='stylesheet' href='styles/main.css?3'>";
 	$result .= "<script src='scripts/jquery-3.7.1.min.js'></script>";
-	$result .= "<script src='scripts/main.js?2'></script>";
+	$result .= "<script src='scripts/main.js?3'></script>";
 	// additional css
 	if (in_array("elo",$css)) {
 		$result .= "<link rel='stylesheet' href='styles/elo-rank-colors.css'>";
@@ -333,7 +333,7 @@ function generate_elo_list(mysqli $dbcn,$view,$tournamentID,$divisionID=null,$gr
 												FROM teams t
 												    JOIN teams_in_tournaments tit ON t.OPL_ID = tit.OPL_ID_team
 												LEFT JOIN teams_tournament_rank as ttr ON ttr.OPL_ID_team = t.OPL_ID AND ttr.OPL_ID_tournament = ? AND second_ranked_split = ?
-												WHERE tit.OPL_ID_group IN (SELECT OPL_ID FROM tournaments WHERE (eventType='group' OR (eventType='league' AND format='swiss')) AND OPL_ID_top_parent = ?) AND t.OPL_ID <> -1
+												WHERE tit.OPL_ID_group IN (SELECT OPL_ID FROM tournaments WHERE (eventType='group' OR (eventType='league' AND format='swiss')) AND OPL_ID_top_parent = ?) AND t.OPL_ID > -1
 												ORDER BY ttr.avg_rank_num DESC", [$tournamentID,$second_ranked_split,$tournamentID])->fetch_all(MYSQLI_ASSOC);
 	} elseif ($view == "div") {
 		$results .= "
@@ -342,7 +342,7 @@ function generate_elo_list(mysqli $dbcn,$view,$tournamentID,$divisionID=null,$gr
 												FROM teams t
 													JOIN teams_in_tournaments tit ON t.OPL_ID = tit.OPL_ID_team
 												LEFT JOIN teams_tournament_rank as ttr ON ttr.OPL_ID_team = t.OPL_ID AND ttr.OPL_ID_tournament = ? AND second_ranked_split = ?
-												WHERE (tit.OPL_ID_group IN (SELECT OPL_ID FROM tournaments WHERE OPL_ID_parent = ?) OR tit.OPL_ID_group = ?) AND t.OPL_ID <> -1
+												WHERE (tit.OPL_ID_group IN (SELECT OPL_ID FROM tournaments WHERE OPL_ID_parent = ?) OR tit.OPL_ID_group = ?) AND t.OPL_ID > -1
 												ORDER BY ttr.avg_rank_num DESC", [$tournamentID,$second_ranked_split,$division["OPL_ID"],$division["OPL_ID"]])->fetch_all(MYSQLI_ASSOC);
 	} elseif ($view == "group") {
 		if ($division["format"] === "swiss") {
@@ -356,7 +356,7 @@ function generate_elo_list(mysqli $dbcn,$view,$tournamentID,$divisionID=null,$gr
 												FROM teams t
 													JOIN teams_in_tournaments tit ON t.OPL_ID = tit.OPL_ID_team
 												LEFT JOIN teams_tournament_rank as ttr ON ttr.OPL_ID_team = t.OPL_ID AND ttr.OPL_ID_tournament = ? AND second_ranked_split = ?
-												WHERE tit.OPL_ID_group = ? AND t.OPL_ID <> -1
+												WHERE tit.OPL_ID_group = ? AND t.OPL_ID > -1
 												ORDER BY ttr.avg_rank_num DESC", [$tournamentID,$second_ranked_split,$group["OPL_ID"]])->fetch_all(MYSQLI_ASSOC);
 	} elseif ($view == "all-wildcard") {
         $results .= "
@@ -539,7 +539,7 @@ function create_standings(mysqli $dbcn, $tournament_id, $group_id, $team_id=NULL
 																	AND ttr2.OPL_ID_tournament = ?
 																	AND ttr2.second_ranked_split = true
 														WHERE tit.OPL_ID_group = ?
-															AND teams.OPL_ID <> -1
+															AND teams.OPL_ID > -1
 														ORDER BY IF((standing=0 OR standing IS NULL), 1, 0), standing",[$tournament_id,$tournament_id,$group_id])->fetch_all(MYSQLI_ASSOC);
 	$tournament = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID = ?", [$tournament_id])->fetch_assoc();
 	$ranked_split_1 = "{$tournament['ranked_season']}-{$tournament['ranked_split']}";
