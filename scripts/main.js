@@ -751,7 +751,7 @@ function switch_elo_view(tournamentID,view) {
         url.searchParams.set("stage","wildcard");
         window.history.replaceState({}, '', url);
         add_elo_team_list(area,tournamentID,"div","wildcard");
-        color_b.text("Nach Liga einfärben");
+        color_b.text("Nach Rang einfärben");
     }
 }
 
