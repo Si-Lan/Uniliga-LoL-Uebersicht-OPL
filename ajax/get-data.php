@@ -242,6 +242,8 @@ if ($type == "matchups") {
 	$tournamentID = $_SERVER["HTTP_TOURNAMENTID"] ?? NULL;
 	$teamID = $_SERVER["HTTP_TEAMID"] ?? NULL;
 	$id_only = isset($_SERVER["HTTP_IDONLY"]);
+	$unplayed_only = isset($_SERVER["HTTP_UNPLAYEDONLY"]);
+	$unplayed_addon = $unplayed_only ? "AND played IS FALSE" : "";
 	$tournament = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID = ?", [$tournamentID])->fetch_assoc();
 	$groups = [];
 	if ($tournament["eventType"] == "tournament") {
@@ -256,9 +258,9 @@ if ($type == "matchups") {
 	$matchups = [];
 	foreach ($groups as $group) {
 		if ($teamID == NULL) {
-			$matchup_from_group = $dbcn->execute_query("SELECT * FROM matchups WHERE OPL_ID_tournament = ?", [$group["OPL_ID"]])->fetch_all(MYSQLI_ASSOC);
+			$matchup_from_group = $dbcn->execute_query("SELECT * FROM matchups WHERE OPL_ID_tournament = ? {$unplayed_addon}", [$group["OPL_ID"]])->fetch_all(MYSQLI_ASSOC);
 		} else {
-			$matchup_from_group = $dbcn->execute_query("SELECT * FROM matchups WHERE OPL_ID_tournament = ? AND (OPL_ID_team1 = ? OR OPL_ID_team2 = ?)", [$group["OPL_ID"],$teamID,$teamID])->fetch_all(MYSQLI_ASSOC);
+			$matchup_from_group = $dbcn->execute_query("SELECT * FROM matchups WHERE OPL_ID_tournament = ? AND (OPL_ID_team1 = ? OR OPL_ID_team2 = ?) {$unplayed_addon}", [$group["OPL_ID"],$teamID,$teamID])->fetch_all(MYSQLI_ASSOC);
 		}
 		if ($id_only) {
 			foreach ($matchup_from_group as $matchup) {
