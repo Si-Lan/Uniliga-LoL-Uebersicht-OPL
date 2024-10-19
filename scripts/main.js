@@ -2312,12 +2312,13 @@ async function user_update_match(button) {
 		})
 			.then(res => res.text())
 			.then(data => {
-				let game_wrap = popup.find('.game' + i);
+				let game_wrap = popup.find(`.game${i}`);
 				if (current_match_in_popup === parseInt(match_ID)) {
 					game_wrap.empty();
 					game_wrap.append(data);
 					game_counter++;
 				}
+				popup.find(`.game${i} button.expand-game-details`).on("click", expand_collapse_game);
 			})
 			.catch(e => console.error(e));
 	}
