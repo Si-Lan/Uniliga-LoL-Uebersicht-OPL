@@ -505,6 +505,8 @@ function get_stats_for_players($teamID, $tournamentID) {
 		return $returnArr;
 	}
 
+	$position_to_role = ["top","jungle","middle","bottom","utility"];
+
 	$players = $dbcn->query("SELECT p.*, pit.OPL_ID_team FROM players p JOIN players_in_teams pit on p.OPL_ID = pit.OPL_ID_player WHERE OPL_ID_team = $teamID")->fetch_all(MYSQLI_ASSOC);
 
 	foreach ($players as $player) {
@@ -532,9 +534,28 @@ function get_stats_for_players($teamID, $tournamentID) {
 		foreach ($games as $game) {
 			if ($game["matchdata"] == null) continue;
 			$game_data = json_decode($game['matchdata'],true);
+			if (count($game_data['metadata']['participants']) < 10) continue;
 			if (in_array($player['PUUID'],$game_data['metadata']['participants'])) {
 				$index = array_search($player['PUUID'],$game_data['metadata']['participants']);
 				$position = strtolower($game_data['info']['participants'][$index]['teamPosition']);
+				$team_index = ($index < 5) ? 0 : 1;
+				if ($position == "") {
+					$possible_roles = ["top","jungle","middle","bottom","utility"];
+					for ($i = 0; $i < 5; $i++) {
+						if (count($game_data['metadata']['participants']) <= $i+($team_index*5)) break;
+						$mate_pos = $game_data['info']['participants'][$i+($team_index*5)]['teamPosition'];
+						if (($key = array_search($mate_pos, $possible_roles)) !== false) {
+							unset($possible_roles[$key]);
+						}
+					}
+					$possible_roles = array_values($possible_roles);
+					if (count($possible_roles) == 1) {
+						$position = $possible_roles[0];
+					}
+				}
+				if ($position == "") {
+					$position = $position_to_role[$index-($team_index*5)];
+				}
 				$roles[$position]++;
 				$champion = $game_data['info']['participants'][$index]['championName'];
 				$win = $game_data['info']['participants'][$index]['win'] ? 1 : 0;
@@ -839,6 +860,10 @@ function calculate_teamstats($teamID, $tournamentID) {
 			continue;
 		}
 		$game_data = json_decode($game['matchdata'],true);
+		if (count($game_data['metadata']['participants']) < 10) {
+			$games_played--;
+			continue;
+		}
 		if ($game['OPL_ID_blueTeam'] == $teamID) {
 			$side = 0;
 			$side_a = 1;
