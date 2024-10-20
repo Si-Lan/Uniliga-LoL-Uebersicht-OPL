@@ -1618,6 +1618,7 @@ async function user_update_group(button) {
 			type: "matchups",
 			tournamentID: group_ID,
 			idonly: "true",
+			unplayedonly: "true",
 		}
 	})
 		.then(res => res.json())
@@ -1878,6 +1879,7 @@ async function user_update_team(button) {
 				tournamentID: groupID1,
 				teamid: team_ID,
 				idonly: "true",
+				unplayedonly: "true",
 			}
 		})
 			.then(res => res.json())
