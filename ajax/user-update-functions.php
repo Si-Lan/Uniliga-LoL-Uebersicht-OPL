@@ -71,7 +71,27 @@ if ($type == "matchresult") {
 	$dbcn = create_dbcn();
 	$matchid = $_SERVER["HTTP_MATCHID"] ?? NULL;
 
+	$match = $dbcn->execute_query("SELECT * FROM matchups WHERE OPL_ID = ?", [$matchid])->fetch_assoc();
+	$group = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID = (SELECT OPL_ID_tournament FROM matchups WHERE OPL_ID = ?)", [$matchid])->fetch_assoc();
+	$tournamentID = $group["OPL_ID_top_parent"];
+
 	$result = get_results_for_matchup($matchid);
+
+	$data_written = false;
+	foreach ($result["games"] as $gameID=>$gameUpdate) {
+		$game_check = $dbcn->execute_query("SELECT RIOT_matchID FROM games WHERE RIOT_matchID = ? AND matchdata IS NULL", [$gameID])->fetch_column();
+		if (!$game_check) continue;
+		$data_result = add_match_data($gameID, $tournamentID);
+		if ($data_result["writes"] > 0) $data_written = true;
+	}
+
+	if ($data_written) {
+		get_stats_for_players($match["OPL_ID_team1"],$tournamentID);
+		calculate_teamstats($match["OPL_ID_team1"],$tournamentID);
+		get_stats_for_players($match["OPL_ID_team2"],$tournamentID);
+		calculate_teamstats($match["OPL_ID_team2"],$tournamentID);
+	}
+
 	echo json_encode($result);
 	$dbcn->close();
 }
