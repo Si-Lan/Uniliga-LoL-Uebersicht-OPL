@@ -64,6 +64,7 @@ $matches = $dbcn->execute_query("
                                         ORDER BY plannedDate",[$wildcard['OPL_ID']])->fetch_all(MYSQLI_ASSOC);
 $matches_grouped = [];
 foreach ($matches as $match) {
+    if ($match['plannedDate'] == null) continue;
     $plannedDate = new DateTime($match['plannedDate']);
     $plannedDay = $plannedDate->format("Y-m-d H");
 	$matches_grouped[$plannedDay][] = $match;

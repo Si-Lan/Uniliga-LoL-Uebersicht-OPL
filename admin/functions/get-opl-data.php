@@ -285,6 +285,7 @@ function create_tournament_get_button(array $data, bool $in_write_popup = false)
 					<button class='get-matchups $id_class' data-id='$id_class'><span>Matches im Turnier updaten (Gruppenweise)</span></button>
 					<button class='get-matchups-delete $id_class' data-id='$id_class'><span>Matches im Turnier updaten + entfernen (Gruppenweise)</span></button>
 					<button class='get-results $id_class' data-id='$id_class'><span>Match-Ergebnisse im Turnier updaten + Spiele (pro Match)</span></button>
+					<button class='get-results-unplayed $id_class' data-id='$id_class'><span>ungespielte Match-Ergebnisse im Turnier updaten + Spiele (pro Match)</span></button>
 					<button class='calculate-standings $id_class' data-id='$id_class'><span>Tabelle des Turniers aktualisieren (Berechnung pro Gruppe)</span></button>
 				</div>
 			</dialog>";

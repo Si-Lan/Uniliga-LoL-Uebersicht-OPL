@@ -868,7 +868,7 @@ function create_game(mysqli $dbcn,$gameID,$curr_team=NULL,$tournamentID=null, $r
 			$roles = ["TOP","JUNGLE","MIDDLE","BOTTOM","UTILITY"];
 			$roles_check = array("TOP"=>0,"JUNGLE"=>1,"MIDDLE"=>2,"BOTTOM"=>3,"UTILITY"=>4);
 			$role = $participants[$player_index]['teamPosition'];
-			if ($role != $roles[$player_index-($team_index*5)]) {
+			if ($role != $roles[$player_index-($team_index*5)] && $role !== "") {
 				$player_2_index = $roles_check[$role] + $team_index*5;
 				$helper = $participants[$player_index];
 				$participants[$player_index] = $participants[$player_2_index];

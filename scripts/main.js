@@ -751,7 +751,7 @@ function switch_elo_view(tournamentID,view) {
         url.searchParams.set("stage","wildcard");
         window.history.replaceState({}, '', url);
         add_elo_team_list(area,tournamentID,"div","wildcard");
-        color_b.text("Nach Liga einfärben");
+        color_b.text("Nach Rang einfärben");
     }
 }
 
@@ -1618,6 +1618,7 @@ async function user_update_group(button) {
 			type: "matchups",
 			tournamentID: group_ID,
 			idonly: "true",
+			unplayedonly: "true",
 		}
 	})
 		.then(res => res.json())
@@ -1674,27 +1675,18 @@ async function user_update_group(button) {
 		})
 		.catch(error => console.error(error));
 
-	let matchbuttons = $("div.match-button-wrapper");
-	for (const matchbutton of matchbuttons) {
-		let match_ID = matchbutton.getAttribute("data-matchid");
-		let tournament_ID = matchbutton.getAttribute("data-tournamentid");
-		let matchtype = matchbutton.getAttribute("data-matchtype")
-
-		fetch(`ajax/create-page-elements.php`, {
-			method: "GET",
-			headers: {
-				type: "matchbutton",
-				matchid: match_ID,
-				tournamentid: tournament_ID,
-				matchtype: matchtype,
-			}
+	fetch(`ajax/create-page-elements.php`, {
+		method: "GET",
+		headers: {
+			"type": "matchbutton-list-group",
+			"groupid": group_ID,
+		},
+	})
+		.then(res => res.text())
+		.then(matchlist => {
+			$(".main-content .matches .match-content").replaceWith(matchlist);
 		})
-			.then(res => res.text())
-			.then(new_matchbutton => {
-				$(matchbutton).replaceWith(new_matchbutton);
-			})
-			.catch(error => console.error(error));
-	}
+		.catch(error => console.error(error));
 }
 $(document).ready(function () {
 	$(".user_update_group").on("click", function () {
@@ -1858,11 +1850,11 @@ async function user_update_team(button) {
             .catch(e => console.error(e));
 
 		await new Promise(r => setTimeout(r, 1000));
-		loading_width += 15/groupIDs.length;
+		loading_width += 10/groupIDs.length;
 		button.style.setProperty("--update-loading-bar-width", `${loading_width}%`);
     }
 
-	loading_width = 60;
+	loading_width = 55;
 	button.style.setProperty("--update-loading-bar-width", `${loading_width}%`);
 
 	await fetch(`ajax/user-update-functions.php`, {
@@ -1876,7 +1868,7 @@ async function user_update_team(button) {
 
 	await new Promise(r => setTimeout(r, 1000));
 
-	loading_width = 70;
+	loading_width = 65;
 	button.style.setProperty("--update-loading-bar-width", `${loading_width}%`);
 
 	for (const groupID1 of groupIDs) {
@@ -1887,6 +1879,7 @@ async function user_update_team(button) {
 				tournamentID: groupID1,
 				teamid: team_ID,
 				idonly: "true",
+				unplayedonly: "true",
 			}
 		})
 			.then(res => res.json())
@@ -1909,8 +1902,8 @@ async function user_update_team(button) {
 			})
 			.catch(e => console.error(e));
 
-		loading_width += 20/groupIDs.length;
-		button.style.setProperty("--update-loading-bar-width", `${loading_width}%`);
+		//loading_width += 20/groupIDs.length;
+		//button.style.setProperty("--update-loading-bar-width", `${loading_width}%`);
 	}
 
 	loading_width = 90;
@@ -2008,11 +2001,13 @@ async function user_update_team(button) {
 
 	const groupButtons = $("button.teampage_switch_group");
 	const activeGroupButton = $("button.teampage_switch_group.active");
-	let activeGroupID = (activeGroupButton.length === 0) ? groupID : activeGroupButton.eq(0).attr("data-group");
+	let activeGroupID = (activeGroupButton.length === 0) ? groupID : activeGroupButton.attr("data-group");
+	let activePlayoffID = (activeGroupButton.length === 0) ? playoffID : (activeGroupButton.attr("data-playoff") ?? null);
 
 	groupButtons.prop("disabled", true);
 
-	fetch(`ajax/create-page-elements.php`, {
+	let fetch_array = [];
+	fetch_array.push(fetch(`ajax/create-page-elements.php`, {
 		method: "GET",
 		headers: {
 			type: "standings",
@@ -2024,33 +2019,23 @@ async function user_update_team(button) {
 		.then(standings => {
 			$("div.standings").replaceWith(standings);
 		})
-		.catch(e => console.error(e));
+		.catch(e => console.warn(e)));
 
-	let match_fetches = [];
-	let matchbuttons = $("div.match-button-wrapper");
-	for (const matchbutton of matchbuttons) {
-		let match_ID = matchbutton.getAttribute("data-matchid");
-		let tournament_ID = matchbutton.getAttribute("data-tournamentid");
-		let matchtype = matchbutton.getAttribute("data-matchtype");
-		match_fetches.push(
-			fetch(`ajax/create-page-elements.php`, {
-				method: "GET",
-				headers: {
-					type: "matchbutton",
-					matchid: match_ID,
-					tournamentid: tournament_ID,
-					matchtype: matchtype,
-					teamid: team_ID,
-				}
-			})
-				.then(res => res.text())
-				.then(new_matchbutton => {
-					$(matchbutton).replaceWith(new_matchbutton);
-				})
-				.catch(e => console.error(e))
-		);
-	}
-	Promise.all(match_fetches).then(() => {
+	fetch_array.push(fetch(`ajax/create-page-elements`, {
+		method: "GET",
+		headers: {
+			"type": "matchbutton-list-team",
+			"groupid": activeGroupID,
+			"teamid": team_ID,
+			"playoffid": activePlayoffID,
+		},
+	})
+		.then(res => res.text())
+		.then(matchlist => {
+			$(".main-content .matches .match-content").replaceWith(matchlist);
+		})
+		.catch(error => console.warn(error)));
+	Promise.all(fetch_array).then(() => {
 		groupButtons.prop("disabled", false);
 	});
 }
@@ -2112,9 +2097,10 @@ async function user_update_match(button) {
 		.then(() => $("div.updatebuttonwrapper span").html("letztes Update:<br>vor ein paar Sekunden"))
 		.catch(e => console.error(e));
 
-	loading_width = 1;
+	loading_width = 20;
 	button.style.setProperty("--update-loading-bar-width", `${loading_width}%`);
 
+	let games = [];
 	// get matchresult
 	await fetch(`ajax/user-update-functions.php`, {
 		method: "GET",
@@ -2123,158 +2109,12 @@ async function user_update_match(button) {
 			matchID: match_ID,
 		}
 	})
-		.catch(e => console.error(e));
-
-	loading_width = 20;
-	button.style.setProperty("--update-loading-bar-width", `${loading_width}%`);
-
-	let tournamentID;
-	/*
-	// get tournamentID
-	await fetch(`ajax/get-data.php`, {
-		method: "GET",
-		headers: {
-			type: "matchup",
-			matchid: match_ID,
-			returntournamentid: "true",
-		}
-	})
-		.then(res => res.text())
-		.then(id => tournamentID = id)
-		.catch(e => console.error(e));
-	*/
-	/*
-	// get games for players in match
-	await fetch(`ajax/get-data.php`, {
-		method: "GET",
-		headers: {
-			type: "players-in-match",
-			matchid: match_ID,
-			cut_players: "true",
-			idonly: "true",
-		}
-	})
 		.then(res => res.json())
-		.then(async playerids => {
-			for (const playerid of playerids) {
-				await fetch(`admin/ajax/get-rgapi-data.php`, {
-					method: "GET",
-					headers: {
-						type: "games-by-player",
-						playerID: playerid,
-						tournamentID: tournamentID,
-					}
-				})
-					.then(() => {
-						loading_width = loading_width + 30/playerids.length;
-						button.style.setProperty("--update-loading-bar-width", `${loading_width}%`);
-					})
-					.catch(e => console.error(e));
-				await new Promise(r => setTimeout(r, 100));
+		.then(result => {
+			for (const gameID in result["games"]) {
+				games.push(gameID);
 			}
 		})
-		.catch(e => console.error(e));
-
-	loading_width = 50;
-	button.style.setProperty("--update-loading-bar-width", `${loading_width}%`);
-	*/
-	/*
-	// assign games from players in match
-	await fetch(`ajax/get-data.php`, {
-		method: "GET",
-		headers: {
-			type: "games-from-players-in-match",
-			matchid: match_ID,
-			withPUUIDonly: "true",
-		}
-	})
-		.then(res => res.json())
-		.then(async gameids => {
-			for (const gameid of gameids) {
-				await fetch(`admin/ajax/get-rgapi-data.php`, {
-					method: "GET",
-					headers: {
-						type: "matchdata-and-assign",
-						matchID: gameid,
-						tournamentID: tournamentID,
-					}
-				})
-					.then(() => {
-						loading_width = loading_width + 35/gameids.length;
-						button.style.setProperty("--update-loading-bar-width", `${loading_width}%`);
-					})
-					.catch(e => console.error(e));
-				await new Promise(r => setTimeout(r, 100));
-			}
-		})
-		.catch(e => console.error(e));
-
-	loading_width = 90;
-	button.style.setProperty("--update-loading-bar-width", `${loading_width}%`);
-	*/
-
-	let games = [];
-	let team1 = [];
-	let team2 = [];
-	// get tournament-id / games / teams
-	await fetch(`ajax/get-data.php`, {
-		method: "GET",
-		headers: {
-			type: "match-games-teams-by-matchid",
-			matchid: match_ID,
-		}
-	})
-		.then(res => res.json())
-		.then(data => {
-			games = data["games"];
-			team1 = data["team1"];
-			team2 = data["team2"];
-			tournamentID = data["match"]["OPL_ID_tournament"];
-		})
-		.catch(e => console.error(e));
-
-	loading_width = 25;
-	button.style.setProperty("--update-loading-bar-width", `${loading_width}%`);
-
-	// gamedata holen
-	for (const game of games) {
-		await fetch(`admin/ajax/get-rgapi-data`, {
-			method: "GET",
-			headers: {
-				type: "add-match-data",
-				matchID: game["RIOT_matchID"],
-				tournamentID: tournamentID,
-			}
-		})
-			.then(() => {
-				loading_width = loading_width + 65/games.length;
-				button.style.setProperty("--update-loading-bar-width", `${loading_width}%`);
-			})
-			.catch(e => console.error(e));
-	}
-
-	// recalc teamstats
-	await fetch(`ajax/user-update-functions.php`, {
-		method: "GET",
-		headers: {
-			type: "recalc_team_stats",
-			teamID: team1["OPL_ID"],
-			tournamentID: tournamentID,
-		}
-	})
-		.catch(e => console.error(e));
-
-	loading_width = 90;
-	button.style.setProperty("--update-loading-bar-width", `${loading_width}%`);
-
-	await fetch(`ajax/user-update-functions.php`, {
-		method: "GET",
-		headers: {
-			type: "recalc_team_stats",
-			teamID: team2["OPL_ID"],
-			tournamentID: tournamentID,
-		}
-	})
 		.catch(e => console.error(e));
 
 	loading_width = 100;
@@ -2294,11 +2134,10 @@ async function user_update_match(button) {
 		$(".game").remove();
 	}
 	let game_counter = 0;
-	for (const [i, game] of games.entries()) {
+	for (const [i, gameID] of games.entries()) {
 		if (current_match_in_popup === parseInt(match_ID)) {
 			popup.append(`<div class='game game${i}'></div>`);
 		}
-		let gameID = game['RIOT_matchID'];
 
 		let fetchheaders = new Headers({
 			gameid: gameID
@@ -2312,12 +2151,13 @@ async function user_update_match(button) {
 		})
 			.then(res => res.text())
 			.then(data => {
-				let game_wrap = popup.find('.game' + i);
+				let game_wrap = popup.find(`.game${i}`);
 				if (current_match_in_popup === parseInt(match_ID)) {
 					game_wrap.empty();
 					game_wrap.append(data);
 					game_counter++;
 				}
+				popup.find(`.game${i} button.expand-game-details`).on("click", expand_collapse_game);
 			})
 			.catch(e => console.error(e));
 	}

@@ -9,6 +9,7 @@ function set_button_listeners() {
 	$(".get-matchups").on("click", function () {get_matchups_for_tournament(this.getAttribute("data-id"))});
 	$(".get-matchups-delete").on("click", function () {get_matchups_for_tournament(this.getAttribute("data-id"),true)});
 	$(".get-results").on("click", function () {get_results_for_tournament(this.getAttribute("data-id"))});
+	$(".get-results-unplayed").on("click", function () {get_results_for_tournament(this.getAttribute("data-id"),true)});
 	$(".calculate-standings").on("click", function () {calculate_standings_from_matchups(this.getAttribute("data-id"))});
 	$(".open-tournament-data-popup").on("click", function() {$(`dialog.tournament-data-popup.${this.getAttribute("data-id")}`)[0].showModal()});
 	$(".toggle-turnierselect-accordeon").on("click", function () {
@@ -382,18 +383,21 @@ function get_matchups_for_tournament(tournamentID, deletemissing = false) {
 		.catch(e => console.error(e));
 }
 
-function get_results_for_tournament(tournamentID) {
-	let button = $(".get-results");
+function get_results_for_tournament(tournamentID,unplayed_only=false) {
+	let button = unplayed_only ? $(".get-results-unplayed") : $(".get-results");
 	button.addClass("button-updating");
 	button.prop("disabled", true);
 	let loadingbar_width = 0;
 
+	let matchup_headers = {
+		"type": "matchups",
+		"tournamentid": tournamentID,
+	}
+	if (unplayed_only) matchup_headers["unplayedonly"] = "true";
+
 	fetch(`./ajax/get-data.php`, {
 		method: "GET",
-		headers: {
-			"type": "matchups",
-			"tournamentid": tournamentID,
-		}
+		headers: matchup_headers
 	})
 		.then(res => res.json())
 		.then(async matches => {
