@@ -704,49 +704,51 @@ function switch_elo_view(tournamentID,view) {
 	let div_b = $('.filter-button-wrapper .div-teams');
 	let group_b = $('.filter-button-wrapper .group-teams');
 	let color_b = $('.settings-button-wrapper .button span');
+	let jump_b = $('.jump-button-wrapper');
 
     let stage = $(`button.elolist_switch_stage.active`).attr("data-stage");
 
-	if (view === "all-teams" && stage === "groups") {
-		but.removeClass('active');
-		all_b.addClass('active');
+	console.log(stage)
+
+	if (stage === "groups") {
+		(view === "all-teams") ? jump_b.css("display","none") : jump_b.css("display","");
 		group_b.css("display","");
+	} else {
+		jump_b.css("display","none");
+		group_b.css("display","none");
+	}
+
+	but.removeClass('active');
+	if (view === "all-teams" && stage === "groups") {
+		all_b.addClass('active');
 		url.searchParams.delete("view");
 		url.searchParams.delete("stage");
 		window.history.replaceState({}, '', url);
 		add_elo_team_list(area,tournamentID,"all");
 		color_b.text("Nach Liga einfärben");
 	} else if (view === "div-teams" && stage === "groups") {
-		but.removeClass('active');
 		div_b.addClass('active');
-		group_b.css("display","");
 		url.searchParams.set("view","liga");
 		url.searchParams.delete("stage");
 		window.history.replaceState({}, '', url);
 		add_elo_team_list(area,tournamentID,"div");
 		color_b.text("Nach Rang einfärben");
 	} else if (view === "group-teams" && stage === "groups") {
-		but.removeClass('active');
 		group_b.addClass('active');
-		group_b.css("display","");
 		url.searchParams.set("view","gruppe");
 		url.searchParams.delete("stage");
 		window.history.replaceState({}, '', url);
 		add_elo_team_list(area,tournamentID,"group");
 		color_b.text("Nach Rang einfärben");
 	} else if (view === "all-teams" && stage === "wildcard") {
-		but.removeClass('active');
 		all_b.addClass('active');
-		group_b.css("display","none");
 		url.searchParams.delete("view");
 		url.searchParams.set("stage","wildcard");
 		window.history.replaceState({}, '', url);
 		add_elo_team_list(area,tournamentID,"all","wildcard");
 		color_b.text("Nach Liga einfärben");
 	} else if (view === "div-teams" && stage === "wildcard") {
-        but.removeClass('active');
         div_b.addClass('active');
-        group_b.css("display","none");
         url.searchParams.set("view","liga");
         url.searchParams.set("stage","wildcard");
         window.history.replaceState({}, '', url);
@@ -763,11 +765,6 @@ function jump_to_league_elo(div_num) {
 
 let elo_list_fetch_control = null;
 function add_elo_team_list(area,tournamentID,type,stage="groups") {
-	let displaytype = "none";
-	if (type === "div" || type === "group") {
-		displaytype = ""
-	}
-
 	if ($('.content-loading-indicator').length === 0) $('body').append("<div class='content-loading-indicator'></div>");
 
 	if (elo_list_fetch_control !== null) elo_list_fetch_control.abort();
@@ -786,7 +783,6 @@ function add_elo_team_list(area,tournamentID,type,stage="groups") {
 		.then(list => {
 			area.empty();
 			area.append(list);
-			$('.jump-button-wrapper').css("display",displaytype);
 			$('.content-loading-indicator').remove();
 		})
 		.catch(error => {

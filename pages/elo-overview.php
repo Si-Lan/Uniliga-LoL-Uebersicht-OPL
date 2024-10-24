@@ -131,7 +131,7 @@ if (isset($_GET['colored'])) {
             </div>";
 	$color = "";
 }
-if ($filtered == "liga" || $filtered == "gruppe") {
+if (($filtered == "liga" || $filtered == "gruppe") && $stage_loaded == "groups") {
 	$jbutton_hide = "";
 } else {
 	$jbutton_hide = " style=\"display: none;\"";
