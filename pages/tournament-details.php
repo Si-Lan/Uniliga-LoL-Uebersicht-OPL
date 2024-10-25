@@ -166,25 +166,36 @@ foreach ($wildcards as $wildcard) {
                             <a href='turnier/{$tournament_url_path}/wildcard/{$wildcard['OPL_ID']}' class='button'>$group_title</a>
                             <a href='turnier/{$tournament_url_path}/teams?liga={$wildcard['OPL_ID']}' class='button'><div class='material-symbol'>" . file_get_contents("../icons/material/group.svg") . "</div>Teams</a>";
 	echo "</div>"; // group
-
-	if ($logged_in) {
-		echo "<a class='button write games- {$wildcard['OPL_ID']}' onclick='get_games_for_group(\"$tournamentID\",\"{$wildcard['OPL_ID']}\")'><div class='material-symbol'>" . file_get_contents("../icons/material/place_item.svg") . "</div>Lade Spiele</a>";
-	}
-
 	echo "</div>";
-
-	if ($logged_in) {
-		echo "
-							<div class='result-wrapper no-res {$wildcard['OPL_ID']} {$tournamentID}'>
-								<div class='clear-button' onclick='clear_results(\"{$wildcard['OPL_ID']}\")'>Clear</div>
-								<div class='result-content'></div>
-							</div>";
-	}
 }
 echo "</div>"; //groups
 echo "</div>"; //division
-echo "</div>"; //divisions-list
+?>
+</div>
+<div class='divisions-list playoffs'<?php if (!$playoffs_active) echo " style='display: none'"; ?>>
+	<?php
+	echo "<div class='division'>
+                        <div class='group-title-wrapper'><h2>Playoffs</h2>";
+	echo "</div>";
+	echo "<div class='divider'></div>";
 
+    echo "<div class='groups'>";
+	foreach ($playoffs as $playoff) {
+		$group_title = ($playoff["numberRangeTo"] == null) ? "Playoffs Liga {$playoff['number']}" : "Playoffs Liga {$playoff['number']}/{$playoff["numberRangeTo"]}";
+
+		echo "<div>";
+		echo "<div class='group'>
+                            <a href='turnier/{$tournament_url_path}/playoffs/{$playoff['OPL_ID']}' class='button'>$group_title</a>
+                            <a href='turnier/{$tournament_url_path}/teams?liga={$playoff['OPL_ID']}' class='button'><div class='material-symbol'>" . file_get_contents("../icons/material/group.svg") . "</div>Teams</a>";
+		echo "</div>"; // group
+		echo "</div>";
+	}
+	echo "</div>"; //groups
+	echo "</div>"; //division
+	?>
+</div>
+
+<?php
 echo "</div>"; //divisions-list-wrapper
 
 $dbcn->close();
