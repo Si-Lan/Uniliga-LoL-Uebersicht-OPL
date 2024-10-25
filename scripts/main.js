@@ -150,11 +150,13 @@ function update_team_filter_groups(div_id) {
 function filter_teams_list_division(division) {
 	update_team_filter_groups(division);
 	let liste = document.getElementsByClassName("team-list")[0];
-	let tags = liste.querySelectorAll('div.team-button');
+	let tags = liste.querySelectorAll('.team-button');
 	let results = tags.length;
 	for (let i = 0; i < tags.length; i++) {
-		let value = tags[i].classList;
-		if (value.contains(division) || division === "all") {
+		let value = tags[i].getAttribute("data-league");
+		let wildcard_values = tags[i].getAttribute("data-wildcards");
+		wildcard_values = wildcard_values.split(" ");
+		if (value === division || division === "all" || wildcard_values.includes(division)) {
 			if (tags[i].classList.contains("filterD-off")) {
 				tags[i].classList.remove("filterD-off");
 			}
@@ -199,11 +201,11 @@ function filter_teams_list_division(division) {
 }
 function filter_teams_list_group(group) {
 	let liste = document.getElementsByClassName("team-list")[0];
-	let tags = liste.querySelectorAll('div.team-button');
+	let tags = liste.querySelectorAll('.team-button');
 	let results = tags.length;
 	for (let i = 0; i < tags.length; i++) {
-		let value = tags[i].classList;
-		if (value.contains(group) || group === "all") {
+		let value = tags[i].getAttribute("data-group");
+		if (value === group || group === "all") {
 			if (tags[i].classList.contains("filterG-off")) {
 				tags[i].classList.remove("filterG-off");
 			}
@@ -253,7 +255,7 @@ function search_teams(tournID) {
 	input = document.getElementsByClassName("search-teams " + tournID)[0];
 	filter = input.value.toUpperCase();
 	liste = document.getElementsByClassName("team-list " + tournID)[0];
-	tags = liste.querySelectorAll('div.team-button');
+	tags = liste.querySelectorAll('.team-button');
 	results = tags.length;
 
 	// Loop through all list items, and hide those who don't match the search query
