@@ -118,7 +118,7 @@ foreach ($wildcards as $wildcard) {
 		$divClass = "";
 	}
 	$wildcard_numbers_combined = ($wildcard["numberRangeTo"] == null) ? $wildcard["number"] : $wildcard["number"]."-".$wildcard["numberRangeTo"];
-	echo "<option value='".$wildcard["OPL_ID"]."'$divClass class='wildcard_league'>Wildcard Liga ".$wildcard["number"]."</option>";
+	echo "<option value='".$wildcard["OPL_ID"]."'$divClass class='wildcard_league'>Wildcard Liga ".$wildcard_numbers_combined."</option>";
 }
 echo "
                 </select>
@@ -243,7 +243,7 @@ foreach ($teams as $i_teams=>$team) {
 	}
 
 	echo "
-                <button class=\"team-button $tournamentID $currTeamID $filterDClass$filterGClass\" data-league='$currTeamDivID' data-group='$currTeamGroupID' data-wildcards='$wildcardID_data' onclick='popup_team($currTeamID,$tournamentID)'>
+                <button class=\"team-button $filterDClass$filterGClass\" data-league='$currTeamDivID' data-group='$currTeamGroupID' data-wildcards='$wildcardID_data' onclick='popup_team($currTeamID,$tournamentID)'>
                     <div class='team-name'>";
 	if ($img_url != NULL) {
 		echo "
