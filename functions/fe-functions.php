@@ -842,7 +842,7 @@ function create_matchlist(mysqli $dbcn,$tournamentID,$eventID):string {
 		}
 	}
 
-	$eventType = ($event["eventType"] == "group") ? "groups" : $event["eventType"];
+	$eventType = ($event["eventType"] == "group" || ($event["eventType"] == "league" && $event["format"] == "swiss")) ? "groups" : $event["eventType"];
 
 	$result .= "<div class='match-content content'>";
 	foreach ($matches_grouped as $roundNum=>$round) {
