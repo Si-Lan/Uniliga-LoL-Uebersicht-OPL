@@ -34,6 +34,11 @@ foreach ($leagues as $league) {
 	}
 }
 
+$playoffs = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID_top_parent = ? AND eventType = 'playoffs'", [$tournament_id])->fetch_all(MYSQLI_ASSOC);
+foreach ($playoffs as $playoff) {
+	file_put_contents("cron_logs/cron_log_$day.log",date("d.m.y H:i:s")." : Standings for playoffs {$playoff["number"]} ({$playoff["OPL_ID"]})\n", FILE_APPEND);
+	$results[] = calculate_standings_from_matchups($playoff["OPL_ID"]);
+}
 
 $updates = 0;
 foreach ($results as $result) {
