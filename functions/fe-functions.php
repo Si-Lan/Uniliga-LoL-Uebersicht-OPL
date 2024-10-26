@@ -524,7 +524,7 @@ function create_standings(mysqli $dbcn, $tournament_id, $group_id, $team_id=NULL
 	$local_img_path = "img/team_logos/";
     $logo_filename = is_light_mode() ? "logo_light.webp" : "logo.webp";
 	$opgg_logo_svg = file_get_contents(__DIR__."/../img/opgglogo.svg");
-	$group = $dbcn->execute_query("SELECT * FROM tournaments WHERE (eventType = 'group' OR (eventType = 'league' AND format = 'swiss') OR eventType = 'wildcard') AND OPL_ID = ?",[$group_id])->fetch_assoc();
+	$group = $dbcn->execute_query("SELECT * FROM tournaments WHERE (eventType = 'group' OR (eventType = 'league' AND format = 'swiss') OR eventType = 'wildcard' OR eventType = 'playoffs') AND OPL_ID = ?",[$group_id])->fetch_assoc();
 	$div = $dbcn->execute_query("SELECT * FROM tournaments WHERE eventType = 'league' AND OPL_ID = ?",[$group['OPL_ID_parent']])->fetch_assoc();
 	$teams_from_groupDB = $dbcn->execute_query("SELECT teams.*, tit.*, ttr.*, ttr2.avg_rank_tier as avg_rank_tier_2, ttr2.avg_rank_div as avg_rank_div_2
 														FROM teams
@@ -820,7 +820,7 @@ function create_matchlist(mysqli $dbcn,$tournamentID,$eventID):string {
 	}
 
 
-	if ($event["format"] == "double-elim" || $event["format"] == "single-elim") {
+	if ($event["format"] == "double-elimination" || $event["format"] == "single-elimination") {
 		$matches = $dbcn->execute_query("
                                         SELECT *
                                         FROM matchups
@@ -845,7 +845,10 @@ function create_matchlist(mysqli $dbcn,$tournamentID,$eventID):string {
 	$eventType = ($event["eventType"] == "group" || ($event["eventType"] == "league" && $event["format"] == "swiss")) ? "groups" : $event["eventType"];
 
 	$result .= "<div class='match-content content'>";
+	$roundCounter = 0;
 	foreach ($matches_grouped as $roundNum=>$round) {
+		$roundCounter++;
+		if ($event["format"] == "double-elimination" || $event["format"] == "single-elimination") $roundNum = $roundCounter;
 		$result .= "<div class='match-round'>
                     <h4>Runde $roundNum</h4>
                     <div class='divider'></div>
