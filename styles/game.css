@@ -569,8 +569,14 @@ img.rank-emblem-mini {
 }
 
 button.expand-game-details {
-	padding: 0 10px;
+	border: #404040 solid 2px;
+	padding: 0 8px;
 	align-self: stretch;
+	transition: background-color 200ms;
+}
+button.expand-game-details:hover {
+	background-color: #242424;
+	border: #404040 solid 2px;
 }
 .game-wrapper.collapsed button.expand-game-details .material-symbol {
 	transform: rotateX(180deg);

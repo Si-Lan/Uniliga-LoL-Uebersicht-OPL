@@ -14,7 +14,7 @@ $(document).ready(() => {
 function toggle_settings_menu(to_state = null) {
 	event.preventDefault();
 	let settings = $('.settings-menu');
-	let settings_icon = $('.settings-button .material-symbol');
+	let settings_icon = $('.settings-button.material-symbol');
 	if (to_state == null) {
 		to_state = !settings.hasClass("shown");
 	}
@@ -85,13 +85,17 @@ $(document).ready(function () {
 	$('header .settings-button').on("click",()=>{toggle_settings_menu()});
 	$('header .settings-option.toggle-mode').on("click",toggle_darkmode);
 	let settings = $('.settings-menu');
-	let search = $('.header-search');
 	let header = $('header');
 	window.addEventListener("click", (event) => {
 		if (settings.hasClass('shown')) {
 			if (!$.contains(header.get(0),$(event.target).get(0)) && event.target !== header[0]) {
 				toggle_settings_menu(false);
 			}
+		}
+	});
+	window.addEventListener("keydown", (event) => {
+		if (event.key === "Escape" && $('header .settings-menu').hasClass('shown')) {
+			toggle_settings_menu(false);
 		}
 	});
 	$('header .settings-option.toggle-admin-b-vis').on("click",toggle_admin_buttons);
@@ -101,27 +105,25 @@ $(document).ready(function() {
 	$(".settings-option.feedback").attr("href",`mailto:${atob(encMail)}`);
 });
 
-function clear_searchbar(el) {
+function clear_searchbar(event) {
 	event.preventDefault();
-	$searchbar = $(el.parentNode);
-	$searchbar.find("input").val('').trigger('keyup').trigger('input').focus();
+	let searchbar = $(this.parentNode);
+	searchbar.find("input[type=search]").val('').trigger('keyup').trigger('input').focus();
 }
-function toggle_clear_search_x(el) {
-	let clear_button = $(el.parentNode).find(".material-symbol");
-	let input = $(el)[0].value;
+function toggle_clear_search_x(event) {
+	let clear_button = $(this.parentNode).find(".search-clear");
+	let input = $(this)[0].value;
 	if (input === "") {
 		clear_button.css("display", "none");
 	} else {
-		clear_button.css("display", "block");
+		clear_button.css("display", "flex");
 	}
 }
 $(document).ready(function() {
-	$('.searchbar input').on("input", function() {
-		toggle_clear_search_x(this);
-	})
-	$('.searchbar .clear-search').on("click", function () {
-		clear_searchbar(this);
-	})
+	$(".searchbar .search-clear").on("click", clear_searchbar);
+	let searchbar = $(".searchbar input[type=search]");
+	searchbar.on("input", toggle_clear_search_x);
+	searchbar.on("mouseenter", toggle_clear_search_x);
 });
 
 // teamlist-filter
@@ -248,34 +250,30 @@ function filter_teams_list_group(group) {
 
 
 // handle search
-function search_teams(tournID) {
-	// Declare variables
-	let input, filter, liste, tags, i, txtValue;
-	let results;
-	input = document.getElementsByClassName("search-teams " + tournID)[0];
-	filter = input.value.toUpperCase();
-	liste = document.getElementsByClassName("team-list " + tournID)[0];
-	tags = liste.querySelectorAll('.team-button');
-	results = tags.length;
+function search_teams() {
+	const search_input = document.getElementsByClassName("search-teams")[0].value.toUpperCase();
+	const liste = document.getElementsByClassName("team-list")[0];
+	const team_buttons = liste.querySelectorAll('.team-button');
+	let results = team_buttons.length;
 
 	// Loop through all list items, and hide those who don't match the search query
-	for (i = 0; i < tags.length; i++) {
-		txtValue = tags[i].innerText;
-		if (txtValue.toUpperCase().indexOf(filter) > -1) {
-			if (tags[i].classList.contains("search-off")) {
-				tags[i].classList.remove("search-off");
+	for (let i = 0; i < team_buttons.length; i++) {
+		let txtValue = team_buttons[i].querySelectorAll(".team-name")[0].innerText;
+		if (txtValue.toUpperCase().indexOf(search_input) > -1) {
+			if (team_buttons[i].classList.contains("search-off")) {
+				team_buttons[i].classList.remove("search-off");
 			}
 		} else {
-			if (!(tags[i].classList.contains("search-off"))) {
-				tags[i].classList.add("search-off");
+			if (!(team_buttons[i].classList.contains("search-off"))) {
+				team_buttons[i].classList.add("search-off");
 			}
 			results -= 1;
 		}
 	}
 	if (results === 0) {
-		document.getElementsByClassName(`no-search-res-text ${tournID}`)[0].style.display = "";
+		document.getElementsByClassName(`no-search-res-text`)[0].style.display = "";
 	} else {
-		document.getElementsByClassName(`no-search-res-text ${tournID}`)[0].style.display = "none";
+		document.getElementsByClassName(`no-search-res-text`)[0].style.display = "none";
 	}
 }
 
@@ -551,12 +549,12 @@ async function popup_match(matchID,teamID=null,matchtype="groups",tournamentID=n
 			let buttonwrapper = `<div class='mh-popup-buttons'>`;
 			if (teamID != null) {
 				let tournament_url_part = (tournamentID != null) ? `turnier/${tournamentID}/` : "";
-				buttonwrapper += `<a class='button' href='${tournament_url_part}team/${teamID}/matchhistory#${matchID}'> ${get_material_icon("manage_search")} in Matchhistory ansehen</a>`;
+				buttonwrapper += `<a class='icon-link page-link' href='${tournament_url_part}team/${teamID}/matchhistory#${matchID}'> ${get_material_icon("manage_search",false,"icon-link-icon")} <span class="link-text">In Matchhistory ansehen</span> ${get_material_icon("chevron_right",false,"page-link-icon")}</a>`;
 			}
 			let teamid_data = "";
 			if (teamID !== null) teamid_data = `data-team='${teamID}'`;
 			if (!data["tournament"]["archived"]) {
-				buttonwrapper += `<div class='updatebuttonwrapper'><button type='button' class='icononly user_update_match update_data' data-match='${matchID}' data-matchformat='${matchtype}' ${teamid_data}>${get_material_icon('sync')}</button><span>letztes Update:<br>&nbsp;</span></div>`;
+				buttonwrapper += `<div class='updatebuttonwrapper'><button type='button' class='user_update user_update_match update_data' data-match='${matchID}' data-matchformat='${matchtype}' ${teamid_data}>${get_material_icon('sync')}</button><span>letztes Update:<br>&nbsp;</span></div>`;
 			}
 			buttonwrapper += "</div>";
 			popup.append(buttonwrapper);
@@ -2166,32 +2164,6 @@ $(document).ready(function () {
 	});
 });
 
-function toggle_search_popup(to_state=null) {
-	event.preventDefault();
-	let search = $('.header-search');
-	let search_button = $('.header_search_button');
-	if (to_state == null) {
-		to_state = !search.hasClass("shown");
-	}
-	if (to_state) {
-		search.addClass("shown");
-		search_button.find(".material-symbol").html(get_material_icon("close",true));
-		search.find("input").focus();
-	} else {
-		search.removeClass("shown");
-		search_button.find(".material-symbol").html(get_material_icon("search",true));
-	}
-}
-$(document).ready(function () {
-	window.addEventListener("keydown", (event) => {
-		if (event.key === "Escape" && $('header .header-search').hasClass('shown')) {
-			toggle_search_popup(false);
-		}
-		if (event.key === "Escape" && $('header .settings-menu').hasClass('shown')) {
-			toggle_settings_menu(false);
-		}
-	})
-})
 
 let header_search_controller = null;
 let header_search_acCurrentFocus = 0;
@@ -2199,11 +2171,11 @@ function header_search() {
 	if (header_search_controller !== null) header_search_controller.abort();
 	header_search_controller = new AbortController();
 
-	let searchbar = $('.header-search .searchbar');
-	let input = $('.header-search input.search-all')[0];
+	let searchbar = $('header .searchbar');
+	let input = $('header .searchbar input.search-all')[0];
 	let input_value = input.value.toUpperCase();
 	let loading_indicator = $('.search-loading-indicator');
-	let ac = $('.header-search .searchbar .autocomplete-items');
+	let ac = $('header .searchbar .autocomplete-items');
 
 	if (ac.length === 0) {
 		ac = $("<div class=\'autocomplete-items\'></div>");
@@ -2250,8 +2222,8 @@ function header_search() {
 
 			if (!($(input).hasClass("focus-listen"))) {
 				input.addEventListener("keydown",function (e) {
-					let autocomplete = $('.header-search .searchbar .autocomplete-items');
-					let autocomplete_items = $('.header-search .searchbar .autocomplete-items a');
+					let autocomplete = $('header .searchbar .autocomplete-items');
+					let autocomplete_items = $('header .searchbar .autocomplete-items a');
 					if(autocomplete_items.length > 0) {
 						if (e.keyCode === 40) {
 							e.preventDefault();
@@ -2295,8 +2267,7 @@ function header_search() {
 }
 
 $(document).ready(function () {
-	$(".header_search_button").on("click",()=>{toggle_search_popup()});
-	$('header .header-search .searchbar input').on("input",header_search);
+	$('header .searchbar input').on("input",header_search);
 });
 
 function toggle_active_rankedsplit(tournament_id, season_split) {
@@ -2340,9 +2311,9 @@ $(document).ready(function () {
 });
 
 // allgemeine Helper
-function get_material_icon(name,nowrap=false) {
+function get_material_icon(name,nowrap=false,add_classes="") {
 	let res = "";
-	if (!nowrap) res = "<div class='material-symbol'>";
+	if (!nowrap) res = `<div class='material-symbol ${add_classes}'>`;
 	if (name === "close") res += "<svg xmlns=\"http://www.w3.org/2000/svg\" height=\"48\" viewBox=\"0 96 960 960\" width=\"48\"><path d=\"M480 618 270 828q-9 9-21 9t-21-9q-9-9-9-21t9-21l210-210-210-210q-9-9-9-21t9-21q9-9 21-9t21 9l210 210 210-210q9-9 21-9t21 9q9 9 9 21t-9 21L522 576l210 210q9 9 9 21t-9 21q-9 9-21 9t-21-9L480 618Z\"/></svg>";
 	if (name === "history") res += "<svg xmlns=\"http://www.w3.org/2000/svg\" height=\"48\" viewBox=\"0 -960 960 960\" width=\"48\"><path d=\"M477-120q-142 0-243.5-95.5T121-451q-1-12 7.5-21t21.5-9q12 0 20.5 8.5T181-451q11 115 95 193t201 78q127 0 215-89t88-216q0-124-89-209.5T477-780q-68 0-127.5 31T246-667h75q13 0 21.5 8.5T351-637q0 13-8.5 21.5T321-607H172q-13 0-21.5-8.5T142-637v-148q0-13 8.5-21.5T172-815q13 0 21.5 8.5T202-785v76q52-61 123.5-96T477-840q75 0 141 28t115.5 76.5Q783-687 811.5-622T840-482q0 75-28.5 141t-78 115Q684-177 618-148.5T477-120Zm34-374 115 113q9 9 9 21.5t-9 21.5q-9 9-21 9t-21-9L460-460q-5-5-7-10.5t-2-11.5v-171q0-13 8.5-21.5T481-683q13 0 21.5 8.5T511-653v159Z\"/></svg>";
 	if (name === "sync") res += "<svg xmlns=\"http://www.w3.org/2000/svg\" height=\"48\" viewBox=\"0 -960 960 960\" width=\"48\"><path d=\"M220-477q0 63 23.5 109.5T307-287l30 21v-94q0-13 8.5-21.5T367-390q13 0 21.5 8.5T397-360v170q0 13-8.5 21.5T367-160H197q-13 0-21.5-8.5T167-190q0-13 8.5-21.5T197-220h100l-15-12q-64-51-93-111t-29-134q0-94 49.5-171.5T342-766q11-5 21 0t14 16q5 11 0 22.5T361-710q-64 34-102.5 96.5T220-477Zm520-6q0-48-23.5-97.5T655-668l-29-26v94q0 13-8.5 21.5T596-570q-13 0-21.5-8.5T566-600v-170q0-13 8.5-21.5T596-800h170q13 0 21.5 8.5T796-770q0 13-8.5 21.5T766-740H665l15 14q60 56 90 120t30 123q0 93-48 169.5T623-195q-11 6-22.5 1.5T584-210q-5-11 0-22.5t16-17.5q65-33 102.5-96T740-483Z\"/></svg>";
@@ -2361,6 +2332,7 @@ function get_material_icon(name,nowrap=false) {
 	if (name === "person") res += "<svg xmlns=\"http://www.w3.org/2000/svg\" height=\"48\" viewBox=\"0 -960 960 960\" width=\"48\"><path d=\"M480-481q-66 0-108-42t-42-108q0-66 42-108t108-42q66 0 108 42t42 108q0 66-42 108t-108 42Zm260 321H220q-24.75 0-42.375-17.625T160-220v-34q0-38 19-65t49-41q67-30 128.5-45T480-420q62 0 123 15.5t127.921 44.694q31.301 14.126 50.19 40.966Q800-292 800-254v34q0 24.75-17.625 42.375T740-160Zm-520-60h520v-34q0-16-9.5-30.5T707-306q-64-31-117-42.5T480-360q-57 0-111 11.5T252-306q-14 7-23 21.5t-9 30.5v34Zm260-321q39 0 64.5-25.5T570-631q0-39-25.5-64.5T480-721q-39 0-64.5 25.5T390-631q0 39 25.5 64.5T480-541Zm0-90Zm0 411Z\"/></svg>";
 	if (name === "groups") res += "<svg xmlns=\"http://www.w3.org/2000/svg\" height=\"48\" viewBox=\"0 -960 960 960\" width=\"48\"><path d=\"M0-240v-53q0-38.567 41.5-62.784Q83-380 150.376-380q12.165 0 23.395.5Q185-379 196-377.348q-8 17.348-12 35.165T180-305v65H0Zm240 0v-65q0-32 17.5-58.5T307-410q32-20 76.5-30t96.5-10q53 0 97.5 10t76.5 30q32 20 49 46.5t17 58.5v65H240Zm540 0v-65q0-19.861-3.5-37.431Q773-360 765-377.273q11-1.727 22.171-2.227 11.172-.5 22.829-.5 67.5 0 108.75 23.768T960-293v53H780Zm-480-60h360v-6q0-37-50.5-60.5T480-390q-79 0-129.5 23.5T300-305v5ZM149.567-410Q121-410 100.5-430.562 80-451.125 80-480q0-29 20.562-49.5Q121.125-550 150-550q29 0 49.5 20.5t20.5 49.933Q220-451 199.5-430.5T149.567-410Zm660 0Q781-410 760.5-430.562 740-451.125 740-480q0-29 20.562-49.5Q781.125-550 810-550q29 0 49.5 20.5t20.5 49.933Q880-451 859.5-430.5T809.567-410ZM480-480q-50 0-85-35t-35-85q0-51 35-85.5t85-34.5q51 0 85.5 34.5T600-600q0 50-34.5 85T480-480Zm.351-60Q506-540 523-557.351t17-43Q540-626 522.851-643t-42.5-17Q455-660 437.5-642.851t-17.5 42.5Q420-575 437.351-557.5t43 17.5ZM480-300Zm0-300Z\"/></svg>";
 	if (name === "search") res += "<svg xmlns=\"http://www.w3.org/2000/svg\" height=\"48\" viewBox=\"0 -960 960 960\" width=\"48\"><path d=\"M378-329q-108.162 0-183.081-75Q120-479 120-585t75-181q75-75 181.5-75t181 75Q632-691 632-584.85 632-542 618-502q-14 40-42 75l242 240q9 8.556 9 21.778T818-143q-9 9-22.222 9-13.222 0-21.778-9L533-384q-30 26-69.959 40.5T378-329Zm-1-60q81.25 0 138.125-57.5T572-585q0-81-56.875-138.5T377-781q-82.083 0-139.542 57.5Q180-666 180-585t57.458 138.5Q294.917-389 377-389Z\"/></svg>";
+	if (name === "chevron_right") res += "<svg xmlns=\"http://www.w3.org/2000/svg\" height=\"48px\" viewBox=\"0 -960 960 960\" width=\"48px\" fill=\"#e8eaed\"><path d=\"M530-481 353-658q-9-9-8.5-21t9.5-21q9-9 21.5-9t21.5 9l198 198q5 5 7 10t2 11q0 6-2 11t-7 10L396-261q-9 9-21 8.5t-21-9.5q-9-9-9-21.5t9-21.5l176-176Z\"/></svg>";
 	if (!nowrap) res += "</div>";
 	return res;
 }

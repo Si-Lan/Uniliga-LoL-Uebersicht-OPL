@@ -64,86 +64,103 @@ $wildcards = [];
 foreach ($wildcardsDB as $wildcard) {
     $wildcards[$wildcard["OPL_ID"]] = $wildcard;
 }
+?>
+<main>
+    <h2 class="pagetitle">Team-Liste</h2>
+    <div class="searchbar">
+		<span class="material-symbol search-icon" title="Suche">
+            <?php echo file_get_contents("../icons/material/search.svg") ?>
+		</span>
+        <input class="search-teams deletable-search" onkeyup='search_teams()' placeholder="Teams durchsuchen" type="search">
+        <button class="material-symbol search-clear" title="Suche leeren">
+			<?php echo file_get_contents("../icons/material/close.svg") ?>
+        </button>
+    </div>
+	<?php
 
+	if (isset($_GET["liga"]) && (array_key_exists($_GET["liga"],$leagues) || array_key_exists($_GET["liga"],$wildcards))) {
+		$filteredDivID = $_GET["liga"];
+		$divallClass = "";
+	} else {
+		$divallClass = "selected='selected'";
+	}
+	$toGroupButtonClass = "";
+	$toGroupButtonLink = "";
+	if (isset($filteredDivID) && isset($_GET["gruppe"])) {
+		$filteredGroupID = $_GET["gruppe"];
+		$groupallClass = "";
+		$toGroupButtonClass = " shown";
+		$toGroupButtonLink = " href='turnier/".$tournamentID."/gruppe/".$filteredGroupID."'";
+	} elseif (isset($filteredDivID) && array_key_exists($filteredDivID,$leagues) && $leagues[$filteredDivID]["format"] == "swiss") {
+		$groupallClass = "selected='selected'";
+		$toGroupButtonClass = " shown";
+		$toGroupButtonLink = " href='turnier/".$tournamentID."/gruppe/".$filteredDivID."'";
+	} else {
+		$groupallClass = "selected='selected'";
+	}
+	?>
 
-echo "<h2 class='pagetitle'>Team-Liste</h2>";
-echo "<div class='search-wrapper'>
-                <span class='searchbar'>
-                    <input class=\"search-teams $tournamentID deletable-search\" onkeyup='search_teams(\"$tournamentID\")' placeholder=\"Teams durchsuchen\" type=\"text\">
-                    <a class='material-symbol clear-search' href='#'>". file_get_contents("../icons/material/close.svg") ."</a>
-                </span>
-              </div>";
-
-if (isset($_GET["liga"]) && (array_key_exists($_GET["liga"],$leagues) || array_key_exists($_GET["liga"],$wildcards))) {
-	$filteredDivID = $_GET["liga"];
-	$divallClass = "";
-} else {
-	$divallClass = "selected='selected'";
-}
-$toGroupButtonClass = "";
-$toGroupButtonLink = "";
-if (isset($filteredDivID) && isset($_GET["gruppe"])) {
-	$filteredGroupID = $_GET["gruppe"];
-	$groupallClass = "";
-	$toGroupButtonClass = " shown";
-	$toGroupButtonLink = " href='turnier/".$tournamentID."/gruppe/".$filteredGroupID."'";
-} elseif (isset($filteredDivID) && array_key_exists($filteredDivID,$leagues) && $leagues[$filteredDivID]["format"] == "swiss") {
-	$groupallClass = "selected='selected'";
-	$toGroupButtonClass = " shown";
-	$toGroupButtonLink = " href='turnier/".$tournamentID."/gruppe/".$filteredDivID."'";
-} else {
-	$groupallClass = "selected='selected'";
-}
-echo "<div class='team-filter-wrap'><h3>Filter:</h3>";
-echo "<div class='slct div-select-wrap'>
-                <select name='Ligen' class='divisions' onchange='filter_teams_list_division(this.value)'>
-                    <option value='all' $divallClass>Alle Ligen</option>";
-foreach ($leagues as $league) {
-	if (isset($filteredDivID) && $filteredDivID == $league['OPL_ID']) {
-		$divClass = " selected='selected'";
-	} else {
-		$divClass = "";
-	}
-    if ($league["format"] == "swiss") {
-        $swissClass = "swiss_league";
-	} else {
-		$swissClass = "";
-	}
-	echo "<option value='".$league["OPL_ID"]."'$divClass class='$swissClass'>Liga ".$league["number"]."</option>";
-}
-foreach ($wildcards as $wildcard) {
-	if (isset($filteredDivID) && $filteredDivID == $wildcard['OPL_ID']) {
-		$divClass = " selected='selected'";
-	} else {
-		$divClass = "";
-	}
-	$wildcard_numbers_combined = ($wildcard["numberRangeTo"] == null) ? $wildcard["number"] : $wildcard["number"]."-".$wildcard["numberRangeTo"];
-	echo "<option value='".$wildcard["OPL_ID"]."'$divClass class='wildcard_league'>Wildcard Liga ".$wildcard_numbers_combined."</option>";
-}
-echo "
-                </select>
-                <span class='material-symbol'>".file_get_contents("../icons/material/arrow_drop_down.svg")."</span>
-              </div>
-                <div class='slct groups-select-wrap'>
-                    <select name='Gruppen' class='groups' onchange='filter_teams_list_group(this.value)'>
-                        <option value='all' $groupallClass>Alle Gruppen</option>";
-if (isset($filteredDivID)) {
-	$groups_filteredDiv = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID_parent = ? AND eventType = 'group' ORDER BY Number",[$filteredDivID])->fetch_all(MYSQLI_ASSOC);
-	foreach ($groups_filteredDiv as $group) {
-		if (isset($filteredGroupID) && $filteredGroupID == $group['OPL_ID']) {
-			$groupClass = " selected='selected'";
-		} else {
-			$groupClass = "";
-		}
-		echo "<option value='".$group["OPL_ID"]."'$groupClass>Gruppe ".$group["number"]."</option>";
-	}
-}
-echo "
-                    </select>
-                    <span class='material-symbol'>".file_get_contents("../icons/material/arrow_drop_down.svg")."</span>
-                </div>";
-echo "<a class='button b-group$toGroupButtonClass'$toGroupButtonLink>zur Gruppe</a>";
-echo "</div>";
+    <div class="team-filter-wrap">
+        <h3>Filter</h3>
+        <div class="slct div-select-wrap">
+            <select name='Ligen' class='divisions' onchange='filter_teams_list_division(this.value)'>
+                <option value='all' <?php echo $divallClass ?>>Alle Ligen</option>
+                <?php
+				foreach ($leagues as $league) {
+					if (isset($filteredDivID) && $filteredDivID == $league['OPL_ID']) {
+						$divClass = " selected='selected'";
+					} else {
+						$divClass = "";
+					}
+					if ($league["format"] == "swiss") {
+						$swissClass = "swiss_league";
+					} else {
+						$swissClass = "";
+					}
+					echo "<option value='{$league["OPL_ID"]}'$divClass class='$swissClass'>Liga {$league["number"]}</option>";
+				}
+				foreach ($wildcards as $wildcard) {
+					if (isset($filteredDivID) && $filteredDivID == $wildcard['OPL_ID']) {
+						$divClass = " selected='selected'";
+					} else {
+						$divClass = "";
+					}
+					$wildcard_numbers_combined = ($wildcard["numberRangeTo"] == null) ? $wildcard["number"] : $wildcard["number"]."-".$wildcard["numberRangeTo"];
+					echo "<option value='{$wildcard["OPL_ID"]}'$divClass class='wildcard_league'>Wildcard $wildcard_numbers_combined</option>";
+				}
+                ?>
+            </select>
+            <span class='material-symbol'><?php echo file_get_contents("../icons/material/arrow_drop_down.svg") ?></span>
+        </div>
+        <div class='slct groups-select-wrap'>
+            <select name='Gruppen' class='groups' onchange='filter_teams_list_group(this.value)'>
+                <option value='all' <?php echo $groupallClass ?>>Alle Gruppen</option>
+                <?php
+				if (isset($filteredDivID)) {
+					$groups_filteredDiv = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID_parent = ? AND eventType = 'group' ORDER BY Number",[$filteredDivID])->fetch_all(MYSQLI_ASSOC);
+					foreach ($groups_filteredDiv as $group) {
+						if (isset($filteredGroupID) && $filteredGroupID == $group['OPL_ID']) {
+							$groupClass = " selected='selected'";
+						} else {
+							$groupClass = "";
+						}
+						echo "<option value='".$group["OPL_ID"]."'$groupClass>Gruppe ".$group["number"]."</option>";
+					}
+				}
+                ?>
+            </select>
+            <span class='material-symbol'><?php echo file_get_contents("../icons/material/arrow_drop_down.svg") ?></span>
+        </div>
+        <a class="button b-group page-link<?php echo $toGroupButtonClass?>"<?php echo $toGroupButtonLink?>>
+            <span class="link-text">
+                zur Gruppe
+            </span>
+            <span class="material-symbol page-link-icon">
+                <?php echo file_get_contents("../icons/material/chevron_right.svg") ?>
+            </span>
+        </a>
+    </div>
+<?php
 
 echo "
             <div class='team-popup-bg' onclick='close_popup_team(event)'>
@@ -242,24 +259,23 @@ foreach ($teams as $i_teams=>$team) {
 		$filterGClass = "";
 	}
 
-	echo "
-                <button class=\"team-button $filterDClass$filterGClass\" data-league='$currTeamDivID' data-group='$currTeamGroupID' data-wildcards='$wildcardID_data' onclick='popup_team($currTeamID,$tournamentID)'>
-                    <div class='team-name'>";
-	if ($img_url != NULL) {
-		echo "
-                        <img class='color-switch' alt src='$img_url'>";
-	}
-	echo "
-                        <span>$team_name_now</span>
-                    </div>
-                    <div class='team-group'>
-                        $team_rank
-                    </div>
-                </button>";
+    ?>
+    <button class="team-button <?php echo $filterDClass.$filterGClass ?>" data-league='<?php echo $currTeamDivID?>' data-group='<?php echo$currTeamGroupID?>' data-wildcards='<?php echo$wildcardID_data?>' onclick='popup_team(<?php echo $currTeamID?>,<?php echo $tournamentID?>)'>
+        <?php
+		if ($img_url != NULL) {
+            ?><img class='color-switch' alt src='<?php echo $img_url?>'><?php
+		}
+        ?>
+        <span>
+            <span class="team-name"><?php echo $team_name_now?></span>
+            <span class="team-group"><?php echo $team_rank?></span>
+        </span>
+    </button>
+    <?php
 }
 echo "</div>"; //Team-List
 
 ?>
-
+</main>
 </body>
 </html>
