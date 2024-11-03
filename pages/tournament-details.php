@@ -56,9 +56,10 @@ echo create_tournament_nav_buttons(tournament_id: $tournament_url_path, dbcn: $d
 $leagues = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID_parent = ? AND eventType='league' AND deactivated = FALSE ORDER BY number", [$tournamentID])->fetch_all(MYSQLI_ASSOC);
 $wildcards = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID_parent = ? AND eventType='wildcard' AND deactivated = FALSE", [$tournamentID])->fetch_all(MYSQLI_ASSOC);
 $playoffs = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID_parent = ? AND eventType='playoffs' AND deactivated = FALSE", [$tournamentID])->fetch_all(MYSQLI_ASSOC);
-
-echo "<h2 class='pagetitle'>Turnier-Details</h2>";
-
+?>
+<main>
+    <h2 class='pagetitle'>Turnier-Details</h2>
+<?php
 $groups_active = (count($leagues)>0) ? "active" : "";
 $wildcard_active = (count($wildcards)>0 && count($leagues)==0) ? "active" : "";
 $playoffs_active = (count($wildcards)==0 && count($leagues)==0) ? "active" : "";
@@ -85,121 +86,153 @@ if (count($leagues) > 0 ? (count($wildcards) > 0 || count($playoffs) > 0) : (cou
     </div>
     <?php
 }
-
-echo "<div class='divisions-list-wrapper'>";
-
-echo "<div class='divisions-list groups'>";
+?>
+    <div class='divisions-list-wrapper'>
+        <div class='divisions-list groups'>
+    <?php
 foreach ($leagues as $league) {
-	echo "<div class='division'>
-                        <div class='group-title-wrapper'><h2>Liga {$league['number']}</h2>";
-	if ($logged_in) {
-		echo "<a class='deprecated-admin-btn button write games-div {$league['OPL_ID']}' onclick='get_games_for_division(\"$tournamentID\",\"{$league['OPL_ID']}\")'><div class='material-symbol'>". file_get_contents("../icons/material/place_item.svg") ."</div>Lade Spiele</a>";
-	}
-	echo "</div>";
-	if ($logged_in) {
-		echo "<div class='result-wrapper no-res {$league['OPL_ID']} {$tournamentID}'>
-                            <div class='clear-button' onclick='clear_results(\"{$league['OPL_ID']}\")'>Clear</div>
-                            <div class='result-content'></div>
-                          </div>";
-	}
-	echo "<div class='divider'></div>";
-
     if ($league["format"] == "swiss") {
-        echo "<div class='groups'>";
-		echo "<div>";
-		echo "<div class='group'>
-                            <a href='turnier/{$tournament_url_path}/gruppe/{$league['OPL_ID']}' class='button'>Swiss-Gruppe</a>
-                            <a href='turnier/{$tournament_url_path}/teams?liga={$league['OPL_ID']}' class='button'><div class='material-symbol'>". file_get_contents("../icons/material/group.svg") ."</div>Teams</a>";
-		echo "</div>"; // group
-		echo "</div>"; // <div>
-		echo "</div>"; // groups
-		echo "</div>"; // division
+        ?>
+        <div class='division'>
+            <div class='group-title-wrapper'>
+                <h3>Liga <?php echo $league['number'] ?></h3>
+            </div>
+            <div class='groups'>
+                <div class='group'>
+                    <span class="group-title">Gruppe</span>
+                    <div class="divider-vert-acc"></div>
+                    <a href='turnier/<?php echo $tournament_url_path ?>/gruppe/<?php echo $league['OPL_ID'] ?>'
+                       class='page-link'>
+                        <span class="link-text">Details</span>
+                        <span class="material-symbol page-link-icon"><?php echo file_get_contents("../icons/material/chevron_right.svg") ?></span>
+                    </a>
+                    <div class="divider-vert-acc"></div>
+                    <a href='turnier/<?php echo $tournament_url_path ?>/teams?liga=<?php echo $league['OPL_ID'] ?>'
+                       class='icon-link page-link'>
+                        <span class='material-symbol icon-link-icon'><?php echo file_get_contents("../icons/material/group.svg") ?></span>
+                        <span class="link-text">Teams</span>
+                        <span class='material-symbol page-link-icon'><?php echo file_get_contents("../icons/material/chevron_right.svg") ?></span>
+                    </a>
+                </div>
+            </div>
+        </div>
+                <?php
         continue;
     }
 
 	$groups = $dbcn->execute_query("SELECT * FROM tournaments WHERE eventType = 'group' AND OPL_ID_parent = ? ORDER BY number", [$league["OPL_ID"]])->fetch_all(MYSQLI_ASSOC);
-
-	echo "<div class='groups'>";
-	foreach ($groups as $group) {
+    ?>
+    <div class='division'>
+        <div class='group-title-wrapper'>
+            <h3>Liga <?php echo $league['number'] ?></h3>
+        </div>
+        <div class="groups">
+    <?php
+	foreach ($groups as $g_i=>$group) {
 		$group_title = "Gruppe {$group['number']}";
-
-		echo "<div>";
-		echo "<div class='group'>
-                            <a href='turnier/{$tournament_url_path}/gruppe/{$group['OPL_ID']}' class='button'>$group_title</a>
-                            <a href='turnier/{$tournament_url_path}/teams?liga={$league['OPL_ID']}&gruppe={$group['OPL_ID']}' class='button'><div class='material-symbol'>". file_get_contents("../icons/material/group.svg") ."</div>Teams</a>";
-		echo "</div>"; // group
-		if ($logged_in) {
-			echo "<a class='deprecated-admin-btn button write games- {$group['OPL_ID']}' onclick='get_games_for_group(\"$tournamentID\",\"{$group['OPL_ID']}\")'><div class='material-symbol'>". file_get_contents("../icons/material/place_item.svg") ."</div>Lade Spiele</a>";
-		}
-		echo "</div>";
-		if ($logged_in) {
-			echo "
-                            <div class='result-wrapper no-res {$group['OPL_ID']} {$tournamentID}'>
-                                <div class='clear-button' onclick='clear_results(\"{$group['OPL_ID']}\")'>Clear</div>
-                                <div class='result-content'></div>
-                            </div>";
-		}
+        if ($g_i != 0) {
+            ?> <div class="divider-light"></div> <?php
+        }
+        ?>
+        <div class="group">
+            <span class="group-title"><?php echo $group_title ?></span>
+            <div class="divider-vert-acc"></div>
+            <a href='turnier/<?php echo $tournament_url_path ?>/gruppe/<?php echo $group['OPL_ID'] ?>'
+               class='page-link'>
+                <span class="link-text">Details</span>
+                <span class="material-symbol page-link-icon"><?php echo file_get_contents("../icons/material/chevron_right.svg") ?></span>
+            </a>
+            <div class="divider-vert-acc"></div>
+            <a href='turnier/<?php echo $tournament_url_path ?>/teams?liga=<?php echo $league['OPL_ID'] ?>&gruppe=<?php echo $group['OPL_ID'] ?>'
+               class='icon-link page-link'>
+                <span class='material-symbol icon-link-icon'><?php echo file_get_contents("../icons/material/group.svg") ?></span>
+                <span class="link-text">Teams</span>
+                <span class='material-symbol page-link-icon'><?php echo file_get_contents("../icons/material/chevron_right.svg") ?></span>
+            </a>
+        </div>
+                    <?php
 	}
-	echo "</div>";
-
-	echo "</div>";
+    ?>
+        </div>
+    </div>
+                <?php
 }
-echo "</div>";
-
-
 ?>
-<div class='divisions-list wildcard'<?php if (!$wildcard_active) echo " style='display: none'"; ?>>
+        </div>
+        <div class='divisions-list wildcard'<?php if (!$wildcard_active) echo " style='display: none'"; ?>>
+            <div class='division'>
+                <div class='group-title-wrapper'>
+                    <h3>Wildcard</h3>
+                </div>
+                <div class="groups">
+					<?php
+					foreach ($wildcards as $i=>$wildcard) {
+						$group_title = ($wildcard["numberRangeTo"] == null) ? "Wildcard Liga {$wildcard['number']}" : "Wildcard Liga {$wildcard['number']}-{$wildcard["numberRangeTo"]}";
+						if ($i != 0) {
+							?> <div class="divider-light"></div> <?php
+						}
+                        ?>
+                        <div class="group">
+                            <span class="group-title"><?php echo $group_title ?></span>
+                            <div class="divider-vert-acc"></div>
+                            <a href='turnier/<?php echo $tournament_url_path ?>/wildcard/<?php echo $wildcard['OPL_ID'] ?>'
+                               class='page-link'>
+                                <span class="link-text">Details</span>
+                                <span class="material-symbol page-link-icon"><?php echo file_get_contents("../icons/material/chevron_right.svg") ?></span>
+                            </a>
+                            <div class="divider-vert-acc"></div>
+                            <a href='turnier/<?php echo $tournament_url_path ?>/teams?liga=<?php echo $wildcard['OPL_ID'] ?>'
+                               class='icon-link page-link'>
+                                <span class='material-symbol icon-link-icon'><?php echo file_get_contents("../icons/material/group.svg") ?></span>
+                                <span class="link-text">Teams</span>
+                                <span class='material-symbol page-link-icon'><?php echo file_get_contents("../icons/material/chevron_right.svg") ?></span>
+                            </a>
+                        </div>
+                    <?php
+					}
+					?>
+                </div>
+            </div>
+        </div>
+        <div class='divisions-list playoffs'<?php if (!$playoffs_active) echo " style='display: none'"; ?>>
+            <div class='division'>
+                <div class='group-title-wrapper'>
+                    <h3>Playoffs</h3>
+                </div>
+                <div class="groups">
+					<?php
+					foreach ($playoffs as $i=>$playoff) {
+						$group_title = ($playoff["numberRangeTo"] == null) ? "Wildcard Liga {$playoff['number']}" : "Wildcard Liga {$playoff['number']}/{$playoff["numberRangeTo"]}";
+						if ($i != 0) {
+							?> <div class="divider-light"></div> <?php
+						}
+						?>
+                        <div class="group">
+                            <span class="group-title"><?php echo $group_title ?></span>
+                            <div class="divider-vert-acc"></div>
+                            <a href='turnier/<?php echo $tournament_url_path ?>/playoffs/<?php echo $playoff['OPL_ID'] ?>'
+                               class='page-link'>
+                                <span class="link-text">Details</span>
+                                <span class="material-symbol page-link-icon"><?php echo file_get_contents("../icons/material/chevron_right.svg") ?></span>
+                            </a>
+                            <div class="divider-vert-acc"></div>
+                            <a href='turnier/<?php echo $tournament_url_path ?>/teams?liga=<?php echo $playoff['OPL_ID'] ?>'
+                               class='icon-link page-link'>
+                                <span class='material-symbol icon-link-icon'><?php echo file_get_contents("../icons/material/group.svg") ?></span>
+                                <span class="link-text">Teams</span>
+                                <span class='material-symbol page-link-icon'><?php echo file_get_contents("../icons/material/chevron_right.svg") ?></span>
+                            </a>
+                        </div>
+						<?php
+					}
+					?>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
 <?php
-
-echo "<div class='division'>
-                        <div class='group-title-wrapper'><h2>Wildcard</h2>";
-echo "</div>";
-echo "<div class='divider'></div>";
-
-
-echo "<div class='groups'>";
-foreach ($wildcards as $wildcard) {
-	$group_title = ($wildcard["numberRangeTo"] == null) ? "Wildcard Liga {$wildcard['number']}" : "Wildcard Liga {$wildcard['number']}-{$wildcard["numberRangeTo"]}";
-
-	echo "<div>";
-	echo "<div class='group'>
-                            <a href='turnier/{$tournament_url_path}/wildcard/{$wildcard['OPL_ID']}' class='button'>$group_title</a>
-                            <a href='turnier/{$tournament_url_path}/teams?liga={$wildcard['OPL_ID']}' class='button'><div class='material-symbol'>" . file_get_contents("../icons/material/group.svg") . "</div>Teams</a>";
-	echo "</div>"; // group
-	echo "</div>";
-}
-echo "</div>"; //groups
-echo "</div>"; //division
-?>
-</div>
-<div class='divisions-list playoffs'<?php if (!$playoffs_active) echo " style='display: none'"; ?>>
-	<?php
-	echo "<div class='division'>
-                        <div class='group-title-wrapper'><h2>Playoffs</h2>";
-	echo "</div>";
-	echo "<div class='divider'></div>";
-
-    echo "<div class='groups'>";
-	foreach ($playoffs as $playoff) {
-		$group_title = ($playoff["numberRangeTo"] == null) ? "Playoffs Liga {$playoff['number']}" : "Playoffs Liga {$playoff['number']}/{$playoff["numberRangeTo"]}";
-
-		echo "<div>";
-		echo "<div class='group'>
-                            <a href='turnier/{$tournament_url_path}/playoffs/{$playoff['OPL_ID']}' class='button'>$group_title</a>
-                            <a href='turnier/{$tournament_url_path}/teams?liga={$playoff['OPL_ID']}' class='button'><div class='material-symbol'>" . file_get_contents("../icons/material/group.svg") . "</div>Teams</a>";
-		echo "</div>"; // group
-		echo "</div>";
-	}
-	echo "</div>"; //groups
-	echo "</div>"; //division
-	?>
-</div>
-
-<?php
-echo "</div>"; //divisions-list-wrapper
-
 $dbcn->close();
 ?>
-
 </body>
 </html>
