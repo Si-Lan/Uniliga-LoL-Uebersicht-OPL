@@ -547,9 +547,11 @@ async function popup_match(matchID,teamID=null,matchtype="groups",tournamentID=n
 		.then(res => res.json())
 		.then(async data => {
 			let games = data['games'];
+			const played = data['match']['played'];
+			const defwin = (data['team1']['OPL_ID'] < 0 || data['team2']['OPL_ID'] < 0);
 
 			let buttonwrapper = `<div class='mh-popup-buttons'>`;
-			if (teamID != null) {
+			if (teamID != null && played) {
 				let tournament_url_part = (tournamentID != null) ? `turnier/${tournamentID}/` : "";
 				buttonwrapper += `<a class='icon-link page-link' href='${tournament_url_part}team/${teamID}/matchhistory#${matchID}'> ${get_material_icon("manage_search",false,"icon-link-icon")} <span class="link-text">In Matchhistory ansehen</span> ${get_material_icon("chevron_right",false,"page-link-icon")}</a>`;
 			}
@@ -609,7 +611,13 @@ async function popup_match(matchID,teamID=null,matchtype="groups",tournamentID=n
                               </h2>`);
 			}
 			if (games.length === 0) {
-				popup.append("<div class='no-game-found'>Keine Spieldaten gefunden</div>");
+				if (played && !defwin) {
+					popup.append("<div class='no-game-found'>Noch keine Spieldaten gefunden</div>");
+				} else if (!played) {
+					popup.append("<div class='no-game-found'>Spiel wurde noch nicht gespielt</div>");
+				} else if (defwin) {
+					popup.append("<div class='no-game-found'>Keine Spieldaten vorhanden (Default Win)</div>");
+				}
 				let popup_loader = $('.popup-loading-indicator');
 				popup_loader.css("opacity", "0");
 				await new Promise(r => setTimeout(r, 210));
