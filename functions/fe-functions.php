@@ -834,9 +834,12 @@ function create_matchlist(mysqli $dbcn,$tournamentID,$eventID):string {
                             <div class='close-button-space'></div>
                             <div class='mh-popup-buttons'>";
 		if (!$tournament["archived"]) {
-			$result .= "                      <div class='updatebuttonwrapper'><button type='button' class='icononly user_update_match update_data' data-match='$curr_matchID' data-matchformat='groups' data-group='$eventID'><div class='material-symbol'>". file_get_contents(__DIR__."/../icons/material/sync.svg") ."</div></button><span>letztes Update:<br>$updatediff_match</span></div>";
+			$result .= "                      <div class='updatebuttonwrapper'><button type='button' class='user_update user_update_match update_data' data-match='$curr_matchID' data-matchformat='groups' data-group='$eventID'><div class='material-symbol'>". file_get_contents(__DIR__."/../icons/material/sync.svg") ."</div></button><span>letztes Update:<br>$updatediff_match</span></div>";
 		}
 		$result .= "                  </div>";
+
+		$result .= "<span>Spieldatum: ".date("d.m.Y, H:i",strtotime($curr_matchData["plannedDate"]))."</span>";
+
 		if ($curr_matchData['winner'] == $curr_matchData['OPL_ID_team1']) {
 			$team1score = "win";
 			$team2score = "loss";

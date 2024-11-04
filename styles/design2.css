@@ -230,6 +230,7 @@ body.popup_open {
 	width: 95%;
 	max-width: 1240px;
 	gap: 10px;
+	padding: 20px 10px 40px 10px;
 }
 .player-popup {
 	gap: 15px;
@@ -275,9 +276,13 @@ body.popup_open {
 	flex-direction: column;
 	align-items: center;
 	gap: 12px;
+	margin-bottom: 16px;
 }
 .mh-popup-buttons button.user_update {
 	padding: 8px 16px;
+}
+h2.round-title {
+	margin: 0 0 16px;
 }
 h2.round-title span.round {
 	font-size: 28px;
@@ -1323,8 +1328,7 @@ div.match-content {
 }
 a.button.match {
 	transition: background-color 200ms;
-	border-top-right-radius: 0;
-	border-bottom-right-radius: 0;
+	border-radius: 4px 0 0 4px;
 }
 a.button.match:hover {
 	background-color: var(--element-bg);
@@ -1384,14 +1388,17 @@ a.button.match:hover {
 body.team .match-button-wrapper:has(.win.current) {
 	border-left-color: var(--match-win-green);
 	border-left-width: 4px;
+	grid-template-columns: 238px 40px;
 }
 body.team .match-button-wrapper:has(.loss.current) {
 	border-left-color: var(--match-loss-red);
 	border-left-width: 4px;
+	grid-template-columns: 238px 40px;
 }
 body.team .match-button-wrapper:has(.draw.current) {
 	border-left-color: var(--match-loss-name-grey);
 	border-left-width: 4px;
+	grid-template-columns: 238px 40px;
 }
 
 
@@ -1439,6 +1446,7 @@ button.update_data::before {
 	width: var(--update-loading-bar-width);
 	height: 100%;
 	left: 0;
+	top: 0;
 	background-color: #1e6391;
 	border-radius: 5px;
 	box-shadow: 1px 0 3px 0 #1e6391;
