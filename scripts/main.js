@@ -584,6 +584,10 @@ async function popup_match(matchID,teamID=null,matchtype="groups",tournamentID=n
 					.catch(error => console.error(error));
 			}
 
+			let plannedDate = new Date(data['match']['plannedDate']);
+			let plannedDateString = plannedDate.toLocaleDateString("de-DE", {day:"2-digit", month:"2-digit", year:"numeric", hour:"2-digit", minute:"2-digit"});
+			popup.append(`<span>Spieldatum: ${plannedDateString}</span>`)
+
 			let team1score;
 			let team2score;
 			if (data['match']['winner'] === data["team1"]["OPL_ID"]) {

@@ -280,6 +280,9 @@ if ($curr_matchID != NULL) {
 		echo "                      <div class='updatebuttonwrapper'><button type='button' class='user_update user_update_match update_data' data-match='$curr_matchID' data-matchformat='' data-team='$teamID' data-group='{$group["OPL_ID"]}'><div class='material-symbol'>". file_get_contents(__DIR__."/../icons/material/sync.svg") ."</div></button><span>letztes Update:<br>$updatediff_match</span></div>";
 	}
     echo "                  </div>";
+
+	echo "<span>Spieldatum: ".date("d.m.Y, H:i",strtotime($curr_matchData["plannedDate"]))."</span>";
+
 	if ($curr_matchData['winner'] == $curr_matchData['OPL_ID_team1']) {
 		$team1score = "win";
 		$team2score = "loss";
