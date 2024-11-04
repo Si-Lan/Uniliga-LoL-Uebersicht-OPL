@@ -89,7 +89,7 @@ a, button {
 .material-symbol.flipy {
 	transform: rotateY(180deg);
 }
-a.icon-link, a.page-link {
+.icon-link, .page-link {
 	display: inline-flex;
 	align-items: center;
 	position: relative;
@@ -101,22 +101,23 @@ a.icon-link>.material-symbol.icon-link-icon svg {
 	height: 1.6em;
 	width: 1.8em;
 }
-a.page-link .material-symbol.page-link-icon {
+.page-link .material-symbol.page-link-icon {
 	background-color: var(--element-bg);
 	border-radius: 6px;
 	height: 24px;
 	width: 24px;
 }
-.standing-item .page-link-icon {
+.standing-item .page-link-icon,
+.elo-list-item .page-link-icon {
 	overflow: visible!important;
 }
 a.icon-link .link-text {
 	margin-left: 8px;
 }
-a.page-link .link-text {
+.page-link .link-text {
 	margin-right: 12px;
 }
-a.icon-link::after, a.page-link:not(:has(.page-link-target))::after, .page-link-target::after {
+.icon-link::after, .page-link:not(:has(.page-link-target))::after, .page-link-target::after {
 	content: '';
 	position: absolute;
 	width: 0;
@@ -126,8 +127,12 @@ a.icon-link::after, a.page-link:not(:has(.page-link-target))::after, .page-link-
 	transition: all ease-in-out .2s;
 	box-shadow: 0 0 1px rgba(0, 0, 0, 0.05);
 }
-a.icon-link:hover::after, a.page-link:hover::after, .page-link:hover .page-link-target::after {
+.icon-link:hover::after, .page-link:hover::after, .page-link:hover .page-link-target::after {
 	width: 100%;
+}
+input[type='checkbox'].controlled {
+	pointer-events: none;
+	cursor: pointer;
 }
 
 /* Dialogs */
@@ -600,6 +605,9 @@ header .searchbar .autocomplete-items>a {
 .autocomplete-active {
 	background-color: var(--element-bg) !important;
 }
+.autocomplete-items div strong {
+	color: var(--autocomplete-highlight-matching);
+}
 
 
 
@@ -644,7 +652,7 @@ body.home main {
 #turnier-select a {
 	font-size: 1.2em;
 }
-#turnier-select a.icon-link, #turnier-select a.page-link {
+#turnier-select 	.icon-link, #turnier-select .page-link {
 	align-self: flex-start;
 }
 #turnier-liste {
@@ -697,7 +705,7 @@ a.turnier-button {
 }
 .turnier-bonus-buttons .turnier-nav-buttons,
 #tournamentpage_switch_stage_buttons,
-#elolistpage_switch_stage_buttons,
+#elolist_switch_stage_buttons,
 .team-titlebutton-wrapper,
 #teampage_switch_group_buttons {
 	display: flex;
@@ -717,13 +725,13 @@ a.turnier-button {
 	margin-right: auto;
 }
 #tournamentpage_switch_stage_buttons,
-#elolistpage_switch_stage_buttons,
+#elolist_switch_stage_buttons,
 .team-titlebutton-wrapper {
 	margin-bottom: 16px;
 }
 .turnier-nav-buttons a,
 .tournamentpage_switch_stage,
-.elolistpage_switch_stage,
+.elolist_switch_stage,
 .team-titlebutton-wrapper a,
 .teampage_switch_group {
 	display: flex;
@@ -741,14 +749,14 @@ a.turnier-button {
 	white-space: nowrap;
 }
 .tournamentpage_switch_stage,
-.elolistpage_switch_stage,
+.elolist_switch_stage,
 .team-titlebutton-wrapper a,
 .teampage_switch_group {
 	border-bottom-color: var(--accent)
 }
 .turnier-nav-buttons a:hover,
 .tournamentpage_switch_stage:hover,
-.elolistpage_switch_stage:hover,
+.elolist_switch_stage:hover,
 .team-titlebutton-wrapper a:hover,
 .teampage_switch_group:hover {
 	border-color: var(--accent);
@@ -756,7 +764,7 @@ a.turnier-button {
 }
 .turnier-nav-buttons a:hover+a,
 .tournamentpage_switch_stage:hover+.tournamentpage_switch_stage,
-.elolistpage_switch_stage:hover+.elolistpage_switch_stage,
+.elolist_switch_stage:hover+.elolist_switch_stage,
 .team-titlebutton-wrapper a:hover+a,
 .teampage_switch_group:hover+.teampage_switch_group {
 	border-left-color: var(--accent);
@@ -769,21 +777,21 @@ a.turnier-button {
 }
 .turnier-nav-buttons a:first-child,
 .tournamentpage_switch_stage:first-child,
-.elolistpage_switch_stage:first-child,
+.elolist_switch_stage:first-child,
 .team-titlebutton-wrapper a:first-child,
 .teampage_switch_group:first-child {
 	border-radius: 6px 0 0 0;
 }
 .turnier-nav-buttons a:last-child,
 .tournamentpage_switch_stage:last-child,
-.elolistpage_switch_stage:last-child,
+.elolist_switch_stage:last-child,
 .team-titlebutton-wrapper a:last-child,
 .teampage_switch_group:last-child {
 	border-radius: 0 6px 0 0;
 }
 .turnier-nav-buttons a.active,
 .tournamentpage_switch_stage.active,
-.elolistpage_switch_stage.active,
+.elolist_switch_stage.active,
 .team-titlebutton-wrapper a.active,
 .teampage_switch_group.active {
 	pointer-events: none;
@@ -889,7 +897,7 @@ div.ranked-settings-popover>div {
 @media screen and (max-width: 580px) {
 	.turnier-nav-buttons a,
 	.tournamentpage_switch_stage,
-	.elolistpage_switch_stage,
+	.elolist_switch_stage,
 	.team-titlebutton-wrapper a,
 	.teampage_switch_group {
 		padding: 8px 12px;
@@ -1842,6 +1850,235 @@ div.summoner-card-container {
 		padding: 10px 12px;
 	}
 }
+
+/* Elo-Liste */
+div.filter-button-wrapper,
+div.settings-button-wrapper,
+div.jump-button-wrapper {
+	display: flex;
+	flex-direction: row;
+	justify-content: center;
+	gap: 16px;
+	margin-top: 16px;
+}
+div.jump-button-wrapper {
+	flex-wrap: wrap;
+}
+.filter-button-wrapper .filterb,
+.settings-button-wrapper button,
+.jump-button-wrapper button {
+	background-color: var(--element-bg-sec);
+	border: var(--element-bg) solid 2px;
+	padding: 16px 20px;
+}
+.settings-button-wrapper button {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	gap: 12px;
+}
+.filter-button-wrapper .filterb:hover,
+.settings-button-wrapper button:hover,
+.jump-button-wrapper button:hover {
+	background-color: var(--element-bg);
+}
+.filter-button-wrapper .filterb.active {
+	pointer-events: none;
+	background-color: transparent;
+	border: var(--accent) solid 2px;
+}
+a.button.totop {
+	position: fixed;
+	right: 2%;
+	bottom: 2%;
+	padding: 10px;
+	border: var(--accent) solid 2px;
+	background-color: var(--bg);
+	transition: opacity 200ms;
+}
+a.button.totop:hover {
+	background-color: var(--element-bg);
+}
+a.button.totop .material-symbol,
+a.button.totop .material-symbol svg {
+	height: 36px;
+	width: 36px;
+}
+
+body.elo-overview main div.main-content {
+	width: 95%;
+	margin: auto auto 20px;
+}
+.teams-elo-list {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	max-width: 800px;
+	min-width: 516px;
+	margin: 28px auto 0;
+}
+.teams-elo-list h3 {
+	font-size: 2em;
+	margin: 0;
+}
+.elo-list-row {
+	display: grid;
+	grid-template-columns: 80px calc(100% - 80px - 8px);
+	align-items: center;
+	column-gap: 8px;
+	min-width: 420px;
+}
+.teams-elo-list.all-wildcard-teams .elo-list-row,
+.teams-elo-list.wildcard-teams .elo-list-row {
+	grid-template-columns: 136px calc(100% - 136px - 8px);
+
+}
+.elo-list-item-wrapper,
+.elo-list-item-wrapper-header {
+	display: grid;
+	grid-template-columns: 1fr 148px 72px;
+	height: 52px;
+	border-radius: 6px;
+	align-items: center;
+	transition: background-color 200ms linear;
+}
+.elo-list-pre-header {
+	padding-left: 12px;
+}
+.elo-list-pre {
+	font-size: 1.25em;
+	width: 100%;
+	height: 100%;
+	align-content: center;
+	position: relative;
+	padding-left: 12px;
+	border-radius: 6px;
+	transition: background-color 200ms linear;
+}
+.elo-list-pre::after {
+	content: '';
+	position: absolute;
+	height: 100%;
+	width: 1px;
+	background-color: var(--element-bg);
+	right: 0;
+	top: 50%;
+	transform: translateY(-50%);
+}
+.elo-list-item {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+}
+.elo-list-item.elo-nr {
+	justify-content: center;
+}
+.elo-list-item.team {
+	justify-content: start;
+	padding: 0 0 0 12px;
+	overflow: hidden;
+	font-size: 1.25em;
+}
+.elo-list-item img {
+	height: 36px;
+	aspect-ratio: 1 / 1;
+	border-radius: 6px;
+	object-fit: contain;
+}
+.elo-list-item.team span.page-link-target {
+	white-space: nowrap;
+	text-overflow: ellipsis;
+	overflow: hidden;
+	display: flex;
+	gap: 8px;
+}
+.page-link .material-symbol.page-link-icon.popup-icon {
+	padding: 0 6px;
+}
+.page-link .material-symbol.page-link-icon.popup-icon svg {
+	height: 12px;
+	width: 12px;
+}
+.elo-list-item.team span.team-name {
+	white-space: nowrap;
+	text-overflow: ellipsis;
+	overflow: hidden;
+}
+.elo-list-item img.rank-emblem-mini {
+	width: 28px;
+	height: 28px;
+}
+.elo-list-item.rank {
+	white-space: nowrap;
+	gap: 6px;
+	padding: 12px;
+}
+.elo-list-header .elo-list-item,
+.elo-list-header .elo-list-pre-header,
+.elo-list-header .elo-list-item span{
+	color: var(--text-sec);
+}
+@media screen and (max-width: 540px) {
+	body.elo-overview div.main-content {
+		align-items: flex-start;
+		overflow-x: scroll;
+	}
+}
+@media screen and (max-width: 400px) {
+	div.filter-button-wrapper {
+		flex-direction: column;
+		align-items: center;
+		gap: 10px;
+	}
+}
+/*
+@media screen and (min-width: 720px) {
+	.elo-list-item-wrapper,
+	.elo-list-item-wrapper-header {
+		grid-template-columns: 1fr 208px 72px;
+	}
+}
+ */
+
+.elo-list-team.ac-selected-team {
+	transform: scale(1.04);
+	background-color: var(--element-bg);
+	border-radius: 6px;
+}
+
+.colored-list .elo-list-team {
+	--bgc-liga1: #344c2f;
+	--bgc-liga2: #5e4f32;
+	--bgc-liga3: #522e2e;
+	--bgc-liga4: #2e4956;
+	--bgc-liga5: #4f2f56;
+}
+.colored-list .elo-list-team.liga1 .elo-list-item-wrapper,
+.main-content.colored-list .elo-list-team.liga1 .elo-list-pre {
+	background-color: var(--bgc-liga1);
+	transition: background-color 0.2s linear, filter 200ms linear;
+}
+.colored-list .elo-list-team.liga2 .elo-list-item-wrapper,
+.main-content.colored-list .elo-list-team.liga2 .elo-list-pre {
+	background-color: var(--bgc-liga2);
+	transition: background-color 0.2s linear, filter 200ms linear;
+}
+.colored-list .elo-list-team.liga3 .elo-list-item-wrapper,
+.main-content.colored-list .elo-list-team.liga3 .elo-list-pre {
+	background-color: var(--bgc-liga3);
+	transition: background-color 0.2s linear, filter 200ms linear;
+}
+.colored-list .elo-list-team.liga4 .elo-list-item-wrapper,
+.main-content.colored-list .elo-list-team.liga4 .elo-list-pre {
+	background-color: var(--bgc-liga4);
+	transition: background-color 0.2s linear, filter 200ms linear;
+}
+.colored-list .elo-list-team.liga5 .elo-list-item-wrapper,
+.main-content.colored-list .elo-list-team.liga5 .elo-list-pre {
+	background-color: var(--bgc-liga5);
+	transition: background-color 0.2s linear, filter 200ms linear;
+}
+
 
 /* Content-Loading */
 .content-loading-indicator {

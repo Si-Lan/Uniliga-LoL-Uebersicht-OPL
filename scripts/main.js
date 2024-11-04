@@ -699,16 +699,14 @@ function switch_elo_view(tournamentID,view) {
 	event.preventDefault();
 	let url = new URL(window.location.href);
 	let area = $('.main-content');
-	let but = $('.filter-button-wrapper .button');
+	let but = $('.filter-button-wrapper button');
 	let all_b = $('.filter-button-wrapper .all-teams');
 	let div_b = $('.filter-button-wrapper .div-teams');
 	let group_b = $('.filter-button-wrapper .group-teams');
-	let color_b = $('.settings-button-wrapper .button span');
+	let color_b = $('.settings-button-wrapper button span');
 	let jump_b = $('.jump-button-wrapper');
 
     let stage = $(`button.elolist_switch_stage.active`).attr("data-stage");
-
-	console.log(stage)
 
 	if (stage === "groups") {
 		(view === "all-teams") ? jump_b.css("display","none") : jump_b.css("display","");
@@ -814,10 +812,10 @@ function color_elo_list() {
 
 let acCurrentFocus = 0;
 function search_teams_elo() {
-	let searchbar = $('.search-wrapper .searchbar');
+	let searchbar = $('body.elo-overview main .searchbar');
 	let input = $('.search-teams-elo')[0];
 	let input_value = input.value.toUpperCase();
-	let ac = $('.search-wrapper .searchbar .autocomplete-items');
+	let ac = $('body.elo-overview main .searchbar .autocomplete-items');
 
 	if (ac.length === 0) {
 		ac = $("<div class=\'autocomplete-items\'></div>");
@@ -835,8 +833,8 @@ function search_teams_elo() {
 	}
 	let teams_list = [];
 	for (const team of teams) {
-		let team_name = $(team).find('.elo-list-item.team span')[0];
-		teams_list.push([team_name.innerText,team_name.offsetTop,$(team)[0].classList[2]]);
+		let team_name = $(team).find('.elo-list-item.team span.team-name')[0];
+		teams_list.push([team_name.innerText,team.offsetTop,$(team)[0].classList[2]]);
 	}
 	teams_list.sort(function(a,b) {return a[0] > b[0] ? 1 : -1});
 
@@ -849,9 +847,9 @@ function search_teams_elo() {
 			ac.append($(`<div ${ac_class}>${teams_list[i][0].substring(0,indexOf)}<strong>${teams_list[i][0].substring(indexOf,indexOf+input_value.length)}</strong>${teams_list[i][0].substring(indexOf+input_value.length)}
                     <input type='hidden' value='${teams_list[i][1]}'></div>`).click(function() {
 				$('html').stop().animate({scrollTop: this.getElementsByTagName("input")[0].value-300}, 400, 'swing');
-				$('.search-wrapper .searchbar .autocomplete-items').empty();
-				$('.search-wrapper .searchbar input').val("");
-				$(".searchbar .material-symbol").css("display","none");
+				$('body.elo-overview main .searchbar .autocomplete-items').empty();
+				$('body.elo-overview main .searchbar input').val("");
+				$("body.elo-overview main .searchbar button.search-clear").css("display","none");
 				$('.elo-list-team').removeClass('ac-selected-team');
 				$('.elo-list-team.'+teams_list[i][2]).addClass('ac-selected-team');
 			}));
@@ -860,8 +858,8 @@ function search_teams_elo() {
 
 	if (!($(input).hasClass("focus-listen"))) {
 		input.addEventListener("keydown",function (e) {
-			let autocomplete = $('.search-wrapper .searchbar .autocomplete-items');
-			let autocomplete_items = $('.search-wrapper .searchbar .autocomplete-items div');
+			let autocomplete = $('body.elo-overview main .searchbar .autocomplete-items');
+			let autocomplete_items = $('body.elo-overview main .searchbar .autocomplete-items div');
 			if(autocomplete_items.length > 0) {
 				if (e.keyCode === 40) {
 					e.preventDefault();
@@ -2285,7 +2283,7 @@ function toggle_active_rankedsplit(tournament_id, season_split) {
 
 	let url = new URL(window.location.href);
 	if (url.pathname.endsWith("/elo")) {
-		let filter_button = $(`.filter-button-wrapper .button.filterb.active`).eq(0);
+		let filter_button = $(`.filter-button-wrapper button.filterb.active`).eq(0);
 		if (filter_button.hasClass("all-teams")) {
 			switch_elo_view(tournament_id, "all-teams");
 		} else if (filter_button.hasClass("div-teams")) {
