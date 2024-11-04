@@ -207,6 +207,9 @@ body.popup_open {
 	background-color: rgba(0,0,0,0.5); /* Black w/ opacity */
 	transition: opacity 250ms;
 }
+.player-popup-bg {
+	z-index: 11;
+}
 .team-popup,
 .mh-popup,
 .player-popup {
