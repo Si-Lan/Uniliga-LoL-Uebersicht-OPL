@@ -2379,3 +2379,79 @@ a.player-card-div:hover {
 	flex-wrap: wrap;
 	justify-content: center;
 }
+
+/* Spieler-Suche */
+body.players main {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	width: 95%;
+	gap: 42px;
+	margin: auto auto 20px;
+}
+body.players main>div:first-child {
+	text-align: center;
+}
+body.players main .searchbar {
+	max-width: 600px;
+	width: 80%;
+	margin: 0 auto;
+}
+.recent-players-list>span {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 5px;
+	font-size: 1.1em;
+	margin-bottom: 5px;
+}
+div.player-list,
+div.recent-players-list {
+	display: flex;
+	flex-direction: column;
+	gap: 5px;
+}
+.player-ov-card-wrapper {
+	position: relative;
+	left: 16px;
+}
+.player-ov-card {
+	display: flex;
+	flex-direction: column;
+	background-color: var(--bg);
+	border: var(--accent) solid 2px;
+	border-radius: 6px;
+	transition: background-color 0.2s linear;
+	box-sizing: border-box;
+	padding: 14px 20px;
+	margin-right: 32px;
+}
+.player-ov-card:hover {
+	background-color: var(--element-bg-sec);
+}
+.player-ov-card .divider {
+	margin: 5px 0;
+}
+.player-ov-card-wrapper:hover>.x-remove-recent-player,
+.player-ov-card-wrapper:focus-within>.x-remove-recent-player {
+	opacity: 1;
+	pointer-events: initial;
+}
+.x-remove-recent-player {
+	opacity: 0;
+	pointer-events: none;
+	position: absolute;
+	right: 0;
+	top: 0;
+	padding: 2px;
+	border-radius: 5px;
+	transition: background-color 200ms;
+}
+.x-remove-recent-player:hover {
+	background-color: var(--element-bg);
+}
+.x-remove-recent-player .material-symbol,
+.x-remove-recent-player svg {
+	height: 28px;
+	width: 28px;
+}
