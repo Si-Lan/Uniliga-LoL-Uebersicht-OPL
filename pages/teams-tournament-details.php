@@ -299,9 +299,9 @@ if ($curr_matchID != NULL) {
 	echo "
                 <h2 class='round-title'>
                     <span class='round'>Runde {$curr_matchData['playday']}: &nbsp</span>
-                    <span class='team $team1score'>{$curr_team1['name']}</span>
+                    <a href='turnier/$tournamentID/team/{$curr_matchData['OPL_ID_team1']}' class='team $team1score page-link'>{$curr_team1['name']}</a>
                     <span class='score'><span class='$team1score'>{$t1score}</span>:<span class='$team2score'>{$t2score}</span></span>
-                    <span class='team $team2score'>{$curr_team2['name']}</span>
+                    <a href='turnier/$tournamentID/team/{$curr_matchData['OPL_ID_team2']}' class='team $team2score page-link'>{$curr_team2['name']}</a>
                 </h2>";
 	if ($curr_games == null) {
 		echo "<div class=\"no-game-found\">Keine Spieldaten gefunden</div>";
