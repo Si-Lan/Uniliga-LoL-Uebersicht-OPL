@@ -550,9 +550,9 @@ async function popup_match(matchID,teamID=null,matchtype="groups",tournamentID=n
 			const played = data['match']['played'];
 			const defwin = (data['team1']['OPL_ID'] < 0 || data['team2']['OPL_ID'] < 0);
 
+			const tournament_url_part = (tournamentID != null) ? `turnier/${tournamentID}/` : "";
 			let buttonwrapper = `<div class='mh-popup-buttons'>`;
 			if (teamID != null && played) {
-				let tournament_url_part = (tournamentID != null) ? `turnier/${tournamentID}/` : "";
 				buttonwrapper += `<a class='icon-link page-link' href='${tournament_url_part}team/${teamID}/matchhistory#${matchID}'> ${get_material_icon("manage_search",false,"icon-link-icon")} <span class="link-text">In Matchhistory ansehen</span> ${get_material_icon("chevron_right",false,"page-link-icon")}</a>`;
 			}
 			let teamid_data = "";
@@ -605,9 +605,13 @@ async function popup_match(matchID,teamID=null,matchtype="groups",tournamentID=n
 			if (current_match_in_popup === data['match']['OPL_ID']) {
 				popup.append(`<h2 class='round-title'>
                                 <span class='round'>Runde ${data['match']['playday']}: &nbsp</span>
-                                <a href='team/${data['team1']['OPL_ID']}' class='team ${team1score}'>${data['team1']['name']}</a>
+                                <a href='${tournament_url_part}team/${data['team1']['OPL_ID']}' class='team ${team1score} page-link'>
+									${data['team1']['name']}
+								</a>
                                 <span class='score'><span class='${team1score}'>${team1wins}</span>:<span class='${team2score}'>${team2wins}</span></span>
-                                <a href='team/${data['team2']['OPL_ID']}' class='team ${team2score}'>${data['team2']['name']}</a>
+                                <a href='${tournament_url_part}team/${data['team2']['OPL_ID']}' class='team ${team2score} page-link'>
+									${data['team2']['name']}
+                                </a>
                               </h2>`);
 			}
 			if (games.length === 0) {
