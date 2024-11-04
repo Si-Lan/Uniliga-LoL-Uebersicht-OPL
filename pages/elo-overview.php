@@ -57,6 +57,10 @@ echo create_header($dbcn, title: "tournament", tournament_id: $tournamentID);
 
 echo create_tournament_nav_buttons(tournament_id: $tournament_url_path, dbcn: $dbcn, active: "elo");
 
+?>
+<main>
+<?php
+
 echo "<h2 class='pagetitle'>Elo/Rang-Übersicht</h2>";
 
 $stage_loaded = $_REQUEST['stage'] ?? null;
@@ -90,11 +94,10 @@ if ($stage_loaded == null) {
     </div>
 <?php
 
-echo "<div class='search-wrapper'>
-                <span class='searchbar'>
-                    <input class=\"search-teams-elo $tournamentID deletable-search\" oninput='search_teams_elo()' placeholder='Team suchen' type='text'>
-                    <a class='material-symbol clear-search' href='#'>". file_get_contents(__DIR__."/../icons/material/close.svg") ."</a>
-                </span>
+echo "<div class='searchbar'>
+                <span class='material-symbol search-icon' title='Suche'>".file_get_contents(__DIR__."/../icons/material/search.svg")."</span>
+                <input class=\"search-teams-elo $tournamentID deletable-search\" oninput='search_teams_elo()' placeholder='Team suchen' type='search'>
+                <button type='button' class='material-symbol search-clear' title='Suche leeren'>". file_get_contents(__DIR__."/../icons/material/close.svg") ."</button>
               </div>";
 $filtered = $_REQUEST['view'] ?? NULL;
 $active_all = "";
@@ -113,21 +116,21 @@ if ($filtered === "liga") {
 
 ?>
             <div class='filter-button-wrapper'>
-                <a class='button filterb all-teams<?php echo $active_all?>' onclick='switch_elo_view("<?php echo $tournamentID?>","all-teams")' href='turnier/<?php echo $tournament_url_path?>/elo'>Alle Ligen</a>
-                <a class='button filterb div-teams<?php echo $active_div?>' onclick='switch_elo_view("<?php echo $tournamentID?>","div-teams")' href='turnier/<?php echo $tournament_url_path?>/elo?view=liga'>Pro Liga</a>
-                <a class='button filterb group-teams<?php echo $active_group?>' onclick='switch_elo_view("<?php echo $tournamentID?>","group-teams")' href='turnier/<?php echo $tournament_url_path?>/elo?view=gruppe' <?php if ($stage_loaded != "groups") echo "style='display: none'" ?>>Pro Gruppe</a>
+                <button class='filterb all-teams<?php echo $active_all?>' onclick='switch_elo_view("<?php echo $tournamentID?>","all-teams")'>Alle Ligen</button>
+                <button class='filterb div-teams<?php echo $active_div?>' onclick='switch_elo_view("<?php echo $tournamentID?>","div-teams")'>Pro Liga</button>
+                <button class='filterb group-teams<?php echo $active_group?>' onclick='switch_elo_view("<?php echo $tournamentID?>","group-teams")' <?php if ($stage_loaded != "groups") echo "style='display: none'" ?>>Pro Gruppe</button>
             </div>
 <?php
 if (isset($_GET['colored'])) {
 	echo "
             <div class='settings-button-wrapper'>
-                <a class='button' onclick='color_elo_list()' href='$pageurl'><input type='checkbox' name='coloring' checked class='controlled color-checkbox'><span>Nach $color_by einfärben</span></a>
+                <button onclick='color_elo_list()'><input type='checkbox' name='coloring' checked class='controlled color-checkbox'><span>Nach $color_by einfärben</span></button>
             </div>";
 	$color = " colored-list";
 } else {
 	echo "
             <div class='settings-button-wrapper'>
-                <a class='button' onclick='color_elo_list()' href='$pageurl'><input type='checkbox' name='coloring' class='controlled color-checkbox'><span>Nach $color_by einfärben</span></a>
+                <button onclick='color_elo_list()'><input type='checkbox' name='coloring' class='controlled color-checkbox'><span>Nach $color_by einfärben</span></button>
             </div>";
 	$color = "";
 }
@@ -140,7 +143,7 @@ echo "
             <div class='jump-button-wrapper'$jbutton_hide>";
 foreach ($leagues as $league) {
 	$div_num = $league['number'];
-	echo "<a class='button' onclick='jump_to_league_elo(\"{$league['number']}\")' href='$pageurl'>Zu Liga {$league['number']}</a>";
+	echo "<button onclick='jump_to_league_elo(\"{$league['number']}\")'>Zu Liga {$league['number']}</button>";
 }
 echo "
             </div>";
@@ -180,6 +183,6 @@ echo "<a class='button totop' onclick='to_top()' style='opacity: 0; pointer-even
 
 
 ?>
-
+</main>
 </body>
 </html>

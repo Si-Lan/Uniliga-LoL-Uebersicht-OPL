@@ -390,15 +390,15 @@ function generate_elo_list(mysqli $dbcn,$view,$tournamentID,$divisionID=null,$gr
 	$results .= "
                     <div class='elo-list-row elo-list-header'>
                         <div class='elo-list-pre-header league'>Liga #</div>
-                        <a class='elo-list-item-wrapper-header'>
-                        <div class='elo-list-item team'>Team</div>
-                        <div class='elo-list-item rank'>avg. Rang</div>
-                        </a>
-                        <div class='elo-list-after-header elo-nr'>Elo</div>
-                        <a class='elo-list-after-header op-gg'><div class='svg-wrapper op-gg'></div></a>
+                        <div class='elo-list-item-wrapper-header'>
+	                        <div class='elo-list-item team'>Team</div>
+    	                    <div class='elo-list-item rank'>avg. Rang</div>
+    	                    <div class='elo-list-item elo-nr'>Elo</div>
+                        </div>
                     </div>";
 	$tournament = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID = ?", [$tournamentID])->fetch_assoc();
-	foreach ($teams as $team) {
+	foreach ($teams as $i=>$team) {
+		if ($i != 0) $results .= "<div class='divider-light'></div>";
         if (str_contains($view, "wildcard")) {
             $league = $dbcn->execute_query("SELECT * FROM tournaments WHERE eventType='wildcard' AND OPL_ID = ?", [$team["OPL_ID_group"]])->fetch_assoc();
         } else {
@@ -437,15 +437,22 @@ function generate_elo_list(mysqli $dbcn,$view,$tournamentID,$divisionID=null,$gr
             $results .= "<div class='elo-list-pre league'>Liga {$league['number']}</div>";
         }
         $results .= "
-                        <a href='./team/".$team['OPL_ID']."' onclick='popup_team({$team['OPL_ID']},$tournamentID)' class='elo-list-item-wrapper'>
-                            <div class='elo-list-item team'>";
+                        <div class='elo-list-item-wrapper'>
+                            <button type='button' onclick='popup_team({$team['OPL_ID']},$tournamentID)' class='elo-list-item team page-link'>";
 		if ($team['OPL_ID_logo'] != NULL && file_exists(__DIR__."/../$local_team_img{$team['OPL_ID_logo']}/logo.webp")) {
 			$results .= "
                                 <img class='color-switch' src='$local_team_img{$team['OPL_ID_logo']}/$logo_filename' alt='Teamlogo'>";
+		} else {
+			$results .= "<img class='color-switch' src='data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs%3D' alt='Teamlogo'>";
 		}
 		$results .= "
-                                <span>{$team_name['name']}</span>
-                            </div>
+                                <span class='page-link-target'>
+                                	<span class='team-name'>{$team_name['name']}</span>
+                                	<span class='material-symbol page-link-icon popup-icon'>
+                                		".file_get_contents(__DIR__."/../icons/material/ad_group.svg")."
+									</span>
+                                </span>
+                            </button>
                             <div class='elo-list-item rank'>";
 		if ($team['avg_rank_tier'] != NULL) {
 			$avg_rank = strtolower($team['avg_rank_tier']);
@@ -459,14 +466,11 @@ function generate_elo_list(mysqli $dbcn,$view,$tournamentID,$divisionID=null,$gr
 		}
 		$results .= "
                             </div>
-                        </a>
-                        <div class='elo-list-after elo-nr'>
+                        
+                        <div class='elo-list-item elo-nr'>
                             <span>({$avg_rank_num})</span>
                         </div>
-                        <a href='$curr_opgglink' target='_blank' class='elo-list-after op-gg'>
-                            <div class='svg-wrapper op-gg'>$opgg_logo_svg</div>
-                        </a>
-                        
+                        </div>
                     </div>";
 	}
 	$results .= "
