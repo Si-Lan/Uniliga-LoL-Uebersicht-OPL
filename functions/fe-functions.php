@@ -743,13 +743,15 @@ function create_matchbutton(mysqli $dbcn,$match_id,$type,$tournament_id,$team_id
 		}
 	}
 
+	$team_id_pass = ($team_id != null) ? "\"$team_id\"" : "null";
+	$tournament_id_pass = ($tournament_id != null) ? "\"$tournament_id\"" : "null";
 	if ($match['played'] == 0) {
 		$datetime = date_create($match['plannedDate']);
 		$date = date_format($datetime, 'd M');
 		$time = date_format($datetime, 'H:i');
 		$playdate = ($match['plannedDate'] == NULL || strtotime($match['plannedDate']) == 0) ? "vs." : "$date<br>$time";
 		$result .= "<div class='match-button-wrapper' data-matchid='$match_id' data-matchtype='$type' data-tournamentid='$tournament_id'>
-                            <a class='button match sideext-right'>
+                            <a class='button match sideext-right' href='$pageurl' onclick='popup_match({$match['OPL_ID']},$team_id_pass,\"$type\",$tournament_id_pass)'>
                                 <div class='teams'>
                                     <div class='team 1$current1' title='$team1Name'>$team1Name</div>
                                     <div class='team 2$current2' title='$team2Name'>$team2Name</div>
@@ -778,8 +780,6 @@ function create_matchbutton(mysqli $dbcn,$match_id,$type,$tournament_id,$team_id
 			$state2 = "draw";
 		}
 		$result .= "<div class='match-button-wrapper' data-matchid='$match_id' data-matchtype='$type' data-tournamentid='$tournament_id'>";
-		$team_id_pass = ($team_id != null) ? "\"$team_id\"" : "null";
-		$tournament_id_pass = ($tournament_id != null) ? "\"$tournament_id\"" : "null";
 		$result .= "<a class='button match sideext-right' href='$pageurl' onclick='popup_match({$match['OPL_ID']},$team_id_pass,\"$type\",$tournament_id_pass)'>";
 		$result .= "<div class='teams score'>
 				<div class='team 1 $state1$current1' title='$team1Name'>$team1Name</div>
