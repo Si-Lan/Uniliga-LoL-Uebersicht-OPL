@@ -1285,7 +1285,7 @@ function search_players() {
 	if (player_search_controller !== null) player_search_controller.abort();
 	player_search_controller = new AbortController();
 
-	let searchbar = $('.search-wrapper .searchbar');
+	let searchbar = $('body.players main .searchbar');
 	let input = $('input.search-players')[0];
 	let input_value = input.value.toUpperCase();
 	let player_list = $('.player-list');
