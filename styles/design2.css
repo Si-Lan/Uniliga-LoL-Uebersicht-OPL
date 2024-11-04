@@ -1958,10 +1958,10 @@ body.elo-overview main div.main-content {
 .elo-list-pre::after {
 	content: '';
 	position: absolute;
-	height: 100%;
-	width: 1px;
+	height: 64%;
+	width: 2px;
 	background-color: var(--element-bg);
-	right: 0;
+	right: -5px;
 	top: 50%;
 	transform: translateY(-50%);
 }
