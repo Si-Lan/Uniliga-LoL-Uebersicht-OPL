@@ -133,7 +133,7 @@ function create_header(mysqli $dbcn = NULL, string $title = "home", string|int $
 		</div>";
 	}
 	$title_before_search = false;
-	$title_text = "<h1 class='tournament-title'>";
+	$title_text = "";
 	switch ($title) {
 		case "players":
 			$title_text .= "Uniliga LoL - Spieler";
@@ -166,17 +166,20 @@ function create_header(mysqli $dbcn = NULL, string $title = "home", string|int $
 			break;
 		case "error":
 			$title_text .= "Fehler";
+			break;
+		case "home":
+			$title_text = "Uniliga LoL - Übersicht";
 			$title_before_search = true;
 			break;
 		default:
-			$title_text = "<h1>Uniliga LoL - Übersicht</h1>";
-			$title_before_search = true;
+			$title_text .= "Uniliga LoL - Übersicht";
 	}
-	$title_text .= "</h1>";
 
 	if ($title_before_search) {
+		$title_text = "<h1>".$title_text."</h1>";
 		$result .= $title_text.$searchbar;
 	} else {
+		$title_text = "<h1 class='tournament-title'>".$title_text."</h1>";
 		$result .= $searchbar.$title_text;
 	}
 
