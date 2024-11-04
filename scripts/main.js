@@ -489,6 +489,8 @@ $(document).ready(function () {
 	if (body.hasClass("teamlist") || body.hasClass("elo-overview")) {
 		window.addEventListener("keydown", (event) => {
 			if (event.key === "Escape") {
+				const player_popup = $('.player-popup-bg');
+				if (player_popup.length > 0 && player_popup.css("display") !== "none") return;
 				closex_popup_team();
 			}
 		})
@@ -1465,7 +1467,7 @@ async function closex_popup_player() {
 }
 $(document).ready(function () {
 	let body = $('body');
-	if (body.hasClass("players")) {
+	if (body.hasClass("players") || body.hasClass("team") || body.hasClass("teamlist")) {
 		window.addEventListener("keydown", (event) => {
 			if (event.key === "Escape") {
 				closex_popup_player();
