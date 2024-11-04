@@ -1260,6 +1260,24 @@ div.standings {
 .standing-row.standing-team.current span.team-name {
 	font-weight: 600;
 }
+@media screen and (max-width: 620px){
+	.standings-table {
+		min-width: 404px;
+	}
+	.standing-row {
+		grid-template-columns: 36px calc(100% - 36px);
+		min-width: 388px;
+		column-gap: 0;
+	}
+	.standing-item-wrapper,
+	.standing-item-wrapper-header {
+		grid-template-columns: calc(100% - 36px - 72px - 36px) 36px 72px 36px;
+	}
+	.standing-item.team {
+		justify-content: start;
+		padding-left: 8px;
+	}
+}
 
 body.group main .matches {
 	width: calc(2 * 244px + 2 * 8px + 8px + 12px);

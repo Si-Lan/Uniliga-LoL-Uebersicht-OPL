@@ -610,7 +610,7 @@ function create_standings(mysqli $dbcn, $tournament_id, $group_id, $team_id=NULL
 				<div class='standing-item-wrapper-header'>
 					<div class='standing-item team'>Team</div>
 					<div class='standing-item played'>Pl</div>
-					<div class='standing-item score'>W - D - L</div>
+					<div class='standing-item score'>W-D-L</div>
 					<div class='standing-item points'>Pt</div>
                 </div>
             </div>";
