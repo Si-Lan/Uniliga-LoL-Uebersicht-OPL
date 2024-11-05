@@ -1698,7 +1698,7 @@ async function user_update_group(button) {
 	})
 		.then(res => res.text())
 		.then(matchlist => {
-			$(".main-content .matches .match-content").replaceWith(matchlist);
+			$("main .matches .match-content").replaceWith(matchlist);
 		})
 		.catch(error => console.error(error));
 }
@@ -2046,7 +2046,7 @@ async function user_update_team(button) {
 	})
 		.then(res => res.text())
 		.then(matchlist => {
-			$(".main-content .matches .match-content").replaceWith(matchlist);
+			$("main .matches .match-content").replaceWith(matchlist);
 		})
 		.catch(error => console.warn(error)));
 	Promise.all(fetch_array).then(() => {
