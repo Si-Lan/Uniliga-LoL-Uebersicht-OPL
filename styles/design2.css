@@ -835,6 +835,10 @@ a.turnier-button {
 	border-bottom-color: var(--bg);
 	z-index: 2;
 }
+.turnier-nav-buttons a.active.clickable,
+.team-titlebutton-wrapper a.active.clickable {
+	pointer-events: initial;
+}
 .turnier-bonus-buttons::after,
 .team-titlebutton-wrapper::after {
 	content: '';

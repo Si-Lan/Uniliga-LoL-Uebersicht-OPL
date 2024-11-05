@@ -936,14 +936,14 @@ function tournament_nav_switch_active() {
 		return;
 	}
 	$('.turnier-bonus-buttons .active').removeClass('active');
-	$(this).addClass('active');
+	$(this).addClass(['active','clickable']);
 }
 function team_nav_switch_active() {
 	if (user_update_running) {
 		return;
 	}
 	$('.team-titlebutton-wrapper .active').removeClass('active');
-	$(this).addClass('active');
+	$(this).addClass(['active','clickable']);
 }
 $(document).ready(function () {
 	$('.turnier-bonus-buttons .button').on("click",tournament_nav_switch_active);
