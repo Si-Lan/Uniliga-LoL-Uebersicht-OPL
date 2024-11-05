@@ -118,7 +118,7 @@ a.icon-link .link-text {
 .page-link .link-text {
 	margin-right: 12px;
 }
-.icon-link::after, .page-link:not(:has(.page-link-target))::after, .page-link-target::after {
+.icon-link::before, .page-link:not(:has(.page-link-target))::before, .page-link-target::before {
 	content: '';
 	position: absolute;
 	width: 0;
@@ -128,7 +128,7 @@ a.icon-link .link-text {
 	transition: all ease-in-out .2s;
 	box-shadow: 0 0 1px rgba(0, 0, 0, 0.05);
 }
-.icon-link:hover::after, .page-link:hover::after, .page-link:hover .page-link-target::after {
+.icon-link:hover::before, .page-link:hover::before, .page-link:hover .page-link-target::before {
 	width: 100%;
 }
 input[type='checkbox'].controlled {
@@ -331,10 +331,10 @@ h2.round-title .team.loss {
 	font-size: 1.2em;
 	padding: 12px;
 }
-.team-popup .page-link:has(.page-link-icon):hover::after {
+.team-popup .page-link:has(.page-link-icon):hover::before {
 	width: calc(100% - 24px);
 }
-.team-popup .page-link:has(.page-link-icon)::after {
+.team-popup .page-link:has(.page-link-icon)::before {
 	bottom: 8px;
 }
 .player-ov-titlewrapper {
