@@ -1813,27 +1813,27 @@ function create_teamcard(mysqli $dbcn, $teamID, $tournamentID) {
 
 	$result = "<div class='team-card'>";
 	// Turnier-Titel
-	$result .= "<a class='team-card-div team-card-tournament' href='turnier/{$parent_tournament["OPL_ID"]}'>";
+	$result .= "<a class='team-card-div team-card-tournament page-link' href='turnier/{$parent_tournament["OPL_ID"]}'>";
 	if ($tournament["OPL_ID_logo"] != NULL) {
 		$result .= "<img class='color-switch' alt='' src='img/tournament_logos/{$tournament["OPL_ID_logo"]}/$logo_filename'>";
 	}
-	$result .= ucfirst($tournament["split"])." ".$tournament["season"];
+	$result .= "<span class='page-link-target'>".ucfirst($tournament["split"])." ".$tournament["season"]."</span>";
 	$result .= "</a>";
 
 	// Liga und Gruppe
 	$league_number = ($league["numberRangeTo"] == NULL) ? $league["number"] : $league["number"]."-".$league["numberRangeTo"];
 	$group_title = ($tournament["eventType"] == "wildcard") ? "Wildcard-Turnier" : (($tournament["format"] == "swiss") ? "Swiss-Gruppe" : "Gruppe {$tournament["number"]}");
 	$group_url_segment = ($tournament["eventType"] == "wildcard") ? "wildcard" : "gruppe";
-	$result .= "<a class='team-card-div team-card-league' href='turnier/{$parent_tournament["OPL_ID"]}/$group_url_segment/{$tournament["OPL_ID"]}'>";
-	$result .= "Liga ".$league_number." - $group_title";
+	$result .= "<a class='team-card-div team-card-league page-link' href='turnier/{$parent_tournament["OPL_ID"]}/$group_url_segment/{$tournament["OPL_ID"]}'>";
+	$result .= "<span class='page-link-target'>Liga ".$league_number." - $group_title</span>";
 	$result .= "</a>";
 
 	// Link zu Teamseite
 	$logo_dir = (($team_logo_current["dir_key"]??-1) == -1) ? "" : $team_logo_current["dir_key"]."/";
-	$result .= "<a class='team-card-div team-card-teampage' href='turnier/{$parent_tournament["OPL_ID"]}/team/$teamID'>";
+	$result .= "<a class='team-card-div team-card-teampage page-link' href='turnier/{$parent_tournament["OPL_ID"]}/team/$teamID'>";
 	if ($team["OPL_ID_logo"] != NULL && file_exists(dirname(__FILE__)."/../img/team_logos/{$team["OPL_ID_logo"]}/$logo_dir$logo_filename_square")) {
 		$result .= "<img class='color-switch' alt='' src='img/team_logos/{$team["OPL_ID_logo"]}/$logo_dir$logo_filename_square'>";
-		$result .= "<span>{$team_name_current["name"]}</span>";
+		$result .= "<span class='page-link-target'>{$team_name_current["name"]}</span>";
 	} else {
 		$result .= "<span class='team-card-nologo'>{$team_name_current["name"]}</span>";
 	}
@@ -1855,7 +1855,7 @@ function create_teamcard(mysqli $dbcn, $teamID, $tournamentID) {
 	$result .= "<div class='team-card-players'>";
 	foreach ($players_by_role as $role_players) {
 		foreach ($role_players as $player) {
-			$result .= "<a class='fancy-link-underline-parent' href='spieler/{$player["OPL_ID"]}'>";
+			$result .= "<a class='page-link' href='spieler/{$player["OPL_ID"]}'>";
 			if ($player["roles"] != null) {
 				$result .= "<div class='team-card-players-roles'>";
 				foreach ($player["roles"] as $role=>$role_amount) {
@@ -1864,7 +1864,7 @@ function create_teamcard(mysqli $dbcn, $teamID, $tournamentID) {
 				}
 				$result .= "</div>";
 			}
-			$result .= "<span class='fancy-link-underline-target'>{$player["name"]}</span></a>";
+			$result .= "<span class='page-link-target'>{$player["name"]}</span></a>";
 		}
 	}
 	$result .= "</div>";
