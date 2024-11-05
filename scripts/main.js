@@ -1517,8 +1517,7 @@ function expand_all_playercards(collapse=false) {
 
 function show_teamcard_roster(event) {
 	event.preventDefault();
-	let players = $(event.currentTarget).parent().find(".team-card-players-wrapper");
-	players.toggleClass("shown");
+	$(event.currentTarget).parent().toggleClass("roster-shown");
 }
 $(document).ready(function () {
 	$('.team-card-playeramount').on("click", show_teamcard_roster);
