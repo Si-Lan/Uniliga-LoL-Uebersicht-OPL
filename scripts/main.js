@@ -406,8 +406,8 @@ async function popup_team(teamID, tournamentID = null) {
 					opgg_amount++;
 				}
 
-				popup.append("<div class='team-buttons opgg-cards'></div>");
-				let name_container = $("div.team-buttons");
+				popup.append("<div class='team-title opgg-cards'></div>");
+				let name_container = $("div.team-title");
 				if (team_data["team"]["OPL_ID_logo"] !== null && team_data["team"]["OPL_ID_logo"] !== "") {
 					fetch(`img/team_logos/${team_data["team"]["OPL_ID_logo"]}/logo.webp`, {method:"HEAD"})
 						.then(res => {
@@ -417,15 +417,17 @@ async function popup_team(teamID, tournamentID = null) {
 						})
 						.catch(e => console.error(e));
 				}
-				name_container.append(`<h2>${team_data["team"]["name"]}</h2>`);
-				name_container.append(`<a href='https://www.opleague.pro/team/${teamID}' target='_blank' class='toorlink'>${get_material_icon("open_in_new")}</a>`);
-				name_container.append(`<a href='https://www.op.gg/multisearch/euw?summoners=${players_string}' target='_blank' class='button op-gg'><div class='svg-wrapper op-gg'>${opgg_logo_svg}</div><span class='player-amount'>(${opgg_amount} Spieler)</span></a>`);
-				name_container.append(`<a href='turnier/${tournamentID}/team/${teamID}' class='button'>${get_material_icon("info")}Team-Übersicht</a>`);
+				name_container.append(`<h2><a href="team/${teamID}" class="page-link">${team_data["team"]["name"]}</a></h2>`);
+				name_container.append(`<a href='https://www.opleague.pro/team/${teamID}' target='_blank' class='opl-link'>${get_material_icon("open_in_new")}</a>`);
+				popup.append(`<a href='turnier/${tournamentID}/team/${teamID}' class='page-link'><span class="link-text">Team-Übersicht</span>${get_material_icon("chevron_right",false,"page-link-icon")}</a>`);
+
 				let sc_collapsed = getCookie("preference_sccollapsed");
+				popup.append(`<div class="sc-buttons"><a href='https://www.op.gg/multisearch/euw?summoners=${players_string}' target='_blank' class='button op-gg'><div class='svg-wrapper op-gg'>${opgg_logo_svg}</div><span class='player-amount'>(${opgg_amount} Spieler)</span></a></div>`);
+				const sc_button_container = $(`div.sc-buttons`);
 				if (sc_collapsed === "1") {
-					popup.append(`<button type="button" class="exp_coll_sc">${get_material_icon("unfold_more")}Stats ein</button>`)
+					sc_button_container.append(`<button type="button" class="exp_coll_sc">${get_material_icon("unfold_more")}Stats ein</button>`)
 				} else {
-					popup.append(`<button type="button" class="exp_coll_sc">${get_material_icon("unfold_less")}Stats aus</button>`)
+					sc_button_container.append(`<button type="button" class="exp_coll_sc">${get_material_icon("unfold_less")}Stats aus</button>`)
 				}
 				$('button.exp_coll_sc').on("click",expand_collapse_summonercard);
 				if (team_data["team"]["avg_rank_tier"] !== null && team_data["team"]["avg_rank_tier"] !== "") {
