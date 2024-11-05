@@ -1634,12 +1634,12 @@ function create_player_overview(mysqli $dbcn,$playerid,$onplayerpage=false):stri
 	$result = "";
     $teams_played_in = $dbcn->execute_query("SELECT * FROM players_in_teams_in_tournament WHERE OPL_ID_player = ? ORDER BY OPL_ID_tournament DESC", [$playerid])->fetch_all(MYSQLI_ASSOC);
 	$player = $dbcn->execute_query("SELECT * FROM players WHERE OPL_ID = ?", [$playerid])->fetch_assoc();
-	if (!$onplayerpage) $result .= "<a href='spieler/$playerid' class='button toplayer'><div class='material-symbol'>".file_get_contents(__DIR__."/../icons/material/person.svg")."</div>Zur Spielerseite</a>";
-	$result .= "<div class='player-ov-titlewrapper'><h2 class='player-ov-name'>{$player["name"]}</h2><a href='https://www.opleague.pro/user/$playerid' class='toorlink' target='_blank'><div class='material-symbol'>".file_get_contents(__DIR__."/../icons/material/open_in_new.svg")."</div></a></div>";
-	$result .= "<div class='divider'></div>";
+	if (!$onplayerpage) $result .= "<a href='spieler/$playerid' class='page-link icon-link'><span class='material-symbol icon-link-icon'>".file_get_contents(__DIR__."/../icons/material/person.svg")."</span><span class='link-text'>Zur Spielerseite</span><span class='material-symbol page-link-icon'>".file_get_contents(__DIR__."/../icons/material/chevron_right.svg")."</span></a>";
+	$result .= "<div class='player-ov-titlewrapper'><h2 class='player-ov-name'>{$player["name"]}</h2><a href='https://www.opleague.pro/user/$playerid' class='opl-link' target='_blank'><div class='material-symbol'>".file_get_contents(__DIR__."/../icons/material/open_in_new.svg")."</div></a></div>";
+	$result .= "<div class='divider-light'></div>";
 	if ($player["riotID_name"] != null) {
 		$result .= "<div class='player-ov-riotid-wrapper'>";
-		$result .= "<a class='player-ov-riotid tooltip' href='https://op.gg/summoners/euw/{$player["riotID_name"]}-{$player["riotID_tag"]}' target='_blank'><span class='league-icon'>".file_get_contents(dirname(__FILE__)."/../icons/LoL_Icon_Flat.svg")."</span><span>{$player["riotID_name"]}#{$player["riotID_tag"]}</span><span class='tooltiptext linkinfo'><span class='material-symbol'>".file_get_contents(__DIR__."/../icons/material/open_in_new.svg")."</span>OP.GG</span></a>";
+		$result .= "<a class='player-ov-riotid tooltip page-link' href='https://op.gg/summoners/euw/{$player["riotID_name"]}-{$player["riotID_tag"]}' target='_blank'><span class='league-icon'>".file_get_contents(dirname(__FILE__)."/../icons/LoL_Icon_Flat.svg")."</span><span>{$player["riotID_name"]}#{$player["riotID_tag"]}</span><span class='tooltiptext linkinfo'><span class='material-symbol'>".file_get_contents(__DIR__."/../icons/material/open_in_new.svg")."</span>OP.GG</span></a>";
 		$rank_tier = strtolower($player["rank_tier"]??"");
 		$rank_div = $player["rank_div"];
 		$LP = NULL;
@@ -1661,8 +1661,8 @@ function create_player_overview(mysqli $dbcn,$playerid,$onplayerpage=false):stri
 	}
     if (count($teams_played_in) >= 2) {
         $result .= "<div class='player-ov-buttons'>";
-		$result .= "<a href='#' class='button expand-pcards' title='Ausklappen' onclick='expand_all_playercards()'><div class='material-symbol'>".file_get_contents(dirname(__FILE__)."/../icons/material/unfold_more.svg")."</div></a>";
-		$result .= "<a href='#' class='button expand-pcards' title='Einklappen' onclick='expand_all_playercards(true)'><div class='material-symbol'>".file_get_contents(dirname(__FILE__)."/../icons/material/unfold_less.svg")."</div></a>";
+		$result .= "<button type='button' class='expand-pcards' title='Ausklappen' onclick='expand_all_playercards()'><div class='material-symbol'>".file_get_contents(dirname(__FILE__)."/../icons/material/unfold_more.svg")."</div></button>";
+		$result .= "<button type='button' class='expand-pcards' title='Einklappen' onclick='expand_all_playercards(true)'><div class='material-symbol'>".file_get_contents(dirname(__FILE__)."/../icons/material/unfold_less.svg")."</div></button>";
 		$result .= "</div>";
     }
 	$result .= "<div class='player-popup-content'>";
