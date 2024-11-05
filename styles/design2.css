@@ -96,6 +96,7 @@ a, button {
 }
 .page-link-target {
 	position: relative;
+	display: flex;
 }
 a.icon-link>.material-symbol.icon-link-icon svg {
 	height: 1.6em;
@@ -1641,6 +1642,7 @@ button.exp_coll_sc {
 	background-color: var(--element-bg-sec);
 	border: var(--element-bg) solid 2px;
 	height: 48px;
+	width: 140px;
 }
 button.exp_coll_sc:hover {
 	background-color: var(--element-bg);
@@ -2239,6 +2241,9 @@ body.elo-overview main div.main-content {
 
 
 /* allgemeine Teamseite */
+body.general-team div.pagetitle.team {
+	margin: 8px 0 32px;
+}
 .team-card-list {
 	display: flex;
 	align-items: flex-start;
