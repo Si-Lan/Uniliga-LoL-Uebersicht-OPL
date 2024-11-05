@@ -202,7 +202,7 @@ foreach ($leagues as $league) {
                 <div class="groups">
 					<?php
 					foreach ($playoffs as $i=>$playoff) {
-						$group_title = ($playoff["numberRangeTo"] == null) ? "Wildcard Liga {$playoff['number']}" : "Wildcard Liga {$playoff['number']}/{$playoff["numberRangeTo"]}";
+						$group_title = ($playoff["numberRangeTo"] == null) ? "Playoffs Liga {$playoff['number']}" : "Playoffs Liga {$playoff['number']}/{$playoff["numberRangeTo"]}";
 						if ($i != 0) {
 							?> <div class="divider-light"></div> <?php
 						}
