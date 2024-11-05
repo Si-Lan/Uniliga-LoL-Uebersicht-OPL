@@ -235,6 +235,9 @@ body.popup_open {
 .player-popup {
 	gap: 15px;
 }
+.team-popup {
+	gap: 12px;
+}
 .team-popup-bg div.close-button,
 .mh-popup-bg div.close-button,
 .player-popup-bg div.close-button {
@@ -308,6 +311,30 @@ h2.round-title .team.loss {
 		margin-right: inherit;
 		justify-content: normal;
 	}
+}
+.team-popup .team-title {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	gap: 16px;
+}
+.team-popup .team-title h2 a {
+	font-size: 1.25em;
+}
+.team-popup .sc-buttons {
+	display: flex;
+	flex-direction: row;
+	gap: 12px;
+}
+.team-popup .page-link:has(.page-link-icon) {
+	font-size: 1.2em;
+	padding: 12px;
+}
+.team-popup .page-link:has(.page-link-icon):hover::after {
+	width: calc(100% - 24px);
+}
+.team-popup .page-link:has(.page-link-icon)::after {
+	bottom: 8px;
 }
 
 /* Inputs */
