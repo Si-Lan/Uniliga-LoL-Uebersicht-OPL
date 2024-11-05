@@ -336,6 +336,41 @@ h2.round-title .team.loss {
 .team-popup .page-link:has(.page-link-icon)::after {
 	bottom: 8px;
 }
+.player-ov-titlewrapper {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+}
+h2.player-ov-name {
+	font-size: 1.9em;
+	margin: 2px 0;
+}
+.player-ov-riotid {
+	position: relative;
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	margin-bottom: 4px;
+	font-size: 1.1em;
+}
+.player-rank {
+	display: flex;
+	align-items: center;
+	gap: 5px;
+}
+.player-ov-buttons {
+	display: flex;
+	gap: 10px;
+	flex-wrap: wrap;
+}
+button.expand-pcards {
+	padding: 12px 14px;
+	background-color: var(--element-bg-sec);
+	border: var(--element-bg) solid 2px;
+}
+button.expand-pcards:hover {
+	background-color: var(--element-bg);
+}
 
 /* Inputs */
 input[type=text],
@@ -419,6 +454,20 @@ th:hover span.tooltip span.tooltiptext,
 span.tooltiptext.riot-id {
 	bottom: 104%;
 	background-color: rgb(from var(--element-bg-sec) r g b / 0.9);
+}
+span.tooltiptext.linkinfo {
+	display: flex;
+	bottom: 104%;
+	background-color: rgb(from var(--element-bg-sec) r g b / 0.9);
+	padding: 8px 12px;
+	font-size: 0.96rem;
+}
+span.tooltiptext.linkinfo .material-symbol,
+span.tooltiptext.linkinfo .material-symbol svg {
+	height: 20px;
+	width: 20px;
+	position: relative;
+	margin-right: 2px;
 }
 
 
@@ -718,10 +767,12 @@ a.turnier-button {
 .divider {
 	background-color: var(--divider);
 	height: 1px;
+	width: 100%;
 }
 .divider-light {
 	background-color: var(--element-bg);
 	height: 1px;
+	width: 100%;
 }
 .divider-vert-acc {
 	background-color: var(--accent);
@@ -2307,10 +2358,18 @@ button.team-card-div:hover {
 }
 
 /* Spielerseite */
+body.player div.main-content {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 10px;
+	margin: auto auto 20px;
+	width: 95%;
+}
 .player-card {
 	width: 230px;
 	min-width: 230px;
-	height: 208px;
+	height: 215px;
 	display: flex;
 	flex-direction: column;
 	justify-content: center;
@@ -2322,16 +2381,16 @@ button.team-card-div:hover {
 	overflow: hidden;
 }
 .player-card.expanded-pcard {
-	height: 356px;
+	height: 360px;
 }
 .player-card.expanded-pcard[data-details="2"] {
-	height: 356px;
+	height: 360px;
 }
 .player-card.expanded-pcard[data-details="1"] {
-	height: 316px;
+	height: 320px;
 }
 .player-card.expanded-pcard[data-details="0"] {
-	height: 262px;
+	height: 266px;
 }
 .player-card-div {
 	display: flex;
@@ -2412,7 +2471,7 @@ a.player-card-div:hover {
 .expanded-pcard .player-card-rank,
 .expanded-pcard .player-card-champs,
 .expanded-pcard .player-card-roles {
-	height: 40px;
+	height: 38px;
 	opacity: 1;
 	pointer-events: initial;
 }
