@@ -947,6 +947,7 @@ div.ranked-settings-popover>div {
 body.tournament main {
 	margin: 0 auto;
 	max-width: 960px;
+	width: 90%;
 }
 
 .divisions-list-wrapper {
@@ -979,6 +980,17 @@ div.group span.group-title {
 }
 div.group a {
 	font-size: 1em;
+}
+@media screen and (max-width: 540px) {
+	div.group {
+		grid-template-columns: 124px 1px 124px;
+		grid-template-rows: 32px 32px;
+	}
+	div.group span.group-title {
+		grid-column: 1;
+		grid-row: 1 / span 2;
+		align-content: center;
+	}
 }
 
 
