@@ -1272,7 +1272,7 @@ function select_player_table() {
 	}
 }
 $(document).ready(function () {
-	$('div.roleplayers a.role-playername').on("click",select_player_table);
+	$('div.roleplayers .role-playername').on("click",select_player_table);
 });
 
 // toggle summonercard expansion

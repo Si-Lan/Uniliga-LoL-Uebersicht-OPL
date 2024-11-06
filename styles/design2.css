@@ -1,6 +1,7 @@
 :root {
 	--bg: #1c1e21;
-	--divider: #505050;
+	--bg2: #1d1d1e;
+	--divider: #404247;
 	--element-bg: #292f3a;
 	--text: #d5dfe2;
 	--text-sec: #8aaeb2;
@@ -9,6 +10,8 @@
 	--match-win-green: #19a300;
 	--match-loss-red: #d50000;
 	--match-loss-name-grey: #7c9598;
+	--marked-row: #4c4cb3;
+	--temp-marked-row: #2f2f9f;
 }
 html {
 	color-scheme: dark;
@@ -134,6 +137,70 @@ a.icon-link .link-text {
 input[type='checkbox'].controlled {
 	pointer-events: none;
 	cursor: pointer;
+}
+
+/* Custom Dropdown */
+button.button-dropdown {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	gap: 8px;
+	padding: 15px 20px;
+	justify-content: space-between;
+	min-width: 210px;
+	background-color: var(--element-bg-sec);
+	border: var(--element-bg) solid 2px;
+}
+button.button-dropdown:hover {
+	background-color: var(--element-bg);
+}
+button.button-dropdown .material-symbol {
+	transition: transform 400ms;
+}
+button.button-dropdown.open-selection .material-symbol {
+	transform: rotateX(180deg);
+}
+button.button-dropdown.open-selection.open-selection {
+	border-radius: 6px 6px 0 0;
+}
+div.dropdown-selection {
+	display: none;
+	position: absolute;
+	top: 100%;
+	left: 0;
+	right: 0;
+	background-color: var(--bg);
+	border-radius: 0 0 6px 6px;
+	border: var(--accent) solid 2px;
+	overflow: auto;
+	z-index: 1;
+	max-height: 35vh;
+}
+div.dropdown-selection .dropdown-selection-item:first-child {
+	border-top: none;
+}
+div.dropdown-selection .dropdown-selection-item  {
+	padding: 15px 20px;
+	width: 100%;
+	text-align: center;
+	border-radius: 0;
+	border-top: var(--element-bg) solid 2px;
+}
+div.dropdown-selection .dropdown-selection-item:hover {
+	background-color: var(--element-bg-sec);
+}
+div.dropdown-selection .dropdown-selection-item.selected-item  {
+	display: none;
+}
+button.button-dropdown.open-selection~div.dropdown-selection {
+	display: flex;
+	flex-direction: column;
+}
+div.button-dropdown-wrapper {
+	position: relative;
+	min-width: 210px;
+	display: flex;
+	flex-direction: column;
 }
 
 /* Dialogs */
@@ -786,6 +853,10 @@ a.turnier-button {
 	background-color: var(--element-bg);
 	height: 1px;
 	width: 100%;
+}
+.divider-vert {
+	background-color: var(--divider);
+	width: 1px;
 }
 .divider-vert-acc {
 	background-color: var(--accent);
@@ -2635,4 +2706,189 @@ div.recent-players-list {
 .x-remove-recent-player svg {
 	height: 28px;
 	width: 28px;
+}
+
+
+/* Statistikseite */
+body.statistics main {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: unset;
+	gap: 20px;
+	width: 95%;
+	margin: auto auto 20px;
+}
+body.statistics main h3 {
+	font-size: 24px;
+	margin: 0 0 10px;
+	text-align: center;
+}
+body.statistics main h4 {
+	font-size: 18px;
+	margin: 5px 0 10px 0;
+}
+div.teamroles {
+	display: flex;
+	flex-direction: column;
+	gap: 5px;
+}
+div.teamroles div.role {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+}
+div.teamroles div.roleplayers {
+	display: flex;
+}
+div.teamroles div.roleplayers .divider-vert {
+	margin: 0 5px;
+}
+div.teamroles div.roleplayers .role-playername {
+	padding: 10px 15px;
+	border-radius: 6px;
+	box-sizing: border-box;
+	border: transparent 2px solid;
+	transition: background-color 200ms, border 200ms;
+}
+div.teamroles div.roleplayers .role-playername:hover {
+	background-color: var(--element-bg-sec);
+	border-color: var(--element-bg);
+}
+div.teamroles div.roleplayers .role-playername.selected-player-table {
+	border-color: var(--accent);
+}
+div.stattables {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+	gap: 28px;
+}
+div.playertable-header {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+}
+body.statistics main div.playertable-header h3 {
+	font-size: 28px;
+	margin: 0;
+}
+div.playertable-header button {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	gap: 8px;
+	height: 48px;
+	padding: 12px;
+	background-color: var(--element-bg-sec);
+	border: var(--element-bg) solid 2px;
+}
+div.playertable-header button:hover {
+	background-color: var(--element-bg);
+}
+table {
+	text-align: center;
+	border-spacing: 0;
+}
+.playertable h4 {
+	text-align: center;
+}
+div.table.playerstable {
+	display: flex;
+	flex-direction: row;
+	gap: 20px;
+	flex-wrap: wrap;
+	justify-content: center;
+}
+div.table.playerstable .playertable.hidden-table {
+	display: none;
+}
+div.table {
+	display: flex;
+	flex-direction: column;
+}
+div.table table * {
+	box-sizing: content-box;
+}
+div.table table img {
+	width: 32px;
+	padding: 5px 5px 2px;
+	aspect-ratio: 1 / 1;
+}
+div.table table th {
+	cursor: pointer;
+	padding: 10px;
+}
+div.table table th:first-child {
+	cursor: default;
+}
+div.table table th span.tooltip {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: center;
+}
+div.table table th span.tooltip div.sort-direction {
+	transition: transform 400ms;
+}
+div.table table th.asc span.tooltip div.sort-direction {
+	transform: rotateX(180deg);
+}
+div.table table tr:has(td)  {
+	cursor: pointer;
+}
+div.table table tr.markedrow  {
+	background-color: var(--marked-row)!important;
+}
+body.light div.table table tr.markedrow td {
+	color: #efefef;
+}
+div.table table tr.temp-markedrow  {
+	background-color: var(--temp-marked-row);
+}
+body.light div.table table tr.temp-markedrow td {
+	color: #efefef;
+}
+div.playerstable table tr.expand-table td {
+	height: 36px;
+	border-radius: 0 0 6px 6px;
+	border: var(--element-bg) solid 2px;
+	background-color: transparent;
+	transition: background-color 200ms;
+}
+div.playerstable table tr.expand-table td:hover {
+	background-color: var(--element-bg-sec);
+}
+div.playerstable table tr.expand-table td .material-symbol {
+	margin: 0 auto;
+	transition: transform 400ms;
+}
+div.playerstable table.collapsed tr.expand-table td .material-symbol {
+	transform: rotateX(180deg);
+}
+div.playerstable table.collapsed tr:nth-child(n+7):not(:last-child) {
+	display: none;
+}
+td.hidden,
+th.hidden {
+	display: none;
+}
+div.table-wrapper {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 10px;
+	margin-top: 16px;
+}
+div.table-wrapper div.button-dropdown-wrapper {
+	align-self: flex-start;
+}
+div.champstattables {
+	display: flex;
+	justify-content: center;
+	gap: 25px;
+}
+div.champstattables td {
+	padding: 1px 8px;
 }
