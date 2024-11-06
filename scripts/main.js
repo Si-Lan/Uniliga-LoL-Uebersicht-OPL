@@ -559,7 +559,7 @@ async function popup_match(matchID,teamID=null,matchtype="groups",tournamentID=n
 			let teamid_data = "";
 			if (teamID !== null) teamid_data = `data-team='${teamID}'`;
 			if (!data["tournament"]["archived"]) {
-				buttonwrapper += `<div class='updatebuttonwrapper'><button type='button' class='user_update user_update_match update_data' data-match='${matchID}' data-matchformat='${matchtype}' ${teamid_data}>${get_material_icon('sync')}</button><span>letztes Update:<br>&nbsp;</span></div>`;
+				buttonwrapper += `<div class='updatebuttonwrapper'><button type='button' class='user_update user_update_match update_data' data-match='${matchID}' data-matchformat='${matchtype}' data-group='${data["match"]["OPL_ID_tournament"]}' data-tournament='${tournamentID}' ${teamid_data}>${get_material_icon('sync')}</button><span>letztes Update:<br>&nbsp;</span></div>`;
 			}
 			buttonwrapper += "</div>";
 			popup.append(buttonwrapper);
@@ -2061,6 +2061,8 @@ async function user_update_match(button) {
 	let match_ID = button.getAttribute("data-match");
 	let format = button.getAttribute("data-matchformat");
 	let team_ID = button.getAttribute("data-team");
+	let group_ID = button.getAttribute("data-group");
+	let tournament_ID = button.getAttribute("data-tournament");
 	$(button).addClass("user_updating");
 	button.disabled = true;
 	user_update_running = true;
@@ -2112,6 +2114,8 @@ async function user_update_match(button) {
 	loading_width = 20;
 	button.style.setProperty("--update-loading-bar-width", `${loading_width}%`);
 
+	let match_result_1 = "_";
+	let match_result_2 = "_";
 	let games = [];
 	// get matchresult
 	await fetch(`ajax/user-update-functions.php`, {
@@ -2123,10 +2127,24 @@ async function user_update_match(button) {
 	})
 		.then(res => res.json())
 		.then(result => {
+			match_result_1 = result["match"]["team1Score"];
+			match_result_2 = result["match"]["team2Score"];
 			for (const gameID in result["games"]) {
 				games.push(gameID);
 			}
 		})
+		.catch(e => console.error(e));
+
+	loading_width = 80;
+	button.style.setProperty("--update-loading-bar-width", `${loading_width}%`);
+
+	await fetch(`./admin/ajax/get-opl-data.php`, {
+		method: "GET",
+		headers: {
+			"type": "calculate_standings_from_matchups",
+			"id": group_ID,
+		}
+	})
 		.catch(e => console.error(e));
 
 	loading_width = 100;
@@ -2140,6 +2158,11 @@ async function user_update_match(button) {
 
 	// render Games in Matchpopup
 	let popup = $('.mh-popup');
+
+	if (current_match_in_popup === parseInt(match_ID)) {
+		popup.find(`h2.round-title span.score span`)[0].innerText = match_result_1;
+		popup.find(`h2.round-title span.score span`)[1].innerText = match_result_2;
+	}
 
 	if (games.length > 0) {
 		$(".no-game-found").remove();
@@ -2173,6 +2196,46 @@ async function user_update_match(button) {
 			})
 			.catch(e => console.error(e));
 	}
+
+	const groupButtons = $("button.teampage_switch_group");
+	const activeGroupButton = $("button.teampage_switch_group.active");
+	let activeGroupID = (activeGroupButton.length === 0) ? group_ID : activeGroupButton.attr("data-group");
+
+	groupButtons.prop("disabled", true);
+	let fetch_array = [];
+
+	if (activeGroupID === group_ID) fetch_array.push(fetch(`ajax/create-page-elements.php`, {
+		method: "GET",
+		headers: {
+			type: "standings",
+			groupID: activeGroupID,
+			teamid: team_ID,
+		}
+	})
+		.then(res => res.text())
+		.then(standings => {
+			$("div.standings").replaceWith(standings);
+		})
+		.catch(e => console.warn(e)));
+	fetch_array.push(fetch(`ajax/create-page-elements.php`, {
+		method: "GET",
+		headers: {
+			"type": "matchbutton",
+			"matchid": match_ID,
+			"tournamentid": tournament_ID,
+			"matchtype": format,
+			"teamid": team_ID,
+		},
+	})
+		.then(res => res.text())
+		.then(new_matchbutton => {
+			$(`div.match-button-wrapper[data-matchid='${match_ID}']`).replaceWith(new_matchbutton);
+		})
+		.catch(error => console.warn(error)));
+
+	Promise.all(fetch_array).then(() => {
+		groupButtons.prop("disabled", false);
+	});
 }
 $(document).ready(function () {
 	$(".user_update_match").on("click", function () {
