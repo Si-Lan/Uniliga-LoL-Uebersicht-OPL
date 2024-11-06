@@ -92,6 +92,9 @@ if ($type == "matchresult") {
 		calculate_teamstats($match["OPL_ID_team2"],$tournamentID);
 	}
 
+	$updated_match = $dbcn->execute_query("SELECT * FROM matchups WHERE OPL_ID = ?", [$matchid])->fetch_assoc();
+	$result["match"] = $updated_match;
+
 	echo json_encode($result);
 	$dbcn->close();
 }
