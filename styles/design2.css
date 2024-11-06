@@ -264,9 +264,7 @@ body.popup_open {
 	background-color: var(--element-bg);
 }
 .team-popup-bg div.close-button-space,
-.player-popup-bg div.close-button-space {
-	height: 30px;
-}
+.player-popup-bg div.close-button-space,
 .mh-popup-bg div.close-button-space {
 	height: 40px;
 }
@@ -317,14 +315,28 @@ h2.round-title .team.loss {
 	display: flex;
 	flex-direction: row;
 	align-items: center;
+	column-gap: 16px;
+	row-gap: 0;
+	flex-wrap: wrap;
+	justify-content: center;
+}
+.team-popup .team-title>div {
+	display: flex;
+	flex-direction: row;
 	gap: 16px;
+	align-items: center;
 }
 .team-popup .team-title h2 a {
 	font-size: 1.25em;
 }
+.team-popup .team-title a.opl-link {
+	flex-shrink: 0;
+}
 .team-popup .sc-buttons {
 	display: flex;
 	flex-direction: row;
+	flex-wrap: wrap;
+	justify-content: center;
 	gap: 12px;
 }
 .team-popup .page-link:has(.page-link-icon) {
