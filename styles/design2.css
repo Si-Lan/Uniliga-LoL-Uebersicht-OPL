@@ -1602,12 +1602,28 @@ div.pagetitle.team h2.pagetitle {
 div.pagetitle.team .updatebuttonwrapper {
 	gap: 8px;
 }
-body.team main {
+body.team main,
+body.match-history main {
 	width: 95%;
 	margin: auto auto 20px;
 	display: flex;
 	flex-direction: column;
 	gap: 40px;
+}
+body.match-history main {
+	gap: 24px;
+}
+body.match-history .divider {
+	background-color: var(--accent);
+	margin: 12px 0;
+}
+body.match-history div.round-wrapper {
+	display: flex;
+	flex-direction: column;
+	gap: 20px;
+}
+body.match-history h2 {
+	text-align: center;
 }
 main .player-cards {
 	align-self: center;
