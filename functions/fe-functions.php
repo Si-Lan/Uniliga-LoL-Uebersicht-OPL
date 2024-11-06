@@ -1685,13 +1685,13 @@ function create_player_search_cards(mysqli $dbcn, array $playerids, bool $remove
 
     foreach ($players as $player) {
         $player_cards .= "<div class='player-ov-card-wrapper'>";
-        $player_cards .= "<a class='player-ov-card' href='/uniliga/spieler' onclick='popup_player(\"".$player["OPL_ID"]."\",true)'>";
-        $player_cards .= "<span>".$player["name"]."</span>";
+        $player_cards .= "<button class='player-ov-card' type='button' onclick='popup_player(\"{$player["OPL_ID"]}\",true)'>";
+        $player_cards .= "<span><span class='material-symbol'>".file_get_contents(__DIR__."/../icons/material/person.svg")."</span>".$player["name"]."</span>";
         if ($player["riotID_name"] != null) {
             $player_cards .= "<div class='divider'></div>";
-            $player_cards .= "<span>".$player["riotID_name"]."#".$player["riotID_tag"]."</span>";
+            $player_cards .= "<span><span class='league-icon'>".file_get_contents(__DIR__."/../icons/LoL_Icon_Flat.svg")."</span>".$player["riotID_name"]."#".$player["riotID_tag"]."</span>";
         }
-        $player_cards .= "</a>";
+        $player_cards .= "</button>";
         if ($remove_from_recents) {
             $player_cards .= "<a class='x-remove-recent-player' href='/uniliga/spieler' onclick='remove_recent_player(\"".$player["OPL_ID"]."\")'><div class='material-symbol'>".file_get_contents(dirname(__FILE__)."/../icons/material/close.svg")."</div></a>";
         }

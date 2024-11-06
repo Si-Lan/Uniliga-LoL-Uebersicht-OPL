@@ -2665,6 +2665,8 @@ div.recent-players-list {
 	gap: 5px;
 }
 .player-ov-card-wrapper {
+	display: flex;
+	flex-direction: column;
 	position: relative;
 	left: 16px;
 }
@@ -2682,8 +2684,24 @@ div.recent-players-list {
 .player-ov-card:hover {
 	background-color: var(--element-bg-sec);
 }
+.player-ov-card>span:first-child {
+	font-size: 1.25em;
+}
+.player-ov-card .league-icon,
+.player-ov-card .league-icon svg {
+	height: 18px;
+	width: 18px;
+}
+.player-ov-card .league-icon {
+	vertical-align: middle;
+	margin-left: 4px;
+}
+.player-ov-card .material-symbol {
+	display: inline;
+	vertical-align: middle;
+}
 .player-ov-card .divider {
-	margin: 5px 0;
+	margin: 4px 0 8px;
 }
 .player-ov-card-wrapper:hover>.x-remove-recent-player,
 .player-ov-card-wrapper:focus-within>.x-remove-recent-player {
