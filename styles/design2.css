@@ -561,6 +561,7 @@ header {
 	border-bottom: var(--divider) solid 1px;
 	padding: 0 20px;
 	margin-bottom: 20px;
+	position: relative;
 }
 header.home {
 	grid-template-columns: 280px 280px 1fr 60px;
@@ -2891,4 +2892,34 @@ div.champstattables {
 }
 div.champstattables td {
 	padding: 1px 8px;
+}
+
+/* Hinweis-Header */
+.warning-header {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	border-bottom: var(--divider) solid 1px;
+}
+.warning-header span {
+	width: 100%;
+	text-align: center;
+	padding: 20px 0;
+}
+.warning-header a {
+	text-decoration: underline;
+	word-break: break-word;
+}
+.warning-header a:hover {
+	color: var(--text-sec);
+}
+.warning-header button {
+	background-color: var(--element-bg);
+	height: 44px;
+	aspect-ratio: 1 / 1;
+	margin-left: auto;
+	margin-right: 20px;
+}
+.warning-header button:hover {
+	background-color: var(--accent);
 }
