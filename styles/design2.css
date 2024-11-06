@@ -2687,6 +2687,17 @@ div.recent-players-list {
 .player-ov-card>span:first-child {
 	font-size: 1.25em;
 }
+.player-ov-card>span:first-child::after {
+	content: '';
+	background: url("../icons/material/popup-icon.svg") no-repeat;
+	height: 20px;
+	width: 20px;
+	display: inline-flex;
+	position: relative;
+	margin-right: -24px;
+	margin-left: 4px;
+	transform: translateY(18%);
+}
 .player-ov-card .league-icon,
 .player-ov-card .league-icon svg {
 	height: 18px;
