@@ -220,6 +220,37 @@ dialog {
 	border: var(--element-bg-sec) solid 2px;
 	border-radius: 12px;
 }
+dialog[open] {
+	opacity: 1;
+}
+/*noinspection CssInvalidPropertyValue*/
+dialog {
+	opacity: 0;
+	transition: all 200ms allow-discrete;
+}
+/*noinspection CssInvalidAtRule*/
+@starting-style {
+	dialog[open] {
+		opacity: 0;
+	}
+}
+/*noinspection CssInvalidPropertyValue*/
+dialog::backdrop {
+	opacity: 0;
+	background-color: rgba(0, 0, 0, 0.7);
+	transition: all 200ms allow-discrete;
+}
+dialog[open]::backdrop {
+	opacity: 1;
+}
+
+/*noinspection CssInvalidAtRule*/
+@starting-style {
+	dialog[open]::backdrop {
+		opacity: 0;
+	}
+}
+
 dialog .dialog-content {
 	display: flex;
 	flex-direction: column;
