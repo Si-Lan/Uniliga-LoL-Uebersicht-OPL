@@ -58,7 +58,7 @@ function create_summonercard(mysqli $dbcn, $playerID, $tournamentID, $teamID = N
 	if ($player["riotID_name"] != null) $return .= "
 		<span class='card-riotid'>
 			<span class='league-icon'>".file_get_contents(__DIR__."/../icons/LoL_Icon_Flat.svg")."</span>
-			<span>{$player['riotID_name']}</span><span class='riot-id-tag'>$riot_tag</span>
+			<span class='riot-id'>{$player['riotID_name']}<span class='riot-id-tag'>$riot_tag</span></span>
 		</span>";
 
 	if ($current_split == "$season_2-$split_2") {
@@ -200,7 +200,7 @@ function create_summonercard_general(mysqli $dbcn, $playerID, $teamID = null):st
 	if ($player["riotID_name"] != null) $return .= "
 		<span class='card-riotid'>
 			<span class='league-icon'>".file_get_contents(__DIR__."/../icons/LoL_Icon_Flat.svg")."</span>
-			<span>{$player['riotID_name']}</span><span class='riot-id-tag'>$riot_tag</span>
+			<span class='riot-id'>{$player['riotID_name']}<span class='riot-id-tag'>$riot_tag</span></span>
 		</span>";
 
 	if ($player_tier != NULL) {

@@ -92,6 +92,16 @@ a, button {
 .material-symbol.flipy {
 	transform: rotateY(180deg);
 }
+.svg-wrapper,
+.svg-wrapper svg {
+	width: 30px;
+	height: 30px;
+}
+.svg-wrapper svg,
+.svg-wrapper.role svg path,
+.svg-wrapper.role svg polygon {
+	fill: var(--text);
+}
 .icon-link, .page-link {
 	display: inline-flex;
 	align-items: center;
@@ -1801,6 +1811,10 @@ body.team .match-button-wrapper {
 	display: block;
 	margin-right: 2px;
 }
+div.summoner-card img.rank-emblem-mini {
+	width: 24px;
+	height: 24px;
+}
 div.summoner-card-container {
 	display: flex;
 	flex-direction: row;
@@ -1864,14 +1878,20 @@ div.summoner-card-container {
 	font-size: 22px;
 	font-weight: 700;
 	overflow-wrap: break-word;
+	line-height: 0.9em;
+	padding-right: 18px;
 }
 .summoner-card .divider {
 	background-color: var(--divider);
-	margin: 5px 0 10px 0;
+	margin: 8px 0;
+	flex-shrink: 0;
 }
 .summoner-card div.summoner {
 	display: flex;
 	flex-direction: column;
+}
+.summoner-card span.riot-id {
+	line-height: 1.1em;
 }
 .summoner-card span.card-riotid {
 	display: flex;
@@ -1883,6 +1903,9 @@ div.summoner-card-container {
 	align-items: center;
 	gap: 2px;
 	color: var(--text-sec);
+	font-size: 0.9em;
+	margin-top: 2px;
+	margin-left: 4px;
 }
 .summoner-card div.played-positions{
 	display: flex;
@@ -1891,7 +1914,7 @@ div.summoner-card-container {
 	padding-top: 5px;
 	opacity: 1;
 	overflow: hidden;
-	max-height: 48px;
+	max-height: 56px;
 	transition-property: max-height, padding, opacity;
 	transition-duration: 400ms;
 	transition-timing-function: ease-out;
@@ -1921,7 +1944,7 @@ div.summoner-card-container {
 	align-items: center;
 	opacity: 1;
 	overflow: hidden;
-	max-height: 48px;
+	max-height: 56px;
 	transition-property: max-height, padding, opacity;
 	transition-duration: 400ms;
 	transition-timing-function: ease-out;
