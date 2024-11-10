@@ -14,7 +14,7 @@ $dbcn = create_dbcn();
 $loggedin = is_logged_in();
 $lightmode = is_light_mode(true);
 
-echo create_html_head_elements(css: ["rgapi"], js: ["rgapi"], title: "Riot-API-Daten | Uniliga LoL - Übersicht" ,loggedin: $loggedin);
+echo create_html_head_elements(css: ["rgapi2"], js: ["rgapi"], title: "Riot-API-Daten | Uniliga LoL - Übersicht" ,loggedin: $loggedin);
 
 ?>
 <body class="admin <?php echo $lightmode?>">
