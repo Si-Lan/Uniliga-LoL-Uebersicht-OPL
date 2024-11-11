@@ -3490,7 +3490,6 @@ button.button-updating::before {
 }
 
 
-
 /*rgapi*/
 .deprecated-admin-btn {
 	color: #ff6161;
@@ -3503,4 +3502,113 @@ body.admin div.writing-wrapper {
 }
 body.admin div.writing-wrapper.hidden {
 	display: none;
+}
+
+
+/* DDragon-Updates */
+.patch-display {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+}
+.patch-table {
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+}
+.patch-header,
+.patch-row {
+	display: flex;
+	align-items: center;
+	justify-content: space-evenly;
+	gap: 16px;
+}
+span.patch-name {
+	text-align: center;
+	font-size: 1.5em;
+	width: 3.5em;
+}
+.patch-updatebutton-wrapper {
+	display: flex;
+}
+.patch-row button {
+	height: 48px;
+	white-space: nowrap;
+}
+.patchdata-status {
+	width: 24px;
+	height: 48px;
+	background-color: #3f3f3f;
+	border-radius: 5px 0 0 5px;
+	border: var(--element-bg) solid 2px;
+	border-right: none;
+}
+.patchdata-status[data-status="true"] {
+	background-color: green;
+}
+.patchdata-status[data-status="false"] {
+	background-color: darkred;
+}
+button.patch-update {
+	border-radius: 0 5px 5px 0;
+}
+dialog.patch-more-popup .dialog-content {
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+	align-items: center;
+}
+.dialog-content .patch-row {
+	flex-wrap: wrap;
+}
+.dialog-content span.patch-name {
+	width: unset;
+}
+@media screen and (max-width: 532px) {
+	div.patch-row {
+		justify-content: center;
+		flex-wrap: wrap;
+	}
+	div.patch-row::after {
+		content: '';
+		width: 90%;
+		height: 2px;
+		background-color: var(--element-bg);
+	}
+	.dialog-content div.patch-row::after {
+		content: none;
+	}
+}
+@media screen and (max-width: 450px) {
+	div.patch-header {
+		flex-direction: column;
+	}
+}
+@media screen and (max-width: 360px) {
+	div.patch-row {
+		flex-direction: column;
+	}
+}
+
+.add-patches-display {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+	align-items: center;
+}
+.add-patches-display>span {
+	margin: 12px 0;
+}
+dialog.add-patch-popup .dialog-content {
+	display: flex;
+	flex-direction: column;
+	gap: 20px;
+	padding: 25px 50px;
+	align-items: center;
+	min-height: 200px;
+}
+.add-patches-row {
+	display: flex;
+	align-items: center;
+	gap: 15px;
 }
