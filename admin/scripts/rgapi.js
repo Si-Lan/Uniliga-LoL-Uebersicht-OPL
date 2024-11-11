@@ -19,12 +19,12 @@ function get_puuids(tournID, only_without_puuid = true) {
 	console.log("----- Start getting PUUIDs -----");
 	let currButton;
 	if (only_without_puuid) {
-		currButton = $("a.button.write.puuids."+tournID);
+		currButton = $("button.write.puuids."+tournID);
 	} else {
-		currButton = $("a.button.write.puuids-all."+tournID);
+		currButton = $("button.write.puuids-all."+tournID);
 	}
 	if (!currButton.hasClass("loading-data")) {
-		$("a.button.write."+tournID).addClass("loading-data");
+		$("button.write."+tournID).addClass("loading-data");
 		currButton.append("<div class='lds-dual-ring'></div>");
 		set_all_buttons_onclick(0,tournID);
 	}
@@ -75,7 +75,7 @@ function get_puuids(tournID, only_without_puuid = true) {
 							console.log("----- Done with getting PUUIDs -----");
 							container.append("<br>----- Done with getting PUUIDs -----<br>");
 							container.scrollTop(container.prop("scrollHeight"));
-							$("a.button.write."+tournID).removeClass('loading-data');
+							$("button.write."+tournID).removeClass('loading-data');
 							currButton.children(".lds-dual-ring").remove();
 							set_all_buttons_onclick(1,tournID);
 						}
@@ -93,7 +93,7 @@ function get_puuids(tournID, only_without_puuid = true) {
 				$('.result-wrapper.'+tournID).removeClass('no-res');
 				console.log("----- Done with getting PUUIDs -----");
 				container.append("----- Done with getting PUUIDs -----<br>");
-				$("a.button.write."+tournID).removeClass("loading-data");
+				$("button.write."+tournID).removeClass("loading-data");
 				currButton.children(".lds-dual-ring").remove();
 				set_all_buttons_onclick(1,tournID);
 			}
@@ -116,8 +116,8 @@ function get_puuids(tournID, only_without_puuid = true) {
 
 async function get_riotids_by_puuids(tournamentID) {
 	console.log("----- Start getting RiotIDs -----");
-	let currButton = $(`a.button.write.riotids-puuids.${tournamentID}`);
-	let allButtons = $(`a.button.write.${tournamentID}`);
+	let currButton = $(`button.write.riotids-puuids.${tournamentID}`);
+	let allButtons = $(`button.write.${tournamentID}`);
 	let container = $(`.result-wrapper.${tournamentID} .result-content`);
 	let wrapper = $(`.result-wrapper.${tournamentID}`);
 	let date = Date.now();
@@ -202,9 +202,9 @@ function get_games_for_team(tournID,teamID) {
 	if (!cont) return;
 
 	console.log("----- Start getting Games (by Team) -----");
-	let currButton = $("a.button.write.games-team."+ tournID);
+	let currButton = $("button.write.games-team."+ tournID);
 	if (!currButton.hasClass("loading-data")) {
-		$("a.button.write."+tournID).addClass("loading-data");
+		$("button.write."+tournID).addClass("loading-data");
 		currButton.append("<div class='lds-dual-ring'></div>");
 		set_all_buttons_onclick(0,tournID,teamID);
 	}
@@ -237,7 +237,7 @@ function get_games_for_team(tournID,teamID) {
 							console.log("----- Done with getting Games (by Team) -----");
 							container.append("<br>----- Done with getting Games (by Team) -----<br>");
 							container.scrollTop(container.prop("scrollHeight"));
-							$("a.button.write."+tournID).removeClass('loading-data');
+							$("button.write."+tournID).removeClass('loading-data');
 							currButton.children(".lds-dual-ring").remove();
 							set_all_buttons_onclick(1,tournID,teamID);
 						}
@@ -261,7 +261,7 @@ function get_games_for_team(tournID,teamID) {
 				console.log("----- Done with getting Games (by Team) -----");
 				container.append("----- Done with getting Games (by Team) -----<br>");
 				container.scrollTop(container.prop("scrollHeight"));
-				$("a.button.write."+tournID).removeClass("loading-data");
+				$("button.write."+tournID).removeClass("loading-data");
 				currButton.children(".lds-dual-ring").remove();
 				set_all_buttons_onclick(1,tournID,teamID);
 			}
@@ -281,9 +281,9 @@ function get_games_for_division(tournID,divID) {
 	if (!cont) return;
 
 	console.log("----- Start getting Games (by Division) -----");
-	let currButton = $("a.button.write.games-div."+divID);
+	let currButton = $("button.write.games-div."+divID);
 	if (!currButton.hasClass("loading-data")) {
-		$("a.button.write."+tournID).addClass("loading-data");
+		$("button.write."+tournID).addClass("loading-data");
 		currButton.append("<div class='lds-dual-ring'></div>");
 		currButton.attr("onClick","");
 	}
@@ -344,7 +344,7 @@ function get_games_for_division(tournID,divID) {
 										console.log("----- Done with getting Games (by Division) -----");
 										container.append("<br>----- Done with getting Games (by Division) -----<br>");
 										container.scrollTop(container.prop("scrollHeight"));
-										$("a.button.write."+tournID).removeClass('loading-data');
+										$("button.write."+tournID).removeClass('loading-data');
 										currButton.children(".lds-dual-ring").remove();
 										currButton.attr("onClick",`get_games_for_division("${tournID}","${divID}")`);
 									}
@@ -385,9 +385,9 @@ function get_games_for_group(tournID, groupID) {
 	if (!cont) return;
 
 	console.log("----- Start getting Games (by Group) -----");
-	let currButton = $("a.button.write.games-group."+groupID);
+	let currButton = $("button.write.games-group."+groupID);
 	if (!currButton.hasClass("loading-data")) {
-		$("a.button.write."+tournID).addClass("loading-data");
+		$("button.write."+tournID).addClass("loading-data");
 		currButton.append("<div class='lds-dual-ring'></div>");
 		currButton.attr("onClick","");
 	}
@@ -448,7 +448,7 @@ function get_games_for_group(tournID, groupID) {
 										console.log("----- Done with getting Games (by Division) -----");
 										container.append("<br>----- Done with getting Games (by Division) -----<br>");
 										container.scrollTop(container.prop("scrollHeight"));
-										$("a.button.write."+tournID).removeClass('loading-data');
+										$("button.write."+tournID).removeClass('loading-data');
 										currButton.children(".lds-dual-ring").remove();
 										currButton.attr("onClick",`get_games_for_group("${tournID}","${groupID}")`);
 									}
@@ -486,12 +486,12 @@ function get_game_data(tournamentID, teamID = 0, all = 0) {
 	console.log("----- Start getting Gamedata -----");
 	let currButton;
 	if (all === 0) {
-		currButton = $("a.button.write.gamedata."+ tournamentID);
+		currButton = $("button.write.gamedata."+ tournamentID);
 	} else {
-		currButton = $("a.button.write.gamedata-all."+ tournamentID);
+		currButton = $("button.write.gamedata-all."+ tournamentID);
 	}
 	if (!currButton.hasClass("loading-data")) {
-		$("a.button.write."+tournamentID).addClass("loading-data");
+		$("button.write."+tournamentID).addClass("loading-data");
 		currButton.append("<div class='lds-dual-ring'></div>");
 		set_all_buttons_onclick(0,tournamentID,teamID);
 	}
@@ -526,7 +526,7 @@ function get_game_data(tournamentID, teamID = 0, all = 0) {
 							console.log("----- Done with getting Game-Data -----");
 							container.append("----- Done with getting Game-Data -----<br>");
 							container.scrollTop(container.prop("scrollHeight"));
-							$("a.button.write."+tournamentID).removeClass("loading-data");
+							$("button.write."+tournamentID).removeClass("loading-data");
 							currButton.children(".lds-dual-ring").remove();
 							set_all_buttons_onclick(1,tournamentID,teamID);
 						}
@@ -550,7 +550,7 @@ function get_game_data(tournamentID, teamID = 0, all = 0) {
 				console.log("----- Done with getting Game-Data -----");
 				container.append("----- Done with getting Game-Data -----<br>");
 				container.scrollTop(container.prop("scrollHeight"));
-				$("a.button.write."+tournamentID).removeClass("loading-data");
+				$("button.write."+tournamentID).removeClass("loading-data");
 				currButton.children(".lds-dual-ring").remove();
 				set_all_buttons_onclick(1,tournamentID,teamID);
 			}
@@ -572,12 +572,12 @@ function assign_and_filter_games(tournamentID,teamID = 0, all = 0) {
 	console.log("----- Start sorting Games -----");
 	let currButton;
 	if (all === 0) {
-		currButton = $("a.button.write.assign-una."+tournamentID);
+		currButton = $("button.write.assign-una."+tournamentID);
 	} else {
-		currButton = $("a.button.write.assign-all."+tournamentID);
+		currButton = $("button.write.assign-all."+tournamentID);
 	}
 	if (!currButton.hasClass("loading-data")) {
-		$("a.button.write."+tournamentID).addClass("loading-data");
+		$("button.write."+tournamentID).addClass("loading-data");
 		currButton.append("<div class='lds-dual-ring'></div>");
 		set_all_buttons_onclick(0,tournamentID,teamID);
 	}
@@ -612,7 +612,7 @@ function assign_and_filter_games(tournamentID,teamID = 0, all = 0) {
 							console.log("----- Done with sorting Games -----");
 							container.append("----- Done with sorting Games -----<br>");
 							container.scrollTop(container.prop("scrollHeight"));
-							$("a.button.write."+tournamentID).removeClass("loading-data");
+							$("button.write."+tournamentID).removeClass("loading-data");
 							currButton.children(".lds-dual-ring").remove();
 							set_all_buttons_onclick(1,tournamentID,teamID);
 						}
@@ -628,7 +628,7 @@ function assign_and_filter_games(tournamentID,teamID = 0, all = 0) {
 				console.log("----- Done with sorting Games -----");
 				container.append("----- Done with sorting Games -----<br>");
 				container.scrollTop(container.prop("scrollHeight"));
-				$("a.button.write."+tournamentID).removeClass("loading-data");
+				$("button.write."+tournamentID).removeClass("loading-data");
 				currButton.children(".lds-dual-ring").remove();
 				set_all_buttons_onclick(1,tournamentID,teamID);
 			}
@@ -649,9 +649,9 @@ function assign_and_filter_games(tournamentID,teamID = 0, all = 0) {
 
 function get_ranks(tournamentID) {
 	console.log("----- Start getting Ranks -----");
-	let currButton  = $("a.button.write.get-ranks."+tournamentID);
+	let currButton  = $("button.write.get-ranks."+tournamentID);
 	if (!currButton.hasClass("loading-data")) {
-		$("a.button.write."+tournamentID).addClass("loading-data");
+		$("button.write."+tournamentID).addClass("loading-data");
 		currButton.append("<div class='lds-dual-ring'></div>");
 		set_all_buttons_onclick(0,tournamentID);
 	}
@@ -684,7 +684,7 @@ function get_ranks(tournamentID) {
 							console.log("----- Done with getting Ranks -----");
 							container.append("<br>----- Done with getting Ranks -----<br>");
 							container.scrollTop(container.prop("scrollHeight"));
-							$("a.button.write."+tournamentID).removeClass('loading-data');
+							$("button.write."+tournamentID).removeClass('loading-data');
 							currButton.children(".lds-dual-ring").remove();
 							set_all_buttons_onclick(1,tournamentID);
 						}
@@ -708,7 +708,7 @@ function get_ranks(tournamentID) {
 				console.log("----- Done with getting Ranks -----");
 				container.append("----- Done with getting Ranks -----<br>");
 				container.scrollTop(container.prop("scrollHeight"));
-				$("a.button.write."+tournamentID).removeClass("loading-data");
+				$("button.write."+tournamentID).removeClass("loading-data");
 				currButton.children(".lds-dual-ring").remove();
 				set_all_buttons_onclick(1,tournamentID);
 			}
@@ -724,19 +724,19 @@ function get_ranks(tournamentID) {
 
 function set_all_buttons_onclick(set, tournamentID, teamID = 0) {
 	if (set === 1) {
-		$("a.button.write.puuids."+tournamentID).attr("onClick","get_puuids('"+tournamentID+"')");
-		$("a.button.write.puuids-all."+tournamentID).attr("onClick","get_puuids('"+tournamentID+"',false)");
-		$("a.button.write.riotids-puuids."+tournamentID).attr("onClick","get_riotids_by_puuids('"+tournamentID+"')");
-		$("a.button.write.games-team."+teamID).attr("onClick","get_games_for_team('"+tournamentID+"','"+teamID+"')");
-		$("a.button.write.gamedata."+tournamentID).attr("onClick","get_game_data('"+tournamentID+"','"+teamID+"')");
-		$("a.button.write.assign-una."+tournamentID).attr("onClick","assign_and_filter_games('"+tournamentID+"','"+teamID+"')");
-		$("a.button.write.assign-all."+tournamentID).attr("onClick","assign_and_filter_games('"+tournamentID+"','"+teamID+"',1)");
-		$("a.button.write.get-ranks."+tournamentID).attr("onClick", "get_ranks('"+tournamentID+"')");
-		$("a.button.write.calc-team-rank."+tournamentID).attr("onClick", "get_average_team_ranks('"+tournamentID+"')");
-		$("a.button.write.get-pstats."+tournamentID).attr("onClick", "get_stats_for_players('"+tournamentID+"')");
-		$("a.button.write.teamstats."+tournamentID).attr("onClick", "get_teamstats('"+tournamentID+"')");
+		$("button.write.puuids."+tournamentID).attr("onClick","get_puuids('"+tournamentID+"')");
+		$("button.write.puuids-all."+tournamentID).attr("onClick","get_puuids('"+tournamentID+"',false)");
+		$("button.write.riotids-puuids."+tournamentID).attr("onClick","get_riotids_by_puuids('"+tournamentID+"')");
+		$("button.write.games-team."+teamID).attr("onClick","get_games_for_team('"+tournamentID+"','"+teamID+"')");
+		$("button.write.gamedata."+tournamentID).attr("onClick","get_game_data('"+tournamentID+"','"+teamID+"')");
+		$("button.write.assign-una."+tournamentID).attr("onClick","assign_and_filter_games('"+tournamentID+"','"+teamID+"')");
+		$("button.write.assign-all."+tournamentID).attr("onClick","assign_and_filter_games('"+tournamentID+"','"+teamID+"',1)");
+		$("button.write.get-ranks."+tournamentID).attr("onClick", "get_ranks('"+tournamentID+"')");
+		$("button.write.calc-team-rank."+tournamentID).attr("onClick", "get_average_team_ranks('"+tournamentID+"')");
+		$("button.write.get-pstats."+tournamentID).attr("onClick", "get_stats_for_players('"+tournamentID+"')");
+		$("button.write.teamstats."+tournamentID).attr("onClick", "get_teamstats('"+tournamentID+"')");
 	} else if (set === 0) {
-		$("a.button.write."+tournamentID).attr("onClick","");
+		$("button.write."+tournamentID).attr("onClick","");
 	}
 }
 
@@ -753,9 +753,9 @@ function average_team_rank(team_id) {
 
 function get_average_team_ranks(tournament_id) {
 	console.log("----- Start calculating avg. Ranks -----");
-	let currButton  = $("a.button.write.calc-team-rank."+tournament_id);
+	let currButton  = $("button.write.calc-team-rank."+tournament_id);
 	if (!currButton.hasClass("loading-data")) {
-		$("a.button.write."+tournament_id).addClass("loading-data");
+		$("button.write."+tournament_id).addClass("loading-data");
 		currButton.append("<div class='lds-dual-ring'></div>");
 		set_all_buttons_onclick(0,tournament_id);
 	}
@@ -785,7 +785,7 @@ function get_average_team_ranks(tournament_id) {
 							console.log("----- Done with calculating avg. Ranks -----");
 							container.append("<br>----- Done with calculating avg. Ranks -----<br>");
 							container.scrollTop(container.prop("scrollHeight"));
-							$("a.button.write."+tournament_id).removeClass('loading-data');
+							$("button.write."+tournament_id).removeClass('loading-data');
 							currButton.children(".lds-dual-ring").remove();
 							set_all_buttons_onclick(1,tournament_id);
 						}
@@ -799,7 +799,7 @@ function get_average_team_ranks(tournament_id) {
 				console.log("----- Done with calculating avg. Ranks -----");
 				container.append("----- Done with calculating avg. Ranks -----<br>");
 				container.scrollTop(container.prop("scrollHeight"));
-				$("a.button.write."+tournament_id).removeClass("loading-data");
+				$("button.write."+tournament_id).removeClass("loading-data");
 				currButton.children(".lds-dual-ring").remove();
 				set_all_buttons_onclick(1,tournament_id);
 			}
@@ -813,13 +813,13 @@ function get_average_team_ranks(tournament_id) {
 
 async function get_stats_for_players(tournament_id) {
 	console.log("----- Start getting Player-Stats -----");
-	let currButton  = $("a.button.write.get-pstats."+tournament_id);
+	let currButton  = $("button.write.get-pstats."+tournament_id);
 	let container = $(`.result-wrapper.${tournament_id} .result-content`);
 	let wrapper = $(`.result-wrapper.${tournament_id}`);
-	let allButtons = $(`a.button.write.${tournament_id}`);
+	let allButtons = $(`button.write.${tournament_id}`);
 
 	if (!currButton.hasClass("loading-data")) {
-		$("a.button.write."+tournament_id).addClass("loading-data");
+		$("button.write."+tournament_id).addClass("loading-data");
 		currButton.append("<div class='lds-dual-ring'></div>");
 		set_all_buttons_onclick(0,tournament_id);
 	}
@@ -866,9 +866,9 @@ async function get_stats_for_players(tournament_id) {
 
 function get_teamstats(tournament_id) {
 	console.log("----- Start getting played Champions -----");
-	let currButton  = $("a.button.write.teamstats."+tournament_id);
+	let currButton  = $("button.write.teamstats."+tournament_id);
 	if (!currButton.hasClass("loading-data")) {
-		$("a.button.write."+tournament_id).addClass("loading-data");
+		$("button.write."+tournament_id).addClass("loading-data");
 		currButton.append("<div class='lds-dual-ring'></div>");
 		set_all_buttons_onclick(0,tournament_id);
 	}
@@ -895,7 +895,7 @@ function get_teamstats(tournament_id) {
 							console.log("----- Done with calculating Teamstats -----");
 							container.append("<br>----- Done with calculating Teamstats -----<br>");
 							container.scrollTop(container.prop("scrollHeight"));
-							$("a.button.write."+tournament_id).removeClass('loading-data');
+							$("button.write."+tournament_id).removeClass('loading-data');
 							currButton.children(".lds-dual-ring").remove();
 							set_all_buttons_onclick(1,tournament_id);
 						}
@@ -909,7 +909,7 @@ function get_teamstats(tournament_id) {
 				console.log("----- Done with calculating Teamstats -----");
 				container.append("----- Done with calculating Teamstats -----<br>");
 				container.scrollTop(container.prop("scrollHeight"));
-				$("a.button.write."+tournament_id).removeClass("loading-data");
+				$("button.write."+tournament_id).removeClass("loading-data");
 				currButton.children(".lds-dual-ring").remove();
 				set_all_buttons_onclick(1,tournament_id);
 			}
