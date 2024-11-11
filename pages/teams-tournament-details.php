@@ -277,7 +277,7 @@ if ($curr_matchID != NULL) {
 	                            <div class='material-symbol page-link-icon'>". file_get_contents(__DIR__."/../icons/material/chevron_right.svg") ."</div>	                            
 	                            </a>";
 	if (!$tournament["archived"]) {
-		echo "                      <div class='updatebuttonwrapper'><button type='button' class='user_update user_update_match update_data' data-match='$curr_matchID' data-matchformat='' data-team='$teamID' data-group='{$group["OPL_ID"]}' data-tournament='{$tournamentID}'><div class='material-symbol'>". file_get_contents(__DIR__."/../icons/material/sync.svg") ."</div></button><span>letztes Update:<br>$updatediff_match</span></div>";
+		echo "                      <div class='updatebuttonwrapper'><button type='button' class='user_update user_update_match update_data' data-match='$curr_matchID' data-matchformat='' data-team='$teamID' data-group='{$group["OPL_ID"]}' data-tournament='{$tournamentID}'><div class='material-symbol'>". file_get_contents(__DIR__."/../icons/material/sync.svg") ."</div></button><span class='last-update'>letztes Update:<br>$updatediff_match</span></div>";
 	}
     echo "                  </div>";
 

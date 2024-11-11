@@ -834,7 +834,7 @@ function create_matchlist(mysqli $dbcn,$tournamentID,$eventID):string {
                             <div class='close-button-space'></div>
                             <div class='mh-popup-buttons'>";
 		if (!$tournament["archived"]) {
-			$result .= "                      <div class='updatebuttonwrapper'><button type='button' class='user_update user_update_match update_data' data-match='$curr_matchID' data-matchformat='groups' data-group='$eventID' data-tournament='$tournamentID'><div class='material-symbol'>". file_get_contents(__DIR__."/../icons/material/sync.svg") ."</div></button><span>letztes Update:<br>$updatediff_match</span></div>";
+			$result .= "                      <div class='updatebuttonwrapper'><button type='button' class='user_update user_update_match update_data' data-match='$curr_matchID' data-matchformat='groups' data-group='$eventID' data-tournament='$tournamentID'><div class='material-symbol'>". file_get_contents(__DIR__."/../icons/material/sync.svg") ."</div></button><span class='last-update'>letztes Update:<br>$updatediff_match</span></div>";
 		}
 		$result .= "                  </div>";
 
@@ -949,7 +949,7 @@ function create_team_nav_buttons($tournamentID,$groupID,$team,$active,$allGroupI
 		$result .= "
 				<div class='updatebuttonwrapper'>
            			<button type='button' class='user_update user_update_team update_data' data-team='$team_id' data-tournament='$tournamentID' data-group='$groupID' data-groups='$allGroupIDs' $data_playoff><div class='material-symbol'>".file_get_contents(__DIR__."/../icons/material/sync.svg")."</div></button>
-					<span>letztes Update:<br>$updatediff</span>
+					<span class='last-update'>letztes Update:<br>$updatediff</span>
 				</div>";
 	}
 	$result .= "</div>";

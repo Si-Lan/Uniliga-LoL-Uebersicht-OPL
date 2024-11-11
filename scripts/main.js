@@ -559,7 +559,7 @@ async function popup_match(matchID,teamID=null,matchtype="groups",tournamentID=n
 			let teamid_data = "";
 			if (teamID !== null) teamid_data = `data-team='${teamID}'`;
 			if (!data["tournament"]["archived"]) {
-				buttonwrapper += `<div class='updatebuttonwrapper'><button type='button' class='user_update user_update_match update_data' data-match='${matchID}' data-matchformat='${matchtype}' data-group='${data["match"]["OPL_ID_tournament"]}' data-tournament='${tournamentID}' ${teamid_data}>${get_material_icon('sync')}</button><span>letztes Update:<br>&nbsp;</span></div>`;
+				buttonwrapper += `<div class='updatebuttonwrapper'><button type='button' class='user_update user_update_match update_data' data-match='${matchID}' data-matchformat='${matchtype}' data-group='${data["match"]["OPL_ID_tournament"]}' data-tournament='${tournamentID}' ${teamid_data}>${get_material_icon('sync')}</button><span class="last-update">letztes Update:<br>&nbsp;</span></div>`;
 			}
 			buttonwrapper += "</div>";
 			popup.append(buttonwrapper);
@@ -580,7 +580,7 @@ async function popup_match(matchID,teamID=null,matchtype="groups",tournamentID=n
 				})
 					.then(res => res.text())
 					.then(time => {
-						$(".mh-popup .updatebuttonwrapper span").html(`letztes Update:<br>${time}`);
+						$(".mh-popup .updatebuttonwrapper span.last-update").html(`letztes Update:<br>${time}`);
 					})
 					.catch(error => console.error(error));
 			}
@@ -1576,7 +1576,7 @@ async function user_update_group(button) {
 		window.alert(`Das letzte Update wurde vor ${format_time_minsec(diff)} durchgeführt. Versuche es in ${format_time_minsec(rest)} noch einmal`);
 		await new Promise(r => setTimeout(r, 1000));
 		$(button).removeClass("user_updating");
-		$("div.updatebuttonwrapper span").html(`letztes Update:<br>vor ${format_time_minsec(diff)}`)
+		$("div.updatebuttonwrapper span.last-update").html(`letztes Update:<br>vor ${format_time_minsec(diff)}`)
 		button.disabled = false;
 		user_update_running = false;
 		return;
@@ -1590,7 +1590,7 @@ async function user_update_group(button) {
 			itemid: group_ID,
 		}
 	})
-		.then(() => $("div.updatebuttonwrapper span").html("letztes Update:<br>vor ein paar Sekunden"))
+		.then(() => $("div.updatebuttonwrapper span.last-update").html("letztes Update:<br>vor ein paar Sekunden"))
 		.catch(e => console.error(e));
 
 	loading_width = 1;
@@ -1756,7 +1756,7 @@ async function user_update_team(button) {
 			itemid: team_ID,
 		}
 	})
-		.then(() => $("div.updatebuttonwrapper span").html("letztes Update:<br>vor ein paar Sekunden"))
+		.then(() => $("div.updatebuttonwrapper span.last-update").html("letztes Update:<br>vor ein paar Sekunden"))
 		.catch(e => console.error(e));
 
 	loading_width = 1;
@@ -2108,7 +2108,7 @@ async function user_update_match(button) {
 			itemID: match_ID,
 		}
 	})
-		.then(() => $("div.updatebuttonwrapper span").html("letztes Update:<br>vor ein paar Sekunden"))
+		.then(() => $("div.updatebuttonwrapper span.last-update").html("letztes Update:<br>vor ein paar Sekunden"))
 		.catch(e => console.error(e));
 
 	loading_width = 20;

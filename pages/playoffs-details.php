@@ -90,7 +90,7 @@ if (!$tournament["archived"]) {
 	echo "
               	<div class='updatebuttonwrapper'>
               		<button type='button' class='user_update user_update_group update_data' data-group='$playoffsID'><div class='material-symbol'>" . file_get_contents(__DIR__ . "/../icons/material/sync.svg") . "</div></button>
-					<span>letztes Update:<br>$updatediff</span>
+					<span class='last-update'>letztes Update:<br>$updatediff</span>
 				</div>";
 }
 echo "
