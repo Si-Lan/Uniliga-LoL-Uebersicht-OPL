@@ -1247,14 +1247,14 @@ div.team-filter-wrap .b-group.shown {
 	appearance: none;
 	padding: 10px 30px 10px 10px;
 	border-radius: 6px;
-	border-width: 0;
+	border: transparent solid 2px;
 	background-color: var(--element-bg);
 	transition: background-color 0.2s linear;
 }
 .slct select:hover, .slct select:focus {
 	background-color: var(--element-bg-sec);
 	outline: none;
-	border-style: solid;
+	border: solid 2px var(--element-bg);
 }
 .slct {
 	position: relative;
@@ -3588,4 +3588,21 @@ button.button-updating::before {
 /*rgapi*/
 .deprecated-admin-btn {
 	color: #ff6161;
+}
+body.admin div.writing-wrapper {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+	align-items: stretch;
+}
+body.admin div.writing-wrapper.hidden {
+	display: none;
+}
+body.admin div.writing-wrapper button {
+	padding: 16px 24px;
+	background-color: var(--element-bg-sec);
+	border: var(--element-bg) solid 2px;
+}
+body.admin div.writing-wrapper button:hover {
+	background-color: var(--element-bg);
 }
