@@ -3612,3 +3612,7 @@ dialog.add-patch-popup .dialog-content {
 	align-items: center;
 	gap: 15px;
 }
+
+body.admin.admin-logs {
+	text-align: left;
+}

@@ -26,7 +26,7 @@ try {
 echo create_html_head_elements(css: [""], js: ["admin"], title: "Update Log | Uniliga LoL - Übersicht" ,loggedin: $loggedin);
 
 ?>
-<body class="admin <?php echo $lightmode?>">
+<body class="admin admin-logs <?php echo $lightmode?>">
 <?php
 
 echo create_header($dbcn, title: "admin_update_log", open_login: !$loggedin);
