@@ -260,7 +260,7 @@ function create_tournament_get_button(array $data, bool $in_write_popup = false)
 					<label class=\"write_tournament_finished\">Beendet:<input type=\"checkbox\" $finished_check $disabled_for_sub_events></label>
 					<label class=\"write_tournament_archived\">Archiviert:<input type=\"checkbox\" $archived_check $disabled_for_sub_events></label>
 					<label class=\"write_tournament_logoid\">Logo:<input type=\"number\" value=\"{$data["OPL_ID_logo"]}\" readonly></label>
-					<!--<label class=\"write_tournament_logourl\"><input type=\"text\" value=\"{$data["OPL_logo_url"]}\" readonly></label>-->
+					<label class=\"write_tournament_logourl\"><input type=\"text\" value=\"{$data["OPL_logo_url"]}\" readonly></label>
 					<label class=\"write_tournament_ranked_season\">Rank-Season:<input type=\"text\" value=\"{$data["ranked_season"]}\" placeholder='##' $disabled_for_sub_events></label>
 					<label class=\"write_tournament_ranked_split\">Rank-Split:<input type=\"text\" value=\"{$data["ranked_split"]}\" placeholder='#' $disabled_for_sub_events></label>
 				</div>";
