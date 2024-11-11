@@ -3452,6 +3452,9 @@ input[type=date] {
 .write_tournament_logoid input {
 	width: 64px;
 }
+.write_tournament_logourl {
+	display: none!important;
+}
 .write_tournament_season input {
 	width: 48px;
 }
