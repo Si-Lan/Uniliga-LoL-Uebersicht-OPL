@@ -75,7 +75,15 @@ a, button {
 	border-radius: 6px;
 	cursor: pointer;
 	background: none;
-	transition: background-color 200ms;
+	transition: background-color 200ms, border 200ms, opacity 200ms;
+}
+button {
+	border: var(--element-bg) solid 2px;
+	background-color: var(--element-bg-sec);
+	padding: 12px 24px;
+}
+button:hover {
+	background-color: var(--element-bg);
 }
 .material-symbol {
 	display: flex;
@@ -155,14 +163,8 @@ button.button-dropdown {
 	flex-direction: row;
 	align-items: center;
 	gap: 8px;
-	padding: 15px 20px;
 	justify-content: space-between;
 	min-width: 210px;
-	background-color: var(--element-bg-sec);
-	border: var(--element-bg) solid 2px;
-}
-button.button-dropdown:hover {
-	background-color: var(--element-bg);
 }
 button.button-dropdown .material-symbol {
 	transition: transform 400ms;
@@ -194,6 +196,8 @@ div.dropdown-selection .dropdown-selection-item  {
 	width: 100%;
 	text-align: center;
 	border-radius: 0;
+	border: none;
+	background-color: var(--bg);
 	border-top: var(--element-bg) solid 2px;
 }
 div.dropdown-selection .dropdown-selection-item:hover {
@@ -201,6 +205,9 @@ div.dropdown-selection .dropdown-selection-item:hover {
 }
 div.dropdown-selection .dropdown-selection-item.selected-item  {
 	display: none;
+}
+.dropdown-selection-item.selected-item~.dropdown-selection-item {
+	border-top: none;
 }
 button.button-dropdown.open-selection~div.dropdown-selection {
 	display: flex;
@@ -260,27 +267,21 @@ dialog .dialog-content {
 dialog::backdrop {
 	background: rgba(0,0,0,0.5);
 }
-dialog .close-button-space {
+.close-button-space {
 	display: flex;
 	justify-content: center;
-	height: 60px;
+	height: 40px;
 }
-dialog .close-popup {
+button.close-popup {
 	position: absolute;
 	align-self: flex-end;
 	border-radius: 6px;
 	padding: 4px 8px;
 	cursor: pointer;
-	transition: background-color 200ms, border 200ms;
-	background-color: var(--element-bg-sec);
-	border: var(--element-bg) solid 2px;
 }
-dialog .close-popup svg {
+button.close-popup svg {
 	height: 24px;
 	width: 24px;
-}
-dialog .close-popup:hover {
-	background-color: var(--element-bg);
 }
 .popup-loading-indicator {
 	transition: opacity 200ms;
@@ -346,35 +347,6 @@ body.popup_open {
 }
 .team-popup {
 	gap: 12px;
-}
-.team-popup-bg div.close-button,
-.mh-popup-bg div.close-button,
-.player-popup-bg div.close-button {
-	position: absolute;
-	align-self: flex-end;
-	margin-right: 10px;
-	border-radius: 6px;
-	padding: 4px 8px;
-	cursor: pointer;
-	transition: background-color 0.2s, border 0.2s;
-	background-color: var(--element-bg-sec);
-	border: var(--element-bg) solid 2px;
-}
-.team-popup-bg div.close-button svg,
-.mh-popup-bg div.close-button svg,
-.player-popup-bg div.close-button svg {
-	height: 24px;
-	width: 24px;
-}
-.team-popup-bg div.close-button:hover,
-.mh-popup-bg div.close-button:hover,
-.player-popup-bg div.close-button:hover {
-	background-color: var(--element-bg);
-}
-.team-popup-bg div.close-button-space,
-.player-popup-bg div.close-button-space,
-.mh-popup-bg div.close-button-space {
-	height: 40px;
 }
 .mh-popup .game {
 	width: 100%;
@@ -486,11 +458,6 @@ h2.player-ov-name {
 }
 button.expand-pcards {
 	padding: 12px 14px;
-	background-color: var(--element-bg-sec);
-	border: var(--element-bg) solid 2px;
-}
-button.expand-pcards:hover {
-	background-color: var(--element-bg);
 }
 
 /* Inputs */
@@ -807,7 +774,8 @@ header .searchbar .autocomplete-items>a {
 	border-radius: 6px;
 }
 .autocomplete-items::-webkit-scrollbar-thumb {
-	background: var(--element-bg);
+	background: var(--element-bg-sec);
+	border: var(--element-bg) solid 1px;
 	border-radius: 6px;
 }
 .autocomplete-items div,
@@ -820,6 +788,9 @@ header .searchbar .autocomplete-items>a {
 	text-overflow: ellipsis;
 	overflow: hidden;
 }
+.autocomplete-items .material-symbol {
+	overflow: visible;
+}
 .autocomplete-items div:hover,
 .autocomplete-items a:hover {
 	background-color: var(--element-bg);
@@ -830,7 +801,6 @@ header .searchbar .autocomplete-items>a {
 .autocomplete-items div strong {
 	color: var(--autocomplete-highlight-matching);
 }
-
 
 
 .search-loading-indicator {
@@ -881,7 +851,7 @@ body.home main {
 	margin-top: 12px;
 }
 a.turnier-button {
-	padding: 15px 25px 15px 25px;
+	padding: 16px 24px;
 	border-radius: 6px;
 	cursor: pointer;
 	background-color: transparent;
@@ -891,7 +861,6 @@ a.turnier-button {
 	flex-direction: row;
 	align-items: center;
 	gap: 10px;
-	transition: background-color 0.2s linear;
 }
 .turnier-button:hover {
 	background-color: var(--element-bg);
@@ -1075,7 +1044,6 @@ button.ranked-settings {
 	position: relative;
 	height: 52px;
 	cursor: pointer;
-	transition: background-color 200ms;
 	overflow: hidden;
 }
 button.ranked-settings:hover {
@@ -1326,7 +1294,6 @@ div.team-list {
 	width: calc(25% - 12px);
 	text-align: left;
 	border: var(--accent) solid 2px;
-	transition: background-color 200ms;
 	margin-bottom: 12px;
 }
 .team-button:not(:has(img)) > span {
@@ -1359,9 +1326,6 @@ div.team-list {
 	height: 52px;
 	aspect-ratio: 1 / 1;
 	object-fit: contain;
-}
-.team-button:hover {
-	background-color: var(--element-bg);
 }
 .team-button span.team-name {
 	font-size: 1.2em;
@@ -1581,7 +1545,6 @@ div.match-content {
 	aspect-ratio: 1 / 1;
 }
 a.button.match {
-	transition: background-color 200ms;
 	border-radius: 4px 0 0 4px;
 }
 a.button.match:hover {
@@ -1674,13 +1637,7 @@ div.updatebuttonwrapper {
 	gap: 8px;
 }
 button.user_update {
-	background-color: var(--element-bg-sec);
-	border: var(--element-bg) solid 2px;
 	padding: 12px 20px;
-	transition: background-color 200ms;
-}
-button.user_update:hover {
-	background-color: var(--element-bg);
 }
 button.user_update svg {
 	height: 28px;
@@ -1796,13 +1753,8 @@ button.exp_coll_sc {
 	align-items: center;
 	gap: 2px;
 	padding: 10px 20px;
-	background-color: var(--element-bg-sec);
-	border: var(--element-bg) solid 2px;
 	height: 48px;
 	width: 140px;
-}
-button.exp_coll_sc:hover {
-	background-color: var(--element-bg);
 }
 div.team-avg-rank {
 	display: flex;
@@ -2162,8 +2114,6 @@ div.jump-button-wrapper {
 .filter-button-wrapper .filterb,
 .settings-button-wrapper button,
 .jump-button-wrapper button {
-	background-color: var(--element-bg-sec);
-	border: var(--element-bg) solid 2px;
 	padding: 16px 20px;
 }
 .settings-button-wrapper button {
@@ -2171,11 +2121,6 @@ div.jump-button-wrapper {
 	flex-direction: row;
 	align-items: center;
 	gap: 12px;
-}
-.filter-button-wrapper .filterb:hover,
-.settings-button-wrapper button:hover,
-.jump-button-wrapper button:hover {
-	background-color: var(--element-bg);
 }
 .filter-button-wrapper .filterb.active {
 	pointer-events: none;
@@ -2189,7 +2134,6 @@ a.button.totop {
 	padding: 10px;
 	border: var(--accent) solid 2px;
 	background-color: var(--bg);
-	transition: opacity 200ms;
 }
 a.button.totop:hover {
 	background-color: var(--element-bg);
@@ -2273,6 +2217,8 @@ body.elo-overview main div.main-content {
 	padding: 0 0 0 12px;
 	overflow: hidden;
 	font-size: 1.25em;
+	background: none;
+	border: none;
 }
 .elo-list-item img {
 	height: 36px;
@@ -2447,11 +2393,8 @@ a.team-card-div:hover {
 	background-color: var(--element-bg-sec);
 }
 button.team-card-div {
-	background-color: var(--element-bg-sec);
+	border: none;
 	border-radius: 0;
-}
-button.team-card-div:hover {
-	background-color: var(--element-bg);
 }
 .team-card-tournament {
 	font-size: 1.1em;
@@ -2480,7 +2423,7 @@ button.team-card-div:hover {
 .team-card-standings {
 	padding: 12px 0;
 }
-.team-card-playeramount {
+button.team-card-playeramount {
 	padding: 16px 0;
 	border-top: 1px solid var(--element-bg);
 }
@@ -2636,11 +2579,8 @@ a.player-card-div:hover {
 	justify-content: center;
 	padding: 10px 0;
 	gap: 2px;
+	border: none;
 	border-top: var(--element-bg) solid 1px;
-	background-color: var(--element-bg-sec);
-}
-.player-card-more:hover {
-	background-color: var(--element-bg);
 }
 .player-card .player-card-more .material-symbol {
 	transition: transform 400ms;
@@ -2746,8 +2686,6 @@ div.recent-players-list {
 	background-color: var(--bg);
 	border: var(--accent) solid 2px;
 	border-radius: 6px;
-	transition: background-color 0.2s linear;
-	box-sizing: border-box;
 	padding: 14px 20px;
 	margin-right: 32px;
 }
@@ -2797,7 +2735,6 @@ div.recent-players-list {
 	top: 0;
 	padding: 2px;
 	border-radius: 5px;
-	transition: background-color 200ms;
 }
 .x-remove-recent-player:hover {
 	background-color: var(--element-bg);
@@ -2847,9 +2784,8 @@ div.teamroles div.roleplayers .divider-vert {
 div.teamroles div.roleplayers .role-playername {
 	padding: 10px 15px;
 	border-radius: 6px;
-	box-sizing: border-box;
 	border: transparent 2px solid;
-	transition: background-color 200ms, border 200ms;
+	background: transparent;
 }
 div.teamroles div.roleplayers .role-playername:hover {
 	background-color: var(--element-bg-sec);
@@ -2857,6 +2793,10 @@ div.teamroles div.roleplayers .role-playername:hover {
 }
 div.teamroles div.roleplayers .role-playername.selected-player-table {
 	border-color: var(--accent);
+	background: transparent;
+}
+div.teamroles div.roleplayers .role-playername.selected-player-table:hover {
+	background-color: var(--element-bg-sec);
 }
 div.stattables {
 	display: flex;
@@ -2881,11 +2821,6 @@ div.playertable-header button {
 	gap: 8px;
 	height: 48px;
 	padding: 12px;
-	background-color: var(--element-bg-sec);
-	border: var(--element-bg) solid 2px;
-}
-div.playertable-header button:hover {
-	background-color: var(--element-bg);
 }
 table {
 	text-align: center;
@@ -3047,7 +2982,7 @@ body.admin h4 {
 	font-size: 1.25em;
 }
 #maintenance-mode {
-	padding: 12px 24px;
+	border: none;
 }
 .maintenance-off {
 	background-color: #492323;
@@ -3067,16 +3002,8 @@ body.admin h4 {
 	align-items: center;
 	gap: 4px;
 }
-.general-administration button {
-	padding: 12px 20px;
-	background-color: var(--element-bg-sec);
-	border: var(--element-bg) solid 2px;
-}
 .general-administration dialog .close-popup {
 	padding: 4px 8px;
-}
-.general-administration button:hover {
-	background-color: var(--element-bg);
 }
 #main-selection {
 	display: flex;
@@ -3089,6 +3016,7 @@ body.admin h4 {
 }
 button#turnier-button-get {
 	padding: 8px 28px;
+	border: none;
 	background-color: #025928;
 }
 button#turnier-button-get:hover {
@@ -3152,7 +3080,7 @@ a.button.write.loading-data {
 	cursor: default;
 }
 a.button.write.loading-data:hover {
-	background-color: var(--main-button-color);
+	background-color: var(--element-bg-sec);
 }
 
 .ranked-split-list {
@@ -3195,6 +3123,9 @@ a.button.write.loading-data:hover {
 	padding: 0;
 	background-color: transparent;
 	border: var(--element-bg-sec) solid 2px;
+}
+.ranked-split-edit button:hover {
+	background-color: var(--element-bg);
 }
 input.input_changed {
 	position: relative;
@@ -3266,11 +3197,6 @@ div.turnier-select-list {
 }
 button.toggle-turnierselect-accordeon {
 	padding: 10px 15px;
-	background-color: var(--element-bg-sec);
-	border: var(--element-bg) solid 2px;
-}
-button.toggle-turnierselect-accordeon:hover {
-	background-color: var(--element-bg);
 }
 button.toggle-turnierselect-accordeon .material-symbol {
 	transition: transform 400ms;
@@ -3476,13 +3402,7 @@ input[type=date] {
 	gap: 4px;
 }
 .tournament-write-button-wrapper button {
-	padding: 12px 20px;
-	background-color: var(--element-bg-sec);
-	border: var(--element-bg) solid 2px;
 	flex: 1;
-}
-.tournament-write-button-wrapper button:hover {
-	background-color: var(--element-bg);
 }
 .tournament-write-button-wrapper button.open-tournament-data-popup {
 	flex: 2;
@@ -3494,14 +3414,8 @@ input[type=date] {
 .tournament-write-data-wrapper input[readonly] {
 	background-color: var(--element-bg);
 }
-
-.tournament-data-popup button {
-	padding: 12px 20px;
-	background-color: var(--element-bg-sec);
-	border: var(--element-bg) solid 2px;
-}
-.tournament-data-popup button:hover {
-	background-color: var(--element-bg);
+.tournament-data-popup .dialog-content {
+	gap: 4px;
 }
 .write-result-popup {
 	text-align: left;
@@ -3512,14 +3426,6 @@ input[type=date] {
 	flex-direction: column;
 	align-items: stretch;
 	gap: 4px;
-}
-.related-event-button-list>button {
-	padding: 12px 20px;
-	background-color: var(--element-bg-sec);
-	border: var(--element-bg) solid 2px;
-}
-.related-event-button-list>button:hover {
-	background-color: var(--element-bg);
 }
 .related-event-button-list>button.in-db {
 	background-color: #213c4f;
@@ -3592,17 +3498,9 @@ button.button-updating::before {
 body.admin div.writing-wrapper {
 	display: flex;
 	flex-direction: column;
-	gap: 10px;
+	gap: 8px;
 	align-items: stretch;
 }
 body.admin div.writing-wrapper.hidden {
 	display: none;
-}
-body.admin div.writing-wrapper button {
-	padding: 16px 24px;
-	background-color: var(--element-bg-sec);
-	border: var(--element-bg) solid 2px;
-}
-body.admin div.writing-wrapper button:hover {
-	background-color: var(--element-bg);
 }

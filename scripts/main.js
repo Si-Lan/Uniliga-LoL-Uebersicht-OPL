@@ -371,7 +371,7 @@ async function popup_team(teamID, tournamentID = null) {
 	current_team_in_popup = parseInt(teamID);
 	popup.empty();
 
-	popup.append(`<div class='close-button' onclick='closex_popup_team()'>${get_material_icon("close")}</div>`);
+	popup.append(`<button class='close-popup' onclick='closex_popup_team()'>${get_material_icon("close")}</button>`);
 	popup.append("<div class='close-button-space'><div class='popup-loading-indicator'></div></div>");
 
 	popupbg.css("opacity","0");
@@ -526,7 +526,7 @@ async function popup_match(matchID,teamID=null,matchtype="groups",tournamentID=n
 	current_match_in_popup = parseInt(matchID);
 	popup.empty();
 
-	popup.append(`<div class='close-button' onclick='closex_popup_match()'>${get_material_icon("close")}</div>`);
+	popup.append(`<button class='close-popup' onclick='closex_popup_match()'>${get_material_icon("close")}</button>`);
 	popup.append(`<div class='close-button-space'><div class='popup-loading-indicator'></div></div>`);
 
 	popupbg.css("opacity","0");
@@ -1279,7 +1279,7 @@ $(document).ready(function () {
 function expand_collapse_summonercard() {
 	event.preventDefault();
 	let sc = $(".summoner-card-wrapper .summoner-card");
-	let collapse_button = $('.player-cards .exp_coll_sc');
+	let collapse_button = $('.exp_coll_sc');
 	let cookie_expiry = new Date();
 	cookie_expiry.setFullYear(cookie_expiry.getFullYear()+1);
 	if (sc.hasClass("collapsed")) {
@@ -1439,7 +1439,7 @@ async function popup_player(playerID, add_to_recents = false) {
 	current_player_in_popup = playerID;
 	popup.empty();
 
-	popup.append(`<div class='close-button' onclick='closex_popup_player()'>${get_material_icon("close")}</div>`);
+	popup.append(`<button class='close-popup' onclick='closex_popup_player()'>${get_material_icon("close")}</button>`);
 	popup.append("<div class='close-button-space'><div class='popup-loading-indicator'></div></div>");
 
 	popupbg.css("opacity","0");
@@ -2392,7 +2392,7 @@ $(document).ready(function () {
 // allgemeine Helper
 function get_material_icon(name,nowrap=false,add_classes="") {
 	let res = "";
-	if (!nowrap) res = `<div class='material-symbol ${add_classes}'>`;
+	if (!nowrap) res = `<span class='material-symbol ${add_classes}'>`;
 	if (name === "close") res += "<svg xmlns=\"http://www.w3.org/2000/svg\" height=\"48\" viewBox=\"0 96 960 960\" width=\"48\"><path d=\"M480 618 270 828q-9 9-21 9t-21-9q-9-9-9-21t9-21l210-210-210-210q-9-9-9-21t9-21q9-9 21-9t21 9l210 210 210-210q9-9 21-9t21 9q9 9 9 21t-9 21L522 576l210 210q9 9 9 21t-9 21q-9 9-21 9t-21-9L480 618Z\"/></svg>";
 	if (name === "history") res += "<svg xmlns=\"http://www.w3.org/2000/svg\" height=\"48\" viewBox=\"0 -960 960 960\" width=\"48\"><path d=\"M477-120q-142 0-243.5-95.5T121-451q-1-12 7.5-21t21.5-9q12 0 20.5 8.5T181-451q11 115 95 193t201 78q127 0 215-89t88-216q0-124-89-209.5T477-780q-68 0-127.5 31T246-667h75q13 0 21.5 8.5T351-637q0 13-8.5 21.5T321-607H172q-13 0-21.5-8.5T142-637v-148q0-13 8.5-21.5T172-815q13 0 21.5 8.5T202-785v76q52-61 123.5-96T477-840q75 0 141 28t115.5 76.5Q783-687 811.5-622T840-482q0 75-28.5 141t-78 115Q684-177 618-148.5T477-120Zm34-374 115 113q9 9 9 21.5t-9 21.5q-9 9-21 9t-21-9L460-460q-5-5-7-10.5t-2-11.5v-171q0-13 8.5-21.5T481-683q13 0 21.5 8.5T511-653v159Z\"/></svg>";
 	if (name === "sync") res += "<svg xmlns=\"http://www.w3.org/2000/svg\" height=\"48\" viewBox=\"0 -960 960 960\" width=\"48\"><path d=\"M220-477q0 63 23.5 109.5T307-287l30 21v-94q0-13 8.5-21.5T367-390q13 0 21.5 8.5T397-360v170q0 13-8.5 21.5T367-160H197q-13 0-21.5-8.5T167-190q0-13 8.5-21.5T197-220h100l-15-12q-64-51-93-111t-29-134q0-94 49.5-171.5T342-766q11-5 21 0t14 16q5 11 0 22.5T361-710q-64 34-102.5 96.5T220-477Zm520-6q0-48-23.5-97.5T655-668l-29-26v94q0 13-8.5 21.5T596-570q-13 0-21.5-8.5T566-600v-170q0-13 8.5-21.5T596-800h170q13 0 21.5 8.5T796-770q0 13-8.5 21.5T766-740H665l15 14q60 56 90 120t30 123q0 93-48 169.5T623-195q-11 6-22.5 1.5T584-210q-5-11 0-22.5t16-17.5q65-33 102.5-96T740-483Z\"/></svg>";
@@ -2412,7 +2412,7 @@ function get_material_icon(name,nowrap=false,add_classes="") {
 	if (name === "groups") res += "<svg xmlns=\"http://www.w3.org/2000/svg\" height=\"48\" viewBox=\"0 -960 960 960\" width=\"48\"><path d=\"M0-240v-53q0-38.567 41.5-62.784Q83-380 150.376-380q12.165 0 23.395.5Q185-379 196-377.348q-8 17.348-12 35.165T180-305v65H0Zm240 0v-65q0-32 17.5-58.5T307-410q32-20 76.5-30t96.5-10q53 0 97.5 10t76.5 30q32 20 49 46.5t17 58.5v65H240Zm540 0v-65q0-19.861-3.5-37.431Q773-360 765-377.273q11-1.727 22.171-2.227 11.172-.5 22.829-.5 67.5 0 108.75 23.768T960-293v53H780Zm-480-60h360v-6q0-37-50.5-60.5T480-390q-79 0-129.5 23.5T300-305v5ZM149.567-410Q121-410 100.5-430.562 80-451.125 80-480q0-29 20.562-49.5Q121.125-550 150-550q29 0 49.5 20.5t20.5 49.933Q220-451 199.5-430.5T149.567-410Zm660 0Q781-410 760.5-430.562 740-451.125 740-480q0-29 20.562-49.5Q781.125-550 810-550q29 0 49.5 20.5t20.5 49.933Q880-451 859.5-430.5T809.567-410ZM480-480q-50 0-85-35t-35-85q0-51 35-85.5t85-34.5q51 0 85.5 34.5T600-600q0 50-34.5 85T480-480Zm.351-60Q506-540 523-557.351t17-43Q540-626 522.851-643t-42.5-17Q455-660 437.5-642.851t-17.5 42.5Q420-575 437.351-557.5t43 17.5ZM480-300Zm0-300Z\"/></svg>";
 	if (name === "search") res += "<svg xmlns=\"http://www.w3.org/2000/svg\" height=\"48\" viewBox=\"0 -960 960 960\" width=\"48\"><path d=\"M378-329q-108.162 0-183.081-75Q120-479 120-585t75-181q75-75 181.5-75t181 75Q632-691 632-584.85 632-542 618-502q-14 40-42 75l242 240q9 8.556 9 21.778T818-143q-9 9-22.222 9-13.222 0-21.778-9L533-384q-30 26-69.959 40.5T378-329Zm-1-60q81.25 0 138.125-57.5T572-585q0-81-56.875-138.5T377-781q-82.083 0-139.542 57.5Q180-666 180-585t57.458 138.5Q294.917-389 377-389Z\"/></svg>";
 	if (name === "chevron_right") res += "<svg xmlns=\"http://www.w3.org/2000/svg\" height=\"48px\" viewBox=\"0 -960 960 960\" width=\"48px\" fill=\"#e8eaed\"><path d=\"M530-481 353-658q-9-9-8.5-21t9.5-21q9-9 21.5-9t21.5 9l198 198q5 5 7 10t2 11q0 6-2 11t-7 10L396-261q-9 9-21 8.5t-21-9.5q-9-9-9-21.5t9-21.5l176-176Z\"/></svg>";
-	if (!nowrap) res += "</div>";
+	if (!nowrap) res += "</span>";
 	return res;
 }
 

@@ -209,7 +209,7 @@ function create_header(mysqli $dbcn = NULL, string $title = "home", string|int $
 	$result .= "
 		<dialog id='login-dialog' class='dismissable-popup $loginopen'>
 			<div class='dialog-content'>
-				<button class='close-popup'><div class='material-symbol'>".file_get_contents(dirname(__FILE__)."/../icons/material/close.svg")."</div></button>
+				<button class='close-popup'><span class='material-symbol'>".file_get_contents(dirname(__FILE__)."/../icons/material/close.svg")."</span></button>
 				<div class='close-button-space'></div>
 				<div style='display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 40px'>
 					<form action='".strtok($_SERVER['REQUEST_URI'],'?')."?login' method='post' style='display: flex; flex-direction: column; align-items: center; gap: 1em;'>
@@ -830,7 +830,7 @@ function create_matchlist(mysqli $dbcn,$tournamentID,$eventID):string {
 		$result .= "
                     <div class='mh-popup-bg' onclick='close_popup_match(event)' style='display: block; opacity: 1;'>
                         <div class='mh-popup'>
-                            <div class='close-button' onclick='closex_popup_match()'><div class='material-symbol'>". file_get_contents(__DIR__."/../icons/material/close.svg") ."</div></div>
+                            <button class='close-popup' onclick='closex_popup_match()'><span class='material-symbol'>". file_get_contents(__DIR__."/../icons/material/close.svg") ."</span></button>
                             <div class='close-button-space'></div>
                             <div class='mh-popup-buttons'>";
 		if (!$tournament["archived"]) {
