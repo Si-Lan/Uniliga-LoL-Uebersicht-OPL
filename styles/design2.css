@@ -1,7 +1,6 @@
 :root {
-	--bg: #1c1e21;
-	--bg2: #1d1d1e;
-	--divider: #404247;
+	--bg: #1c1d1e;
+	--divider: #363943;
 	--element-bg: #292f3a;
 	--text: #d5dfe2;
 	--text-sec: #8aaeb2;
@@ -10,11 +9,29 @@
 	--match-win-green: #19a300;
 	--match-loss-red: #d50000;
 	--match-loss-name-grey: #7c9598;
-	--marked-row: #4c4cb3;
-	--temp-marked-row: #2f2f9f;
+	--marked-row: #404c85 ;
+	--temp-marked-row: #31317b;
+}
+body.light {
+	--bg: #e6ecf1;
+	--divider: #a9afc1;
+	--element-bg: #a2c1e3;
+	--text: #242829;
+	--text-sec: #4c595b;
+	--accent: #487e95;
+	--element-bg-sec: #ced7e7;
+	--match-win-green: #19a300;
+	--match-loss-red: #d50000;
+	--match-loss-name-grey: #7c9598;
+	--marked-row: #7683bf;
+	--temp-marked-row: #434389;
+	--header-bg: #3b4d5e;
 }
 html {
 	color-scheme: dark;
+}
+html:has(body.light) {
+	color-scheme: light;
 }
 
 body {
@@ -587,6 +604,16 @@ header {
 	margin-bottom: 20px;
 	position: relative;
 }
+body.light header {
+	background-color: var(--header-bg);
+	color: var(--bg);
+}
+body.light header * {
+	color: var(--bg);
+}
+body.light header .searchbar * {
+	color: var(--text);
+}
 header.home {
 	grid-template-columns: 280px 280px 1fr 60px;
 }
@@ -605,6 +632,13 @@ header h1.tournament-title {
 	align-items: center;
 	justify-content: center;
 	gap: 12px;
+}
+body.light header .opl-link svg {
+	fill: var(--bg);
+	transition: fill 200ms;
+}
+body.light header .opl-link:hover svg {
+	fill: var(--text);
 }
 header button, header a.button {
 	aspect-ratio: 1/1;
@@ -672,6 +706,12 @@ header div.settings-menu {
 	border: var(--accent) solid 2px;
 	border-radius: 6px;
 	z-index: 3;
+}
+body.light header div.settings-menu {
+	background-color: var(--header-bg);
+}
+body.light header div.settings-menu a.settings-option svg {
+	fill: var(--bg);
 }
 header div.settings-menu a.settings-option {
 	display: flex;
@@ -1058,6 +1098,12 @@ button.ranked-settings img {
 	height: 60px;
 	filter: contrast(0.85);
 	transition: filter 0.2s ease-out;
+}
+body.light button.ranked-settings img {
+	filter: contrast(1) brightness(3) invert(1) grayscale(1);
+}
+body.light button.ranked-settings:hover img {
+	filter: contrast(0.8) brightness(2) invert(1) grayscale(1);
 }
 button.ranked-settings span {
 	position: absolute;
@@ -1733,6 +1779,10 @@ body.team h3 {
 	height: 20px;
 	width: 81px;
 }
+body.light .svg-wrapper.op-gg svg g g,
+body.light .svg-wrapper.op-gg svg g g {
+	fill: #5383e8;
+}
 a.button.op-gg {
 	display: flex;
 	flex-direction: row;
@@ -2287,12 +2337,29 @@ body.elo-overview main div.main-content {
 	border-radius: 6px;
 }
 
+body.light .colored-list .elo-list-team {
+	--text: #e1e1e1;
+}
+body.light .colored-list .elo-list-team svg{
+	--text: initial;
+}
 .colored-list .elo-list-team {
 	--bgc-liga1: #344c2f;
 	--bgc-liga2: #5e4f32;
 	--bgc-liga3: #522e2e;
 	--bgc-liga4: #2e4956;
 	--bgc-liga5: #4f2f56;
+}
+body.light .colored-list .elo-list-team {
+	--bgc-liga1: #567c4e;
+	--bgc-liga2: #8f7950;
+	--bgc-liga3: #894f4f;
+	--bgc-liga4: #4d778b;
+	--bgc-liga5: #83508f;
+}
+body.light .elo-list-team .elo-list-item.rank img {
+	background-color: var(--element-bg-sec);
+	padding: 3px;
 }
 .colored-list .elo-list-team.liga1 .elo-list-item-wrapper,
 .main-content.colored-list .elo-list-team.liga1 .elo-list-pre {
@@ -2683,6 +2750,7 @@ div.recent-players-list {
 .player-ov-card {
 	display: flex;
 	flex-direction: column;
+	align-items: flex-start;
 	background-color: var(--bg);
 	border: var(--accent) solid 2px;
 	border-radius: 6px;
