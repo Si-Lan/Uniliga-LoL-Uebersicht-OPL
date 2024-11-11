@@ -780,6 +780,8 @@ input[type=search]::-webkit-search-cancel-button {
 .searchbar button.search-clear {
 	display: none;
 	aspect-ratio: inherit;
+	background-color: transparent;
+	border: none;
 }
 .searchbar button.search-clear:hover {
 	background: inherit;
