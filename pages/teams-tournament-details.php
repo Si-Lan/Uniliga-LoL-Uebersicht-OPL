@@ -268,7 +268,7 @@ if ($curr_matchID != NULL) {
 	echo "
                     <div class='mh-popup-bg' onclick='close_popup_match(event)' style='display: block; opacity: 1;'>
                         <div class='mh-popup'>
-                            <div class='close-button' onclick='closex_popup_match()'><div class='material-symbol'>". file_get_contents(__DIR__."/../icons/material/close.svg") ."</div></div>
+                            <button class='close-popup' onclick='closex_popup_match()'><span class='material-symbol'>". file_get_contents(__DIR__."/../icons/material/close.svg") ."</span></button>
                             <div class='close-button-space'></div>
                             <div class='mh-popup-buttons'>
 	                            <a class='icon-link page-link' href='turnier/$tournamentID/team/$teamID/matchhistory#{$curr_matchID}'>
