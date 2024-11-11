@@ -1342,7 +1342,11 @@ div.team-list {
 	width: calc(25% - 12px);
 	text-align: left;
 	border: var(--accent) solid 2px;
+	background-color: transparent;
 	margin-bottom: 12px;
+}
+.team-button:hover {
+	background-color: var(--element-bg-sec);
 }
 .team-button:not(:has(img)) > span {
 	padding-left: 24px;
