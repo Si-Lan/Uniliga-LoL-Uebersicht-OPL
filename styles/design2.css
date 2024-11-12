@@ -2857,14 +2857,13 @@ div.teamroles {
 	display: flex;
 	flex-direction: column;
 	gap: 5px;
-	margin: 0 auto;
+	padding-top: 42px;
+	margin: -42px auto 0;
 }
 div.teamroles div.role {
 	display: flex;
 	align-items: center;
 	gap: 10px;
-	padding-top: 42px;
-	margin-top: -42px;
 }
 div.teamroles div.roleplayers {
 	display: flex;
