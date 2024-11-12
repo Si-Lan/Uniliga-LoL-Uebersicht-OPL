@@ -145,10 +145,15 @@ a.icon-link>.material-symbol.icon-link-icon svg {
 	border-radius: 6px;
 	height: 24px;
 	width: 24px;
+	flex-shrink: 0;
 }
 .standing-item .page-link-icon,
 .elo-list-item .page-link-icon {
 	overflow: visible!important;
+}
+.page-link .material-symbol.page-link-icon.popup-icon svg {
+	height: 12px;
+	width: 12px;
 }
 a.icon-link .link-text {
 	margin-left: 8px;
@@ -2295,13 +2300,6 @@ body.elo-overview main div.main-content {
 	overflow: hidden;
 	display: flex;
 	gap: 8px;
-}
-.page-link .material-symbol.page-link-icon.popup-icon {
-	padding: 0 6px;
-}
-.page-link .material-symbol.page-link-icon.popup-icon svg {
-	height: 12px;
-	width: 12px;
 }
 .elo-list-item.team span.team-name {
 	white-space: nowrap;
