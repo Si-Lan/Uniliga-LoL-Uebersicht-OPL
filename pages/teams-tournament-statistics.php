@@ -129,7 +129,7 @@ if ($games_played == 0) {
 	}
 	$players_to_show = array();
 	$players_not_to_show = array();
-	echo "<div class='teamroles'>";
+	echo "<div class='teamroles-wrapper'><div class='teamroles'>";
 	foreach ($team_roles as $role=>$role_players) {
 		arsort($role_players);
 		echo "<div class='role'>
@@ -161,7 +161,7 @@ if ($games_played == 0) {
 		echo "</div>";
 		echo "</div>";
 	}
-	echo "</div>";
+	echo "</div></div>";
 
 	$champs_played = json_decode($teamstats['champs_played'], true);
 	arsort($champs_played);
