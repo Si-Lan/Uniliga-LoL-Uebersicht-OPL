@@ -2852,13 +2852,14 @@ div.teamroles-wrapper {
 	display: flex;
 	overflow-x: auto;
 	overflow-y: visible;
+	padding-top: 42px;
+	margin-top: -42px;
 }
 div.teamroles {
 	display: flex;
 	flex-direction: column;
 	gap: 5px;
-	padding-top: 42px;
-	margin: -42px auto 0;
+	margin: 0 auto;
 }
 div.teamroles div.role {
 	display: flex;
