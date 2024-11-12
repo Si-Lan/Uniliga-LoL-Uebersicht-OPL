@@ -2093,7 +2093,7 @@ div.summoner-card-container {
 		width: 142px;
 		min-width: 142px;
 		height: 180px;
-		padding: 14px 15px;
+		padding: 10px;
 	}
 	.summoner-card.collapsed {
 		height: 120px;
@@ -2104,6 +2104,8 @@ div.summoner-card-container {
 	.summoner-card input.opgg-checkbox {
 		width: 12px;
 		height: 12px;
+		top: 8px;
+		right: 10px;
 	}
 	.summoner-card .card-player {
 		font-size: 16px;
@@ -2111,12 +2113,17 @@ div.summoner-card-container {
 	.card-summoner>span {
 		font-size: 11px;
 	}
-	div.card-rank {
+	.summoner-card .league-icon,
+	.summoner-card .league-icon svg {
+		height: 14px;
+		width: 14px;
+	}
+	.summoner-card div.card-rank {
 		font-size: 10px;
 	}
 	div.summoner-card img.rank-emblem-mini {
-		width: 20px;
-		height: 20px;
+		width: 18px;
+		height: 18px;
 	}
 	.summoner-card div.played-positions .svg-wrapper,
 	.summoner-card div.played-positions .svg-wrapper svg {
@@ -2142,7 +2149,7 @@ div.summoner-card-container {
 		height: 14px;
 	}
 	.summoner-card-wrapper .op-gg-single {
-		padding: 10px 15px;
+		padding: 8px 15px;
 		width: 142px;
 	}
 	.summoner-card-wrapper .op-gg-single img.op-gg {
@@ -2162,7 +2169,7 @@ div.summoner-card-container {
 	.summoner-card-wrapper .open-playerhistory {
 		width: 142px;
 		font-size: 0.7em;
-		padding: 10px 12px;
+		padding: 8px 12px;
 	}
 }
 
