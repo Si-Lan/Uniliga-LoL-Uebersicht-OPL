@@ -12,9 +12,9 @@ function create_html_head_elements(array $css = [], array $js = [], string $titl
 	$result .= "<meta name='viewport' content='width=device-width, initial-scale=1'>";
 	$result .= "<link rel='icon' href='https://silence.lol/favicon-dark.ico' media='(prefers-color-scheme: dark)'/>";
 	$result .= "<link rel='icon' href='https://silence.lol/favicon-light.ico' media='(prefers-color-scheme: light)'/>";
-	$result .= "<link rel='stylesheet' href='styles/design2.css?4'>";
+	$result .= "<link rel='stylesheet' href='styles/design2.css?5'>";
 	$result .= "<script src='scripts/jquery-3.7.1.min.js'></script>";
-	$result .= "<script src='scripts/main.js?4'></script>";
+	$result .= "<script src='scripts/main.js?5'></script>";
 	// additional css
 	if (in_array("elo",$css)) {
 		$result .= "<link rel='stylesheet' href='styles/elo-rank-colors.css'>";
