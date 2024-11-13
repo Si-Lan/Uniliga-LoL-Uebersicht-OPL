@@ -1,14 +1,15 @@
 :root {
-	--game-sec-bg: #262626;
-	--game-team-hover: #313131;
-	--text-secondary: #a7a7a7;
+	--game-sec-bg: #1f232a;
+	--game-team-hover: #232831;
+	--game-border-color: #324a55;
+	--text-secondary: #8aaeb2;
 	--victory-color: #19a300;
 	--defeat-color: #d50000;
 }
 body.light {
-	--game-sec-bg: #d3d3d3;
-	--game-team-hover: #d9d9d9;
-	--text-secondary: #525252;
+	--game-sec-bg: #ced7e7;
+	--game-team-hover: #292f3a;
+	--text-secondary: #4c595b;
 }
 .game-wrapper {
 	display: flex;
@@ -29,7 +30,7 @@ div.game-details {
 	align-self: center;
 	display: flex;
 	flex-direction: column;
-	border-color: #404040;
+	border-color: var(--game-border-color);
 	border-style: solid;
 	border-width: 2px;
 	max-width: 1150px;
@@ -58,14 +59,14 @@ div.game-details div.game-row {
 	justify-content: center;
 	align-items: center;
 	box-sizing: border-box;
-	border-color: #404040;
+	border-color: var(--game-border-color);
 	border-style: solid;
 	border-width: 0 0 2px 0;
 }
 div.game-row div.game-row-divider {
 	height: 100%;
 	width: 2px;
-	background-color: #404040;
+	background-color: var(--game-border-color);
 }
 
 div.game-row.teams {
@@ -142,7 +143,7 @@ div.game-row.teams .team .score {
 div.game-row.teams .time {
 	box-sizing: border-box;
 	height: 55px;
-	border: #404040 solid;
+	border: var(--game-border-color) solid;
 	border-width: 0 2px;
 	flex: 1;
 	justify-content: center;
@@ -422,7 +423,7 @@ div.game-row.bans img {
 	transform: scale(1.9);
 	width: 16px;
 	height: 16px;
-	border: 1px solid #404040;
+	border: 1px solid var(--game-border-color);
 	border-radius: 100%
 }
 .gg-block::before {
@@ -432,7 +433,7 @@ div.game-row.bans img {
 	position: absolute;
 	width: 12px;
 	height: 2px;
-	background: #404040;
+	background: var(--game-border-color);
 	border-radius: 5px;
 	transform: rotate(-45deg);
 	top: 6px;
@@ -452,7 +453,7 @@ img.rank-emblem-mini {
 	align-items: center;
 	gap: 10px;
 	padding: 10px;
-	border: 2px solid #404040;
+	border: 2px solid var(--game-border-color);
 	box-sizing: border-box;
 	border-radius: 15px 15px 0 0;
 	margin: 0 30px;
@@ -515,6 +516,7 @@ img.rank-emblem-mini {
 	border-radius: 12px;
 	transition: background-color 0.3s;
 	width: 200px;
+	box-sizing: content-box;
 }
 .game-details-mini .team span{
 	width: 200px;
@@ -531,7 +533,7 @@ img.rank-emblem-mini {
 	border: solid 2px #19a300;
 }
 .game-details-mini .team.current {
-	border: solid 2px #404040;
+	border: solid 2px var(--game-border-color);
 	font-weight: bold;
 }
 
@@ -569,14 +571,15 @@ img.rank-emblem-mini {
 }
 
 button.expand-game-details {
-	border: #404040 solid 2px;
+	border: var(--game-border-color) solid 2px;
+	background-color: transparent;
 	padding: 0 8px;
 	align-self: stretch;
 	transition: background-color 200ms;
 }
 button.expand-game-details:hover {
-	background-color: #242424;
-	border: #404040 solid 2px;
+	background-color: var(--game-sec-bg);
+	border: var(--game-border-color) solid 2px;
 }
 .game-wrapper.collapsed button.expand-game-details .material-symbol {
 	transform: rotateX(180deg);
