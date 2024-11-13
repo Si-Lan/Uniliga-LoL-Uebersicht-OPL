@@ -86,7 +86,9 @@ $opl_tourn_url = "https://www.opleague.pro/event/";
 echo create_header($dbcn,"tournament", $tournamentID);
 echo create_tournament_nav_buttons($tournamentID, $dbcn,"",$league['OPL_ID'],$group['OPL_ID']);
 echo create_team_nav_buttons($tournamentID,$group["OPL_ID"],$team,"matchhistory");
-
+?>
+<main>
+<?php
 if (count($team_groups)>1) {
 	echo "<div id='teampage_switch_group_buttons'>";
 
@@ -115,5 +117,6 @@ if (count($team_groups)>1) {
 create_matchhistory($dbcn, $tournamentID, $group["OPL_ID"], $teamID);
 
 ?>
+</main>
 </body>
 </html>

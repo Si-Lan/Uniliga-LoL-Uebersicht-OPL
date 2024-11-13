@@ -12,9 +12,9 @@ function create_html_head_elements(array $css = [], array $js = [], string $titl
 	$result .= "<meta name='viewport' content='width=device-width, initial-scale=1'>";
 	$result .= "<link rel='icon' href='https://silence.lol/favicon-dark.ico' media='(prefers-color-scheme: dark)'/>";
 	$result .= "<link rel='icon' href='https://silence.lol/favicon-light.ico' media='(prefers-color-scheme: light)'/>";
-	$result .= "<link rel='stylesheet' href='styles/main.css?4'>";
+	$result .= "<link rel='stylesheet' href='styles/design2.css?5'>";
 	$result .= "<script src='scripts/jquery-3.7.1.min.js'></script>";
-	$result .= "<script src='scripts/main.js?4'></script>";
+	$result .= "<script src='scripts/main.js?5'></script>";
 	// additional css
 	if (in_array("elo",$css)) {
 		$result .= "<link rel='stylesheet' href='styles/elo-rank-colors.css'>";
@@ -115,61 +115,79 @@ function create_header(mysqli $dbcn = NULL, string $title = "home", string|int $
 	$result .= "<header class='$title'>";
 	if ($home_button) {
 		$result .= "
-	<a href='.' class='homelink'>
-		<div class='material-symbol'>".file_get_contents(dirname(__FILE__)."/../icons/material/home.svg")."</div>
+	<a href='.' class='button material-symbol'>
+		".file_get_contents(dirname(__FILE__)."/../icons/material/home.svg")."
 	</a>";
 	}
+	$searchbar = "";
 	if ($search_button) {
-		$result .= "
-	<button title='Suche' class='header_search_button'>
-		<div class='material-symbol'>".file_get_contents(dirname(__FILE__)."/../icons/material/search.svg")."</div>
-	</button>";
+		$searchbar = "
+		<div class='searchbar'>
+			<span class='material-symbol search-icon' title='Suche'>
+				".file_get_contents(dirname(__FILE__)."/../icons/material/search.svg")."
+			</span>
+			<input class='search-all deletable-search' placeholder='Suche' type='search'>
+			<button class='material-symbol search-clear' title='Suche leeren'>
+				".file_get_contents(dirname(__FILE__)."/../icons/material/close.svg")."
+			</button>
+		</div>";
 	}
-	$result .= "<div class='title'>";
+	$title_before_search = false;
+	$title_text = "";
 	switch ($title) {
 		case "players":
-			$result .= "<h1>Uniliga LoL - Spieler</h1>";
+			$title_text .= "Uniliga LoL - Spieler";
 			break;
 		case "tournament":
 			if ($dbcn != NULL && $tournament_id != NULL) {
-				$result .= "<h1>$t_name_clean</h1>";
-				$result .= "<a href='$opl_event_url/$tournament_id' target='_blank' class='toorlink'><div class='material-symbol'>$outlinkicon</div></a>";
+				$title_text .= "$t_name_clean";
+				$title_text .= "<a href='$opl_event_url/$tournament_id' target='_blank' class='opl-link'><div class='material-symbol'>$outlinkicon</div></a>";
 			} else {
-				$result .= "<h1>Uniliga LoL - Übersicht</h1>";
+				$title_text = "Uniliga LoL - Übersicht";
 			}
 			break;
 		case "admin_dd":
-			$result .= "<h1>Uniliga LoL - DDragon Updates</h1>";
+			$title_text .= "Uniliga LoL - DDragon Updates";
 			break;
 		case "admin_update_log":
-			$result .= "<h1>Uniliga LoL - Update Logs</h1>";
+			$title_text .= "Uniliga LoL - Update Logs";
 			break;
 		case "admin":
-			$result .= "<h1>Uniliga LoL - Admin</h1>";
+			$title_text .= "Uniliga LoL - Admin";
 			break;
 		case "rgapi":
-			$result .= "<h1>Uniliga LoL - Riot-API-Daten</h1>";
+			$title_text .= "Uniliga LoL - Riot-API-Daten";
 			break;
 		case "maintenance":
-			$result .= "<h1>Uniliga LoL - Übersicht - Wartung</h1>";
+			$title_text .= "Uniliga LoL - Übersicht - Wartung";
 			break;
 		case "404":
-			$result.= "<h1>404 - Seite nicht gefunden</h1>";
+			$title_text .= "404 - Seite nicht gefunden";
 			break;
 		case "error":
-			$result.= "<h1>Fehler</h1>";
+			$title_text .= "Fehler";
+			break;
+		case "home":
+			$title_text = "Uniliga LoL - Übersicht";
+			$title_before_search = true;
 			break;
 		default:
-			$result .= "<h1>Uniliga LoL - Übersicht</h1>";
+			$title_text .= "Uniliga LoL - Übersicht";
 	}
-	$result .= "</div>";
-	$result .= "<a class='settings-button' href='$pageurl'><div class='material-symbol'>". file_get_contents(dirname(__FILE__)."/../icons/material/tune.svg") ."</div></a>";
+
+	if ($title_before_search) {
+		$title_text = "<h1>".$title_text."</h1>";
+		$result .= $title_text.$searchbar;
+	} else {
+		$title_text = "<h1 class='tournament-title'>".$title_text."</h1>";
+		$result .= $searchbar.$title_text;
+	}
+
+	$result .= "<button type='button' class='material-symbol settings-button'>". file_get_contents(dirname(__FILE__)."/../icons/material/tune.svg") ."</button>";
 	if ($loggedin) {
-		$admin_button_state = admin_buttons_visible() ? "" : "_off";
 		$result .= "
 			<div class='settings-menu'>
 				<a class='settings-option toggle-mode' href='$pageurl'><div class='material-symbol'>". file_get_contents(dirname(__FILE__)."/../icons/material/{$colormode}_mode.svg") ."</div></a>
-				<a class='settings-option toggle-admin-b-vis' href='$pageurl'>Buttons<div class='material-symbol'>". file_get_contents(dirname(__FILE__)."/../icons/material/visibility$admin_button_state.svg") ."</div></a>
 				<a class='settings-option toor-write' href='./admin'>Admin<div class='material-symbol'>". file_get_contents(dirname(__FILE__)."/../icons/material/edit_square.svg") ."</div></a>
 				<a class='settings-option rgapi-write' href='./admin/rgapi'>RGAPI<div class='material-symbol'>". file_get_contents(dirname(__FILE__)."/../icons/material/videogame_asset.svg") ."</div></a>
 				<a class='settings-option ddragon-write' href='./admin/ddragon'>DDragon<div class='material-symbol'>". file_get_contents(dirname(__FILE__)."/../icons/material/photo_library.svg") ."</div></a>
@@ -186,19 +204,12 @@ function create_header(mysqli $dbcn = NULL, string $title = "home", string|int $
 				<a class='settings-option login' href='$pageurl?login'>Login<div class='material-symbol'>". file_get_contents(dirname(__FILE__)."/../icons/material/login.svg") ."</div></a>
 			</div>";
 	}
-	$result .= "
-			<div class='header-search'>
-				<span class='searchbar'>
-                    <input class=\"search-all deletable-search\" placeholder='Suche' type='text'>
-                    <a class='material-symbol clear-search' href='#'>". file_get_contents(__DIR__."/../icons/material/close.svg") ."</a>
-                </span>
-			</div>";
 	$result .= "</header>";
 
 	$result .= "
 		<dialog id='login-dialog' class='dismissable-popup $loginopen'>
 			<div class='dialog-content'>
-				<button class='close-popup'><div class='material-symbol'>".file_get_contents(dirname(__FILE__)."/../icons/material/close.svg")."</div></button>
+				<button class='close-popup'><span class='material-symbol'>".file_get_contents(dirname(__FILE__)."/../icons/material/close.svg")."</span></button>
 				<div class='close-button-space'></div>
 				<div style='display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 40px'>
 					<form action='".strtok($_SERVER['REQUEST_URI'],'?')."?login' method='post' style='display: flex; flex-direction: column; align-items: center; gap: 1em;'>
@@ -234,7 +245,7 @@ function create_tournament_nav_buttons(string|int $tournament_id, mysqli $dbcn, 
 		}
 	}
 	$result .= "
-		<div class='turnier-bonus-buttons'>
+		<nav class='turnier-bonus-buttons'>
 			<div class='turnier-nav-buttons'>
 				<a href='turnier/{$tournament_id}' class='button$overview'>
     	        	<div class='material-symbol'>". file_get_contents(__DIR__."/../icons/material/sports_esports.svg") ."</div>
@@ -250,6 +261,7 @@ function create_tournament_nav_buttons(string|int $tournament_id, mysqli $dbcn, 
             	</a>
             </div>";
 
+	/*
 	if ($group_id != NULL && $active != "group") {
 		$group = $dbcn->execute_query("SELECT * FROM tournaments WHERE (eventType = 'group' OR (eventType = 'league' AND format = 'swiss') OR eventType = 'wildcard') AND OPL_ID = ?",[$group_id])->fetch_assoc();
 		$div = $dbcn->execute_query("SELECT * FROM tournaments WHERE eventType = 'league' AND OPL_ID = ?",[$group['OPL_ID_parent']])->fetch_assoc();
@@ -275,6 +287,7 @@ function create_tournament_nav_buttons(string|int $tournament_id, mysqli $dbcn, 
 		}
 		$result .= "</a>";
 	}
+	*/
 
 	$tournament = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID = ?", [$tournament_id])->fetch_assoc();
 	$ranked_season = $tournament["ranked_season"];
@@ -306,8 +319,7 @@ function create_tournament_nav_buttons(string|int $tournament_id, mysqli $dbcn, 
 	$result .= "</div>";
 	$result .= "</div>";
 
-	$result .= "</div>";
-	$result .= "<div class='divider bot-space'></div>";
+	$result .= "</nav>";
 
 	return $result;
 }
@@ -381,15 +393,15 @@ function generate_elo_list(mysqli $dbcn,$view,$tournamentID,$divisionID=null,$gr
 	$results .= "
                     <div class='elo-list-row elo-list-header'>
                         <div class='elo-list-pre-header league'>Liga #</div>
-                        <a class='elo-list-item-wrapper-header'>
-                        <div class='elo-list-item team'>Team</div>
-                        <div class='elo-list-item rank'>avg. Rang</div>
-                        </a>
-                        <div class='elo-list-after-header elo-nr'>Elo</div>
-                        <a class='elo-list-after-header op-gg'><div class='svg-wrapper op-gg'></div></a>
+                        <div class='elo-list-item-wrapper-header'>
+	                        <div class='elo-list-item team'>Team</div>
+    	                    <div class='elo-list-item rank'>avg. Rang</div>
+    	                    <div class='elo-list-item elo-nr'>Elo</div>
+                        </div>
                     </div>";
 	$tournament = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID = ?", [$tournamentID])->fetch_assoc();
-	foreach ($teams as $team) {
+	foreach ($teams as $i=>$team) {
+		if ($i != 0) $results .= "<div class='divider-light'></div>";
         if (str_contains($view, "wildcard")) {
             $league = $dbcn->execute_query("SELECT * FROM tournaments WHERE eventType='wildcard' AND OPL_ID = ?", [$team["OPL_ID_group"]])->fetch_assoc();
         } else {
@@ -428,15 +440,22 @@ function generate_elo_list(mysqli $dbcn,$view,$tournamentID,$divisionID=null,$gr
             $results .= "<div class='elo-list-pre league'>Liga {$league['number']}</div>";
         }
         $results .= "
-                        <a href='./team/".$team['OPL_ID']."' onclick='popup_team({$team['OPL_ID']},$tournamentID)' class='elo-list-item-wrapper'>
-                            <div class='elo-list-item team'>";
+                        <div class='elo-list-item-wrapper'>
+                            <button type='button' onclick='popup_team({$team['OPL_ID']},$tournamentID)' class='elo-list-item team page-link'>";
 		if ($team['OPL_ID_logo'] != NULL && file_exists(__DIR__."/../$local_team_img{$team['OPL_ID_logo']}/logo.webp")) {
 			$results .= "
                                 <img class='color-switch' src='$local_team_img{$team['OPL_ID_logo']}/$logo_filename' alt='Teamlogo'>";
+		} else {
+			$results .= "<img class='color-switch' src='data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs%3D' alt='Teamlogo'>";
 		}
 		$results .= "
-                                <span>{$team_name['name']}</span>
-                            </div>
+                                <span class='page-link-target'>
+                                	<span class='team-name'>{$team_name['name']}</span>
+                                	<span class='material-symbol page-link-icon popup-icon'>
+                                		".file_get_contents(__DIR__."/../icons/material/ad_group.svg")."
+									</span>
+                                </span>
+                            </button>
                             <div class='elo-list-item rank'>";
 		if ($team['avg_rank_tier'] != NULL) {
 			$avg_rank = strtolower($team['avg_rank_tier']);
@@ -450,14 +469,11 @@ function generate_elo_list(mysqli $dbcn,$view,$tournamentID,$divisionID=null,$gr
 		}
 		$results .= "
                             </div>
-                        </a>
-                        <div class='elo-list-after elo-nr'>
+                        
+                        <div class='elo-list-item elo-nr'>
                             <span>({$avg_rank_num})</span>
                         </div>
-                        <a href='$curr_opgglink' target='_blank' class='elo-list-after op-gg'>
-                            <div class='svg-wrapper op-gg'>$opgg_logo_svg</div>
-                        </a>
-                        
+                        </div>
                     </div>";
 	}
 	$results .= "
@@ -558,22 +574,45 @@ function create_standings(mysqli $dbcn, $tournament_id, $group_id, $team_id=NULL
 		$result .= "<div class='title'><h3>Standings</h3></div>";
 	} elseif ($group["eventType"] == "wildcard") {
 		$wildcard_numbering = ($group["numberRangeTo"] == null) ? "{$group['number']}" : "{$group['number']}-{$group["numberRangeTo"]}";
-		$result .= "<div class='title'><h3>Standings Wildcard-Turnier Liga $wildcard_numbering</h3></div>";
+		$result .= "<div class='title'>
+						<h3>
+							Standings 
+							<a href='turnier/$tournament_id/wildcard/{$group['OPL_ID']}' class='page-link'>
+								<span class='link-text'>Wildcard-Turnier Liga $wildcard_numbering</span>
+								<span class='material-symbol page-link-icon'>".file_get_contents(__DIR__."/../icons/material/chevron_right.svg")."</span>
+							</a>
+						</h3>
+					</div>";
 	} elseif ($group["format"] == "swiss") {
-		$result .= "<div class='title'><h3>Standings Liga {$group['number']}</h3></div>";
+		$result .= "<div class='title'>
+						<h3>
+							Standings 
+							<a href='turnier/$tournament_id/gruppe/{$group['OPL_ID']}' class='page-link'>
+								<span class='link-text'>Liga {$group['number']}</span>
+								<span class='material-symbol page-link-icon'>".file_get_contents(__DIR__."/../icons/material/chevron_right.svg")."</span>
+							</a>
+						</h3>
+					</div>";
 	} else {
-		$result .= "<div class='title'><h3>Standings Liga {$div['number']} / Gruppe {$group['number']}</h3></div>";
+		$result .= "<div class='title'>
+						<h3>
+							Standings 
+							<a href='turnier/$tournament_id/gruppe/{$group['OPL_ID']}' class='page-link'>
+								<span class='link-text'>Liga {$div['number']} / Gruppe {$group['number']}</span>
+								<span class='material-symbol page-link-icon'>".file_get_contents(__DIR__."/../icons/material/chevron_right.svg")."</span>
+							</a>
+						</h3>
+					</div>";
 	}
 	$result .= "<div class='standings-table content'>
 			<div class='standing-row standing-header'>
 				<div class='standing-pre-header rank'>#</div>
-				<a class='standing-item-wrapper-header'>
+				<div class='standing-item-wrapper-header'>
 					<div class='standing-item team'>Team</div>
 					<div class='standing-item played'>Pl</div>
-					<div class='standing-item score'>W - D - L</div>
+					<div class='standing-item score'>W-D-L</div>
 					<div class='standing-item points'>Pt</div>
-					<a class='standing-after-header op-gg'><div class='svg-wrapper op-gg'></div></a>
-                </a>
+                </div>
             </div>";
 	$last_rank = -1;
 	foreach ($teams_from_groupDB as $currteam) {
@@ -603,18 +642,27 @@ function create_standings(mysqli $dbcn, $tournament_id, $group_id, $team_id=NULL
 		}
 		$same_rank_class = "";
 		if ($last_rank == $currteam['standing']) {
-			$same_rank_class = " no-bg";
+			$same_rank_class = " shared-rank";
 		}
 		$result .= "<div class='standing-row standing-team$current'>
 				<div class='standing-pre rank$same_rank_class'>{$currteam['standing']}</div>
-				<a href='turnier/$tournament_id/team/{$currteam['OPL_ID']}' class='standing-item-wrapper'>
-				<div class='standing-item team'>";
+				<div class='standing-item-wrapper'>
+				<a class='standing-item team page-link' href='turnier/$tournament_id/team/{$currteam['OPL_ID']}'>";
 		if ($currteam['OPL_ID_logo'] != NULL && file_exists(__DIR__."/../$local_img_path{$currteam['OPL_ID_logo']}/logo.webp")) {
 			$result .= "<img class='color-switch' src='$local_img_path{$currteam['OPL_ID']}/$logo_filename' alt=\"Teamlogo\">";
+		} else {
+			$result .= "<img class='color-switch' src='data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs%3D' alt=\"Teamlogo\">";
+
 		}
 		if ($currteam['avg_rank_tier'] != NULL || $currteam['avg_rank_tier_2'] != NULL) {
-			$result .= "<div class='team-name-rank'>
-                        <span>{$currteam['name']}</span>";
+			$result .= "<div class='team-name-rank'>";
+			$result .= "
+                        <span class='page-link-target'>
+                        	<span class='team-name' title='{$currteam['name']}'>
+                        		{$currteam['name']}
+							</span>
+							<span class='material-symbol page-link-icon'>".file_get_contents(__DIR__."/../icons/material/chevron_right.svg")."</span>
+                        </span>";
 			if ($currteam['avg_rank_tier'] != NULL) {
 				$team_tier = strtolower($currteam['avg_rank_tier']);
 				$team_tier_cap = ucfirst($team_tier);
@@ -632,18 +680,24 @@ function create_standings(mysqli $dbcn, $tournament_id, $group_id, $team_id=NULL
                         </span>";
 			}
 			$result .= "</div>
-                  </div>";
+                  </a>";
 		} else {
-			$result .= "<span>{$currteam['name']}</span></div>";
+			$result .= "<span class='page-link-target'>
+                        	<span class='team-name' title='{$currteam['name']}'>
+                        		{$currteam['name']}
+							</span>
+							<span class='material-symbol page-link-icon'>".file_get_contents(__DIR__."/../icons/material/chevron_right.svg")."</span>
+                        </span>
+                        </a>";
 		}
 		$result .= "
                     <div class='standing-item played'>{$currteam['played']}</div>
-                    <div class='standing-item score'>{$currteam['wins']} - {$currteam['draws']} - {$currteam['losses']}</div>
+                    <div class='standing-item score'>{$currteam['wins']}-{$currteam['draws']}-{$currteam['losses']}</div>
                     <div class='standing-item points'>{$currteam['points']}</div>
-                    <a href='$curr_opgglink' target='_blank' class='standing-after op-gg'><div class='svg-wrapper op-gg'>$opgg_logo_svg</div></a>
-                </a>
+                </div>
             </div>";
 		$last_rank = $currteam['standing'];
+		$result .= "<div class='divider-light'></div>";
 	}
 	$result .= "</div></div>";
 
@@ -689,21 +743,20 @@ function create_matchbutton(mysqli $dbcn,$match_id,$type,$tournament_id,$team_id
 		}
 	}
 
+	$team_id_pass = ($team_id != null) ? "\"$team_id\"" : "null";
+	$tournament_id_pass = ($tournament_id != null) ? "\"$tournament_id\"" : "null";
 	if ($match['played'] == 0) {
 		$datetime = date_create($match['plannedDate']);
 		$date = date_format($datetime, 'd M');
 		$time = date_format($datetime, 'H:i');
+		$playdate = ($match['plannedDate'] == NULL || strtotime($match['plannedDate']) == 0) ? "vs." : "$date<br>$time";
 		$result .= "<div class='match-button-wrapper' data-matchid='$match_id' data-matchtype='$type' data-tournamentid='$tournament_id'>
-                            <a class='button match nolink sideext-right'>
+                            <a class='button match sideext-right' href='$pageurl' onclick='popup_match({$match['OPL_ID']},$team_id_pass,\"$type\",$tournament_id_pass)'>
                                 <div class='teams'>
-                                    <div class='team 1$current1'><div class='name'>$team1Name</div></div>
-                                    <div class='team 2$current2'><div class='name'>$team2Name</div></div>
+                                    <div class='team 1$current1' title='$team1Name'>$team1Name</div>
+                                    <div class='team 2$current2' title='$team2Name'>$team2Name</div>
+                                    <div class='date'>$playdate</div>
                                 </div>";
-		if ($match['plannedDate'] == NULL || strtotime($match['plannedDate']) == 0) {
-			$result .= "<div>vs.</div>";
-		} else {
-			$result .= "<div class='date'>{$date}<br>{$time}</div>";
-		}
 		$result .= "</a>
                           <a class='sidebutton-match' href='$opl_match_url{$match['OPL_ID']}' target='_blank'>
                             <div class='material-symbol'>". file_get_contents(__DIR__."/../icons/material/open_in_new.svg") ."</div>
@@ -727,12 +780,12 @@ function create_matchbutton(mysqli $dbcn,$match_id,$type,$tournament_id,$team_id
 			$state2 = "draw";
 		}
 		$result .= "<div class='match-button-wrapper' data-matchid='$match_id' data-matchtype='$type' data-tournamentid='$tournament_id'>";
-		$team_id_pass = ($team_id != null) ? "\"$team_id\"" : "null";
-		$tournament_id_pass = ($tournament_id != null) ? "\"$tournament_id\"" : "null";
 		$result .= "<a class='button match sideext-right' href='$pageurl' onclick='popup_match({$match['OPL_ID']},$team_id_pass,\"$type\",$tournament_id_pass)'>";
 		$result .= "<div class='teams score'>
-				<div class='team 1 $state1$current1'><div class='name'>$team1Name</div><div class='score'>{$t1score}</div></div>
-				<div class='team 2 $state2$current2'><div class='name'>$team2Name</div><div class='score'>{$t2score}</div></div>
+				<div class='team 1 $state1$current1' title='$team1Name'>$team1Name</div>
+				<div class='score 1 $state1$current1'>{$t1score}</div>
+				<div class='team 2 $state2$current2' title='$team2Name'>$team2Name</div>
+				<div class='score 2 $state2$current2'>{$t2score}</div>
 			  </div>
 			</a>
 			<a class='sidebutton-match' href='$opl_match_url{$match['OPL_ID']}' target='_blank'>
@@ -777,13 +830,16 @@ function create_matchlist(mysqli $dbcn,$tournamentID,$eventID):string {
 		$result .= "
                     <div class='mh-popup-bg' onclick='close_popup_match(event)' style='display: block; opacity: 1;'>
                         <div class='mh-popup'>
-                            <div class='close-button' onclick='closex_popup_match()'><div class='material-symbol'>". file_get_contents(__DIR__."/../icons/material/close.svg") ."</div></div>
+                            <button class='close-popup' onclick='closex_popup_match()'><span class='material-symbol'>". file_get_contents(__DIR__."/../icons/material/close.svg") ."</span></button>
                             <div class='close-button-space'></div>
                             <div class='mh-popup-buttons'>";
 		if (!$tournament["archived"]) {
-			$result .= "                      <div class='updatebuttonwrapper'><button type='button' class='icononly user_update_match update_data' data-match='$curr_matchID' data-matchformat='groups' data-group='$eventID'><div class='material-symbol'>". file_get_contents(__DIR__."/../icons/material/sync.svg") ."</div></button><span>letztes Update:<br>$updatediff_match</span></div>";
+			$result .= "                      <div class='updatebuttonwrapper'><button type='button' class='user_update user_update_match update_data' data-match='$curr_matchID' data-matchformat='groups' data-group='$eventID' data-tournament='$tournamentID'><div class='material-symbol'>". file_get_contents(__DIR__."/../icons/material/sync.svg") ."</div></button><span class='last-update'>letztes Update:<br>$updatediff_match</span></div>";
 		}
 		$result .= "                  </div>";
+
+		$result .= "<span>Spieldatum: ".date("d.m.Y, H:i",strtotime($curr_matchData["plannedDate"]))."</span>";
+
 		if ($curr_matchData['winner'] == $curr_matchData['OPL_ID_team1']) {
 			$team1score = "win";
 			$team2score = "loss";
@@ -797,9 +853,9 @@ function create_matchlist(mysqli $dbcn,$tournamentID,$eventID):string {
 		$result .= "
                 <h2 class='round-title'>
                     <span class='round'>Runde {$curr_matchData['playday']}: &nbsp</span>
-                    <span class='team $team1score'>{$curr_team1['name']}</span>
+                    <a href='turnier/$tournamentID/team/{$curr_matchData['OPL_ID_team1']}' class='team $team1score page-link'>{$curr_team1['name']}</a>
                     <span class='score'><span class='$team1score'>{$curr_matchData['team1Score']}</span>:<span class='$team2score'>{$curr_matchData['team2Score']}</span></span>
-                    <span class='team $team2score'>{$curr_team2['name']}</span>
+                    <a href='turnier/$tournamentID/team/{$curr_matchData['OPL_ID_team2']}' class='team $team2score page-link'>{$curr_team2['name']}</a>
                 </h2>";
 		if ($curr_games == null) {
 			$result .= "<div class=\"no-game-found\">Keine Spieldaten gefunden</div>";
@@ -879,32 +935,30 @@ function create_team_nav_buttons($tournamentID,$groupID,$team,$active,$allGroupI
     $logo_filename = is_light_mode() ? "logo_light.webp" : "logo.webp";
 	$opl_team_url = "https://www.opleague.pro/team/";
 	$team_id = $team['OPL_ID'];
-	$result .= "<div class='team title'>
-			<div class='team-name'>";
+	$result .= "<div class='team pagetitle'>";
 	if ($team['OPL_ID_logo'] != NULL && file_exists(__DIR__."/../$local_team_img{$team['OPL_ID_logo']}/logo.webp")) {
 		$result .= "<img class='color-switch' alt src='$local_team_img{$team['OPL_ID_logo']}/$logo_filename'>";
 	}
 	$result .= "
 			<div>
-				<h2><a class='fancy-link-underline' href='team/$team_id'>{$team['name']}</a></h2>
-				<a href=\"$opl_team_url$team_id\" class='toorlink' target='_blank'><div class='material-symbol'>". file_get_contents(__DIR__."/../icons/material/open_in_new.svg") ."</div></a>
-			</div>
-        </div>
-        <div class='team-titlebutton-wrapper'>
-           	<a href='turnier/$tournamentID/team/$team_id' class='button$details_a'><div class='material-symbol'>". file_get_contents(__DIR__."/../icons/material/info.svg") ."</div>Team-Übersicht</a>
-           	<a href='turnier/$tournamentID/team/$team_id/matchhistory' class='button$matchhistory_a'><div class='material-symbol'>". file_get_contents(__DIR__."/../icons/material/manage_search.svg") ."</div>Match-History</a>
-            <a href='turnier/$tournamentID/team/$team_id/stats' class='button$stats_a'><div class='material-symbol'>". file_get_contents(__DIR__."/../icons/material/monitoring.svg") ."</div>Statistiken</a>
-        </div>";
+				<h2 class='pagetitle'><a class='page-link' href='team/$team_id'><span class='link-text'>{$team['name']}</span><span class='material-symbol page-link-icon'>".file_get_contents(__DIR__."/../icons/material/chevron_right.svg")."</span></a></h2>
+				<a href=\"$opl_team_url$team_id\" class='opl-link' target='_blank'><span class='material-symbol'>". file_get_contents(__DIR__."/../icons/material/open_in_new.svg") ."</span></a>
+			</div>";
 	$data_playoff = ($playoffID != null) ? "data-playoff='$playoffID'" : "";
 	if ($active == "details" && !$hide_update) {
 		$result .= "
 				<div class='updatebuttonwrapper'>
-           			<button type='button' class='icononly user_update_team update_data' data-team='$team_id' data-tournament='$tournamentID' data-group='$groupID' data-groups='$allGroupIDs' $data_playoff><div class='material-symbol'>".file_get_contents(__DIR__."/../icons/material/sync.svg")."</div></button>
-					<span>letztes Update:<br>$updatediff</span>
+           			<button type='button' class='user_update user_update_team update_data' data-team='$team_id' data-tournament='$tournamentID' data-group='$groupID' data-groups='$allGroupIDs' $data_playoff><div class='material-symbol'>".file_get_contents(__DIR__."/../icons/material/sync.svg")."</div></button>
+					<span class='last-update'>letztes Update:<br>$updatediff</span>
 				</div>";
 	}
 	$result .= "</div>";
-
+	$result .= "
+        <nav class='team-titlebutton-wrapper'>
+           	<a href='turnier/$tournamentID/team/$team_id' class='$details_a'><div class='material-symbol'>". file_get_contents(__DIR__."/../icons/material/info.svg") ."</div>Team-Übersicht</a>
+           	<a href='turnier/$tournamentID/team/$team_id/matchhistory' class='$matchhistory_a'><div class='material-symbol'>". file_get_contents(__DIR__."/../icons/material/manage_search.svg") ."</div>Match-History</a>
+            <a href='turnier/$tournamentID/team/$team_id/stats' class='$stats_a'><div class='material-symbol'>". file_get_contents(__DIR__."/../icons/material/monitoring.svg") ."</div>Statistiken</a>
+        </nav>";
 	return $result;
 }
 
@@ -1461,39 +1515,30 @@ function create_playercard(mysqli $dbcn, $playerID, $teamID, $tournamentID, $det
 	}
 
 	// Turnier-Titel
-	$result .= "<a class='player-card-div player-card-tournament' href='turnier/{$tournament["OPL_ID"]}'>";
+	$result .= "<a class='player-card-div player-card-tournament page-link' href='turnier/{$tournament["OPL_ID"]}'>";
 	if ($tournament["OPL_ID_logo"] != NULL) {
 		$result .= "<img class='color-switch' alt='' src='img/tournament_logos/{$tournament["OPL_ID_logo"]}/$logo_filename'>";
 	}
-	$result .= ucfirst($tournament["split"])." ".$tournament["season"];
+	$result .= "<span class='page-link-target'>".ucfirst($tournament["split"])." ".$tournament["season"]."</span>";
 	$result .= "</a>";
-	// Spielername und Summonername
-	/*
-	$result .= "<div class='player-card-div player-card-name'>
-					<span>{$player["name"]}</span>";
-    if ($player["riotID_name"] != null) {
-        $result .= "<a href='https://op.gg/summoners/euw/{$player["riotID_name"]}-{$player["riotID_tag"]}' target='_blank'><div class='material-symbol'>".file_get_contents(dirname(__FILE__)."/../icons/material/person.svg")."</div>{$player["riotID_name"]}#{$player["riotID_tag"]}</a>";
-    }
-	$result .= "</div>";
-	*/
 	// Teamname
-	$result .= "<a class='player-card-div player-card-team' href='turnier/$tournamentID/team/{$team["OPL_ID"]}'>";
+	$result .= "<a class='player-card-div player-card-team page-link' href='turnier/$tournamentID/team/{$team["OPL_ID"]}'>";
 	if ($team["OPL_ID_logo"] != NULL && file_exists(dirname(__FILE__)."/../img/team_logos/{$team["OPL_ID_logo"]}/$logo_filename")) {
 		$result .= "<img class='color-switch' alt='' src='img/team_logos/{$team["OPL_ID_logo"]}/$logo_filename'>";
-		$result .= "<span>{$team_name["name"]}</span>";
+		$result .= "<span class='page-link-target'>{$team_name["name"]}</span>";
 	} else {
-		$result .= "<span class='player-card-nologo'>{$team_name["name"]}</span>";
+		$result .= "<span class='player-card-nologo page-link-target'>{$team_name["name"]}</span>";
 	}
 	$result .= "</a>";
 	// Team Details im Turnier
 	$group_title = ($group["format"] == "swiss") ? "Swiss-Gruppe" : " Gruppe {$group["number"]}";
 	if ($group["eventType"] == "wildcard") {
 		$wc_comb_num = ($group["numberRangeTo"] == null) ? $group["number"] : $group["number"]."-".$group["numberRangeTo"];
-		$result .= "<a class='player-card-div player-card-group' href='turnier/$tournamentID/wildcard/{$group["OPL_ID"]}'>";
-		$result .= "<span> Wildcard Liga $wc_comb_num</span>";
+		$result .= "<a class='player-card-div player-card-group page-link' href='turnier/$tournamentID/wildcard/{$group["OPL_ID"]}'>";
+		$result .= "<span class='page-link-target'> Wildcard Liga $wc_comb_num</span>";
 	} else {
-		$result .= "<a class='player-card-div player-card-group' href='turnier/$tournamentID/gruppe/{$group["OPL_ID"]}'>";
-		$result .= "<span>Liga {$league["number"]} - $group_title</span>";
+		$result .= "<a class='player-card-div player-card-group page-link' href='turnier/$tournamentID/gruppe/{$group["OPL_ID"]}'>";
+		$result .= "<span class='page-link-target'>Liga {$league["number"]} - $group_title</span>";
 	}
 	$result .= "</a>";
 	// detailed Stats
@@ -1569,7 +1614,7 @@ function create_playercard(mysqli $dbcn, $playerID, $teamID, $tournamentID, $det
 			$result .= "</div>";
 		}
 		// erweiterungs button
-		$result .= "<a class='player-card-div player-card-more' href='#' onclick='expand_playercard(this)'><div class='material-symbol'>".file_get_contents(dirname(__FILE__)."/../icons/material/expand_more.svg")."</div> mehr Infos</a>";
+		$result .= "<button type='button' class='player-card-div player-card-more' onclick='expand_playercard(this)'><div class='material-symbol'>".file_get_contents(dirname(__FILE__)."/../icons/material/expand_more.svg")."</div> mehr Infos</button>";
 	}
 
 	$result .= "</div>";
@@ -1580,12 +1625,12 @@ function create_player_overview(mysqli $dbcn,$playerid,$onplayerpage=false):stri
 	$result = "";
     $teams_played_in = $dbcn->execute_query("SELECT * FROM players_in_teams_in_tournament WHERE OPL_ID_player = ? ORDER BY OPL_ID_tournament DESC", [$playerid])->fetch_all(MYSQLI_ASSOC);
 	$player = $dbcn->execute_query("SELECT * FROM players WHERE OPL_ID = ?", [$playerid])->fetch_assoc();
-	if (!$onplayerpage) $result .= "<a href='spieler/$playerid' class='button toplayer'><div class='material-symbol'>".file_get_contents(__DIR__."/../icons/material/person.svg")."</div>Zur Spielerseite</a>";
-	$result .= "<div class='player-ov-titlewrapper'><h2 class='player-ov-name'>{$player["name"]}</h2><a href='https://www.opleague.pro/user/$playerid' class='toorlink' target='_blank'><div class='material-symbol'>".file_get_contents(__DIR__."/../icons/material/open_in_new.svg")."</div></a></div>";
-	$result .= "<div class='divider'></div>";
+	if (!$onplayerpage) $result .= "<a href='spieler/$playerid' class='page-link icon-link'><span class='material-symbol icon-link-icon'>".file_get_contents(__DIR__."/../icons/material/person.svg")."</span><span class='link-text'>Zur Spielerseite</span><span class='material-symbol page-link-icon'>".file_get_contents(__DIR__."/../icons/material/chevron_right.svg")."</span></a>";
+	$result .= "<div class='player-ov-titlewrapper'><h2 class='player-ov-name'>{$player["name"]}</h2><a href='https://www.opleague.pro/user/$playerid' class='opl-link' target='_blank'><div class='material-symbol'>".file_get_contents(__DIR__."/../icons/material/open_in_new.svg")."</div></a></div>";
+	$result .= "<div class='divider-light'></div>";
 	if ($player["riotID_name"] != null) {
 		$result .= "<div class='player-ov-riotid-wrapper'>";
-		$result .= "<a class='player-ov-riotid tooltip' href='https://op.gg/summoners/euw/{$player["riotID_name"]}-{$player["riotID_tag"]}' target='_blank'><span class='league-icon'>".file_get_contents(dirname(__FILE__)."/../icons/LoL_Icon_Flat.svg")."</span><span>{$player["riotID_name"]}#{$player["riotID_tag"]}</span><span class='tooltiptext linkinfo'><span class='material-symbol'>".file_get_contents(__DIR__."/../icons/material/open_in_new.svg")."</span>OP.GG</span></a>";
+		$result .= "<a class='player-ov-riotid tooltip page-link' href='https://op.gg/summoners/euw/{$player["riotID_name"]}-{$player["riotID_tag"]}' target='_blank'><span class='league-icon'>".file_get_contents(dirname(__FILE__)."/../icons/LoL_Icon_Flat.svg")."</span><span>{$player["riotID_name"]}#{$player["riotID_tag"]}</span><span class='tooltiptext linkinfo'><span class='material-symbol'>".file_get_contents(__DIR__."/../icons/material/open_in_new.svg")."</span>OP.GG</span></a>";
 		$rank_tier = strtolower($player["rank_tier"]??"");
 		$rank_div = $player["rank_div"];
 		$LP = NULL;
@@ -1607,8 +1652,8 @@ function create_player_overview(mysqli $dbcn,$playerid,$onplayerpage=false):stri
 	}
     if (count($teams_played_in) >= 2) {
         $result .= "<div class='player-ov-buttons'>";
-		$result .= "<a href='#' class='button expand-pcards' title='Ausklappen' onclick='expand_all_playercards()'><div class='material-symbol'>".file_get_contents(dirname(__FILE__)."/../icons/material/unfold_more.svg")."</div></a>";
-		$result .= "<a href='#' class='button expand-pcards' title='Einklappen' onclick='expand_all_playercards(true)'><div class='material-symbol'>".file_get_contents(dirname(__FILE__)."/../icons/material/unfold_less.svg")."</div></a>";
+		$result .= "<button type='button' class='expand-pcards' title='Ausklappen' onclick='expand_all_playercards()'><div class='material-symbol'>".file_get_contents(dirname(__FILE__)."/../icons/material/unfold_more.svg")."</div></button>";
+		$result .= "<button type='button' class='expand-pcards' title='Einklappen' onclick='expand_all_playercards(true)'><div class='material-symbol'>".file_get_contents(dirname(__FILE__)."/../icons/material/unfold_less.svg")."</div></button>";
 		$result .= "</div>";
     }
 	$result .= "<div class='player-popup-content'>";
@@ -1640,13 +1685,13 @@ function create_player_search_cards(mysqli $dbcn, array $playerids, bool $remove
 
     foreach ($players as $player) {
         $player_cards .= "<div class='player-ov-card-wrapper'>";
-        $player_cards .= "<a class='player-ov-card' href='/uniliga/spieler' onclick='popup_player(\"".$player["OPL_ID"]."\",true)'>";
-        $player_cards .= "<span>".$player["name"]."</span>";
+        $player_cards .= "<button class='player-ov-card' type='button' onclick='popup_player(\"{$player["OPL_ID"]}\",true)'>";
+        $player_cards .= "<span><span class='material-symbol'>".file_get_contents(__DIR__."/../icons/material/person.svg")."</span>".$player["name"]."</span>";
         if ($player["riotID_name"] != null) {
             $player_cards .= "<div class='divider'></div>";
-            $player_cards .= "<span>".$player["riotID_name"]."#".$player["riotID_tag"]."</span>";
+            $player_cards .= "<span><span class='league-icon'>".file_get_contents(__DIR__."/../icons/LoL_Icon_Flat.svg")."</span>".$player["riotID_name"]."#".$player["riotID_tag"]."</span>";
         }
-        $player_cards .= "</a>";
+        $player_cards .= "</button>";
         if ($remove_from_recents) {
             $player_cards .= "<a class='x-remove-recent-player' href='/uniliga/spieler' onclick='remove_recent_player(\"".$player["OPL_ID"]."\")'><div class='material-symbol'>".file_get_contents(dirname(__FILE__)."/../icons/material/close.svg")."</div></a>";
         }
@@ -1759,29 +1804,29 @@ function create_teamcard(mysqli $dbcn, $teamID, $tournamentID) {
 
 	$result = "<div class='team-card'>";
 	// Turnier-Titel
-	$result .= "<a class='team-card-div team-card-tournament' href='turnier/{$parent_tournament["OPL_ID"]}'>";
+	$result .= "<a class='team-card-div team-card-tournament page-link' href='turnier/{$parent_tournament["OPL_ID"]}'>";
 	if ($tournament["OPL_ID_logo"] != NULL) {
 		$result .= "<img class='color-switch' alt='' src='img/tournament_logos/{$tournament["OPL_ID_logo"]}/$logo_filename'>";
 	}
-	$result .= ucfirst($tournament["split"])." ".$tournament["season"];
+	$result .= "<span class='page-link-target'>".ucfirst($tournament["split"])." ".$tournament["season"]."</span>";
 	$result .= "</a>";
 
 	// Liga und Gruppe
 	$league_number = ($league["numberRangeTo"] == NULL) ? $league["number"] : $league["number"]."-".$league["numberRangeTo"];
 	$group_title = ($tournament["eventType"] == "wildcard") ? "Wildcard-Turnier" : (($tournament["format"] == "swiss") ? "Swiss-Gruppe" : "Gruppe {$tournament["number"]}");
 	$group_url_segment = ($tournament["eventType"] == "wildcard") ? "wildcard" : "gruppe";
-	$result .= "<a class='team-card-div team-card-league' href='turnier/{$parent_tournament["OPL_ID"]}/$group_url_segment/{$tournament["OPL_ID"]}'>";
-	$result .= "Liga ".$league_number." - $group_title";
+	$result .= "<a class='team-card-div team-card-league page-link' href='turnier/{$parent_tournament["OPL_ID"]}/$group_url_segment/{$tournament["OPL_ID"]}'>";
+	$result .= "<span class='page-link-target'>Liga ".$league_number." - $group_title</span>";
 	$result .= "</a>";
 
 	// Link zu Teamseite
 	$logo_dir = (($team_logo_current["dir_key"]??-1) == -1) ? "" : $team_logo_current["dir_key"]."/";
-	$result .= "<a class='team-card-div team-card-teampage' href='turnier/{$parent_tournament["OPL_ID"]}/team/$teamID'>";
+	$result .= "<a class='team-card-div team-card-teampage page-link' href='turnier/{$parent_tournament["OPL_ID"]}/team/$teamID'>";
 	if ($team["OPL_ID_logo"] != NULL && file_exists(dirname(__FILE__)."/../img/team_logos/{$team["OPL_ID_logo"]}/$logo_dir$logo_filename_square")) {
 		$result .= "<img class='color-switch' alt='' src='img/team_logos/{$team["OPL_ID_logo"]}/$logo_dir$logo_filename_square'>";
-		$result .= "<span>{$team_name_current["name"]}</span>";
+		$result .= "<span class='page-link-target'>{$team_name_current["name"]}</span>";
 	} else {
-		$result .= "<span class='team-card-nologo'>{$team_name_current["name"]}</span>";
+		$result .= "<span class='team-card-nologo page-link-target'>{$team_name_current["name"]}</span>";
 	}
 	$result .= "</a>";
 
@@ -1796,12 +1841,12 @@ function create_teamcard(mysqli $dbcn, $teamID, $tournamentID) {
 	}
 
 	// Spieler
-	$result .= "<button type='button' class='team-card-div team-card-playeramount'><div class='material-symbol'>". file_get_contents(__DIR__."/../icons/material/person.svg") ."</div>$player_amount Spieler</button>";
+	$result .= "<button type='button' class='team-card-div team-card-playeramount'><div class='material-symbol'>". file_get_contents(__DIR__."/../icons/material/person.svg") ."</div>$player_amount Spieler<div class='material-symbol'>".file_get_contents(dirname(__FILE__)."/../icons/material/expand_more.svg")."</div></button>";
 	$result .= "<div class='team-card-div team-card-players-wrapper'>";
 	$result .= "<div class='team-card-players'>";
 	foreach ($players_by_role as $role_players) {
 		foreach ($role_players as $player) {
-			$result .= "<a class='fancy-link-underline-parent' href='spieler/{$player["OPL_ID"]}'>";
+			$result .= "<a class='page-link' href='spieler/{$player["OPL_ID"]}'>";
 			if ($player["roles"] != null) {
 				$result .= "<div class='team-card-players-roles'>";
 				foreach ($player["roles"] as $role=>$role_amount) {
@@ -1810,7 +1855,7 @@ function create_teamcard(mysqli $dbcn, $teamID, $tournamentID) {
 				}
 				$result .= "</div>";
 			}
-			$result .= "<span class='fancy-link-underline-target'>{$player["name"]}</span></a>";
+			$result .= "<span class='page-link-target'>{$player["name"]}</span></a>";
 		}
 	}
 	$result .= "</div>";

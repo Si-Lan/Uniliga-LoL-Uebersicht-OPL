@@ -86,22 +86,22 @@ if (!$tournament["archived"]) {
 echo "<div class='pagetitlewrapper withupdatebutton'>
 				<div class='pagetitle'>
 					<h2 class='pagetitle'>Wildcard-Turnier Liga $wildcard_numbers_combined</h2>
-                	<a href='$opl_tourn_url{$wildcardID}' target='_blank' class='toorlink'><div class='material-symbol'>".file_get_contents(__DIR__."/../icons/material/open_in_new.svg")."</div></a>
+                	<a href='$opl_tourn_url{$wildcardID}' target='_blank' class='opl-link'><div class='material-symbol'>".file_get_contents(__DIR__."/../icons/material/open_in_new.svg")."</div></a>
               	</div>";
 if (!$tournament["archived"]) {
 	echo "
               	<div class='updatebuttonwrapper'>
-              		<button type='button' class='icononly user_update_group update_data' data-group='$wildcardID'><div class='material-symbol'>" . file_get_contents(__DIR__ . "/../icons/material/sync.svg") . "</div></button>
-					<span>letztes Update:<br>$updatediff</span>
+              		<button type='button' class='user_update user_update_group update_data' data-group='$wildcardID'><div class='material-symbol'>" . file_get_contents(__DIR__ . "/../icons/material/sync.svg") . "</div></button>
+					<span class='last-update'>letztes Update:<br>$updatediff</span>
 				</div>";
 }
 echo "
               </div>";
 
-echo "<div class='main-content'>";
+echo "<main>";
 echo create_standings($dbcn,$tournamentID,$wildcardID);
 echo create_matchlist($dbcn,$tournamentID,$wildcardID);
-echo "</div>"; // main-content
+echo "</main>";
 
 ?>
 </body>

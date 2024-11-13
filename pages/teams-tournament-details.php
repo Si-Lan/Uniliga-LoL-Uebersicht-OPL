@@ -155,7 +155,7 @@ echo create_tournament_nav_buttons($tournamentID, $dbcn,"",$league['OPL_ID'],$gr
 
 echo create_team_nav_buttons($tournamentID,$group["OPL_ID"],$team,"details",allGroupIDs: $all_groupids_string,playoffID: $playoff_ID,updatediff: $updatediff, hide_update: $tournament["archived"]);
 
-echo "<div class='main-content'>";
+echo "<main>";
 echo "
                 <div class='player-cards opgg-cards'>
                     <div class='title'>
@@ -167,8 +167,6 @@ if ($collapsed) {
 } else {
 	echo "<button type='button' class='exp_coll_sc'><div class='material-symbol'>".file_get_contents(__DIR__."/../icons/material/unfold_less.svg")."</div>Stats aus</button>";
 }
-echo "
-                     </div>";
 
 if ($current_split == $ranked_split_2) {
 	$rank_hide_1 = "display: none";
@@ -198,6 +196,8 @@ if ($team_rank_2['avg_rank_tier'] != NULL) {
                         <span>{$avg_rank_cap} {$team_rank_2['avg_rank_div']}</span>
                     </div>";
 }
+echo "
+                     </div>"; //title
 echo "
                     <div class='summoner-card-container'>";
 foreach ($players_gamecount_by_id as $playerID=>$player_gamecount) {
@@ -268,14 +268,21 @@ if ($curr_matchID != NULL) {
 	echo "
                     <div class='mh-popup-bg' onclick='close_popup_match(event)' style='display: block; opacity: 1;'>
                         <div class='mh-popup'>
-                            <div class='close-button' onclick='closex_popup_match()'><div class='material-symbol'>". file_get_contents(__DIR__."/../icons/material/close.svg") ."</div></div>
+                            <button class='close-popup' onclick='closex_popup_match()'><span class='material-symbol'>". file_get_contents(__DIR__."/../icons/material/close.svg") ."</span></button>
                             <div class='close-button-space'></div>
                             <div class='mh-popup-buttons'>
-	                            <a class='button' href='turnier/$tournamentID/team/$teamID/matchhistory#{$curr_matchID}'><div class='material-symbol'>". file_get_contents(__DIR__."/../icons/material/manage_search.svg") ."</div>in Matchhistory ansehen</a>";
+	                            <a class='icon-link page-link' href='turnier/$tournamentID/team/$teamID/matchhistory#{$curr_matchID}'>
+	                            <div class='material-symbol icon-link-icon'>". file_get_contents(__DIR__."/../icons/material/manage_search.svg") ."</div>
+	                            <span class='link-text'>In Matchhistory ansehen</span>
+	                            <div class='material-symbol page-link-icon'>". file_get_contents(__DIR__."/../icons/material/chevron_right.svg") ."</div>	                            
+	                            </a>";
 	if (!$tournament["archived"]) {
-		echo "                      <div class='updatebuttonwrapper'><button type='button' class='icononly user_update_match update_data' data-match='$curr_matchID' data-matchformat='' data-team='$teamID' data-group='{$group["OPL_ID"]}'><div class='material-symbol'>". file_get_contents(__DIR__."/../icons/material/sync.svg") ."</div></button><span>letztes Update:<br>$updatediff_match</span></div>";
+		echo "                      <div class='updatebuttonwrapper'><button type='button' class='user_update user_update_match update_data' data-match='$curr_matchID' data-matchformat='' data-team='$teamID' data-group='{$group["OPL_ID"]}' data-tournament='{$tournamentID}'><div class='material-symbol'>". file_get_contents(__DIR__."/../icons/material/sync.svg") ."</div></button><span class='last-update'>letztes Update:<br>$updatediff_match</span></div>";
 	}
     echo "                  </div>";
+
+	echo "<span>Spieldatum: ".date("d.m.Y, H:i",strtotime($curr_matchData["plannedDate"]))."</span>";
+
 	if ($curr_matchData['winner'] == $curr_matchData['OPL_ID_team1']) {
 		$team1score = "win";
 		$team2score = "loss";
@@ -295,9 +302,9 @@ if ($curr_matchID != NULL) {
 	echo "
                 <h2 class='round-title'>
                     <span class='round'>Runde {$curr_matchData['playday']}: &nbsp</span>
-                    <span class='team $team1score'>{$curr_team1['name']}</span>
+                    <a href='turnier/$tournamentID/team/{$curr_matchData['OPL_ID_team1']}' class='team $team1score page-link'>{$curr_team1['name']}</a>
                     <span class='score'><span class='$team1score'>{$t1score}</span>:<span class='$team2score'>{$t2score}</span></span>
-                    <span class='team $team2score'>{$curr_team2['name']}</span>
+                    <a href='turnier/$tournamentID/team/{$curr_matchData['OPL_ID_team2']}' class='team $team2score page-link'>{$curr_team2['name']}</a>
                 </h2>";
 	if ($curr_games == null) {
 		echo "<div class=\"no-game-found\">Keine Spieldaten gefunden</div>";
@@ -333,20 +340,7 @@ if ($group["eventType"] != "wildcard") {
 echo "</div>";
 echo "</div>"; // matches
 echo "</div>"; // inner-content
-echo "</div>"; // main-content
-
-if ($logged_in) {
-	echo "<div class='writing-wrapper'>";
-	echo "<div class='divider big-space'></div>";
-	echo "<a class='deprecated-admin-btn button write games-team $teamID {$tournament['OPL_ID']}' onclick='get_games_for_team(\"{$tournament['OPL_ID']}\",\"$teamID\")'>Lade Spiele für {$team['name']}</a>";
-	echo "<a class='button write gamedata {$tournament['OPL_ID']}' onclick='get_game_data(\"{$tournament['OPL_ID']}\",\"$teamID\")'>Lade Spiel-Daten für geladene Spiele</a>";
-	echo "<a class='deprecated-admin-btn button write assign-una {$tournament['OPL_ID']}' onclick='assign_and_filter_games(\"{$tournament['OPL_ID']}\",\"$teamID\")'>sortiere unsortierte Spiele</a>";
-	echo "<div class='result-wrapper no-res $teamID {$tournament['OPL_ID']}'>
-                        <div class='clear-button' onclick='clear_results(\"$teamID\")'>Clear</div>
-                        <div class='result-content'></div>
-                      </div>";
-	echo "</div>"; // writing-wrapper
-}
+echo "</main>"; // main-content
 
 ?>
 </body>

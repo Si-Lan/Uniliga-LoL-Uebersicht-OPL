@@ -15,7 +15,7 @@ $dbcn = create_dbcn();
 $loggedin = is_logged_in();
 $lightmode = is_light_mode(true);
 
-echo create_html_head_elements(css: ["rgapi"], js: ["admin"], title: "Admin-Panel | Uniliga LoL - Übersicht" ,loggedin: $loggedin);
+echo create_html_head_elements(css: ["rgapi2"], js: ["admin"], title: "Admin-Panel | Uniliga LoL - Übersicht" ,loggedin: $loggedin);
 
 ?>
 <body class="admin <?php echo $lightmode?>">
@@ -29,7 +29,7 @@ if ($loggedin) {
 	?>
 	<h1>OPL -> Database</h1>
 
-	<div class="main-content">
+	<main>
 		<dialog class='write-result-popup dismissable-popup'>
 			<div class='dialog-content'></div>
 		</dialog>
@@ -79,7 +79,7 @@ if ($loggedin) {
 			echo create_tournament_buttons($dbcn);
 			?>
 		</div>
-	</div>
+	</main>
     <div style="height: 200px"></div>
 	<?php
 }

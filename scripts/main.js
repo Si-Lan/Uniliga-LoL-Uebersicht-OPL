@@ -1,5 +1,5 @@
 $(document).ready(() => {
-	$(".settings-option.login").on("click", () => {event.preventDefault(); document.getElementById("login-dialog").showModal(); document.getElementById("keypass").focus();});
+	$(".settings-option.login").on("click", () => {event.preventDefault(); document.getElementById("login-dialog").showModal(); toggle_settings_menu(false); document.getElementById("keypass").focus();});
 	$('dialog.dismissable-popup').on('click', function (event) {
 		if (event.target === this) {
 			this.close();
@@ -14,7 +14,7 @@ $(document).ready(() => {
 function toggle_settings_menu(to_state = null) {
 	event.preventDefault();
 	let settings = $('.settings-menu');
-	let settings_icon = $('.settings-button .material-symbol');
+	let settings_icon = $('.settings-button.material-symbol');
 	if (to_state == null) {
 		to_state = !settings.hasClass("shown");
 	}
@@ -85,13 +85,17 @@ $(document).ready(function () {
 	$('header .settings-button').on("click",()=>{toggle_settings_menu()});
 	$('header .settings-option.toggle-mode').on("click",toggle_darkmode);
 	let settings = $('.settings-menu');
-	let search = $('.header-search');
 	let header = $('header');
 	window.addEventListener("click", (event) => {
 		if (settings.hasClass('shown')) {
 			if (!$.contains(header.get(0),$(event.target).get(0)) && event.target !== header[0]) {
 				toggle_settings_menu(false);
 			}
+		}
+	});
+	window.addEventListener("keydown", (event) => {
+		if (event.key === "Escape" && $('header .settings-menu').hasClass('shown')) {
+			toggle_settings_menu(false);
 		}
 	});
 	$('header .settings-option.toggle-admin-b-vis').on("click",toggle_admin_buttons);
@@ -101,27 +105,25 @@ $(document).ready(function() {
 	$(".settings-option.feedback").attr("href",`mailto:${atob(encMail)}`);
 });
 
-function clear_searchbar(el) {
+function clear_searchbar(event) {
 	event.preventDefault();
-	$searchbar = $(el.parentNode);
-	$searchbar.find("input").val('').trigger('keyup').trigger('input').focus();
+	let searchbar = $(this.parentNode);
+	searchbar.find("input[type=search]").val('').trigger('keyup').trigger('input').focus();
 }
-function toggle_clear_search_x(el) {
-	let clear_button = $(el.parentNode).find(".material-symbol");
-	let input = $(el)[0].value;
+function toggle_clear_search_x(event) {
+	let clear_button = $(this.parentNode).find(".search-clear");
+	let input = $(this)[0].value;
 	if (input === "") {
 		clear_button.css("display", "none");
 	} else {
-		clear_button.css("display", "block");
+		clear_button.css("display", "flex");
 	}
 }
 $(document).ready(function() {
-	$('.searchbar input').on("input", function() {
-		toggle_clear_search_x(this);
-	})
-	$('.searchbar .clear-search').on("click", function () {
-		clear_searchbar(this);
-	})
+	$(".searchbar .search-clear").on("click", clear_searchbar);
+	let searchbar = $(".searchbar input[type=search]");
+	searchbar.on("input", toggle_clear_search_x);
+	searchbar.on("mouseenter", toggle_clear_search_x);
 });
 
 // teamlist-filter
@@ -248,34 +250,30 @@ function filter_teams_list_group(group) {
 
 
 // handle search
-function search_teams(tournID) {
-	// Declare variables
-	let input, filter, liste, tags, i, txtValue;
-	let results;
-	input = document.getElementsByClassName("search-teams " + tournID)[0];
-	filter = input.value.toUpperCase();
-	liste = document.getElementsByClassName("team-list " + tournID)[0];
-	tags = liste.querySelectorAll('.team-button');
-	results = tags.length;
+function search_teams() {
+	const search_input = document.getElementsByClassName("search-teams")[0].value.toUpperCase();
+	const liste = document.getElementsByClassName("team-list")[0];
+	const team_buttons = liste.querySelectorAll('.team-button');
+	let results = team_buttons.length;
 
 	// Loop through all list items, and hide those who don't match the search query
-	for (i = 0; i < tags.length; i++) {
-		txtValue = tags[i].innerText;
-		if (txtValue.toUpperCase().indexOf(filter) > -1) {
-			if (tags[i].classList.contains("search-off")) {
-				tags[i].classList.remove("search-off");
+	for (let i = 0; i < team_buttons.length; i++) {
+		let txtValue = team_buttons[i].querySelectorAll(".team-name")[0].innerText;
+		if (txtValue.toUpperCase().indexOf(search_input) > -1) {
+			if (team_buttons[i].classList.contains("search-off")) {
+				team_buttons[i].classList.remove("search-off");
 			}
 		} else {
-			if (!(tags[i].classList.contains("search-off"))) {
-				tags[i].classList.add("search-off");
+			if (!(team_buttons[i].classList.contains("search-off"))) {
+				team_buttons[i].classList.add("search-off");
 			}
 			results -= 1;
 		}
 	}
 	if (results === 0) {
-		document.getElementsByClassName(`no-search-res-text ${tournID}`)[0].style.display = "";
+		document.getElementsByClassName(`no-search-res-text`)[0].style.display = "";
 	} else {
-		document.getElementsByClassName(`no-search-res-text ${tournID}`)[0].style.display = "none";
+		document.getElementsByClassName(`no-search-res-text`)[0].style.display = "none";
 	}
 }
 
@@ -373,7 +371,7 @@ async function popup_team(teamID, tournamentID = null) {
 	current_team_in_popup = parseInt(teamID);
 	popup.empty();
 
-	popup.append(`<div class='close-button' onclick='closex_popup_team()'>${get_material_icon("close")}</div>`);
+	popup.append(`<button class='close-popup' onclick='closex_popup_team()'>${get_material_icon("close")}</button>`);
 	popup.append("<div class='close-button-space'><div class='popup-loading-indicator'></div></div>");
 
 	popupbg.css("opacity","0");
@@ -408,8 +406,8 @@ async function popup_team(teamID, tournamentID = null) {
 					opgg_amount++;
 				}
 
-				popup.append("<div class='team-buttons opgg-cards'></div>");
-				let name_container = $("div.team-buttons");
+				popup.append("<div class='team-title'></div>");
+				let name_container = $("div.team-title");
 				if (team_data["team"]["OPL_ID_logo"] !== null && team_data["team"]["OPL_ID_logo"] !== "") {
 					fetch(`img/team_logos/${team_data["team"]["OPL_ID_logo"]}/logo.webp`, {method:"HEAD"})
 						.then(res => {
@@ -419,15 +417,16 @@ async function popup_team(teamID, tournamentID = null) {
 						})
 						.catch(e => console.error(e));
 				}
-				name_container.append(`<h2>${team_data["team"]["name"]}</h2>`);
-				name_container.append(`<a href='https://www.opleague.pro/team/${teamID}' target='_blank' class='toorlink'>${get_material_icon("open_in_new")}</a>`);
-				name_container.append(`<a href='https://www.op.gg/multisearch/euw?summoners=${players_string}' target='_blank' class='button op-gg'><div class='svg-wrapper op-gg'>${opgg_logo_svg}</div><span class='player-amount'>(${opgg_amount} Spieler)</span></a>`);
-				name_container.append(`<a href='turnier/${tournamentID}/team/${teamID}' class='button'>${get_material_icon("info")}Team-Übersicht</a>`);
+				name_container.append(`<div><h2><a href="team/${teamID}" class="page-link">${team_data["team"]["name"]}</a></h2><a href='https://www.opleague.pro/team/${teamID}' target='_blank' class='opl-link'>${get_material_icon("open_in_new")}</a></div>`);
+				popup.append(`<a href='turnier/${tournamentID}/team/${teamID}' class='page-link'><span class="link-text">Team-Übersicht</span>${get_material_icon("chevron_right",false,"page-link-icon")}</a>`);
+
 				let sc_collapsed = getCookie("preference_sccollapsed");
+				popup.append(`<div class="sc-buttons opgg-cards"><a href='https://www.op.gg/multisearch/euw?summoners=${players_string}' target='_blank' class='button op-gg'><div class='svg-wrapper op-gg'>${opgg_logo_svg}</div><span class='player-amount'>(${opgg_amount} Spieler)</span></a></div>`);
+				const sc_button_container = $(`div.sc-buttons`);
 				if (sc_collapsed === "1") {
-					popup.append(`<button type="button" class="exp_coll_sc">${get_material_icon("unfold_more")}Stats ein</button>`)
+					sc_button_container.append(`<button type="button" class="exp_coll_sc">${get_material_icon("unfold_more")}Stats ein</button>`)
 				} else {
-					popup.append(`<button type="button" class="exp_coll_sc">${get_material_icon("unfold_less")}Stats aus</button>`)
+					sc_button_container.append(`<button type="button" class="exp_coll_sc">${get_material_icon("unfold_less")}Stats aus</button>`)
 				}
 				$('button.exp_coll_sc').on("click",expand_collapse_summonercard);
 				if (team_data["team"]["avg_rank_tier"] !== null && team_data["team"]["avg_rank_tier"] !== "") {
@@ -491,6 +490,8 @@ $(document).ready(function () {
 	if (body.hasClass("teamlist") || body.hasClass("elo-overview")) {
 		window.addEventListener("keydown", (event) => {
 			if (event.key === "Escape") {
+				const player_popup = $('.player-popup-bg');
+				if (player_popup.length > 0 && player_popup.css("display") !== "none") return;
 				closex_popup_team();
 			}
 		})
@@ -525,7 +526,7 @@ async function popup_match(matchID,teamID=null,matchtype="groups",tournamentID=n
 	current_match_in_popup = parseInt(matchID);
 	popup.empty();
 
-	popup.append(`<div class='close-button' onclick='closex_popup_match()'>${get_material_icon("close")}</div>`);
+	popup.append(`<button class='close-popup' onclick='closex_popup_match()'>${get_material_icon("close")}</button>`);
 	popup.append(`<div class='close-button-space'><div class='popup-loading-indicator'></div></div>`);
 
 	popupbg.css("opacity","0");
@@ -547,16 +548,18 @@ async function popup_match(matchID,teamID=null,matchtype="groups",tournamentID=n
 		.then(res => res.json())
 		.then(async data => {
 			let games = data['games'];
+			const played = data['match']['played'];
+			const defwin = (data['team1']['OPL_ID'] < 0 || data['team2']['OPL_ID'] < 0);
 
+			const tournament_url_part = (tournamentID != null) ? `turnier/${tournamentID}/` : "";
 			let buttonwrapper = `<div class='mh-popup-buttons'>`;
-			if (teamID != null) {
-				let tournament_url_part = (tournamentID != null) ? `turnier/${tournamentID}/` : "";
-				buttonwrapper += `<a class='button' href='${tournament_url_part}team/${teamID}/matchhistory#${matchID}'> ${get_material_icon("manage_search")} in Matchhistory ansehen</a>`;
+			if (teamID != null && played) {
+				buttonwrapper += `<a class='icon-link page-link' href='${tournament_url_part}team/${teamID}/matchhistory#${matchID}'> ${get_material_icon("manage_search",false,"icon-link-icon")} <span class="link-text">In Matchhistory ansehen</span> ${get_material_icon("chevron_right",false,"page-link-icon")}</a>`;
 			}
 			let teamid_data = "";
 			if (teamID !== null) teamid_data = `data-team='${teamID}'`;
 			if (!data["tournament"]["archived"]) {
-				buttonwrapper += `<div class='updatebuttonwrapper'><button type='button' class='icononly user_update_match update_data' data-match='${matchID}' data-matchformat='${matchtype}' ${teamid_data}>${get_material_icon('sync')}</button><span>letztes Update:<br>&nbsp;</span></div>`;
+				buttonwrapper += `<div class='updatebuttonwrapper'><button type='button' class='user_update user_update_match update_data' data-match='${matchID}' data-matchformat='${matchtype}' data-group='${data["match"]["OPL_ID_tournament"]}' data-tournament='${tournamentID}' ${teamid_data}>${get_material_icon('sync')}</button><span class="last-update">letztes Update:<br>&nbsp;</span></div>`;
 			}
 			buttonwrapper += "</div>";
 			popup.append(buttonwrapper);
@@ -577,10 +580,14 @@ async function popup_match(matchID,teamID=null,matchtype="groups",tournamentID=n
 				})
 					.then(res => res.text())
 					.then(time => {
-						$(".mh-popup .updatebuttonwrapper span").html(`letztes Update:<br>${time}`);
+						$(".mh-popup .updatebuttonwrapper span.last-update").html(`letztes Update:<br>${time}`);
 					})
 					.catch(error => console.error(error));
 			}
+
+			let plannedDate = new Date(data['match']['plannedDate']);
+			let plannedDateString = plannedDate.toLocaleDateString("de-DE", {day:"2-digit", month:"2-digit", year:"numeric", hour:"2-digit", minute:"2-digit"});
+			popup.append(`<span>Spieldatum: ${plannedDateString}</span>`)
 
 			let team1score;
 			let team2score;
@@ -603,13 +610,23 @@ async function popup_match(matchID,teamID=null,matchtype="groups",tournamentID=n
 			if (current_match_in_popup === data['match']['OPL_ID']) {
 				popup.append(`<h2 class='round-title'>
                                 <span class='round'>Runde ${data['match']['playday']}: &nbsp</span>
-                                <a href='team/${data['team1']['OPL_ID']}' class='team ${team1score}'>${data['team1']['name']}</a>
+                                <a href='${tournament_url_part}team/${data['team1']['OPL_ID']}' class='team ${team1score} page-link'>
+									${data['team1']['name']}
+								</a>
                                 <span class='score'><span class='${team1score}'>${team1wins}</span>:<span class='${team2score}'>${team2wins}</span></span>
-                                <a href='team/${data['team2']['OPL_ID']}' class='team ${team2score}'>${data['team2']['name']}</a>
+                                <a href='${tournament_url_part}team/${data['team2']['OPL_ID']}' class='team ${team2score} page-link'>
+									${data['team2']['name']}
+                                </a>
                               </h2>`);
 			}
 			if (games.length === 0) {
-				popup.append("<div class='no-game-found'>Keine Spieldaten gefunden</div>");
+				if (played && !defwin) {
+					popup.append("<div class='no-game-found'>Noch keine Spieldaten gefunden</div>");
+				} else if (!played) {
+					popup.append("<div class='no-game-found'>Spiel wurde noch nicht gespielt</div>");
+				} else if (defwin) {
+					popup.append("<div class='no-game-found'>Keine Spieldaten vorhanden (Default Win)</div>");
+				}
 				let popup_loader = $('.popup-loading-indicator');
 				popup_loader.css("opacity", "0");
 				await new Promise(r => setTimeout(r, 210));
@@ -701,16 +718,14 @@ function switch_elo_view(tournamentID,view) {
 	event.preventDefault();
 	let url = new URL(window.location.href);
 	let area = $('.main-content');
-	let but = $('.filter-button-wrapper .button');
+	let but = $('.filter-button-wrapper button');
 	let all_b = $('.filter-button-wrapper .all-teams');
 	let div_b = $('.filter-button-wrapper .div-teams');
 	let group_b = $('.filter-button-wrapper .group-teams');
-	let color_b = $('.settings-button-wrapper .button span');
+	let color_b = $('.settings-button-wrapper button span');
 	let jump_b = $('.jump-button-wrapper');
 
     let stage = $(`button.elolist_switch_stage.active`).attr("data-stage");
-
-	console.log(stage)
 
 	if (stage === "groups") {
 		(view === "all-teams") ? jump_b.css("display","none") : jump_b.css("display","");
@@ -816,10 +831,10 @@ function color_elo_list() {
 
 let acCurrentFocus = 0;
 function search_teams_elo() {
-	let searchbar = $('.search-wrapper .searchbar');
+	let searchbar = $('body.elo-overview main .searchbar');
 	let input = $('.search-teams-elo')[0];
 	let input_value = input.value.toUpperCase();
-	let ac = $('.search-wrapper .searchbar .autocomplete-items');
+	let ac = $('body.elo-overview main .searchbar .autocomplete-items');
 
 	if (ac.length === 0) {
 		ac = $("<div class=\'autocomplete-items\'></div>");
@@ -837,8 +852,8 @@ function search_teams_elo() {
 	}
 	let teams_list = [];
 	for (const team of teams) {
-		let team_name = $(team).find('.elo-list-item.team span')[0];
-		teams_list.push([team_name.innerText,team_name.offsetTop,$(team)[0].classList[2]]);
+		let team_name = $(team).find('.elo-list-item.team span.team-name')[0];
+		teams_list.push([team_name.innerText,team.offsetTop,$(team)[0].classList[2]]);
 	}
 	teams_list.sort(function(a,b) {return a[0] > b[0] ? 1 : -1});
 
@@ -851,9 +866,9 @@ function search_teams_elo() {
 			ac.append($(`<div ${ac_class}>${teams_list[i][0].substring(0,indexOf)}<strong>${teams_list[i][0].substring(indexOf,indexOf+input_value.length)}</strong>${teams_list[i][0].substring(indexOf+input_value.length)}
                     <input type='hidden' value='${teams_list[i][1]}'></div>`).click(function() {
 				$('html').stop().animate({scrollTop: this.getElementsByTagName("input")[0].value-300}, 400, 'swing');
-				$('.search-wrapper .searchbar .autocomplete-items').empty();
-				$('.search-wrapper .searchbar input').val("");
-				$(".searchbar .material-symbol").css("display","none");
+				$('body.elo-overview main .searchbar .autocomplete-items').empty();
+				$('body.elo-overview main .searchbar input').val("");
+				$("body.elo-overview main .searchbar button.search-clear").css("display","none");
 				$('.elo-list-team').removeClass('ac-selected-team');
 				$('.elo-list-team.'+teams_list[i][2]).addClass('ac-selected-team');
 			}));
@@ -862,8 +877,8 @@ function search_teams_elo() {
 
 	if (!($(input).hasClass("focus-listen"))) {
 		input.addEventListener("keydown",function (e) {
-			let autocomplete = $('.search-wrapper .searchbar .autocomplete-items');
-			let autocomplete_items = $('.search-wrapper .searchbar .autocomplete-items div');
+			let autocomplete = $('body.elo-overview main .searchbar .autocomplete-items');
+			let autocomplete_items = $('body.elo-overview main .searchbar .autocomplete-items div');
 			if(autocomplete_items.length > 0) {
 				if (e.keyCode === 40) {
 					e.preventDefault();
@@ -920,14 +935,14 @@ function tournament_nav_switch_active() {
 		return;
 	}
 	$('.turnier-bonus-buttons .active').removeClass('active');
-	$(this).addClass('active');
+	$(this).addClass(['active','clickable']);
 }
 function team_nav_switch_active() {
 	if (user_update_running) {
 		return;
 	}
 	$('.team-titlebutton-wrapper .active').removeClass('active');
-	$(this).addClass('active');
+	$(this).addClass(['active','clickable']);
 }
 $(document).ready(function () {
 	$('.turnier-bonus-buttons .button').on("click",tournament_nav_switch_active);
@@ -1257,14 +1272,14 @@ function select_player_table() {
 	}
 }
 $(document).ready(function () {
-	$('div.roleplayers a.role-playername').on("click",select_player_table);
+	$('div.roleplayers .role-playername').on("click",select_player_table);
 });
 
 // toggle summonercard expansion
 function expand_collapse_summonercard() {
 	event.preventDefault();
 	let sc = $(".summoner-card-wrapper .summoner-card");
-	let collapse_button = $('.player-cards .exp_coll_sc');
+	let collapse_button = $('.exp_coll_sc');
 	let cookie_expiry = new Date();
 	cookie_expiry.setFullYear(cookie_expiry.getFullYear()+1);
 	if (sc.hasClass("collapsed")) {
@@ -1287,7 +1302,7 @@ function search_players() {
 	if (player_search_controller !== null) player_search_controller.abort();
 	player_search_controller = new AbortController();
 
-	let searchbar = $('.search-wrapper .searchbar');
+	let searchbar = $('body.players main .searchbar');
 	let input = $('input.search-players')[0];
 	let input_value = input.value.toUpperCase();
 	let player_list = $('.player-list');
@@ -1424,7 +1439,7 @@ async function popup_player(playerID, add_to_recents = false) {
 	current_player_in_popup = playerID;
 	popup.empty();
 
-	popup.append(`<div class='close-button' onclick='closex_popup_player()'>${get_material_icon("close")}</div>`);
+	popup.append(`<button class='close-popup' onclick='closex_popup_player()'>${get_material_icon("close")}</button>`);
 	popup.append("<div class='close-button-space'><div class='popup-loading-indicator'></div></div>");
 
 	popupbg.css("opacity","0");
@@ -1469,7 +1484,7 @@ async function closex_popup_player() {
 }
 $(document).ready(function () {
 	let body = $('body');
-	if (body.hasClass("players")) {
+	if (body.hasClass("players") || body.hasClass("team") || body.hasClass("teamlist")) {
 		window.addEventListener("keydown", (event) => {
 			if (event.key === "Escape") {
 				closex_popup_player();
@@ -1501,8 +1516,7 @@ function expand_all_playercards(collapse=false) {
 
 function show_teamcard_roster(event) {
 	event.preventDefault();
-	let players = $(event.currentTarget).parent().find(".team-card-players-wrapper");
-	players.toggleClass("shown");
+	$(event.currentTarget).parent().toggleClass("roster-shown");
 }
 $(document).ready(function () {
 	$('.team-card-playeramount').on("click", show_teamcard_roster);
@@ -1562,7 +1576,7 @@ async function user_update_group(button) {
 		window.alert(`Das letzte Update wurde vor ${format_time_minsec(diff)} durchgeführt. Versuche es in ${format_time_minsec(rest)} noch einmal`);
 		await new Promise(r => setTimeout(r, 1000));
 		$(button).removeClass("user_updating");
-		$("div.updatebuttonwrapper span").html(`letztes Update:<br>vor ${format_time_minsec(diff)}`)
+		$("div.updatebuttonwrapper span.last-update").html(`letztes Update:<br>vor ${format_time_minsec(diff)}`)
 		button.disabled = false;
 		user_update_running = false;
 		return;
@@ -1576,7 +1590,7 @@ async function user_update_group(button) {
 			itemid: group_ID,
 		}
 	})
-		.then(() => $("div.updatebuttonwrapper span").html("letztes Update:<br>vor ein paar Sekunden"))
+		.then(() => $("div.updatebuttonwrapper span.last-update").html("letztes Update:<br>vor ein paar Sekunden"))
 		.catch(e => console.error(e));
 
 	loading_width = 1;
@@ -1682,7 +1696,7 @@ async function user_update_group(button) {
 	})
 		.then(res => res.text())
 		.then(matchlist => {
-			$(".main-content .matches .match-content").replaceWith(matchlist);
+			$("main .matches .match-content").replaceWith(matchlist);
 		})
 		.catch(error => console.error(error));
 }
@@ -1742,7 +1756,7 @@ async function user_update_team(button) {
 			itemid: team_ID,
 		}
 	})
-		.then(() => $("div.updatebuttonwrapper span").html("letztes Update:<br>vor ein paar Sekunden"))
+		.then(() => $("div.updatebuttonwrapper span.last-update").html("letztes Update:<br>vor ein paar Sekunden"))
 		.catch(e => console.error(e));
 
 	loading_width = 1;
@@ -2030,7 +2044,7 @@ async function user_update_team(button) {
 	})
 		.then(res => res.text())
 		.then(matchlist => {
-			$(".main-content .matches .match-content").replaceWith(matchlist);
+			$("main .matches .match-content").replaceWith(matchlist);
 		})
 		.catch(error => console.warn(error)));
 	Promise.all(fetch_array).then(() => {
@@ -2047,6 +2061,8 @@ async function user_update_match(button) {
 	let match_ID = button.getAttribute("data-match");
 	let format = button.getAttribute("data-matchformat");
 	let team_ID = button.getAttribute("data-team");
+	let group_ID = button.getAttribute("data-group");
+	let tournament_ID = button.getAttribute("data-tournament");
 	$(button).addClass("user_updating");
 	button.disabled = true;
 	user_update_running = true;
@@ -2092,12 +2108,14 @@ async function user_update_match(button) {
 			itemID: match_ID,
 		}
 	})
-		.then(() => $("div.updatebuttonwrapper span").html("letztes Update:<br>vor ein paar Sekunden"))
+		.then(() => $("div.updatebuttonwrapper span.last-update").html("letztes Update:<br>vor ein paar Sekunden"))
 		.catch(e => console.error(e));
 
 	loading_width = 20;
 	button.style.setProperty("--update-loading-bar-width", `${loading_width}%`);
 
+	let match_result_1 = "_";
+	let match_result_2 = "_";
 	let games = [];
 	// get matchresult
 	await fetch(`ajax/user-update-functions.php`, {
@@ -2109,10 +2127,24 @@ async function user_update_match(button) {
 	})
 		.then(res => res.json())
 		.then(result => {
+			match_result_1 = result["match"]["team1Score"];
+			match_result_2 = result["match"]["team2Score"];
 			for (const gameID in result["games"]) {
 				games.push(gameID);
 			}
 		})
+		.catch(e => console.error(e));
+
+	loading_width = 80;
+	button.style.setProperty("--update-loading-bar-width", `${loading_width}%`);
+
+	await fetch(`./admin/ajax/get-opl-data.php`, {
+		method: "GET",
+		headers: {
+			"type": "calculate_standings_from_matchups",
+			"id": group_ID,
+		}
+	})
 		.catch(e => console.error(e));
 
 	loading_width = 100;
@@ -2126,6 +2158,11 @@ async function user_update_match(button) {
 
 	// render Games in Matchpopup
 	let popup = $('.mh-popup');
+
+	if (current_match_in_popup === parseInt(match_ID)) {
+		popup.find(`h2.round-title span.score span`)[0].innerText = match_result_1;
+		popup.find(`h2.round-title span.score span`)[1].innerText = match_result_2;
+	}
 
 	if (games.length > 0) {
 		$(".no-game-found").remove();
@@ -2159,6 +2196,46 @@ async function user_update_match(button) {
 			})
 			.catch(e => console.error(e));
 	}
+
+	const groupButtons = $("button.teampage_switch_group");
+	const activeGroupButton = $("button.teampage_switch_group.active");
+	let activeGroupID = (activeGroupButton.length === 0) ? group_ID : activeGroupButton.attr("data-group");
+
+	groupButtons.prop("disabled", true);
+	let fetch_array = [];
+
+	if (activeGroupID === group_ID) fetch_array.push(fetch(`ajax/create-page-elements.php`, {
+		method: "GET",
+		headers: {
+			type: "standings",
+			groupID: activeGroupID,
+			teamid: team_ID,
+		}
+	})
+		.then(res => res.text())
+		.then(standings => {
+			$("div.standings").replaceWith(standings);
+		})
+		.catch(e => console.warn(e)));
+	fetch_array.push(fetch(`ajax/create-page-elements.php`, {
+		method: "GET",
+		headers: {
+			"type": "matchbutton",
+			"matchid": match_ID,
+			"tournamentid": tournament_ID,
+			"matchtype": format,
+			"teamid": team_ID,
+		},
+	})
+		.then(res => res.text())
+		.then(new_matchbutton => {
+			$(`div.match-button-wrapper[data-matchid='${match_ID}']`).replaceWith(new_matchbutton);
+		})
+		.catch(error => console.warn(error)));
+
+	Promise.all(fetch_array).then(() => {
+		groupButtons.prop("disabled", false);
+	});
 }
 $(document).ready(function () {
 	$(".user_update_match").on("click", function () {
@@ -2166,32 +2243,6 @@ $(document).ready(function () {
 	});
 });
 
-function toggle_search_popup(to_state=null) {
-	event.preventDefault();
-	let search = $('.header-search');
-	let search_button = $('.header_search_button');
-	if (to_state == null) {
-		to_state = !search.hasClass("shown");
-	}
-	if (to_state) {
-		search.addClass("shown");
-		search_button.find(".material-symbol").html(get_material_icon("close",true));
-		search.find("input").focus();
-	} else {
-		search.removeClass("shown");
-		search_button.find(".material-symbol").html(get_material_icon("search",true));
-	}
-}
-$(document).ready(function () {
-	window.addEventListener("keydown", (event) => {
-		if (event.key === "Escape" && $('header .header-search').hasClass('shown')) {
-			toggle_search_popup(false);
-		}
-		if (event.key === "Escape" && $('header .settings-menu').hasClass('shown')) {
-			toggle_settings_menu(false);
-		}
-	})
-})
 
 let header_search_controller = null;
 let header_search_acCurrentFocus = 0;
@@ -2199,11 +2250,11 @@ function header_search() {
 	if (header_search_controller !== null) header_search_controller.abort();
 	header_search_controller = new AbortController();
 
-	let searchbar = $('.header-search .searchbar');
-	let input = $('.header-search input.search-all')[0];
+	let searchbar = $('header .searchbar');
+	let input = $('header .searchbar input.search-all')[0];
 	let input_value = input.value.toUpperCase();
 	let loading_indicator = $('.search-loading-indicator');
-	let ac = $('.header-search .searchbar .autocomplete-items');
+	let ac = $('header .searchbar .autocomplete-items');
 
 	if (ac.length === 0) {
 		ac = $("<div class=\'autocomplete-items\'></div>");
@@ -2250,8 +2301,8 @@ function header_search() {
 
 			if (!($(input).hasClass("focus-listen"))) {
 				input.addEventListener("keydown",function (e) {
-					let autocomplete = $('.header-search .searchbar .autocomplete-items');
-					let autocomplete_items = $('.header-search .searchbar .autocomplete-items a');
+					let autocomplete = $('header .searchbar .autocomplete-items');
+					let autocomplete_items = $('header .searchbar .autocomplete-items a');
 					if(autocomplete_items.length > 0) {
 						if (e.keyCode === 40) {
 							e.preventDefault();
@@ -2295,8 +2346,7 @@ function header_search() {
 }
 
 $(document).ready(function () {
-	$(".header_search_button").on("click",()=>{toggle_search_popup()});
-	$('header .header-search .searchbar input').on("input",header_search);
+	$('header .searchbar input').on("input",header_search);
 });
 
 function toggle_active_rankedsplit(tournament_id, season_split) {
@@ -2314,7 +2364,7 @@ function toggle_active_rankedsplit(tournament_id, season_split) {
 
 	let url = new URL(window.location.href);
 	if (url.pathname.endsWith("/elo")) {
-		let filter_button = $(`.filter-button-wrapper .button.filterb.active`).eq(0);
+		let filter_button = $(`.filter-button-wrapper button.filterb.active`).eq(0);
 		if (filter_button.hasClass("all-teams")) {
 			switch_elo_view(tournament_id, "all-teams");
 		} else if (filter_button.hasClass("div-teams")) {
@@ -2340,9 +2390,9 @@ $(document).ready(function () {
 });
 
 // allgemeine Helper
-function get_material_icon(name,nowrap=false) {
+function get_material_icon(name,nowrap=false,add_classes="") {
 	let res = "";
-	if (!nowrap) res = "<div class='material-symbol'>";
+	if (!nowrap) res = `<span class='material-symbol ${add_classes}'>`;
 	if (name === "close") res += "<svg xmlns=\"http://www.w3.org/2000/svg\" height=\"48\" viewBox=\"0 96 960 960\" width=\"48\"><path d=\"M480 618 270 828q-9 9-21 9t-21-9q-9-9-9-21t9-21l210-210-210-210q-9-9-9-21t9-21q9-9 21-9t21 9l210 210 210-210q9-9 21-9t21 9q9 9 9 21t-9 21L522 576l210 210q9 9 9 21t-9 21q-9 9-21 9t-21-9L480 618Z\"/></svg>";
 	if (name === "history") res += "<svg xmlns=\"http://www.w3.org/2000/svg\" height=\"48\" viewBox=\"0 -960 960 960\" width=\"48\"><path d=\"M477-120q-142 0-243.5-95.5T121-451q-1-12 7.5-21t21.5-9q12 0 20.5 8.5T181-451q11 115 95 193t201 78q127 0 215-89t88-216q0-124-89-209.5T477-780q-68 0-127.5 31T246-667h75q13 0 21.5 8.5T351-637q0 13-8.5 21.5T321-607H172q-13 0-21.5-8.5T142-637v-148q0-13 8.5-21.5T172-815q13 0 21.5 8.5T202-785v76q52-61 123.5-96T477-840q75 0 141 28t115.5 76.5Q783-687 811.5-622T840-482q0 75-28.5 141t-78 115Q684-177 618-148.5T477-120Zm34-374 115 113q9 9 9 21.5t-9 21.5q-9 9-21 9t-21-9L460-460q-5-5-7-10.5t-2-11.5v-171q0-13 8.5-21.5T481-683q13 0 21.5 8.5T511-653v159Z\"/></svg>";
 	if (name === "sync") res += "<svg xmlns=\"http://www.w3.org/2000/svg\" height=\"48\" viewBox=\"0 -960 960 960\" width=\"48\"><path d=\"M220-477q0 63 23.5 109.5T307-287l30 21v-94q0-13 8.5-21.5T367-390q13 0 21.5 8.5T397-360v170q0 13-8.5 21.5T367-160H197q-13 0-21.5-8.5T167-190q0-13 8.5-21.5T197-220h100l-15-12q-64-51-93-111t-29-134q0-94 49.5-171.5T342-766q11-5 21 0t14 16q5 11 0 22.5T361-710q-64 34-102.5 96.5T220-477Zm520-6q0-48-23.5-97.5T655-668l-29-26v94q0 13-8.5 21.5T596-570q-13 0-21.5-8.5T566-600v-170q0-13 8.5-21.5T596-800h170q13 0 21.5 8.5T796-770q0 13-8.5 21.5T766-740H665l15 14q60 56 90 120t30 123q0 93-48 169.5T623-195q-11 6-22.5 1.5T584-210q-5-11 0-22.5t16-17.5q65-33 102.5-96T740-483Z\"/></svg>";
@@ -2361,7 +2411,8 @@ function get_material_icon(name,nowrap=false) {
 	if (name === "person") res += "<svg xmlns=\"http://www.w3.org/2000/svg\" height=\"48\" viewBox=\"0 -960 960 960\" width=\"48\"><path d=\"M480-481q-66 0-108-42t-42-108q0-66 42-108t108-42q66 0 108 42t42 108q0 66-42 108t-108 42Zm260 321H220q-24.75 0-42.375-17.625T160-220v-34q0-38 19-65t49-41q67-30 128.5-45T480-420q62 0 123 15.5t127.921 44.694q31.301 14.126 50.19 40.966Q800-292 800-254v34q0 24.75-17.625 42.375T740-160Zm-520-60h520v-34q0-16-9.5-30.5T707-306q-64-31-117-42.5T480-360q-57 0-111 11.5T252-306q-14 7-23 21.5t-9 30.5v34Zm260-321q39 0 64.5-25.5T570-631q0-39-25.5-64.5T480-721q-39 0-64.5 25.5T390-631q0 39 25.5 64.5T480-541Zm0-90Zm0 411Z\"/></svg>";
 	if (name === "groups") res += "<svg xmlns=\"http://www.w3.org/2000/svg\" height=\"48\" viewBox=\"0 -960 960 960\" width=\"48\"><path d=\"M0-240v-53q0-38.567 41.5-62.784Q83-380 150.376-380q12.165 0 23.395.5Q185-379 196-377.348q-8 17.348-12 35.165T180-305v65H0Zm240 0v-65q0-32 17.5-58.5T307-410q32-20 76.5-30t96.5-10q53 0 97.5 10t76.5 30q32 20 49 46.5t17 58.5v65H240Zm540 0v-65q0-19.861-3.5-37.431Q773-360 765-377.273q11-1.727 22.171-2.227 11.172-.5 22.829-.5 67.5 0 108.75 23.768T960-293v53H780Zm-480-60h360v-6q0-37-50.5-60.5T480-390q-79 0-129.5 23.5T300-305v5ZM149.567-410Q121-410 100.5-430.562 80-451.125 80-480q0-29 20.562-49.5Q121.125-550 150-550q29 0 49.5 20.5t20.5 49.933Q220-451 199.5-430.5T149.567-410Zm660 0Q781-410 760.5-430.562 740-451.125 740-480q0-29 20.562-49.5Q781.125-550 810-550q29 0 49.5 20.5t20.5 49.933Q880-451 859.5-430.5T809.567-410ZM480-480q-50 0-85-35t-35-85q0-51 35-85.5t85-34.5q51 0 85.5 34.5T600-600q0 50-34.5 85T480-480Zm.351-60Q506-540 523-557.351t17-43Q540-626 522.851-643t-42.5-17Q455-660 437.5-642.851t-17.5 42.5Q420-575 437.351-557.5t43 17.5ZM480-300Zm0-300Z\"/></svg>";
 	if (name === "search") res += "<svg xmlns=\"http://www.w3.org/2000/svg\" height=\"48\" viewBox=\"0 -960 960 960\" width=\"48\"><path d=\"M378-329q-108.162 0-183.081-75Q120-479 120-585t75-181q75-75 181.5-75t181 75Q632-691 632-584.85 632-542 618-502q-14 40-42 75l242 240q9 8.556 9 21.778T818-143q-9 9-22.222 9-13.222 0-21.778-9L533-384q-30 26-69.959 40.5T378-329Zm-1-60q81.25 0 138.125-57.5T572-585q0-81-56.875-138.5T377-781q-82.083 0-139.542 57.5Q180-666 180-585t57.458 138.5Q294.917-389 377-389Z\"/></svg>";
-	if (!nowrap) res += "</div>";
+	if (name === "chevron_right") res += "<svg xmlns=\"http://www.w3.org/2000/svg\" height=\"48px\" viewBox=\"0 -960 960 960\" width=\"48px\" fill=\"#e8eaed\"><path d=\"M530-481 353-658q-9-9-8.5-21t9.5-21q9-9 21.5-9t21.5 9l198 198q5 5 7 10t2 11q0 6-2 11t-7 10L396-261q-9 9-21 8.5t-21-9.5q-9-9-9-21.5t9-21.5l176-176Z\"/></svg>";
+	if (!nowrap) res += "</span>";
 	return res;
 }
 

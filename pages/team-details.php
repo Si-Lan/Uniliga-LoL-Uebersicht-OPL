@@ -53,7 +53,7 @@ if ($team == NULL) {
 echo create_html_head_elements(title: "{$team["name"]} | Uniliga LoL - Übersicht", loggedin: $logged_in);
 
 ?>
-<body class="team <?php echo "$lightmode $admin_btns"?>">
+<body class="team general-team<?php echo "$lightmode $admin_btns"?>">
 <?php
 
 echo create_header(dbcn: $dbcn, title: "team");
@@ -73,20 +73,18 @@ foreach ($players_current as $i=>$player) {
 	$opgglink .= urlencode($player["riotID_name"]."#".$player["riotID_tag"]);
     $opgg_amount++;
 }
-echo "<div class='team title'>
-			<div class='team-name'>";
+echo "<div class='team pagetitle'>";
 if ($team['OPL_ID_logo'] != NULL && file_exists(__DIR__."/../$local_team_img{$team['OPL_ID_logo']}/logo.webp")) {
 	echo "<img class='color-switch' alt src='$local_team_img{$team['OPL_ID_logo']}/$logo_filename'>";
 }
 echo "
 			<div>
-				<h2>{$team['name']}</h2>
-				<a href=\"$opl_team_url$teamID\" class='toorlink' target='_blank'><div class='material-symbol'>". file_get_contents(__DIR__."/../icons/material/open_in_new.svg") ."</div></a>
-			</div>
-        </div>";
+				<h2 class='pagetitle'>{$team['name']}</h2>
+				<a href=\"$opl_team_url$teamID\" class='opl-link' target='_blank'><div class='material-symbol'>". file_get_contents(__DIR__."/../icons/material/open_in_new.svg") ."</div></a>
+			</div>";
 echo "</div>";
 
-echo "<div class='main-content'>";
+echo "<main>";
 
 echo "<div class='team-card-list'>";
 foreach ($tournaments_played_in as $tournament_id=>$tournaments) {
@@ -112,7 +110,7 @@ echo "
                 </div>"; //summoner-card-container -then- player-cards
 
 
-echo "</div>";
+echo "</main>";
 
 ?>
 </body>
