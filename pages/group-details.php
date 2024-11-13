@@ -69,11 +69,6 @@ if (isset($_GET['match'])) {
 $pageurl = $_SERVER['REQUEST_URI'];
 $opl_tourn_url = "https://www.opleague.pro/event/";
 
-$matches = $dbcn->execute_query("SELECT * FROM matchups WHERE OPL_ID_tournament = ? ORDER BY playday",[$group['OPL_ID']])->fetch_all(MYSQLI_ASSOC);
-$matches_grouped = [];
-foreach ($matches as $match) {
-	$matches_grouped[$match['playday']][] = $match;
-}
 $teams_from_groupDB = $dbcn->execute_query("SELECT * FROM teams JOIN teams_in_tournaments tit ON teams.OPL_ID = tit.OPL_ID_team WHERE tit.OPL_ID_group = ? ORDER BY standing",[$group['OPL_ID']])->fetch_all(MYSQLI_ASSOC);
 $teams_from_group = [];
 foreach ($teams_from_groupDB as $i=>$team_from_group) {
@@ -121,91 +116,8 @@ echo "
               </div>";
 
 echo "<div class='main-content'>";
-
 echo create_standings($dbcn,$tournamentID,$groupID);
-
-echo "<div class='matches'>
-                <div class='title'><h3>Spiele</h3></div>";
-
-$curr_matchID = $_GET['match'] ?? NULL;
-if ($curr_matchID != NULL) {
-	$curr_matchData = $dbcn->execute_query("SELECT * FROM matchups WHERE OPL_ID = ?",[$curr_matchID])->fetch_assoc();
-	$curr_games = $dbcn->execute_query("SELECT * FROM games g JOIN games_to_matches gtm on g.RIOT_matchID = gtm.RIOT_matchID WHERE OPL_ID_matches = ? ORDER BY g.RIOT_matchID",[$curr_matchID])->fetch_all(MYSQLI_ASSOC);
-	$curr_team1 = $dbcn->execute_query("SELECT * FROM teams LEFT JOIN team_name_history tnh ON tnh.OPL_ID_team = teams.OPL_ID AND (update_time < ? OR ? IS NULL) WHERE OPL_ID = ? ORDER BY update_time DESC",[$tournament["dateEnd"],$tournament["dateEnd"],$curr_matchData['OPL_ID_team1']])->fetch_assoc();
-	$curr_team2 = $dbcn->execute_query("SELECT * FROM teams LEFT JOIN team_name_history tnh ON tnh.OPL_ID_team = teams.OPL_ID AND (update_time < ? OR ? IS NULL) WHERE OPL_ID = ? ORDER BY update_time DESC",[$tournament["dateEnd"],$tournament["dateEnd"],$curr_matchData['OPL_ID_team2']])->fetch_assoc();
-
-	if (!$tournament["archived"]) {
-		$last_user_update_match = $dbcn->execute_query("SELECT last_update FROM updates_user_matchup WHERE OPL_ID_matchup = ?", [$curr_matchID])->fetch_column();
-
-		$last_update_match = max($last_user_update_match,$last_cron_update);
-
-		if ($last_update_match == NULL) {
-			$updatediff_match = "unbekannt";
-		} else {
-			$last_update_match = strtotime($last_update_match);
-			$currtime = time();
-			$updatediff_match = max_time_from_timestamp($currtime-$last_update_match);
-		}
-	}
-
-	echo "
-                    <div class='mh-popup-bg' onclick='close_popup_match(event)' style='display: block; opacity: 1;'>
-                        <div class='mh-popup'>
-                            <div class='close-button' onclick='closex_popup_match()'><div class='material-symbol'>". file_get_contents(__DIR__."/../icons/material/close.svg") ."</div></div>
-                            <div class='close-button-space'></div>
-                            <div class='mh-popup-buttons'>";
-	if (!$tournament["archived"]) {
-		echo "                      <div class='updatebuttonwrapper'><button type='button' class='icononly user_update_match update_data' data-match='$curr_matchID' data-matchformat='groups' data-group='$groupID'><div class='material-symbol'>". file_get_contents(__DIR__."/../icons/material/sync.svg") ."</div></button><span>letztes Update:<br>$updatediff_match</span></div>";
-	}
-	echo "                  </div>";
-	if ($curr_matchData['winner'] == $curr_matchData['OPL_ID_team1']) {
-		$team1score = "win";
-		$team2score = "loss";
-	} elseif ($curr_matchData['winner'] == $curr_matchData['OPL_ID_team2']) {
-		$team1score = "loss";
-		$team2score = "win";
-	} else {
-		$team1score = "draw";
-		$team2score = "draw";
-	}
-	echo "
-                <h2 class='round-title'>
-                    <span class='round'>Runde {$curr_matchData['playday']}: &nbsp</span>
-                    <span class='team $team1score'>{$curr_team1['name']}</span>
-                    <span class='score'><span class='$team1score'>{$curr_matchData['team1Score']}</span>:<span class='$team2score'>{$curr_matchData['team2Score']}</span></span>
-                    <span class='team $team2score'>{$curr_team2['name']}</span>
-                </h2>";
-    if ($curr_games == null) {
-        echo "<div class=\"no-game-found\">Keine Spieldaten gefunden</div>";
-    }
-	foreach ($curr_games as $game_i=>$curr_game) {
-		echo "<div class='game game$game_i'>";
-		$gameID = $curr_game['RIOT_matchID'];
-		echo create_game($dbcn,$gameID,tournamentID: $tournamentID);
-		echo "</div>";
-	}
-	echo "
-                        </div>
-                    </div>";
-} else {
-	echo "   <div class='mh-popup-bg' onclick='close_popup_match(event)'>
-                            <div class='mh-popup'></div>
-                     </div>";
-}
-echo "<div class='match-content content'>";
-foreach ($matches_grouped as $roundNum=>$round) {
-	echo "<div class='match-round'>
-                    <h4>Runde $roundNum</h4>
-                    <div class='divider'></div>
-                    <div class='match-wrapper'>";
-	foreach ($round as $match) {
-		echo create_matchbutton($dbcn,$match['OPL_ID'],"groups",$tournamentID);
-	}
-	echo "</div>";
-	echo "</div>"; // match-round
-}
-echo "</div>"; // match-content
-echo "</div>"; // matches
+echo create_matchlist($dbcn,$tournamentID,$groupID);
 echo "</div>"; // main-content
 
 ?>

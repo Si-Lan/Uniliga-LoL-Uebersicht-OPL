@@ -801,7 +801,7 @@ div.turnier-actions a.col.img-text img{
 	max-height: 38px;
 }
 
-div.team-button{
+.team-button{
 	width: calc(25% - 40px);
 	min-width: 230px;
 	height: 65px;
@@ -819,8 +819,9 @@ div.team-button{
 	gap: 10px;
 	box-shadow: 2px 2px 5px rgb(0 0 0 / 0.2);
 	transition: background-color 0.2s linear;
+	box-sizing: content-box;
 }
-div.team-button div.team-name {
+.team-button div.team-name {
 	text-align: center;
 	display: flex;
 	flex-direction: row;
@@ -829,17 +830,17 @@ div.team-button div.team-name {
 	gap: 20px;
 	overflow-wrap: anywhere;
 }
-div.team-button div.team-group {
+.team-button div.team-group {
 	font-size: 14px;
 	color: var(--text-secondary);
 }
-div.team-button:hover{
+.team-button:hover{
 	background-color: var(--main-button-hover);
 }
-div.team-button.team-selected {
+.team-button.team-selected {
 	background-color: var(--main-button-hover);
 }
-div.team-button img {
+.team-button img {
 	height: 48px;
 	max-width: 48px;
 	object-fit: contain;
@@ -1146,7 +1147,7 @@ div.team-filter-wrap a.b-group.shown {
 	display: flex;
 }
 
-div.team-button.search-off, div.team-button.filterD-off, div.team-button.filterG-off {
+.team-button.search-off, .team-button.filterD-off, .team-button.filterG-off {
 	display: none;
 }
 

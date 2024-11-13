@@ -1033,7 +1033,7 @@ function calculate_standings_from_matchups($tournamentID):array {
 
 	$tournament = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID = ?", [$tournamentID])->fetch_assoc();
 
-	if (!($tournament["eventType"] == "group" || ($tournament["eventType"] == "league" && $tournament["format"] == "swiss") || $tournament["eventType"] == "wildcard")) {
+	if (!($tournament["eventType"] == "group" || ($tournament["eventType"] == "league" && $tournament["format"] == "swiss") || $tournament["eventType"] == "wildcard" || $tournament["eventType"] == "playoffs")) {
 		return [];
 	}
 

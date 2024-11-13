@@ -32,6 +32,10 @@ RewriteRule ^turnier/(.+)/wildcard/(.+)$ ./pages/wildcard-details?tournament=$1&
 RewriteRule ^turnier/(.+)/gruppe$ ./pages/tournament-details?tournament=$1 [NC,L]
 RewriteRule ^turnier/(.+)/gruppe/(.+)$ ./pages/group-details?tournament=$1&group=$2 [NC,L,QSA]
 
+## redirect playoffs
+RewriteRule ^turnier/(.+)/playoffs$ ./pages/tournament-details?tournament=$1 [NC,L]
+RewriteRule ^turnier/(.+)/playoffs/(.+)$ ./pages/playoffs-details?tournament=$1&playoffs=$2 [NC,L,QSA]
+
 ## redirect matchhistory
 RewriteRule ^turnier/(.+)/team/(.+)/matchhistory$ ./pages/teams-tournament-matchhistory?team=$2&tournament=$1 [NC,L]
 RewriteRule ^team/(.+)/turnier/(.+)/matchhistory$ ./pages/teams-tournament-matchhistory?team=$1&tournament=$2 [NC,L]
