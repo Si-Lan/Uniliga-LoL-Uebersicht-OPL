@@ -1137,31 +1137,7 @@ function create_game(mysqli $dbcn,$gameID,$curr_team=NULL,$tournamentID=null, $r
 	$gold_red_1 = floor($gold_red / 1000);
 	$gold_red_2 = floor($gold_red % 1000 / 100);
 
-	$patch = NULL;
-	$patches = [];
-	$dir = new DirectoryIterator(dirname(__FILE__) . "/../ddragon");
-	foreach ($dir as $fileinfo) {
-		if (!$fileinfo->isDot() && $fileinfo->getFilename() != "img" && $fileinfo->isDir()) {
-			$patches[] = $fileinfo->getFilename();
-		}
-	}
-	usort($patches, "version_compare");
-	$game_patch_1 = explode(".",$info['gameVersion'])[0];
-	$game_patch_2 = explode(".",$info['gameVersion'])[1];
-	foreach ($patches as $patch_from_arr) {
-		$patch_from_arr_1 = explode(".",$patch_from_arr)[0];
-		$patch_from_arr_2 = explode(".",$patch_from_arr)[1];
-		// durchlaufe Patchnummern der lokalen Patchdaten von alt nach neu
-		// ist der Patch des Spiels älter als dieser Patch, oder genau dieser, setze $patch auf diesen Patch
-		if ($game_patch_1 < $patch_from_arr_1 || ($game_patch_1 == $patch_from_arr_1 && $game_patch_2 <= $patch_from_arr_2)) {
-			$patch = $patch_from_arr;
-			break;
-		}
-	}
-	// wurde $patch noch nicht gesetzt, muss der Patch des Spiels neuer sein, setze $patch auf den neuesten lokalen Patch
-	if ($patch === NULL) {
-		$patch = end($patches);
-	}
+	$patch = get_newest_localpatch_to_patch($dbcn, $info['gameVersion']);
 
 	$dd_img = "ddragon/$patch/img";
 	$dd_data = dirname(__FILE__)."/../ddragon/$patch/data";
@@ -1469,6 +1445,24 @@ function create_game(mysqli $dbcn,$gameID,$curr_team=NULL,$tournamentID=null, $r
 	return "<div class='game-wrapper collapsed'>".$result_minimized.$result."</div>";
 }
 
+function get_newest_localpatch_to_patch(mysqli $dbcn, string $patch):string|null {
+	$patches = $dbcn->execute_query("SELECT patch FROM local_patches WHERE data IS TRUE AND champion_webp IS TRUE AND item_webp IS TRUE AND runes_webp IS TRUE AND spell_webp IS TRUE")->fetch_all();
+	$patches = array_merge(...$patches);
+	usort($patches, "version_compare");
+	if (array_key_exists($patch,$patches)) {
+		return $patch; // gegebener Patch existiert lokal
+	}
+	if (version_compare($patch,end($patches)) > 0) {
+		return end($patches); // gegebener Patch zu neu, neuesten lokalen Patch verwenden
+	}
+	foreach ($patches as $comparing_patch) {
+		if (version_compare($patch,$comparing_patch) < 0) {
+			return $comparing_patch; //neuesten Patch nach gegebenem Patch verwenden
+		}
+	}
+	return NULL;
+}
+
 function show_old_url_warning($tournamentID):string {
 	$url_root = "https://silence.lol";
 	$url = $_SERVER["REQUEST_URI"];
@@ -1588,13 +1582,8 @@ function create_playercard(mysqli $dbcn, $playerID, $teamID, $tournamentID, $det
 				$champs_cut = TRUE;
 			}
 
-			$patches = [];
-			$dir = new DirectoryIterator(dirname(__FILE__) . "/../ddragon");
-			foreach ($dir as $fileinfo) {
-				if (!$fileinfo->isDot() && $fileinfo->getFilename() != "img") {
-					$patches[] = $fileinfo->getFilename();
-				}
-			}
+			$patches = $dbcn->execute_query("SELECT patch FROM local_patches WHERE data IS TRUE AND champion_webp IS TRUE AND item_webp IS TRUE AND runes_webp IS TRUE AND spell_webp IS TRUE")->fetch_all();
+			$patches = array_merge(...$patches);
 			usort($patches, "version_compare");
 			$patch = end($patches);
 

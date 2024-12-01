@@ -126,14 +126,8 @@ function create_summonercard(mysqli $dbcn, $playerID, $tournamentID, $teamID = N
 			$champs_cut = TRUE;
 		}
 
-		$patches = [];
-		$dir = new DirectoryIterator(__DIR__."/../ddragon");
-		foreach ($dir as $fileinfo) {
-			if (!$fileinfo->isDot() && $fileinfo->getFilename() != "img" && $fileinfo->isDir()) {
-				$patches[] = $fileinfo->getFilename();
-			}
-		}
-
+		$patches = $dbcn->execute_query("SELECT patch FROM local_patches WHERE data IS TRUE AND champion_webp IS TRUE AND item_webp IS TRUE AND runes_webp IS TRUE AND spell_webp IS TRUE")->fetch_all();
+		$patches = array_merge(...$patches);
 		usort($patches, "version_compare");
 		$patch = end($patches);
 

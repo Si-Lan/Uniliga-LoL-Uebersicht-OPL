@@ -93,14 +93,8 @@ $teamstats = $dbcn->execute_query("SELECT * FROM stats_teams_in_tournaments WHER
 
 
 
-$ddragon_dir = new DirectoryIterator(__DIR__."/../ddragon");
-$patches = [];
-
-foreach ($ddragon_dir as $patch_dir) {
-	if (!$patch_dir->isDot() && $patch_dir->getFilename() != "img" && $patch_dir->isDir()) {
-		$patches[] = $patch_dir->getFilename();
-	}
-}
+$patches = $dbcn->execute_query("SELECT patch FROM local_patches WHERE data IS TRUE AND champion_webp IS TRUE AND item_webp IS TRUE AND runes_webp IS TRUE AND spell_webp IS TRUE")->fetch_all();
+$patches = array_merge(...$patches);
 usort($patches, "version_compare");
 $latest_patch = end($patches);
 
