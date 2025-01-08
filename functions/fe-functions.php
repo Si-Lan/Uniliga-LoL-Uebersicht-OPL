@@ -301,12 +301,18 @@ function create_tournament_nav_buttons(string|int $tournament_id, mysqli $dbcn, 
 	$ranked_season_comb_2 = "$ranked_season_2-$ranked_split_2";
 
 	$current_split = get_current_ranked_split($dbcn, $tournament_id);
+	$current_split_show = explode("-",$current_split);
+	if ($current_split_show[1] == "0") {
+		$current_split_show = $current_split_show[0];
+	} else {
+		$current_split_show = $current_split;
+	}
 
 	$button1_checked = ($current_split == $ranked_season_comb) ? "checked" : "";
 	$button2_checked = ($current_split == $ranked_season_comb_2) ? "checked" : "";
 
 	$result .= "<div class='ranked-settings-wrapper'>";
-	$result .= "<button type='button' class='ranked-settings'><span>$current_split</span><img src='ddragon/img/ranks/emblems/unranked.webp' alt='Rank-Einstellungen'></button>";
+	$result .= "<button type='button' class='ranked-settings'><span>$current_split_show</span><img src='ddragon/img/ranks/emblems/unranked.webp' alt='Rank-Einstellungen'></button>";
 	$result .= "<div class='ranked-settings-popover'>
 					<span>Angezeigter Rang</span>
 					<div>
