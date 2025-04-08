@@ -46,7 +46,7 @@ if ($tournament == NULL) {
 	exit();
 }
 
-$t_name_clean = preg_replace("/LoL\s/","",$tournament["name"]);
+$t_name_clean = preg_replace("/LoL\s/i","",$tournament["name"]);
 echo create_html_head_elements(css: ["elo"], title: "Elo-Übersicht - $t_name_clean | Uniliga LoL - Übersicht");
 
 ?>

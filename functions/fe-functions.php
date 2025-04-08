@@ -104,7 +104,7 @@ function create_header(mysqli $dbcn = NULL, string $title = "home", string|int $
 	$outlinkicon = file_get_contents(dirname(__FILE__)."/../icons/material/open_in_new.svg");
 	if ($dbcn != NULL && $tournament_id != NULL) {
 		$tournament = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID = ?",[$tournament_id])->fetch_assoc();
-		$t_name_clean = preg_replace("/LoL\s/","",$tournament["name"]);
+		$t_name_clean = preg_replace("/LoL\s/i","",$tournament["name"]);
 	}
 
 	$loggedin = is_logged_in();

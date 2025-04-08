@@ -88,7 +88,7 @@ $playoff = $dbcn->execute_query("SELECT * FROM tournaments WHERE eventType='play
 $team_name_now = $dbcn->execute_query("SELECT name FROM team_name_history WHERE OPL_ID_team = ? AND (update_time < ? OR ? IS NULL) ORDER BY update_time DESC", [$teamID,$tournament["dateEnd"],$tournament["dateEnd"]])->fetch_column();
 $team["name"] = $team_name_now;
 
-$t_name_clean = preg_replace("/LoL\s/","",$tournament["name"]);
+$t_name_clean = preg_replace("/LoL\s/i","",$tournament["name"]);
 echo create_html_head_elements(css: ["game"], js: ["rgapi"], title: "{$team_name_now} | $t_name_clean", loggedin: $logged_in);
 
 $open_popup = "";
