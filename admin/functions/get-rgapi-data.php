@@ -694,6 +694,9 @@ function calculate_avg_team_rank($teamID, $tournamentID=null):array {
 		if ($next_split == null) {
 			$next_split = $dbcn->execute_query("SELECT * FROM lol_ranked_splits WHERE (season = ? AND split = ?)",[$ranked_split["season"]+1, 1])->fetch_assoc();
 		}
+		if ($next_split == null) {
+			$next_split = $dbcn->execute_query("SELECT * FROM lol_ranked_splits WHERE (season LIKE ? AND split = 0) ORDER BY season DESC",["%".($ranked_split["season"]+1)])->fetch_assoc();
+		}
 		if ($next_split == null) $returnArr["echo"] .= "<span style='color: orangered'>- kein zweiter Split gefunden</span><br>";
 
 		$team_season_rank = $dbcn->execute_query("SELECT * FROM teams_tournament_rank WHERE OPL_ID_team = ? AND OPL_ID_tournament = ? AND second_ranked_split = false", [$teamID, $tournamentID])->fetch_assoc();
