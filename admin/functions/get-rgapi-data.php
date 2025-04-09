@@ -24,8 +24,8 @@ function get_puuids_by_team($teamID, $all = FALSE):array {
 
 	foreach ($playersDB as $player) {
 		if ($player["riotID_name"] == null) continue;
-		$name_safe = urlencode($player['riotID_name']);
-		$tag_safe = urlencode($player['riotID_tag']);
+		$name_safe = rawurlencode($player['riotID_name']);
+		$tag_safe = rawurlencode($player['riotID_tag']);
 		$returnArr['echo'] .= "<span style='color: lightskyblue'>-writing PUUID for {$player['riotID_name']}#{$player['riotID_tag']} :<br></span>";
 
 		$options = ["http" => ["header" => "X-Riot-Token: $RGAPI_Key"]];
