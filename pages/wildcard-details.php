@@ -40,7 +40,7 @@ if ($tournament == NULL || $wildcard == NULL) {
 	exit();
 }
 
-$t_name_clean = preg_replace("/LoL\s/","",$tournament["name"]);
+$t_name_clean = preg_replace("/LoL\s/i","",$tournament["name"]);
 $wildcard_numbers_combined = ($wildcard["numberRangeTo"] == null) ? $wildcard["number"] : $wildcard["number"]."-".$wildcard["numberRangeTo"];
 echo create_html_head_elements(css: ["game"], title: "Wildcard Liga {$wildcard_numbers_combined} | $t_name_clean | Uniliga LoL - Übersicht");
 

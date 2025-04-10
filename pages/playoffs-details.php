@@ -40,7 +40,7 @@ if ($tournament == NULL || $playoffs == NULL) {
 	exit();
 }
 
-$t_name_clean = preg_replace("/LoL\s/","",$tournament["name"]);
+$t_name_clean = preg_replace("/LoL\s/i","",$tournament["name"]);
 $playoffs_numbers_combined = ($playoffs["numberRangeTo"] == null) ? $playoffs["number"] : $playoffs["number"]."/".$playoffs["numberRangeTo"];
 echo create_html_head_elements(css: ["game"], title: "Playoffs Liga {$playoffs_numbers_combined} | $t_name_clean | Uniliga LoL - Übersicht");
 

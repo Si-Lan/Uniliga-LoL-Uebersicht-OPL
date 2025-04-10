@@ -48,7 +48,7 @@ function get_tournament($id):array {
 		$returnArr["info"] .= "<span style='color: orangered'>Keine Sommer/Winterseason gefunden <br></span>";
 	}
 
-	if (preg_match("/(?:winter|sommer) *[0-9]*([0-9]{2})/",$name_lower,$season_match)) {
+	if (preg_match("/(?:winter|sommer)(?:season|saison)? *[0-9]*([0-9]{2})/",$name_lower,$season_match)) {
 		$season = $season_match[1];
 	}
 
@@ -145,6 +145,9 @@ function write_tournament(array $data):string {
 			$data[$key] = NULL;
 		}
 	}
+	if ($data["ranked_season"] != null && $data["ranked_split"] == null) {
+		$data["ranked_split"] = 0;
+	}
 
 	if ($tournament == NULL) {
 		$returnInfo .= "<span style='color: lawngreen'>- Turnier ist noch nicht in DB, schreibe in DB<br></span>";
@@ -209,7 +212,7 @@ function create_tournament_get_button(array $data, bool $in_write_popup = false)
 	$result .= "
 				<div class='write_tournament_row wtrow-1'>
 					<label class=\"write_tournament_id\"><input type=\"text\" value=\"{$data["OPL_ID"]}\" readonly></label>
-					<label class=\"write_tournament_name\"><input type=\"text\" value=\"{$data["name"]}\" readonly></label>
+					<label class=\"write_tournament_name\"><input type=\"text\" value=\"{$data["name"]}\"></label>
 					<label class=\"write_tournament_type\">
 						<span class=\"slct\">
 							<select>

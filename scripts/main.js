@@ -2374,6 +2374,13 @@ function toggle_active_rankedsplit(tournament_id, season_split) {
 		}
 	}
 
+	let season_split_show = season_split.split("-");
+	if (season_split_show[1] === "0") {
+		season_split_show = season_split_show[0];
+	} else {
+		season_split_show = season_split;
+	}
+
 	let ranked_elements = $(".split_rank_element");
 	let current_ranked_elements = $(`.ranked-split-${season_split}`);
 
@@ -2381,7 +2388,7 @@ function toggle_active_rankedsplit(tournament_id, season_split) {
 	current_ranked_elements.css("display","");
 
 	let ranked_split_display = $("button.ranked-settings span");
-	ranked_split_display.text(season_split);
+	ranked_split_display.text(season_split_show);
 
 	radio_buttons.prop("disabled", false);
 }

@@ -24,8 +24,8 @@ function get_puuids_by_team($teamID, $all = FALSE):array {
 
 	foreach ($playersDB as $player) {
 		if ($player["riotID_name"] == null) continue;
-		$name_safe = urlencode($player['riotID_name']);
-		$tag_safe = urlencode($player['riotID_tag']);
+		$name_safe = rawurlencode($player['riotID_name']);
+		$tag_safe = rawurlencode($player['riotID_tag']);
 		$returnArr['echo'] .= "<span style='color: lightskyblue'>-writing PUUID for {$player['riotID_name']}#{$player['riotID_tag']} :<br></span>";
 
 		$options = ["http" => ["header" => "X-Riot-Token: $RGAPI_Key"]];
@@ -693,6 +693,9 @@ function calculate_avg_team_rank($teamID, $tournamentID=null):array {
 		$next_split = $dbcn->execute_query("SELECT * FROM lol_ranked_splits WHERE (season = ? AND split = ?)",[$ranked_split["season"], $ranked_split["split"]+1])->fetch_assoc();
 		if ($next_split == null) {
 			$next_split = $dbcn->execute_query("SELECT * FROM lol_ranked_splits WHERE (season = ? AND split = ?)",[$ranked_split["season"]+1, 1])->fetch_assoc();
+		}
+		if ($next_split == null) {
+			$next_split = $dbcn->execute_query("SELECT * FROM lol_ranked_splits WHERE (season LIKE ? AND split = 0) ORDER BY season DESC",["%".($ranked_split["season"]+1)])->fetch_assoc();
 		}
 		if ($next_split == null) $returnArr["echo"] .= "<span style='color: orangered'>- kein zweiter Split gefunden</span><br>";
 

@@ -73,7 +73,7 @@ foreach ($teams_from_groupDB as $i=>$team_from_group) {
 $team_name_now = $dbcn->execute_query("SELECT name FROM team_name_history WHERE OPL_ID_team = ? AND (update_time < ? OR ? IS NULL) ORDER BY update_time DESC", [$teamID,$tournament["dateEnd"],$tournament["dateEnd"]])->fetch_column();
 $team["name"] = $team_name_now;
 
-$t_name_clean = preg_replace("/LoL\s/","",$tournament["name"]);
+$t_name_clean = preg_replace("/LoL\s/i","",$tournament["name"]);
 echo create_html_head_elements(title: "{$team_name_now} - Statistiken | $t_name_clean", loggedin: $logged_in);
 
 
@@ -93,14 +93,8 @@ $teamstats = $dbcn->execute_query("SELECT * FROM stats_teams_in_tournaments WHER
 
 
 
-$ddragon_dir = new DirectoryIterator(__DIR__."/../ddragon");
-$patches = [];
-
-foreach ($ddragon_dir as $patch_dir) {
-	if (!$patch_dir->isDot() && $patch_dir->getFilename() != "img" && $patch_dir->isDir()) {
-		$patches[] = $patch_dir->getFilename();
-	}
-}
+$patches = $dbcn->execute_query("SELECT patch FROM local_patches WHERE data IS TRUE AND champion_webp IS TRUE AND item_webp IS TRUE AND runes_webp IS TRUE AND spell_webp IS TRUE")->fetch_all();
+$patches = array_merge(...$patches);
 usort($patches, "version_compare");
 $latest_patch = end($patches);
 

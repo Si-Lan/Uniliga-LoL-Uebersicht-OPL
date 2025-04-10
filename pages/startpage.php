@@ -48,7 +48,7 @@ echo create_header($dbcn, home_button: FALSE);
 				$tournimg_url = $local_img_path."/". $tournament['OPL_ID_logo']."/".$logo_filename;
 			}
 
-			$t_name_clean = preg_replace("/LoL\s/","",$tournament["name"]);
+			$t_name_clean = preg_replace("/LoL\s/i","",$tournament["name"]);
 
 			if ($i != 0) echo "<div class='divider'></div>";
 			echo "

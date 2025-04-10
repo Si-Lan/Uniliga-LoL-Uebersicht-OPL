@@ -50,7 +50,7 @@ if ($swiss) {
 	$league = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID = ? AND eventType = 'league'", [$group["OPL_ID_parent"]])->fetch_assoc();
 }
 
-$t_name_clean = preg_replace("/LoL\s/","",$tournament["name"]);
+$t_name_clean = preg_replace("/LoL\s/i","",$tournament["name"]);
 if ($swiss) {
 	echo create_html_head_elements(css: ["game"], title: "Liga {$league["number"]} - Swiss-Gruppe | $t_name_clean | Uniliga LoL - Übersicht");
 } else {
