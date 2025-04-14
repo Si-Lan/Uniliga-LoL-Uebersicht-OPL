@@ -1491,7 +1491,10 @@ function create_playercard(mysqli $dbcn, $playerID, $teamID, $tournamentID, $det
 	$player = $dbcn->execute_query("SELECT * FROM players_in_teams_in_tournament ptt LEFT JOIN players p on p.OPL_ID = ptt.OPL_ID_player LEFT JOIN stats_players_teams_tournaments spit on ptt.OPL_ID_player = spit.OPL_ID_player AND ptt.OPL_ID_team = spit.OPL_ID_team AND ptt.OPL_ID_tournament = spit.OPL_ID_tournament WHERE ptt.OPL_ID_player = ? AND ptt.OPL_ID_team = ? AND ptt.OPL_ID_tournament = ?", [$playerID, $teamID, $tournamentID])->fetch_assoc();
 	$player_rank = $dbcn->execute_query("SELECT * FROM players_season_rank WHERE OPL_ID_player = ? AND season = (SELECT tournaments.ranked_season FROM tournaments WHERE tournaments.OPL_ID = ?) AND split = (SELECT tournaments.ranked_split FROM tournaments WHERE tournaments.OPL_ID = ?)", [$playerID, $tournamentID, $tournamentID])->fetch_assoc();
 	$tournament = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID = ?", [$tournamentID])->fetch_assoc();
-    $team = $dbcn->execute_query("SELECT * FROM teams WHERE OPL_ID = ?", [$teamID])->fetch_assoc();
+	$date_today = date("Y-m-d");
+	$tournament_running = ($tournament == null || $tournament["dateEnd"] > $date_today);
+	$running_tournament_css_class = $tournament_running ? " running-tournament" : "";
+	$team = $dbcn->execute_query("SELECT * FROM teams WHERE OPL_ID = ?", [$teamID])->fetch_assoc();
 	$team_name = $dbcn->execute_query("SELECT * FROM team_name_history WHERE OPL_ID_team = ? AND (update_time < ? OR ? IS NULL) ORDER BY update_time DESC", [$team["OPL_ID"],$tournament["dateEnd"],$tournament["dateEnd"]])->fetch_assoc();
 	$team_in_tournament = $dbcn->execute_query("SELECT * FROM teams_in_tournaments WHERE OPL_ID_team = ? AND OPL_ID_group IN (SELECT OPL_ID FROM tournaments WHERE (eventType = 'group' OR (eventType='league' AND format='swiss')) AND OPL_ID_top_parent = ?)", [$teamID, $tournamentID])->fetch_assoc();
 	if ($team_in_tournament == null) {
@@ -1511,9 +1514,9 @@ function create_playercard(mysqli $dbcn, $playerID, $teamID, $tournamentID, $det
 				$rendered_rows = 1;
 			}
 		}
-		$result = "<div class='player-card' data-details='$rendered_rows'>";
+		$result = "<div class='player-card$running_tournament_css_class' data-details='$rendered_rows'>";
 	} else {
-		$result = "<div class='player-card'>";
+		$result = "<div class='player-card$running_tournament_css_class'>";
 	}
 
 	// Turnier-Titel
@@ -1799,7 +1802,11 @@ function create_teamcard(mysqli $dbcn, $teamID, $tournamentID) {
 		$players_by_role[array_key_first($roles)][] = $player;
 	}
 
-	$result = "<div class='team-card'>";
+	$date_today = date("Y-m-d");
+	$tournament_running = ($parent_tournament == null || $parent_tournament["dateEnd"] > $date_today);
+	$running_tournament_css_class = $tournament_running ? " running-tournament" : "";
+
+	$result = "<div class='team-card$running_tournament_css_class'>";
 	// Turnier-Titel
 	$result .= "<a class='team-card-div team-card-tournament page-link' href='turnier/{$parent_tournament["OPL_ID"]}'>";
 	if ($tournament["OPL_ID_logo"] != NULL) {
