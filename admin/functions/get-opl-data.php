@@ -880,8 +880,12 @@ function get_matchups_for_tournament($tournamentID, bool $deletemissing = false)
 				}
 			}
 			$written = true;
-			$dbcn->execute_query("INSERT INTO matchups (OPL_ID, OPL_ID_tournament, OPL_ID_team1, OPL_ID_team2, plannedDate, playday, bestOf, played)
+			try {
+				$dbcn->execute_query("INSERT INTO matchups (OPL_ID, OPL_ID_tournament, OPL_ID_team1, OPL_ID_team2, plannedDate, playday, bestOf, played)
 										VALUES (?, ?, ?, ?, ?, ?, ?, false)", [$match_data["OPL_ID"], $match_data["OPL_ID_tournament"], $match_data["OPL_ID_team1"], $match_data["OPL_ID_team2"], $match_data["plannedDate"], $match_data["playday"], $match_data["bestOf"]]);
+			} catch (Exception $e) {
+				continue;
+			}
 		} else {
 			foreach ($match_data as $key=>$item) {
 				if ($key == "plannedDate" && $matchDB[$key] != null && $item != null) {
