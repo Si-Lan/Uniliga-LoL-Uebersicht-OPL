@@ -564,7 +564,7 @@ function create_standings(mysqli $dbcn, $tournament_id, $group_id, $team_id=NULL
 																	AND ttr2.second_ranked_split = true
 														WHERE tit.OPL_ID_group = ?
 															AND teams.OPL_ID > -1
-														ORDER BY IF((standing=0 OR standing IS NULL), 1, 0), standing",[$tournament_id,$tournament_id,$group_id])->fetch_all(MYSQLI_ASSOC);
+														ORDER BY IF((standing=0 OR standing IS NULL), 1, 0), standing, single_wins DESC, single_losses, name",[$tournament_id,$tournament_id,$group_id])->fetch_all(MYSQLI_ASSOC);
 	$tournament = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID = ?", [$tournament_id])->fetch_assoc();
 
 	$ranked_split_1 = "{$tournament['ranked_season']}-{$tournament['ranked_split']}";
