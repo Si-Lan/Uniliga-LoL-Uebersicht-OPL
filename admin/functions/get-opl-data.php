@@ -1054,8 +1054,10 @@ function calculate_standings_from_matchups($tournamentID):array {
 			"standing" => null,
 			"played" => 0,
 			"wins" => 0,
+			"single_wins" => 0,
 			"draws" => 0,
 			"losses" => 0,
+			"single_losses" => 0,
 			"points" => 0,
 			"wins_vs" => [],
 		];
@@ -1075,41 +1077,60 @@ function calculate_standings_from_matchups($tournamentID):array {
 				if ($match["loser"] == $team["OPL_ID"]) {
 					$standing["losses"]++;
 				}
-				if ($match["OPL_ID_team1"] == $team["OPL_ID"]) {
-					if (is_numeric($match["team1Score"])) {
-						$standing["points"] += $match["team1Score"];
-					} else {
-						$standing["points"] += ($match["team1Score"] == "W") ? $match["bestOf"] : 0;
+				// calculate points
+				$currentTeamScore = ($team["OPL_ID"] == $match["OPL_ID_team1"]) ? $match["team1Score"] : $match["team2Score"];
+				$enemyTeamScore = ($team["OPL_ID"] == $match["OPL_ID_team2"]) ? $match["team1Score"] : $match["team2Score"];
+				if (is_numeric($currentTeamScore)) {
+					// Spiel hat ein Ergebnis eingetragen
+					$standing["points"] += $currentTeamScore;
+					$standing["single_wins"] += $currentTeamScore;
+				} else {
+					// Spiel hat nur "W"/"L" eingetragen (zB Def-Win)
+					switch ($match["bestOf"]) {
+						case 1:
+							$pointsToAdd = 1;
+							break;
+						case 2:
+						case 3:
+						default:
+							$pointsToAdd = 2;
+							break;
+						case 5:
+							$pointsToAdd = 3;
+							break;
 					}
+					$standing["points"] += ($currentTeamScore == "W") ? $pointsToAdd : 0;
 				}
-				if ($match["OPL_ID_team2"] == $team["OPL_ID"]) {
-					if (is_numeric($match["team2Score"])) {
-						$standing["points"] += $match["team2Score"];
-					} else {
-						$standing["points"] += ($match["team2Score"] == "W") ? $match["bestOf"] : 0;
-					}
+				if (is_numeric($enemyTeamScore)) {
+					$standing["single_losses"] += $enemyTeamScore;
 				}
 			}
 		}
 		$teams_standings[$team["OPL_ID"]] = $standing;
 	}
 
-
+	// Teams nach Punkten und Wins sortieren
 	uasort($teams_standings, function ($a,$b) {
+		// Vergleiche Punktzahl
 		if ($a["points"] != $b["points"]) return ($a["points"] > $b["points"]) ? -1 : 1;
-		if (array_key_exists($b["id"],$a["wins_vs"]) && $a["wins_vs"][$b["id"]] != $b["wins_vs"][$a["id"]]) return ($a["wins_vs"][$b["id"]] > $b["wins_vs"][$a["id"]]) ? -1 : 1;
-		if ($a["wins"] != $b["wins"]) return ($a["wins"] > $b["wins"]) ? -1 : 1;
-		if ($a["losses"] != $b["losses"]) return ($a["losses"] < $b["losses"]) ? -1 : 1;
+		//if (array_key_exists($b["id"],$a["wins_vs"]) && $a["wins_vs"][$b["id"]] != $b["wins_vs"][$a["id"]]) {
+		//	return ($a["wins_vs"][$b["id"]] > $b["wins_vs"][$a["id"]]) ? -1 : 1;
+		//}
+		//if ($a["single_wins"] != $b["single_wins"]) return ($a["single_wins"] > $b["single_wins"]) ? -1 : 1;
+		//if ($a["single_losses"] != $b["single_losses"]) return ($a["single_losses"] < $b["single_losses"]) ? -1 : 1;
 		return 0;
 	});
 
+	// Standing nach aktueller Sortierung eintragen
 	$standing_counter = 1;
 	$prev_ID = null;
 	$prev_standing = null;
 	foreach ($teams_standings as $teamID=>$team) {
+		// kein Standing für Teams ohne gespielte Spiele
 		if ($team["played"] == 0) {
 			continue;
 		}
+		// Erstes Team Platz 1 eintragen
 		if ($standing_counter == 1) {
 			$teams_standings[$teamID]["standing"] = 1;
 			$prev_standing = 1;
@@ -1117,12 +1138,14 @@ function calculate_standings_from_matchups($tournamentID):array {
 			$prev_ID = $teamID;
 			continue;
 		}
-		if ($team["points"] == $teams_standings[$prev_ID]["points"] && $team["wins"] == $teams_standings[$prev_ID]["wins"] && $team["losses"] == $teams_standings[$prev_ID]["losses"]) {
+		// Wenn ein Team gleich viele Punkte und Wins hat wie das vorherige Team, bekommt es den gleichen Platz eingetragen
+		if ($team["points"] == $teams_standings[$prev_ID]["points"]) {
 			$teams_standings[$teamID]["standing"] = $prev_standing;
 			$standing_counter++;
 			$prev_ID = $teamID;
 			continue;
 		}
+		// Das nächste Team bekommt den nächsten Platz eingetragen
 		$teams_standings[$teamID]["standing"] = $standing_counter;
 		$prev_standing = $standing_counter;
 		$standing_counter++;
@@ -1147,7 +1170,7 @@ function calculate_standings_from_matchups($tournamentID):array {
 
 
 	foreach ($teams_standings as $teamID=>$team) {
-		$dbcn->execute_query("UPDATE teams_in_tournaments SET standing = ?, played = ?, wins = ?, draws = ?, losses = ?, points = ? WHERE OPL_ID_team = ? AND OPL_ID_group = ?", [$team["standing"], $team["played"], $team["wins"], $team["draws"], $team["losses"], $team["points"], $teamID, $tournamentID]);
+		$dbcn->execute_query("UPDATE teams_in_tournaments SET standing = ?, played = ?, wins = ?, draws = ?, losses = ?, points = ?, single_wins = ?, single_losses = ? WHERE OPL_ID_team = ? AND OPL_ID_group = ?", [$team["standing"], $team["played"], $team["wins"], $team["draws"], $team["losses"], $team["points"], $team["single_wins"], $team["single_losses"], $teamID, $tournamentID]);
 	}
 
 	return $updated;
