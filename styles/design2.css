@@ -2482,7 +2482,7 @@ body.general-team div.pagetitle.team {
 	overflow: hidden;
 
 	&.running-tournament {
-		--pulse-color: color-mix(in srgb, var(--accent), transparent 20%);
+		--pulse-color: var(--accent);
 		box-shadow: 0 0 0 2px var(--pulse-color);
 		animation: pulse 2s infinite ease;
 	}
@@ -2626,7 +2626,7 @@ body.player div.main-content {
 	overflow: hidden;
 
 	&.running-tournament {
-		--pulse-color: color-mix(in srgb, var(--accent), transparent 20%);
+		--pulse-color: var(--accent);
 		box-shadow: 0 0 0 2px var(--pulse-color);
 		animation: pulse 2s infinite ease;
 	}
