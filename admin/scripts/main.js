@@ -31,7 +31,7 @@ function create_tournament_buttons() {
 	if (ref_button != null) {
 		ref_button.innerHTML = "Refreshing...";
 	}
-	const open_accordeons = sessionStorage.getItem("open_admin_accordeons");
+	const open_accordeons = sessionStorage.getItem("open_admin_accordeons") ?? "[]";
 	fetch(`./admin/ajax/create_admin_buttons.php`, {
 		method: "GET",
 		headers: {

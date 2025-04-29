@@ -547,7 +547,7 @@ function create_standings(mysqli $dbcn, $tournament_id, $group_id, $team_id=NULL
 	$opgg_url = "https://www.op.gg/multisearch/euw?summoners=";
 	$local_img_path = "img/team_logos/";
     $logo_filename = is_light_mode() ? "logo_light.webp" : "logo.webp";
-	$opgg_logo_svg = file_get_contents(__DIR__."/../img/opgglogo.svg");
+
 	$group = $dbcn->execute_query("SELECT * FROM tournaments WHERE (eventType = 'group' OR (eventType = 'league' AND format = 'swiss') OR eventType = 'wildcard' OR eventType = 'playoffs') AND OPL_ID = ?",[$group_id])->fetch_assoc();
 	$div = $dbcn->execute_query("SELECT * FROM tournaments WHERE eventType = 'league' AND OPL_ID = ?",[$group['OPL_ID_parent']])->fetch_assoc();
 	$teams_from_groupDB = $dbcn->execute_query("SELECT teams.*, tit.*, ttr.*, ttr2.avg_rank_tier as avg_rank_tier_2, ttr2.avg_rank_div as avg_rank_div_2
@@ -564,8 +564,9 @@ function create_standings(mysqli $dbcn, $tournament_id, $group_id, $team_id=NULL
 																	AND ttr2.second_ranked_split = true
 														WHERE tit.OPL_ID_group = ?
 															AND teams.OPL_ID > -1
-														ORDER BY IF((standing=0 OR standing IS NULL), 1, 0), standing",[$tournament_id,$tournament_id,$group_id])->fetch_all(MYSQLI_ASSOC);
+														ORDER BY IF((standing=0 OR standing IS NULL), 1, 0), standing, single_wins DESC, single_losses, name",[$tournament_id,$tournament_id,$group_id])->fetch_all(MYSQLI_ASSOC);
 	$tournament = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID = ?", [$tournament_id])->fetch_assoc();
+
 	$ranked_split_1 = "{$tournament['ranked_season']}-{$tournament['ranked_split']}";
 	$ranked_split_2 = get_second_ranked_split_for_tournament($dbcn,$tournament_id,string:true);
 	$current_split = get_current_ranked_split($dbcn,$tournament_id);
@@ -576,6 +577,9 @@ function create_standings(mysqli $dbcn, $tournament_id, $group_id, $team_id=NULL
 		$rank_hide_1 = "";
 		$rank_hide_2 = "display: none";
 	}
+
+	$mostCommonBestOf = $dbcn->execute_query("SELECT bestOf, SUM(bestOf) AS amount FROM matchups WHERE OPL_ID_tournament = ? GROUP BY bestOf ORDER BY amount DESC",[$group_id])->fetch_column();
+	$bestOf_identifier = ($mostCommonBestOf == 3 || $mostCommonBestOf == 5) ? "with-single-games" : "";
 
 	$result .= "<div class='standings'>";
 	if ($team_id == NULL) {
@@ -612,16 +616,26 @@ function create_standings(mysqli $dbcn, $tournament_id, $group_id, $team_id=NULL
 						</h3>
 					</div>";
 	}
-	$result .= "<div class='standings-table content'>
+	// Table Header
+	$result .= "<div class='standings-table content {$bestOf_identifier}'>
 			<div class='standing-row standing-header'>
 				<div class='standing-pre-header rank'>#</div>
 				<div class='standing-item-wrapper-header'>
 					<div class='standing-item team'>Team</div>
-					<div class='standing-item played'>Pl</div>
-					<div class='standing-item score'>W-D-L</div>
-					<div class='standing-item points'>Pt</div>
-                </div>
+					<div class='standing-item played' title='gespielte Spiele'>Pl</div>";
+	switch ($mostCommonBestOf) {
+		case 3:
+		case 5:
+			$result .= "<div class='standing-item score' title='Wins/Losses in Serien'>W-L</div>";
+			$result .= "<div class='standing-item score-games' title='Wins/Losses in Spielen'>Scr</div>";
+			break;
+		default:
+			$result .= "<div class='standing-item score' title='Wins/Draws/Losses'>W-D-L</div>";
+	}
+	$result .= "	<div class='standing-item points' title='Punkte'>Pt</div>";
+	$result .= "</div>
             </div>";
+
 	$last_rank = -1;
 	foreach ($teams_from_groupDB as $currteam) {
 		$curr_players = $dbcn->execute_query(
@@ -698,10 +712,17 @@ function create_standings(mysqli $dbcn, $tournament_id, $group_id, $team_id=NULL
                         </span>
                         </a>";
 		}
-		$result .= "
-                    <div class='standing-item played'>{$currteam['played']}</div>
-                    <div class='standing-item score'>{$currteam['wins']}-{$currteam['draws']}-{$currteam['losses']}</div>
-                    <div class='standing-item points'>{$currteam['points']}</div>
+		$result .= "<div class='standing-item played'>{$currteam['played']}</div>";
+		switch ($mostCommonBestOf) {
+			case 3:
+			case 5:
+				$result .= "<div class='standing-item score'>{$currteam['wins']}-{$currteam['losses']}</div>";
+				$result .= "<div class='standing-item score-games'>({$currteam['single_wins']}-{$currteam['single_losses']})</div>";
+				break;
+			default:
+				$result .= "<div class='standing-item score'>{$currteam['wins']}-{$currteam['draws']}-{$currteam['losses']}</div>";
+		}
+		$result .= "<div class='standing-item points'>{$currteam['points']}</div>
                 </div>
             </div>";
 		$last_rank = $currteam['standing'];
@@ -1491,7 +1512,10 @@ function create_playercard(mysqli $dbcn, $playerID, $teamID, $tournamentID, $det
 	$player = $dbcn->execute_query("SELECT * FROM players_in_teams_in_tournament ptt LEFT JOIN players p on p.OPL_ID = ptt.OPL_ID_player LEFT JOIN stats_players_teams_tournaments spit on ptt.OPL_ID_player = spit.OPL_ID_player AND ptt.OPL_ID_team = spit.OPL_ID_team AND ptt.OPL_ID_tournament = spit.OPL_ID_tournament WHERE ptt.OPL_ID_player = ? AND ptt.OPL_ID_team = ? AND ptt.OPL_ID_tournament = ?", [$playerID, $teamID, $tournamentID])->fetch_assoc();
 	$player_rank = $dbcn->execute_query("SELECT * FROM players_season_rank WHERE OPL_ID_player = ? AND season = (SELECT tournaments.ranked_season FROM tournaments WHERE tournaments.OPL_ID = ?) AND split = (SELECT tournaments.ranked_split FROM tournaments WHERE tournaments.OPL_ID = ?)", [$playerID, $tournamentID, $tournamentID])->fetch_assoc();
 	$tournament = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID = ?", [$tournamentID])->fetch_assoc();
-    $team = $dbcn->execute_query("SELECT * FROM teams WHERE OPL_ID = ?", [$teamID])->fetch_assoc();
+	$date_today = date("Y-m-d");
+	$tournament_running = ($tournament == null || $tournament["dateEnd"] > $date_today);
+	$running_tournament_css_class = $tournament_running ? " running-tournament" : "";
+	$team = $dbcn->execute_query("SELECT * FROM teams WHERE OPL_ID = ?", [$teamID])->fetch_assoc();
 	$team_name = $dbcn->execute_query("SELECT * FROM team_name_history WHERE OPL_ID_team = ? AND (update_time < ? OR ? IS NULL) ORDER BY update_time DESC", [$team["OPL_ID"],$tournament["dateEnd"],$tournament["dateEnd"]])->fetch_assoc();
 	$team_in_tournament = $dbcn->execute_query("SELECT * FROM teams_in_tournaments WHERE OPL_ID_team = ? AND OPL_ID_group IN (SELECT OPL_ID FROM tournaments WHERE (eventType = 'group' OR (eventType='league' AND format='swiss')) AND OPL_ID_top_parent = ?)", [$teamID, $tournamentID])->fetch_assoc();
 	if ($team_in_tournament == null) {
@@ -1511,9 +1535,9 @@ function create_playercard(mysqli $dbcn, $playerID, $teamID, $tournamentID, $det
 				$rendered_rows = 1;
 			}
 		}
-		$result = "<div class='player-card' data-details='$rendered_rows'>";
+		$result = "<div class='player-card$running_tournament_css_class' data-details='$rendered_rows'>";
 	} else {
-		$result = "<div class='player-card'>";
+		$result = "<div class='player-card$running_tournament_css_class'>";
 	}
 
 	// Turnier-Titel
@@ -1799,7 +1823,11 @@ function create_teamcard(mysqli $dbcn, $teamID, $tournamentID) {
 		$players_by_role[array_key_first($roles)][] = $player;
 	}
 
-	$result = "<div class='team-card'>";
+	$date_today = date("Y-m-d");
+	$tournament_running = ($parent_tournament == null || $parent_tournament["dateEnd"] > $date_today);
+	$running_tournament_css_class = $tournament_running ? " running-tournament" : "";
+
+	$result = "<div class='team-card$running_tournament_css_class'>";
 	// Turnier-Titel
 	$result .= "<a class='team-card-div team-card-tournament page-link' href='turnier/{$parent_tournament["OPL_ID"]}'>";
 	if ($tournament["OPL_ID_logo"] != NULL) {
