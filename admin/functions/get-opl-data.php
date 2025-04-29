@@ -1066,40 +1066,30 @@ function calculate_standings_from_matchups($tournamentID):array {
 			$enemy_id = ($team["OPL_ID"] == $match["OPL_ID_team1"]) ? $match["OPL_ID_team2"] : $match["OPL_ID_team1"];
 			if (!array_key_exists($enemy_id,$standing["wins_vs"])) $standing["wins_vs"][$enemy_id] = 0;
 			if ($match["played"]) {
+				$currentTeamScore = ($team["OPL_ID"] == $match["OPL_ID_team1"]) ? $match["team1Score"] : $match["team2Score"];
+				$enemyTeamScore = ($team["OPL_ID"] == $match["OPL_ID_team2"]) ? $match["team1Score"] : $match["team2Score"];
+
 				$standing["played"]++;
 				if ($match["winner"] == $team["OPL_ID"]) {
 					$standing["wins"]++;
 					$standing["wins_vs"][$enemy_id] += ($enemy_id == $match["OPL_ID_team1"]) ? intval($match["team2Score"]) : intval($match["team1Score"]);
+					$pointsToAdd = match ($match["bestOf"]) {
+						1 => 1,
+						default => 2,
+					};
+					if (is_numeric($currentTeamScore) || $currentTeamScore == "W") {
+						$standing["points"] += $pointsToAdd;
+					}
+				}
+				if (is_numeric($currentTeamScore)) {
+					$standing["single_wins"] += $currentTeamScore;
 				}
 				if ($match["draw"]) {
 					$standing["draws"]++;
+					$standing["points"] += 1;
 				}
 				if ($match["loser"] == $team["OPL_ID"]) {
 					$standing["losses"]++;
-				}
-				// calculate points
-				$currentTeamScore = ($team["OPL_ID"] == $match["OPL_ID_team1"]) ? $match["team1Score"] : $match["team2Score"];
-				$enemyTeamScore = ($team["OPL_ID"] == $match["OPL_ID_team2"]) ? $match["team1Score"] : $match["team2Score"];
-				if (is_numeric($currentTeamScore)) {
-					// Spiel hat ein Ergebnis eingetragen
-					$standing["points"] += $currentTeamScore;
-					$standing["single_wins"] += $currentTeamScore;
-				} else {
-					// Spiel hat nur "W"/"L" eingetragen (zB Def-Win)
-					switch ($match["bestOf"]) {
-						case 1:
-							$pointsToAdd = 1;
-							break;
-						case 2:
-						case 3:
-						default:
-							$pointsToAdd = 2;
-							break;
-						case 5:
-							$pointsToAdd = 3;
-							break;
-					}
-					$standing["points"] += ($currentTeamScore == "W") ? $pointsToAdd : 0;
 				}
 				if (is_numeric($enemyTeamScore)) {
 					$standing["single_losses"] += $enemyTeamScore;
