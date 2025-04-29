@@ -547,7 +547,7 @@ function create_standings(mysqli $dbcn, $tournament_id, $group_id, $team_id=NULL
 	$opgg_url = "https://www.op.gg/multisearch/euw?summoners=";
 	$local_img_path = "img/team_logos/";
     $logo_filename = is_light_mode() ? "logo_light.webp" : "logo.webp";
-	$opgg_logo_svg = file_get_contents(__DIR__."/../img/opgglogo.svg");
+
 	$group = $dbcn->execute_query("SELECT * FROM tournaments WHERE (eventType = 'group' OR (eventType = 'league' AND format = 'swiss') OR eventType = 'wildcard' OR eventType = 'playoffs') AND OPL_ID = ?",[$group_id])->fetch_assoc();
 	$div = $dbcn->execute_query("SELECT * FROM tournaments WHERE eventType = 'league' AND OPL_ID = ?",[$group['OPL_ID_parent']])->fetch_assoc();
 	$teams_from_groupDB = $dbcn->execute_query("SELECT teams.*, tit.*, ttr.*, ttr2.avg_rank_tier as avg_rank_tier_2, ttr2.avg_rank_div as avg_rank_div_2
@@ -566,6 +566,7 @@ function create_standings(mysqli $dbcn, $tournament_id, $group_id, $team_id=NULL
 															AND teams.OPL_ID > -1
 														ORDER BY IF((standing=0 OR standing IS NULL), 1, 0), standing",[$tournament_id,$tournament_id,$group_id])->fetch_all(MYSQLI_ASSOC);
 	$tournament = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID = ?", [$tournament_id])->fetch_assoc();
+
 	$ranked_split_1 = "{$tournament['ranked_season']}-{$tournament['ranked_split']}";
 	$ranked_split_2 = get_second_ranked_split_for_tournament($dbcn,$tournament_id,string:true);
 	$current_split = get_current_ranked_split($dbcn,$tournament_id);
@@ -576,6 +577,9 @@ function create_standings(mysqli $dbcn, $tournament_id, $group_id, $team_id=NULL
 		$rank_hide_1 = "";
 		$rank_hide_2 = "display: none";
 	}
+
+	$mostCommonBestOf = $dbcn->execute_query("SELECT bestOf, SUM(bestOf) AS amount FROM matchups WHERE OPL_ID_tournament = ? GROUP BY bestOf ORDER BY amount DESC",[$group_id])->fetch_column();
+	$bestOf_identifier = ($mostCommonBestOf == 3 || $mostCommonBestOf == 5) ? "with-single-games" : "";
 
 	$result .= "<div class='standings'>";
 	if ($team_id == NULL) {
@@ -612,16 +616,26 @@ function create_standings(mysqli $dbcn, $tournament_id, $group_id, $team_id=NULL
 						</h3>
 					</div>";
 	}
-	$result .= "<div class='standings-table content'>
+	// Table Header
+	$result .= "<div class='standings-table content {$bestOf_identifier}'>
 			<div class='standing-row standing-header'>
 				<div class='standing-pre-header rank'>#</div>
 				<div class='standing-item-wrapper-header'>
 					<div class='standing-item team'>Team</div>
-					<div class='standing-item played'>Pl</div>
-					<div class='standing-item score'>W-D-L</div>
-					<div class='standing-item points'>Pt</div>
-                </div>
+					<div class='standing-item played' title='gespielte Spiele'>Pl</div>";
+	switch ($mostCommonBestOf) {
+		case 3:
+		case 5:
+			$result .= "<div class='standing-item score' title='Wins/Losses in Serien'>W-L</div>";
+			$result .= "<div class='standing-item score-games' title='Wins/Losses in Spielen'>Scr</div>";
+			break;
+		default:
+			$result .= "<div class='standing-item score' title='Wins/Draws/Losses'>W-D-L</div>";
+	}
+	$result .= "	<div class='standing-item points' title='Punkte'>Pt</div>";
+	$result .= "</div>
             </div>";
+
 	$last_rank = -1;
 	foreach ($teams_from_groupDB as $currteam) {
 		$curr_players = $dbcn->execute_query(
@@ -698,10 +712,17 @@ function create_standings(mysqli $dbcn, $tournament_id, $group_id, $team_id=NULL
                         </span>
                         </a>";
 		}
-		$result .= "
-                    <div class='standing-item played'>{$currteam['played']}</div>
-                    <div class='standing-item score'>{$currteam['wins']}-{$currteam['draws']}-{$currteam['losses']}</div>
-                    <div class='standing-item points'>{$currteam['points']}</div>
+		$result .= "<div class='standing-item played'>{$currteam['played']}</div>";
+		switch ($mostCommonBestOf) {
+			case 3:
+			case 5:
+				$result .= "<div class='standing-item score'>{$currteam['wins']}-{$currteam['losses']}</div>";
+				$result .= "<div class='standing-item score-games'>({$currteam['single_wins']}-{$currteam['single_losses']})</div>";
+				break;
+			default:
+				$result .= "<div class='standing-item score'>{$currteam['wins']}-{$currteam['draws']}-{$currteam['losses']}</div>";
+		}
+		$result .= "<div class='standing-item points'>{$currteam['points']}</div>
                 </div>
             </div>";
 		$last_rank = $currteam['standing'];
