@@ -52,7 +52,7 @@ function create_html_head_elements(array $css = [], array $js = [], string $titl
 }
 
 function check_login():bool {
-	include_once(dirname(__FILE__) . "/../setup/data.php");
+	include_once(dirname(__FILE__) . "/../config/data.php");
 	$password = get_admin_pass();
 	if (isset($_GET["login"])) {
 		if (isset($_POST["keypass"])) {
@@ -84,7 +84,7 @@ function check_login():bool {
 }
 
 function create_header(mysqli $dbcn = NULL, string $title = "home", string|int $tournament_id = NULL, bool $home_button = TRUE, bool $search_button = TRUE, bool $open_login = FALSE):string {
-	include_once __DIR__."/../setup/data.php";
+	include_once __DIR__ . "/../config/data.php";
 	$loginforminfo = "";
 	$password = get_admin_pass();
 	if (isset($_GET["login"]) && isset($_POST["keypass"]) && $_POST["keypass"] != $password) {
@@ -106,7 +106,7 @@ function create_header(mysqli $dbcn = NULL, string $title = "home", string|int $
 	$loggedin = is_logged_in();
 	$colormode = is_light_mode() ? "light" : "dark";
 
-	if (file_exists(__DIR__."/../setup/maintenance.enable") && $loggedin) $result .= "<div style='text-align: center; padding: 5px 0; background-color: #7e1616'>Achtung: Wartungsmodus ist aktiviert!</div>";
+	if (file_exists(__DIR__ . "/../config/maintenance.enable") && $loggedin) $result .= "<div style='text-align: center; padding: 5px 0; background-color: #7e1616'>Achtung: Wartungsmodus ist aktiviert!</div>";
 
 	$result .= "<header class='$title'>";
 	if ($home_button) {

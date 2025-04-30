@@ -1,5 +1,5 @@
 <?php
-include_once dirname(__FILE__)."/../../setup/data.php";
+include_once dirname(__FILE__) . "/../../config/data.php";
 include_once dirname(__FILE__)."/../functions/fe-functions.php";
 $dbcn = create_dbcn();
 

@@ -1,6 +1,6 @@
 <?php
 $root = __DIR__."/../../";
-include_once $root."setup/data.php";
+include_once $root . "config/data.php";
 include_once $root."admin/functions/img-download.php";
 
 function get_tournament($id):array {

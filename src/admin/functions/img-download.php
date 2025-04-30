@@ -1,5 +1,5 @@
 <?php
-include_once __DIR__."/../../setup/data.php";
+include_once __DIR__ . "/../../config/data.php";
 function download_opl_img(int|string $itemID, string $type, bool $echo_states = false):bool {
 	$dbcn = create_dbcn();
 	$user_agent = get_user_agent_for_api_calls();

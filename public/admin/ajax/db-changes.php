@@ -1,6 +1,6 @@
 <?php
 $root = __DIR__."/../../";
-include_once $root."setup/data.php";
+include_once $root . "config/data.php";
 
 $type = $_SERVER["HTTP_TYPE"] ?? NULL;
 if ($type == NULL) exit;

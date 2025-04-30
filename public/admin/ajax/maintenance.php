@@ -8,9 +8,9 @@ if (!is_logged_in()) die();
 var_dump($turn);
 
 if ($turn == "on") {
-	$maintenance_file = fopen(__DIR__."/../../setup/maintenance.enable","w");
+	$maintenance_file = fopen(__DIR__ . "/../../config/maintenance.enable","w");
 	fclose($maintenance_file);
 }
 if ($turn == "off") {
-	unlink(__DIR__."/../../setup/maintenance.enable");
+	unlink(__DIR__ . "/../../config/maintenance.enable");
 }

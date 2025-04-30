@@ -1,5 +1,5 @@
 <?php
-include_once __DIR__."/../../setup/data.php";
+include_once __DIR__ . "/../../config/data.php";
 include_once __DIR__."/../../functions/helper.php";
 
 // sendet X Anfragen an Riot API (Summoner-V4)  (X = Anzahl Spieler im Team)
