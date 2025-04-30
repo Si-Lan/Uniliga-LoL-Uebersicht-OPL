@@ -80,11 +80,11 @@ if ($loggedin) {
 	echo "<h2 style='text-align: start'>Logs:</h2>";
 	$error_pointer = 0;
 	foreach ($logs as $log) {
-		echo "<a href='cron-jobs/cron_logs/".$log."'>".$log."</a><br>";
+		echo "<a href='/cron-jobs/cron_logs/".$log."'>".$log."</a><br>";
 		preg_match($logdate_regex, $log, $matches);
         if (array_key_exists($matches[3],$split_errors) && array_key_exists($matches[2],$split_errors[$matches[3]]) && array_key_exists($matches[1],$split_errors[$matches[3]][$matches[2]])) {
             foreach ($split_errors[$matches[3]][$matches[2]][$matches[1]] as $error) {
-				echo "<a href='cron-jobs/cron_logs/cron_errors/".$error."'>----- ".$error."</a><br>";
+				echo "<a href='/cron-jobs/cron_logs/cron_errors/".$error."'>----- ".$error."</a><br>";
                 unset($errors[array_search($error,$errors)]);
 			}
 		}
@@ -93,7 +93,7 @@ if ($loggedin) {
     if (count($errors) > 0) {
 		echo "<h2 style='text-align: start'>weitere Errors:</h2>";
 		foreach ($errors as $error) {
-			echo "<a href='cron-jobs/cron_logs/cron_errors/".$error."'>".$error."</a><br>";
+			echo "<a href='/cron-jobs/cron_logs/cron_errors/".$error."'>".$error."</a><br>";
 		}
 	}
 }

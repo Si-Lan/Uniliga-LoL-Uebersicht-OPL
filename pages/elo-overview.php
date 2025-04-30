@@ -10,8 +10,6 @@ $pass = check_login();
 
 $lightmode = is_light_mode(true);
 
-$pageurl = $_SERVER['REQUEST_URI'];
-
 try {
 	$dbcn = create_dbcn();
 } catch (Exception $e) {

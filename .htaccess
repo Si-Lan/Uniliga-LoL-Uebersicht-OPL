@@ -1,19 +1,18 @@
 RewriteEngine On
-RewriteBase /uniliga
 
 RewriteCond %{HTTPS} off
 RewriteRule (.*) https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 
 # manage maintenance mode
 RewriteCond %{HTTP_COOKIE} !admin-login=(.+);? [NC]
-RewriteCond %{DOCUMENT_ROOT}/uniliga/setup/maintenance.enable -f
+RewriteCond %{DOCUMENT_ROOT}/setup/maintenance.enable -f
 RewriteCond %{SCRIPT_FILENAME} !maintenance.php
 RewriteCond %{QUERY_STRING} !login
 RewriteCond %{REQUEST_URI} !./styles/
 RewriteCond %{REQUEST_URI} !./scripts/
 RewriteRule ^(.*)$ ./pages/maintenance.php [R=503,L]
 
-ErrorDocument 503 /uniliga/pages/maintenance.php
+ErrorDocument 503 /pages/maintenance.php
 
 # redirect Pages
 RewriteRule ^$ ./pages/startpage.php [NC,L,QSA]
@@ -75,4 +74,4 @@ RewriteCond %{REQUEST_FILENAME} !-f
 RewriteRule ^([^.]+)$ $1.php [NC,L]
 
 
-ErrorDocument 404 /uniliga/pages/error.php?error=404
+ErrorDocument 404 /pages/error.php?error=404

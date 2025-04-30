@@ -131,7 +131,7 @@ function update_team_filter_groups(div_id) {
 	if (div_id === "all") {
 		$("select.groups").empty().append("<option value='all' selected='selected'>Alle Gruppen</option>");
 	} else {
-		fetch(`ajax/get-data.php`, {
+		fetch(`/ajax/get-data.php`, {
 			method: "GET",
 			headers: {
 				"type": "groups",
@@ -380,7 +380,7 @@ async function popup_team(teamID, tournamentID = null) {
 	popupbg.css("opacity","1");
 	pagebody.addClass("popup_open");
 
-	fetch(`ajax/get-data.php`, {
+	fetch(`/ajax/get-data.php`, {
 		method: "GET",
 		headers: {
 			type: "team-and-players",
@@ -409,16 +409,16 @@ async function popup_team(teamID, tournamentID = null) {
 				popup.append("<div class='team-title'></div>");
 				let name_container = $("div.team-title");
 				if (team_data["team"]["OPL_ID_logo"] !== null && team_data["team"]["OPL_ID_logo"] !== "") {
-					fetch(`img/team_logos/${team_data["team"]["OPL_ID_logo"]}/logo.webp`, {method:"HEAD"})
+					fetch(`/img/team_logos/${team_data["team"]["OPL_ID_logo"]}/logo.webp`, {method:"HEAD"})
 						.then(res => {
 							if (res.ok) {
-								name_container.prepend(`<img class='list-overview-logo' src='img/team_logos/${team_data["team"]["OPL_ID_logo"]}/logo.webp' alt='Team-Logo'>`)
+								name_container.prepend(`<img class='list-overview-logo' src='/img/team_logos/${team_data["team"]["OPL_ID_logo"]}/logo.webp' alt='Team-Logo'>`)
 							}
 						})
 						.catch(e => console.error(e));
 				}
-				name_container.append(`<div><h2><a href="team/${teamID}" class="page-link">${team_data["team"]["name"]}</a></h2><a href='https://www.opleague.pro/team/${teamID}' target='_blank' class='opl-link'>${get_material_icon("open_in_new")}</a></div>`);
-				popup.append(`<a href='turnier/${tournamentID}/team/${teamID}' class='page-link'><span class="link-text">Team-Übersicht</span>${get_material_icon("chevron_right",false,"page-link-icon")}</a>`);
+				name_container.append(`<div><h2><a href="/team/${teamID}" class="page-link">${team_data["team"]["name"]}</a></h2><a href='https://www.opleague.pro/team/${teamID}' target='_blank' class='opl-link'>${get_material_icon("open_in_new")}</a></div>`);
+				popup.append(`<a href='/turnier/${tournamentID}/team/${teamID}' class='page-link'><span class="link-text">Team-Übersicht</span>${get_material_icon("chevron_right",false,"page-link-icon")}</a>`);
 
 				let sc_collapsed = getCookie("preference_sccollapsed");
 				popup.append(`<div class="sc-buttons opgg-cards"><a href='https://www.op.gg/multisearch/euw?summoners=${players_string}' target='_blank' class='button op-gg'><div class='svg-wrapper op-gg'>${opgg_logo_svg}</div><span class='player-amount'>(${opgg_amount} Spieler)</span></a></div>`);
@@ -432,12 +432,12 @@ async function popup_team(teamID, tournamentID = null) {
 				if (team_data["team"]["avg_rank_tier"] !== null && team_data["team"]["avg_rank_tier"] !== "") {
 					let rank_hide = (team_data["ranked_splits"][1] === team_data["ranked_splits"]["current"]) ? "" : "display:none";
 					team_data["team"]["avg_rank_tier"] = team_data["team"]["avg_rank_tier"][0].toUpperCase() + team_data["team"]["avg_rank_tier"].substring(1).toLowerCase();
-					popup.append(`<div class='team-avg-rank split_rank_element ranked-split-${team_data["ranked_splits"][1]}' style='${rank_hide}'>Teams avg. Rang: <img class='rank-emblem-mini' src='ddragon/img/ranks/mini-crests/` + team_data["team"]["avg_rank_tier"].toLowerCase() + ".svg' alt=''><span>" + team_data["team"]["avg_rank_tier"] + " " + team_data["team"]["avg_rank_div"] + "</span></div>");
+					popup.append(`<div class='team-avg-rank split_rank_element ranked-split-${team_data["ranked_splits"][1]}' style='${rank_hide}'>Teams avg. Rang: <img class='rank-emblem-mini' src='/ddragon/img/ranks/mini-crests/` + team_data["team"]["avg_rank_tier"].toLowerCase() + ".svg' alt=''><span>" + team_data["team"]["avg_rank_tier"] + " " + team_data["team"]["avg_rank_div"] + "</span></div>");
 				}
 				if (team_data["team"]["avg_rank_tier_2"] !== null && team_data["team"]["avg_rank_tier_2"] !== "") {
 					let rank_hide = (team_data["ranked_splits"][2] === team_data["ranked_splits"]["current"]) ? "" : "display:none";
 					team_data["team"]["avg_rank_tier_2"] = team_data["team"]["avg_rank_tier_2"][0].toUpperCase() + team_data["team"]["avg_rank_tier_2"].substring(1).toLowerCase();
-					popup.append(`<div class='team-avg-rank split_rank_element ranked-split-${team_data["ranked_splits"][2]}' style='${rank_hide}'>Teams avg. Rang: <img class='rank-emblem-mini' src='ddragon/img/ranks/mini-crests/` + team_data["team"]["avg_rank_tier_2"].toLowerCase() + ".svg' alt=''><span>" + team_data["team"]["avg_rank_tier_2"] + " " + team_data["team"]["avg_rank_div_2"] + "</span></div>");
+					popup.append(`<div class='team-avg-rank split_rank_element ranked-split-${team_data["ranked_splits"][2]}' style='${rank_hide}'>Teams avg. Rang: <img class='rank-emblem-mini' src='/ddragon/img/ranks/mini-crests/` + team_data["team"]["avg_rank_tier_2"].toLowerCase() + ".svg' alt=''><span>" + team_data["team"]["avg_rank_tier_2"] + " " + team_data["team"]["avg_rank_div_2"] + "</span></div>");
 				}
 				popup.append("<div class='summoner-card-container'></div>");
 				let card_container = $('div.summoner-card-container');
@@ -447,7 +447,7 @@ async function popup_team(teamID, tournamentID = null) {
 					card_container.append(`<div class='summoner-card-wrapper placeholder p${i} ${coll_class}'></div>`);
 				}
 
-				fetch(`ajax/summoner-card.php`, {
+				fetch(`/ajax/summoner-card.php`, {
 					method: "GET",
 					headers: {
 						teamid: teamID,
@@ -538,7 +538,7 @@ async function popup_match(matchID,teamID=null,matchtype="groups",tournamentID=n
 	url.searchParams.set("match",matchID);
 	window.history.replaceState({}, '', url);
 
-	fetch(`ajax/get-data.php`, {
+	fetch(`/ajax/get-data.php`, {
 		method: "GET",
 		headers: {
 			type: "match-games-teams-by-matchid",
@@ -551,7 +551,7 @@ async function popup_match(matchID,teamID=null,matchtype="groups",tournamentID=n
 			const played = data['match']['played'];
 			const defwin = (data['team1']['OPL_ID'] < 0 || data['team2']['OPL_ID'] < 0);
 
-			const tournament_url_part = (tournamentID != null) ? `turnier/${tournamentID}/` : "";
+			const tournament_url_part = (tournamentID != null) ? `/turnier/${tournamentID}/` : "";
 			let buttonwrapper = `<div class='mh-popup-buttons'>`;
 			if (teamID != null && played) {
 				buttonwrapper += `<a class='icon-link page-link' href='${tournament_url_part}team/${teamID}/matchhistory#${matchID}'> ${get_material_icon("manage_search",false,"icon-link-icon")} <span class="link-text">In Matchhistory ansehen</span> ${get_material_icon("chevron_right",false,"page-link-icon")}</a>`;
@@ -569,7 +569,7 @@ async function popup_match(matchID,teamID=null,matchtype="groups",tournamentID=n
 					user_update_match(this);
 				});
 
-				fetch(`ajax/get-data.php`, {
+				fetch(`/ajax/get-data.php`, {
 					method: "GET",
 					headers: {
 						type: "last-update-time",
@@ -648,7 +648,7 @@ async function popup_match(matchID,teamID=null,matchtype="groups",tournamentID=n
 				if (tournamentID !== null) {
 					fetchheaders.append("tournamentid",tournamentID)
 				}
-				fetch(`ajax/game.php`, {
+				fetch(`/ajax/game.php`, {
 					method: "GET",
 					headers: fetchheaders,
 				})
@@ -787,7 +787,7 @@ function add_elo_team_list(area,tournamentID,type,stage="groups") {
 	if (elo_list_fetch_control !== null) elo_list_fetch_control.abort();
 	elo_list_fetch_control = new AbortController();
 
-	fetch(`ajax/elo-list-ajax.php`, {
+	fetch(`/ajax/elo-list-ajax.php`, {
 		method: "GET",
 		headers: {
 			"TournamentID": tournamentID,
@@ -1209,7 +1209,7 @@ function handle_dropdown_selection(type, selection) {
 		loading_indicator.css("display","");
 		if (patch_view_fetch_control !== null) patch_view_fetch_control.abort();
 		patch_view_fetch_control = new AbortController();
-		fetch(`admin/ajax/ddragon-update.php`, {
+		fetch(`/admin/ajax/ddragon-update.php`, {
 			method: "GET",
 			headers: {
 				type: "add-patch-view",
@@ -1320,7 +1320,7 @@ function search_players() {
 	}
 	searchbar.append("<div class='search-loading-indicator'></div>");
 
-	fetch(`ajax/player-search-cards.php`, {
+	fetch(`/ajax/player-search-cards.php`, {
 		method: "GET",
 		signal: player_search_controller.signal,
 		headers: {
@@ -1349,7 +1349,7 @@ async function reload_recent_players(initial=false) {
 		return;
 	}
 
-	fetch(`ajax/player-search-cards.php`, {
+	fetch(`/ajax/player-search-cards.php`, {
 		method: "GET",
 		headers: {
 			"players": localStorage.getItem("searched_players_IDs"),
@@ -1448,7 +1448,7 @@ async function popup_player(playerID, add_to_recents = false) {
 	popupbg.css("opacity","1");
 	pagebody.addClass("popup_open");
 
-	fetch(`ajax/player-overview.php`, {
+	fetch(`/ajax/player-overview.php`, {
 		method: "GET",
 		headers: {
 			playerid: playerID,
@@ -1554,7 +1554,7 @@ async function user_update_group(button) {
 
 	let last_update;
 
-	await fetch(`ajax/get-data.php`, {
+	await fetch(`/ajax/get-data.php`, {
 		method: "GET",
 		headers: {
 			type: "last-update-time",
@@ -1582,7 +1582,7 @@ async function user_update_group(button) {
 		return;
 	}
 
-	await fetch(`ajax/user-update-functions.php`, {
+	await fetch(`/ajax/user-update-functions.php`, {
 		method: "POST",
 		headers: {
 			type: "update_start_time",
@@ -1596,7 +1596,7 @@ async function user_update_group(button) {
 	loading_width = 1;
 	button.style.setProperty("--update-loading-bar-width", `${loading_width}%`);
 
-	await fetch(`ajax/user-update-functions.php`, {
+	await fetch(`/ajax/user-update-functions.php`, {
 		method: "GET",
 		headers: {
 			type: "teams_from_group",
@@ -1610,7 +1610,7 @@ async function user_update_group(button) {
 	loading_width = 20;
 	button.style.setProperty("--update-loading-bar-width", `${loading_width}%`);
 
-	await fetch(`ajax/user-update-functions.php`, {
+	await fetch(`/ajax/user-update-functions.php`, {
 		method: "GET",
 		headers: {
 			type: "matchups_from_group",
@@ -1624,7 +1624,7 @@ async function user_update_group(button) {
 	loading_width = 40;
 	button.style.setProperty("--update-loading-bar-width", `${loading_width}%`);
 
-	await fetch(`ajax/get-data.php`, {
+	await fetch(`/ajax/get-data.php`, {
 		method: "GET",
 		headers: {
 			type: "matchups",
@@ -1636,7 +1636,7 @@ async function user_update_group(button) {
 		.then(res => res.json())
 		.then(async matchids => {
 			for (const match of matchids) {
-				await fetch(`ajax/user-update-functions.php`, {
+				await fetch(`/ajax/user-update-functions.php`, {
 					method: "GET",
 					headers: {
 						type: "matchresult",
@@ -1656,7 +1656,7 @@ async function user_update_group(button) {
 	loading_width = 90;
 	button.style.setProperty("--update-loading-bar-width", `${loading_width}%`);
 
-	await fetch(`./admin/ajax/get-opl-data.php`, {
+	await fetch(`/admin/ajax/get-opl-data.php`, {
 		method: "GET",
 		headers: {
 			"type": "calculate_standings_from_matchups",
@@ -1674,7 +1674,7 @@ async function user_update_group(button) {
 	loading_width = 0;
 	button.style.setProperty("--update-loading-bar-width", "0");
 
-	fetch(`ajax/create-page-elements.php`, {
+	fetch(`/ajax/create-page-elements.php`, {
 		method: "GET",
 		headers: {
 			type: "standings",
@@ -1687,7 +1687,7 @@ async function user_update_group(button) {
 		})
 		.catch(error => console.error(error));
 
-	fetch(`ajax/create-page-elements.php`, {
+	fetch(`/ajax/create-page-elements.php`, {
 		method: "GET",
 		headers: {
 			"type": "matchbutton-list-group",
@@ -1721,7 +1721,7 @@ async function user_update_team(button) {
 
 	let last_update;
 
-	await fetch(`ajax/get-data.php`, {
+	await fetch(`/ajax/get-data.php`, {
 		method: "GET",
 		headers: {
 			type: "last-update-time",
@@ -1748,7 +1748,7 @@ async function user_update_team(button) {
 		return;
 	}
 
-	await fetch(`ajax/user-update-functions.php`, {
+	await fetch(`/ajax/user-update-functions.php`, {
 		method: "POST",
 		headers: {
 			type: "update_start_time",
@@ -1762,7 +1762,7 @@ async function user_update_team(button) {
 	loading_width = 1;
 	button.style.setProperty("--update-loading-bar-width", `${loading_width}%`);
 
-	await fetch(`ajax/user-update-functions.php`, {
+	await fetch(`/ajax/user-update-functions.php`, {
 		method: "GET",
 		headers: {
 			type: "players_in_team",
@@ -1775,7 +1775,7 @@ async function user_update_team(button) {
 	loading_width = 10;
 	button.style.setProperty("--update-loading-bar-width", `${loading_width}%`);
 
-	await fetch(`ajax/get-data.php`, {
+	await fetch(`/ajax/get-data.php`, {
 		method: "GET",
 		headers: {
 			type: "players",
@@ -1786,7 +1786,7 @@ async function user_update_team(button) {
 		.then(res => res.json())
 		.then(async players => {
 			for (const player of players) {
-				await fetch(`ajax/user-update-functions.php`, {
+				await fetch(`/ajax/user-update-functions.php`, {
 					method: "GET",
 					headers: {
 						type: "riotid_for_player",
@@ -1806,7 +1806,7 @@ async function user_update_team(button) {
 	loading_width = 25;
 	button.style.setProperty("--update-loading-bar-width", `${loading_width}%`);
 
-	await fetch(`admin/ajax/get-rgapi-data.php`, {
+	await fetch(`/admin/ajax/get-rgapi-data.php`, {
 		method: "GET",
 		headers: {
 			type: "puuids-by-team",
@@ -1820,7 +1820,7 @@ async function user_update_team(button) {
 	loading_width = 30;
 	button.style.setProperty("--update-loading-bar-width", `${loading_width}%`);
 
-	await fetch(`ajax/user-update-functions.php`, {
+	await fetch(`/ajax/user-update-functions.php`, {
 		method: "GET",
 		headers: {
 			type: "recalc_team_stats",
@@ -1834,7 +1834,7 @@ async function user_update_team(button) {
 	button.style.setProperty("--update-loading-bar-width", `${loading_width}%`);
 
 	for (const groupID1 of groupIDs) {
-		await fetch(`ajax/user-update-functions.php`, {
+		await fetch(`/ajax/user-update-functions.php`, {
             method: "GET",
             headers: {
                 type: "teams_from_group",
@@ -1852,7 +1852,7 @@ async function user_update_team(button) {
 	button.style.setProperty("--update-loading-bar-width", `${loading_width}%`);
 
     for (const groupID1 of groupIDs) {
-		await fetch(`ajax/user-update-functions.php`, {
+		await fetch(`/ajax/user-update-functions.php`, {
             method: "GET",
             headers: {
                 type: "matchups_from_group",
@@ -1869,7 +1869,7 @@ async function user_update_team(button) {
 	loading_width = 55;
 	button.style.setProperty("--update-loading-bar-width", `${loading_width}%`);
 
-	await fetch(`ajax/user-update-functions.php`, {
+	await fetch(`/ajax/user-update-functions.php`, {
 		method: "GET",
 		headers: {
 			type: "matchups_from_group",
@@ -1884,7 +1884,7 @@ async function user_update_team(button) {
 	button.style.setProperty("--update-loading-bar-width", `${loading_width}%`);
 
 	for (const groupID1 of groupIDs) {
-		await fetch(`ajax/get-data.php`, {
+		await fetch(`/ajax/get-data.php`, {
 			method: "GET",
 			headers: {
 				type: "matchups",
@@ -1897,7 +1897,7 @@ async function user_update_team(button) {
 			.then(res => res.json())
 			.then(async matchids => {
 				for (const match of matchids) {
-					await fetch(`ajax/user-update-functions.php`, {
+					await fetch(`/ajax/user-update-functions.php`, {
 						method: "GET",
 						headers: {
 							type: "matchresult",
@@ -1921,7 +1921,7 @@ async function user_update_team(button) {
 	loading_width = 90;
 	button.style.setProperty("--update-loading-bar-width", `${loading_width}%`);
 
-	await fetch(`ajax/get-data.php`, {
+	await fetch(`/ajax/get-data.php`, {
 		method: "GET",
 		headers: {
 			type: "matchups",
@@ -1933,7 +1933,7 @@ async function user_update_team(button) {
 		.then(res => res.json())
 		.then(async matchids => {
 			for (const match of matchids) {
-				await fetch(`ajax/user-update-functions.php`, {
+				await fetch(`/ajax/user-update-functions.php`, {
 					method: "GET",
 					headers: {
 						type: "matchresult",
@@ -1954,7 +1954,7 @@ async function user_update_team(button) {
 	button.style.setProperty("--update-loading-bar-width", `${loading_width}%`);
 
 	for (const groupID1 of groupIDs) {
-		await fetch(`./admin/ajax/get-opl-data.php`, {
+		await fetch(`/admin/ajax/get-opl-data.php`, {
 			method: "GET",
 			headers: {
 				"type": "calculate_standings_from_matchups",
@@ -1973,7 +1973,7 @@ async function user_update_team(button) {
 	loading_width = 0;
 	button.style.setProperty("--update-loading-bar-width", "0");
 
-	fetch(`ajax/create-page-elements.php`, {
+	fetch(`/ajax/create-page-elements.php`, {
 		method: "GET",
 		headers: {
 			type: "summoner-card-container",
@@ -1987,7 +1987,7 @@ async function user_update_team(button) {
 		})
 		.catch(e => console.error(e));
 
-	fetch(`ajax/get-data.php`, {
+	fetch(`/ajax/get-data.php`, {
 		method: "GET",
 		headers: {
 			type: "players",
@@ -2019,7 +2019,7 @@ async function user_update_team(button) {
 	groupButtons.prop("disabled", true);
 
 	let fetch_array = [];
-	fetch_array.push(fetch(`ajax/create-page-elements.php`, {
+	fetch_array.push(fetch(`/ajax/create-page-elements.php`, {
 		method: "GET",
 		headers: {
 			type: "standings",
@@ -2033,7 +2033,7 @@ async function user_update_team(button) {
 		})
 		.catch(e => console.warn(e)));
 
-	fetch_array.push(fetch(`ajax/create-page-elements`, {
+	fetch_array.push(fetch(`/ajax/create-page-elements`, {
 		method: "GET",
 		headers: {
 			"type": "matchbutton-list-team",
@@ -2072,7 +2072,7 @@ async function user_update_match(button) {
 	let last_update;
 
 	// check latest Updatetime
-	await fetch(`ajax/get-data.php`, {
+	await fetch(`/ajax/get-data.php`, {
 		method: "GET",
 		headers: {
 			type: "last-update-time",
@@ -2100,7 +2100,7 @@ async function user_update_match(button) {
 	}
 
 	// set new Updatetime
-	await fetch(`ajax/user-update-functions.php`, {
+	await fetch(`/ajax/user-update-functions.php`, {
 		method: "POST",
 		headers: {
 			type: "update_start_time",
@@ -2118,7 +2118,7 @@ async function user_update_match(button) {
 	let match_result_2 = "_";
 	let games = [];
 	// get matchresult
-	await fetch(`ajax/user-update-functions.php`, {
+	await fetch(`/ajax/user-update-functions.php`, {
 		method: "GET",
 		headers: {
 			type: "matchresult",
@@ -2138,7 +2138,7 @@ async function user_update_match(button) {
 	loading_width = 80;
 	button.style.setProperty("--update-loading-bar-width", `${loading_width}%`);
 
-	await fetch(`./admin/ajax/get-opl-data.php`, {
+	await fetch(`/admin/ajax/get-opl-data.php`, {
 		method: "GET",
 		headers: {
 			"type": "calculate_standings_from_matchups",
@@ -2180,7 +2180,7 @@ async function user_update_match(button) {
 		if (team_ID !== null) {
 			fetchheaders.append("teamid", team_ID)
 		}
-		fetch(`ajax/game.php`, {
+		fetch(`/ajax/game.php`, {
 			method: "GET",
 			headers: fetchheaders,
 		})
@@ -2204,7 +2204,7 @@ async function user_update_match(button) {
 	groupButtons.prop("disabled", true);
 	let fetch_array = [];
 
-	if (activeGroupID === group_ID) fetch_array.push(fetch(`ajax/create-page-elements.php`, {
+	if (activeGroupID === group_ID) fetch_array.push(fetch(`/ajax/create-page-elements.php`, {
 		method: "GET",
 		headers: {
 			type: "standings",
@@ -2217,7 +2217,7 @@ async function user_update_match(button) {
 			$("div.standings").replaceWith(standings);
 		})
 		.catch(e => console.warn(e)));
-	fetch_array.push(fetch(`ajax/create-page-elements.php`, {
+	fetch_array.push(fetch(`/ajax/create-page-elements.php`, {
 		method: "GET",
 		headers: {
 			"type": "matchbutton",
@@ -2272,7 +2272,7 @@ function header_search() {
 	}
 	searchbar.append("<div class='search-loading-indicator'></div>");
 
-	fetch(`ajax/search-all.php`, {
+	fetch(`/ajax/search-all.php`, {
 		method: "GET",
 		signal: header_search_controller.signal,
 		headers: {
@@ -2290,10 +2290,10 @@ function header_search() {
 				let ac_class = (i===0) ? `class="autocomplete-active"` : "";
 				if (search_results[i]["type"] === "team") {
 					icon = `<span class='material-symbol'>${get_material_icon("groups",true)}</span>`;
-					link = `team/${search_results[i]["OPL_ID"]}`;
+					link = `/team/${search_results[i]["OPL_ID"]}`;
 				} else if (search_results[i]["type"] === "player") {
 					icon = `<span class='material-symbol'>${get_material_icon("person",true)}</span>`;
-					link = `spieler/${search_results[i]["OPL_ID"]}`;
+					link = `/spieler/${search_results[i]["OPL_ID"]}`;
 					additional = (search_results[i]["riotID_name"] !== null) ? `<br>(${search_results[i]["riotID_name"]}#${search_results[i]["riotID_tag"]})` : "";
 				}
 				ac.append($(`<a href="${link}" ${ac_class}>${icon}${search_results[i]["name"]}${additional}</a>`));
@@ -2458,7 +2458,7 @@ function switch_team_event(page, event_id, team_id, playoff_id = null,tournament
 		if ($('.content-loading-indicator').length === 0) $('body').append("<div class='content-loading-indicator'></div>");
 		let page_updates = [];
 		page_updates.push(
-			fetch(`ajax/create-page-elements`, {
+			fetch(`/ajax/create-page-elements`, {
 				method: "GET",
 				headers: {
 					"type": "standings",
@@ -2479,7 +2479,7 @@ function switch_team_event(page, event_id, team_id, playoff_id = null,tournament
 					}
 				}));
 		page_updates.push(
-			fetch(`ajax/create-page-elements`, {
+			fetch(`/ajax/create-page-elements`, {
 				method: "GET",
 				headers: {
 					"type": "matchbutton-list-team",
@@ -2505,7 +2505,7 @@ function switch_team_event(page, event_id, team_id, playoff_id = null,tournament
 		})
 	} else if (page === "matchhistory") {
 		if ($('.content-loading-indicator').length === 0) $('body').append("<div class='content-loading-indicator'></div>");
-		fetch(`ajax/create-page-elements`, {
+		fetch(`/ajax/create-page-elements`, {
 			method: "GET",
 			headers: {
 				"type": "matchhistory",

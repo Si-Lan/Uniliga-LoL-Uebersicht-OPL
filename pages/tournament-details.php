@@ -101,13 +101,13 @@ foreach ($leagues as $league) {
                 <div class='group'>
                     <span class="group-title">Gruppe</span>
                     <div class="divider-vert-acc"></div>
-                    <a href='turnier/<?php echo $tournament_url_path ?>/gruppe/<?php echo $league['OPL_ID'] ?>'
+                    <a href='/turnier/<?php echo $tournament_url_path ?>/gruppe/<?php echo $league['OPL_ID'] ?>'
                        class='page-link'>
                         <span class="link-text">Details</span>
                         <span class="material-symbol page-link-icon"><?php echo file_get_contents("../icons/material/chevron_right.svg") ?></span>
                     </a>
                     <div class="divider-vert-acc"></div>
-                    <a href='turnier/<?php echo $tournament_url_path ?>/teams?liga=<?php echo $league['OPL_ID'] ?>'
+                    <a href='/turnier/<?php echo $tournament_url_path ?>/teams?liga=<?php echo $league['OPL_ID'] ?>'
                        class='icon-link page-link'>
                         <span class='material-symbol icon-link-icon'><?php echo file_get_contents("../icons/material/group.svg") ?></span>
                         <span class="link-text">Teams</span>
@@ -137,13 +137,13 @@ foreach ($leagues as $league) {
         <div class="group">
             <span class="group-title"><?php echo $group_title ?></span>
             <div class="divider-vert-acc"></div>
-            <a href='turnier/<?php echo $tournament_url_path ?>/gruppe/<?php echo $group['OPL_ID'] ?>'
+            <a href='/turnier/<?php echo $tournament_url_path ?>/gruppe/<?php echo $group['OPL_ID'] ?>'
                class='page-link'>
                 <span class="link-text">Details</span>
                 <span class="material-symbol page-link-icon"><?php echo file_get_contents("../icons/material/chevron_right.svg") ?></span>
             </a>
             <div class="divider-vert-acc"></div>
-            <a href='turnier/<?php echo $tournament_url_path ?>/teams?liga=<?php echo $league['OPL_ID'] ?>&gruppe=<?php echo $group['OPL_ID'] ?>'
+            <a href='/turnier/<?php echo $tournament_url_path ?>/teams?liga=<?php echo $league['OPL_ID'] ?>&gruppe=<?php echo $group['OPL_ID'] ?>'
                class='icon-link page-link'>
                 <span class='material-symbol icon-link-icon'><?php echo file_get_contents("../icons/material/group.svg") ?></span>
                 <span class="link-text">Teams</span>
@@ -175,13 +175,13 @@ foreach ($leagues as $league) {
                         <div class="group">
                             <span class="group-title"><?php echo $group_title ?></span>
                             <div class="divider-vert-acc"></div>
-                            <a href='turnier/<?php echo $tournament_url_path ?>/wildcard/<?php echo $wildcard['OPL_ID'] ?>'
+                            <a href='/turnier/<?php echo $tournament_url_path ?>/wildcard/<?php echo $wildcard['OPL_ID'] ?>'
                                class='page-link'>
                                 <span class="link-text">Details</span>
                                 <span class="material-symbol page-link-icon"><?php echo file_get_contents("../icons/material/chevron_right.svg") ?></span>
                             </a>
                             <div class="divider-vert-acc"></div>
-                            <a href='turnier/<?php echo $tournament_url_path ?>/teams?liga=<?php echo $wildcard['OPL_ID'] ?>'
+                            <a href='/turnier/<?php echo $tournament_url_path ?>/teams?liga=<?php echo $wildcard['OPL_ID'] ?>'
                                class='icon-link page-link'>
                                 <span class='material-symbol icon-link-icon'><?php echo file_get_contents("../icons/material/group.svg") ?></span>
                                 <span class="link-text">Teams</span>
@@ -210,13 +210,13 @@ foreach ($leagues as $league) {
                         <div class="group">
                             <span class="group-title"><?php echo $group_title ?></span>
                             <div class="divider-vert-acc"></div>
-                            <a href='turnier/<?php echo $tournament_url_path ?>/playoffs/<?php echo $playoff['OPL_ID'] ?>'
+                            <a href='/turnier/<?php echo $tournament_url_path ?>/playoffs/<?php echo $playoff['OPL_ID'] ?>'
                                class='page-link'>
                                 <span class="link-text">Details</span>
                                 <span class="material-symbol page-link-icon"><?php echo file_get_contents("../icons/material/chevron_right.svg") ?></span>
                             </a>
                             <div class="divider-vert-acc"></div>
-                            <a href='turnier/<?php echo $tournament_url_path ?>/teams?liga=<?php echo $playoff['OPL_ID'] ?>'
+                            <a href='/turnier/<?php echo $tournament_url_path ?>/teams?liga=<?php echo $playoff['OPL_ID'] ?>'
                                class='icon-link page-link'>
                                 <span class='material-symbol icon-link-icon'><?php echo file_get_contents("../icons/material/group.svg") ?></span>
                                 <span class="link-text">Teams</span>

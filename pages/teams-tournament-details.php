@@ -182,7 +182,7 @@ if ($team_rank['avg_rank_tier'] != NULL) {
 	echo "
                     <div class='team-avg-rank split_rank_element ranked-split-$ranked_split_1' style='$rank_hide_1'>
                         Team-Rang: 
-                        <img class='rank-emblem-mini' src='ddragon/img/ranks/mini-crests/{$avg_rank}.svg' alt='$avg_rank_cap'>
+                        <img class='rank-emblem-mini' src='/ddragon/img/ranks/mini-crests/{$avg_rank}.svg' alt='$avg_rank_cap'>
                         <span>{$avg_rank_cap} {$team_rank['avg_rank_div']}</span>
                     </div>";
 }
@@ -192,7 +192,7 @@ if ($team_rank_2['avg_rank_tier'] != NULL) {
 	echo "
                     <div class='team-avg-rank split_rank_element ranked-split-$ranked_split_2' style='$rank_hide_2'>
                         Team-Rang: 
-                        <img class='rank-emblem-mini' src='ddragon/img/ranks/mini-crests/{$avg_rank}.svg' alt='$avg_rank_cap'>
+                        <img class='rank-emblem-mini' src='/ddragon/img/ranks/mini-crests/{$avg_rank}.svg' alt='$avg_rank_cap'>
                         <span>{$avg_rank_cap} {$team_rank_2['avg_rank_div']}</span>
                     </div>";
 }
@@ -271,7 +271,7 @@ if ($curr_matchID != NULL) {
                             <button class='close-popup' onclick='closex_popup_match()'><span class='material-symbol'>". file_get_contents(__DIR__."/../icons/material/close.svg") ."</span></button>
                             <div class='close-button-space'></div>
                             <div class='mh-popup-buttons'>
-	                            <a class='icon-link page-link' href='turnier/$tournamentID/team/$teamID/matchhistory#{$curr_matchID}'>
+	                            <a class='icon-link page-link' href='/turnier/$tournamentID/team/$teamID/matchhistory#{$curr_matchID}'>
 	                            <div class='material-symbol icon-link-icon'>". file_get_contents(__DIR__."/../icons/material/manage_search.svg") ."</div>
 	                            <span class='link-text'>In Matchhistory ansehen</span>
 	                            <div class='material-symbol page-link-icon'>". file_get_contents(__DIR__."/../icons/material/chevron_right.svg") ."</div>	                            
@@ -302,9 +302,9 @@ if ($curr_matchID != NULL) {
 	echo "
                 <h2 class='round-title'>
                     <span class='round'>Runde {$curr_matchData['playday']}: &nbsp</span>
-                    <a href='turnier/$tournamentID/team/{$curr_matchData['OPL_ID_team1']}' class='team $team1score page-link'>{$curr_team1['name']}</a>
+                    <a href='/turnier/$tournamentID/team/{$curr_matchData['OPL_ID_team1']}' class='team $team1score page-link'>{$curr_team1['name']}</a>
                     <span class='score'><span class='$team1score'>{$t1score}</span>:<span class='$team2score'>{$t2score}</span></span>
-                    <a href='turnier/$tournamentID/team/{$curr_matchData['OPL_ID_team2']}' class='team $team2score page-link'>{$curr_team2['name']}</a>
+                    <a href='/turnier/$tournamentID/team/{$curr_matchData['OPL_ID_team2']}' class='team $team2score page-link'>{$curr_team2['name']}</a>
                 </h2>";
 	if ($curr_games == null) {
 		echo "<div class=\"no-game-found\">Keine Spieldaten gefunden</div>";

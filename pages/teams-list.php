@@ -90,11 +90,11 @@ foreach ($wildcardsDB as $wildcard) {
 		$filteredGroupID = $_GET["gruppe"];
 		$groupallClass = "";
 		$toGroupButtonClass = " shown";
-		$toGroupButtonLink = " href='turnier/".$tournamentID."/gruppe/".$filteredGroupID."'";
+		$toGroupButtonLink = " href='/turnier/".$tournamentID."/gruppe/".$filteredGroupID."'";
 	} elseif (isset($filteredDivID) && array_key_exists($filteredDivID,$leagues) && $leagues[$filteredDivID]["format"] == "swiss") {
 		$groupallClass = "selected='selected'";
 		$toGroupButtonClass = " shown";
-		$toGroupButtonLink = " href='turnier/".$tournamentID."/gruppe/".$filteredDivID."'";
+		$toGroupButtonLink = " href='/turnier/".$tournamentID."/gruppe/".$filteredDivID."'";
 	} else {
 		$groupallClass = "selected='selected'";
 	}
@@ -196,7 +196,7 @@ $teams = $dbcn->execute_query("SELECT *
 
 
 
-$local_img_path = "img/team_logos/";
+$local_img_path = "/img/team_logos/";
 $logo_filename = is_light_mode() ? "logo_light.webp" : "logo.webp";
 
 foreach ($teams as $i_teams=>$team) {
@@ -240,7 +240,7 @@ foreach ($teams as $i_teams=>$team) {
     }
 
 
-	if ($currTeamImgID == NULL || !file_exists("../$local_img_path{$currTeamImgID}/logo.webp")) {
+	if ($currTeamImgID == NULL || !file_exists("..$local_img_path{$currTeamImgID}/logo.webp")) {
 		$currTeamImgID = "";
 		$img_url = "";
 	} else {

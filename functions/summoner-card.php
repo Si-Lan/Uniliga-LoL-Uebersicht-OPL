@@ -79,7 +79,7 @@ function create_summonercard(mysqli $dbcn, $playerID, $tournamentID, $teamID = N
 		}
 		$return .= "
 		<div class='card-rank split_rank_element ranked-split-$season_1-$split_1' style='$rank_hide_1'>
-			<img class='rank-emblem-mini' src='ddragon/img/ranks/mini-crests/{$player_tier}.svg' alt='$player_tier_cap'>
+			<img class='rank-emblem-mini' src='/ddragon/img/ranks/mini-crests/{$player_tier}.svg' alt='$player_tier_cap'>
 			$player_tier_cap $player_div $player_LP
 		</div>";
 	}
@@ -93,7 +93,7 @@ function create_summonercard(mysqli $dbcn, $playerID, $tournamentID, $teamID = N
 		}
 		$return .= "
 		<div class='card-rank split_rank_element ranked-split-$season_2-$split_2' style='$rank_hide_2'>
-			<img class='rank-emblem-mini' src='ddragon/img/ranks/mini-crests/{$player_tier_2}.svg' alt='$player_tier_cap_2'>
+			<img class='rank-emblem-mini' src='/ddragon/img/ranks/mini-crests/{$player_tier_2}.svg' alt='$player_tier_cap_2'>
 			$player_tier_cap_2 $player_div_2 $player_LP_2
 		</div>";
 	}
@@ -134,7 +134,7 @@ function create_summonercard(mysqli $dbcn, $playerID, $tournamentID, $teamID = N
 		foreach ($champions as $champion=>$champion_amount) {
 			$return .= "
 			<div class='champ-single'>
-				<img src='./ddragon/{$patch}/img/champion/{$champion}.webp' alt='$champion'>
+				<img src='/ddragon/{$patch}/img/champion/{$champion}.webp' alt='$champion'>
 				<span class='played-amount'>".$champion_amount['games']."</span>
 			</div>";
 		}
@@ -207,7 +207,7 @@ function create_summonercard_general(mysqli $dbcn, $playerID, $teamID = null):st
 		}
 		$return .= "
 		<div class='card-rank'>
-			<img class='rank-emblem-mini' src='ddragon/img/ranks/mini-crests/{$player_tier}.svg' alt='$player_tier_cap'>
+			<img class='rank-emblem-mini' src='/ddragon/img/ranks/mini-crests/{$player_tier}.svg' alt='$player_tier_cap'>
 			$player_tier_cap $player_div $player_LP
 		</div>";
 	}

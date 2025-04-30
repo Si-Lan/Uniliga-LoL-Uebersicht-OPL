@@ -32,7 +32,7 @@ function create_tournament_buttons() {
 		ref_button.innerHTML = "Refreshing...";
 	}
 	const open_accordeons = sessionStorage.getItem("open_admin_accordeons") ?? "[]";
-	fetch(`./admin/ajax/create_admin_buttons.php`, {
+	fetch(`/admin/ajax/create_admin_buttons.php`, {
 		method: "GET",
 		headers: {
 			"open-accordeons": open_accordeons,
@@ -49,7 +49,7 @@ function create_tournament_buttons() {
 
 function get_tournament() {
 	const id = $("#input-tournament-id").val();
-	fetch(`./admin/ajax/get-opl-data.php`, {
+	fetch(`/admin/ajax/get-opl-data.php`, {
 		method: "GET",
 		headers: {
 			"type": "get_tournament",
@@ -91,7 +91,7 @@ function write_tournament(tournamentID = null, from_related = false) {
 	data.ranked_split = $(`${additional_related} .${id_class} label.write_tournament_ranked_split input`).val();
 	console.log(data);
 	if ($('.content-loading-indicator').length === 0) $('body').append("<div class='content-loading-indicator'></div>");
-	fetch(`./admin/ajax/get-opl-data.php`, {
+	fetch(`/admin/ajax/get-opl-data.php`, {
 		method: "GET",
 		headers: {
 			"type": "write_tournament",
@@ -145,7 +145,7 @@ async function open_related_events_popup(tournamentID, relation = "children") {
 	let related_events;
 
 	/* get children and create Buttons with ID */
-	await fetch(`./admin/ajax/get-opl-data.php`, {
+	await fetch(`/admin/ajax/get-opl-data.php`, {
 		method: "GET",
 		headers: {
 			"type": fetchtype,
@@ -167,7 +167,7 @@ async function open_related_events_popup(tournamentID, relation = "children") {
 	/* add tournamentname to buttons */
 	let breaker = false;
 	for (const event of related_events) {
-		await fetch(`./admin/ajax/get-opl-data.php`, {
+		await fetch(`/admin/ajax/get-opl-data.php`, {
 			method: "GET",
 			headers: {
 				"type": "get_tournament",
@@ -223,7 +223,7 @@ function get_teams_for_tournament(tournamentID, deletemissing = false) {
 
 	let del = deletemissing ? "true" : "false";
 
-	fetch(`./admin/ajax/get-opl-data.php`, {
+	fetch(`/admin/ajax/get-opl-data.php`, {
 		method: "GET",
 		headers: {
 			"type": "get_teams_for_tournament",
@@ -247,7 +247,7 @@ function get_players_for_tournament(tournamentID) {
 	let loadingbar_width = 0;
 	button.attr("style",`--loading-bar-width:${loadingbar_width}%`);
 
-	fetch(`./ajax/get-data.php`, {
+	fetch(`/ajax/get-data.php`, {
 		method: "GET",
 		headers: {
 			"type": "teams",
@@ -257,7 +257,7 @@ function get_players_for_tournament(tournamentID) {
 		.then(res => res.json())
 		.then(async teams => {
 			for (const team of teams) {
-				await fetch(`./admin/ajax/get-opl-data.php`, {
+				await fetch(`/admin/ajax/get-opl-data.php`, {
 					method: "GET",
 					headers: {
 						"type": "get_players_for_team",
@@ -287,7 +287,7 @@ function get_summonerNames_for_tournament(tournamentID) {
 	let loadingbar_width = 0;
 	button.attr("style",`--loading-bar-width:${loadingbar_width}%`);
 
-	fetch(`./ajax/get-data.php`, {
+	fetch(`/ajax/get-data.php`, {
 		method: "GET",
 		headers: {
 			"type": "teams",
@@ -297,7 +297,7 @@ function get_summonerNames_for_tournament(tournamentID) {
 		.then(res => res.json())
 		.then(async teams => {
 			for (const team of teams) {
-				await fetch(`./admin/ajax/get-opl-data.php`, {
+				await fetch(`/admin/ajax/get-opl-data.php`, {
 					method: "GET",
 					headers: {
 						"type": "get_summonerNames_for_team",
@@ -326,7 +326,7 @@ function get_riotids_for_tournament(tournamentID) {
 	let loadingbar_width = 0;
 	button.attr("style",`--loading-bar-width:${loadingbar_width}%`);
 
-	fetch(`./ajax/get-data.php`, {
+	fetch(`/ajax/get-data.php`, {
 		method: "GET",
 		headers: {
 			"type": "teams",
@@ -336,7 +336,7 @@ function get_riotids_for_tournament(tournamentID) {
 		.then(res => res.json())
 		.then(async teams => {
 			for (const team of teams) {
-				await fetch(`./admin/ajax/get-opl-data.php`, {
+				await fetch(`/admin/ajax/get-opl-data.php`, {
 					method: "GET",
 					headers: {
 						"type": "get_riotids_for_team",
@@ -366,7 +366,7 @@ function get_matchups_for_tournament(tournamentID, deletemissing = false) {
 
 	let del = deletemissing ? "true" : "false";
 
-	fetch(`./admin/ajax/get-opl-data.php`, {
+	fetch(`/admin/ajax/get-opl-data.php`, {
 		method: "GET",
 		headers: {
 			"type": "get_matchups_for_tournament",
@@ -395,14 +395,14 @@ function get_results_for_tournament(tournamentID,unplayed_only=false) {
 	}
 	if (unplayed_only) matchup_headers["unplayedonly"] = "true";
 
-	fetch(`./ajax/get-data.php`, {
+	fetch(`/ajax/get-data.php`, {
 		method: "GET",
 		headers: matchup_headers
 	})
 		.then(res => res.json())
 		.then(async matches => {
 			for (const match of matches) {
-				await fetch(`./admin/ajax/get-opl-data.php`, {
+				await fetch(`/admin/ajax/get-opl-data.php`, {
 					method: "GET",
 					headers: {
 						"type": "get_results_for_matchup",
@@ -429,7 +429,7 @@ function calculate_standings_from_matchups(tournamentID) {
 	button.addClass("button-updating");
 	button.prop("disabled", true);
 
-	fetch(`./admin/ajax/get-opl-data.php`, {
+	fetch(`/admin/ajax/get-opl-data.php`, {
 		method: "GET",
 		headers: {
 			"type": "calculate_standings_from_matchups",
@@ -459,7 +459,7 @@ function toggle_turnier_select_accordeon(tournamentID) {
 function sync_patches_to_db(button) {
 	$(button).addClass("button-updating");
 	button.disabled = true;
-	fetch(`admin/ajax/ddragon-update.php`, {
+	fetch(`/admin/ajax/ddragon-update.php`, {
 		method: "POST",
 		headers: {
 			"type": "sync_patches_to_db"
@@ -485,7 +485,7 @@ function download_ddragon_data(button) {
 	let patch = button.getAttribute("data-patch");
 	$(button).addClass("button-updating");
 	button.disabled = true;
-	fetch(`admin/ajax/ddragon-update.php`, {
+	fetch(`/admin/ajax/ddragon-update.php`, {
 		method: "POST",
 		headers: {
 			"type": "jsons_for_patch",
@@ -509,7 +509,7 @@ function add_new_patch(button) {
 	let patch = button.getAttribute("data-patch");
 	$(button).addClass("button-updating");
 	button.disabled = true;
-	fetch(`admin/ajax/ddragon-update.php`, {
+	fetch(`/admin/ajax/ddragon-update.php`, {
 		method: "POST",
 		headers: {
 			"type": "add_new_patch",
@@ -538,7 +538,7 @@ function download_ddragon_images(button) {
 	button.disabled = true;
 	$(`button.patch-update[data-patch="${patch}"]`).prop("disabled","true");
 
-	fetch(`admin/ajax/ddragon-update.php`, {
+	fetch(`/admin/ajax/ddragon-update.php`, {
 		method: "GET",
 		headers: {
 			type: "get_image_data",
@@ -560,7 +560,7 @@ function download_ddragon_images(button) {
 				button.style.setProperty("--loading-bar-width", `${loadingbar_width}%`);
 			}
 			for (const image of images) {
-				fetch(`admin/ajax/ddragon-update.php`, {
+				fetch(`/admin/ajax/ddragon-update.php`, {
 					method: "POST",
 					headers: {
 						type: "download_dd_img",
@@ -582,7 +582,7 @@ function download_ddragon_images(button) {
 							$(`button.patch-update[data-patch="${patch}"]`).prop("disabled","");
 							loadingbar_width = 0;
 							button.style.setProperty("--loading-bar-width", "0");
-							fetch(`admin/ajax/ddragon-update.php`, {
+							fetch(`/admin/ajax/ddragon-update.php`, {
 								method: "POST",
 								headers: {
 									type: "sync_patches_to_db",
@@ -611,7 +611,7 @@ function delete_old_ddragon_pngs(button) {
 	$(button).addClass("button-updating");
 	button.disabled = true;
 
-	fetch(`admin/ajax/ddragon-update.php`, {
+	fetch(`/admin/ajax/ddragon-update.php`, {
 		method: "POST",
 		headers: {
 			type: "delete_ddragon_pngs",
@@ -630,7 +630,7 @@ $(document).ready(function () {
 	});
 });
 function regenerate_patch_rows() {
-	fetch(`admin/ajax/ddragon-update.php`, {
+	fetch(`/admin/ajax/ddragon-update.php`, {
 		method: "GET",
 		headers: {
 			type: "get-patch-rows",
@@ -656,7 +656,7 @@ function regenerate_patch_rows() {
 		.catch(e => console.error(e));
 }
 function update_patchdata_status(patch= "all") {
-	fetch(`ajax/get-data.php`, {
+	fetch(`/ajax/get-data.php`, {
 		method: "GET",
 		headers: {
 			type: "local_patch_info",
@@ -719,7 +719,7 @@ function toggle_maintenance_mode(turn_on = true) {
 
 	button.removeClass(`maintenance-${turn_opposite}`);
 
-	fetch("./admin/ajax/maintenance.php", {
+	fetch("/admin/ajax/maintenance.php", {
 		method: "GET",
 		headers: {
 			turn: turn,
@@ -748,7 +748,7 @@ async function update_all_teams() {
 
 	let teamlist;
 
-	await fetch(`./ajax/get-data.php`, {
+	await fetch(`/ajax/get-data.php`, {
 		method: "GET",
 		headers: {
 			"type": "teams",
@@ -767,7 +767,7 @@ async function update_all_teams() {
 		let i = parseInt(teamIndex);
 		let team = teamlist[i];
 
-		await fetch(`./admin/ajax/get-opl-data.php`, {
+		await fetch(`/admin/ajax/get-opl-data.php`, {
 			method: "GET",
 			headers: {
 				"type": "update_team",
@@ -836,7 +836,7 @@ async function get_ranks_for_all_players() {
 
 	let playerlist;
 
-	await fetch(`./ajax/get-data.php`, {
+	await fetch(`/ajax/get-data.php`, {
 		method: "GET",
 		headers: {
 			"type": "players",
@@ -856,7 +856,7 @@ async function get_ranks_for_all_players() {
 		let player = playerlist[i];
 		//console.log("Starting with Player "+(i+1));
 
-		fetch(`./admin/ajax/get-rgapi-data.php`, {
+		fetch(`/admin/ajax/get-rgapi-data.php`, {
 			method: "GET",
 			headers: {
 				"type": "get-rank-for-player",
@@ -933,7 +933,7 @@ async function save_new_ranked_split() {
 	let start = row.find(".write_ranked_split_startdate input").eq(0).val();
 	let end = row.find(".write_ranked_split_enddate input").eq(0).val();
 
-	await fetch(`./admin/ajax/db-changes.php`, {
+	await fetch(`/admin/ajax/db-changes.php`, {
 		method: "POST",
 		headers: {
 			type: "add_split",
@@ -945,7 +945,7 @@ async function save_new_ranked_split() {
 	})
 		.catch(e => console.error(e));
 
-	await fetch(`./admin/ajax/create-page-elements.php`, {
+	await fetch(`/admin/ajax/create-page-elements.php`, {
 		method: "GET",
 		headers: {
 			type: "ranked_split_rows",
@@ -975,7 +975,7 @@ async function save_ranked_splits() {
 		let split = rowJQ.find(".write_ranked_split_split input").eq(0).val();
 		let start = rowJQ.find(".write_ranked_split_startdate input").eq(0).val();
 		let end = rowJQ.find(".write_ranked_split_enddate input").eq(0).val();
-		await fetch(`./admin/ajax/db-changes.php`, {
+		await fetch(`/admin/ajax/db-changes.php`, {
 			method: "POST",
 			headers: {
 				type: "update_split",
@@ -988,7 +988,7 @@ async function save_ranked_splits() {
 			.catch(e => console.error(e));
 	}
 
-	await fetch(`./admin/ajax/create-page-elements.php`, {
+	await fetch(`/admin/ajax/create-page-elements.php`, {
 		method: "GET",
 		headers: {
 			type: "ranked_split_rows",
@@ -1015,7 +1015,7 @@ async function delete_ranked_split() {
 		return;
 	}
 
-	await fetch(`./admin/ajax/db-changes.php`, {
+	await fetch(`/admin/ajax/db-changes.php`, {
 		method: "POST",
 		headers: {
 			type: "remove_split",

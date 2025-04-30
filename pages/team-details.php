@@ -58,7 +58,7 @@ echo create_html_head_elements(title: "{$team["name"]} | Uniliga LoL - Übersich
 
 echo create_header(dbcn: $dbcn, title: "team");
 
-$local_team_img = "img/team_logos/";
+$local_team_img = "/img/team_logos/";
 $logo_filename = is_light_mode() ? "logo_light.webp" : "logo.webp";
 $opl_team_url = "https://www.opleague.pro/team/";
 $opgg_url = "https://www.op.gg/multisearch/euw?summoners=";
