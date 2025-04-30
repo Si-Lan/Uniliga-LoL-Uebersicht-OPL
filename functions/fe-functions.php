@@ -624,6 +624,9 @@ function create_standings(mysqli $dbcn, $tournament_id, $group_id, $team_id=NULL
 					<div class='standing-item team'>Team</div>
 					<div class='standing-item played' title='gespielte Spiele'>Pl</div>";
 	switch ($mostCommonBestOf) {
+		case 1:
+			$result .= "<div class='standing-item score' title='Wins/Losses in Serien'>W-L</div>";
+			break;
 		case 3:
 		case 5:
 			$result .= "<div class='standing-item score' title='Wins/Losses in Serien'>W-L</div>";
@@ -714,6 +717,9 @@ function create_standings(mysqli $dbcn, $tournament_id, $group_id, $team_id=NULL
 		}
 		$result .= "<div class='standing-item played'>{$currteam['played']}</div>";
 		switch ($mostCommonBestOf) {
+			case 1:
+				$result .= "<div class='standing-item score'>{$currteam['wins']}-{$currteam['losses']}</div>";
+				break;
 			case 3:
 			case 5:
 				$result .= "<div class='standing-item score'>{$currteam['wins']}-{$currteam['losses']}</div>";
