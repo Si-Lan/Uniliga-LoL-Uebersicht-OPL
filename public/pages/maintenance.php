@@ -6,12 +6,11 @@ $pass = check_login();
 <!DOCTYPE html>
 <html lang="de">
 <?php
-$lightmode = is_light_mode(true);
 
 echo create_html_head_elements();
 
 ?>
-<body class="error <?php echo $lightmode?>">
+<body class="error <?=is_light_mode(true)?>">
 <?php
 
 echo create_header(title: "maintenance", home_button: false, search_button: false);

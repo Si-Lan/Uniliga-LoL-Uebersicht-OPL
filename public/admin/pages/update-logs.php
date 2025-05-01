@@ -1,27 +1,8 @@
 <?php
-$root = dirname(__DIR__,3);
-include_once $root."/config/data.php";
-include_once $root."/src/functions/fe-functions.php";
+/** @var mysqli $dbcn  */
 
-check_login();
-?>
-<!DOCTYPE html>
-<html lang="de">
-<?php
-
-$dbcn = create_dbcn();
 $loggedin = is_logged_in();
 $lightmode = is_light_mode(true);
-
-try {
-	$dbcn = create_dbcn();
-} catch (Exception $e) {
-	echo create_html_head_elements(title: "Error");
-	echo "<body class='$lightmode'>";
-	echo create_header(title: "error");
-	echo "<div style='text-align: center'>Database Connection failed</div></body>";
-	exit();
-}
 
 echo create_html_head_elements(css: [""], js: ["admin"], title: "Update Log | Uniliga LoL - Übersicht" ,loggedin: $loggedin);
 
@@ -99,5 +80,3 @@ if ($loggedin) {
 }
 ?>
 </body>
-</html>
-

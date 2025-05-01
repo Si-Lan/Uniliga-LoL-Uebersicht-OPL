@@ -1,23 +1,5 @@
 <?php
-include_once dirname(__DIR__,2)."/config/data.php";
-include_once dirname(__DIR__,2)."/src/functions/fe-functions.php";
-
-$pass = check_login();
-?>
-<!DOCTYPE html>
-<html lang="de">
-<?php
-$lightmode = is_light_mode(true);
-
-try {
-	$dbcn = create_dbcn();
-} catch (Exception $e) {
-	echo create_html_head_elements(title: "Error");
-	echo "<body class='$lightmode'>";
-	echo create_header(title: "error");
-	echo "<div style='text-align: center'>Database Connection failed</div></body>";
-	exit();
-}
+/** @var mysqli $dbcn  */
 
 $tournament_url_path = $_GET["tournament"] ?? NULL;
 $wildcardID= $_GET["wildcard"] ?? NULL;
@@ -32,11 +14,10 @@ $tournament = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID = ? A
 $wildcard = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID = ? AND eventType = 'wildcard'", [$wildcardID])->fetch_assoc();
 
 if ($tournament == NULL || $wildcard == NULL) {
-	echo create_html_head_elements(title: "Wildcard-Turnier nicht gefunden | Uniliga LoL - Übersicht");
-	echo "<body class='$lightmode'>";
-	echo show_old_url_warning($tournamentID);
-	echo create_header(title: "error");
-	echo "<div style='text-align: center'>Kein Wildcard-Turnier unter der angegebenen ID gefunden!</div></body>";
+	$_GET["error"] = "404";
+	$_GET["404type"] = "wildcard";
+	require "error.php";
+	echo "</html>";
 	exit();
 }
 
@@ -50,7 +31,7 @@ if (isset($_GET['match'])) {
 }
 
 ?>
-<body class="group <?php echo "$lightmode $open_popup"?>">
+<body class="group <?=is_light_mode(true)." $open_popup"?>">
 <?php
 
 $pageurl = $_SERVER['REQUEST_URI'];
@@ -105,4 +86,3 @@ echo "</main>";
 
 ?>
 </body>
-</html>

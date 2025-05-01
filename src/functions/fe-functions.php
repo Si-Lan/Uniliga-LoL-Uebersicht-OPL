@@ -158,7 +158,7 @@ function create_header(mysqli $dbcn = NULL, string $title = "home", string|int $
 			$title_text .= "Uniliga LoL - Übersicht - Wartung";
 			break;
 		case "404":
-			$title_text .= "404 - Seite nicht gefunden";
+			$title_text .= "404 - Nicht gefunden";
 			break;
 		case "error":
 			$title_text .= "Fehler";
@@ -1496,7 +1496,7 @@ function show_old_url_warning($tournamentID):string {
 	$url_root = "https://silence.lol";
 	$url = $_SERVER["REQUEST_URI"];
 	$new_url = "/toornament$url";
-	if (strlen($tournamentID) > 15) {
+	if (strlen($tournamentID??"") > 15) {
 		return "
 			<div class='warning-header'>
 				<span>Meintest du <a href='$new_url'>$url_root$new_url</a>?</span>

@@ -1,23 +1,7 @@
 <?php
-include_once dirname(__DIR__,2)."/config/data.php";
-include_once dirname(__DIR__,2)."/src/functions/fe-functions.php";
+/** @var mysqli $dbcn  */
+
 include_once dirname(__DIR__,2)."/src/functions/summoner-card.php";
-
-$pass = check_login();
-$lightmode = is_light_mode(true);
-$logged_in = is_logged_in();
-$admin_btns = admin_buttons_visible(true);
-
-try {
-	$dbcn = create_dbcn();
-} catch (Exception $e) {
-    echo "<!DOCTYPE html><html lang=\"de\">";
-	echo create_html_head_elements(title: "Error");
-	echo "<body class='$lightmode'>";
-	echo create_header(title: "error");
-	echo "<div style='text-align: center'>Database Connection failed</div></body>";
-	exit();
-}
 
 $teamID = $_GET["team"] ?? NULL;
 
@@ -36,24 +20,19 @@ foreach ($groups_played_in as $event) {
 }
 $players = $dbcn->execute_query("SELECT * FROM players JOIN players_in_teams pit on players.OPL_ID = pit.OPL_ID_player WHERE pit.OPL_ID_team = ? ", [$teamID])->fetch_all(MYSQLI_ASSOC);
 $players_current = $dbcn->execute_query("SELECT * FROM players JOIN players_in_teams pit on players.OPL_ID = pit.OPL_ID_player WHERE pit.OPL_ID_team = ? AND pit.removed = false", [$teamID])->fetch_all(MYSQLI_ASSOC);
-?>
-<!DOCTYPE html>
-<html lang="de">
-<?php
 
 if ($team == NULL) {
-	echo create_html_head_elements(title: "Turnier nicht gefunden | Uniliga LoL - Übersicht");
-	echo "<body class='$lightmode'>";
-	echo show_old_url_warning($teamID);
-	echo create_header(title: "error");
-	echo "<div style='text-align: center'>Kein Team unter der angegebenen ID gefunden!</div></body>";
+	$_GET["error"] = "404";
+	$_GET["404type"] = "team";
+	require "error.php";
+	echo "</html>";
 	exit();
 }
 
-echo create_html_head_elements(title: "{$team["name"]} | Uniliga LoL - Übersicht", loggedin: $logged_in);
+echo create_html_head_elements(title: "{$team["name"]} | Uniliga LoL - Übersicht", loggedin: is_logged_in());
 
 ?>
-<body class="team general-team<?php echo "$lightmode $admin_btns"?>">
+<body class="team general-team <?=is_light_mode(true)?>">
 <?php
 
 echo create_header(dbcn: $dbcn, title: "team");
@@ -114,4 +93,3 @@ echo "</main>";
 
 ?>
 </body>
-</html>

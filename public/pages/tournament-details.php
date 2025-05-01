@@ -1,28 +1,7 @@
 <?php
-include_once dirname(__DIR__,2)."/config/data.php";
-include_once dirname(__DIR__,2)."/src/functions/fe-functions.php";
+/** @var mysqli $dbcn  */
 
-check_login();
-?>
-<!DOCTYPE html>
-<html lang="de">
-<?php
-
-$lightmode = is_light_mode(true);
-$logged_in = is_logged_in();
-$admin_btns = admin_buttons_visible(true);
-
-try {
-	$dbcn = create_dbcn();
-} catch (Exception $e) {
-	echo create_html_head_elements(title: "Error");
-	echo "<body class='$lightmode'>";
-	echo create_header(title: "error");
-	echo "<div style='text-align: center'>Database Connection failed</div></body>";
-	exit();
-}
-
-$tournament_url_path = $_GET["tournament"] ?? NULL;
+$tournament_url_path = $_GET["tournament"] ?? "";
 $tournamentID = $tournament_url_path;
 if (preg_match("/^(winter|sommer)([0-9]{2})$/",strtolower($tournamentID),$url_path_matches)) {
 	$split = $url_path_matches[1];
@@ -30,24 +9,22 @@ if (preg_match("/^(winter|sommer)([0-9]{2})$/",strtolower($tournamentID),$url_pa
 	$tournamentID = $dbcn->execute_query("SELECT OPL_ID FROM tournaments WHERE season = ? AND split = ? AND eventType = 'tournament'", [$season, $split])->fetch_column();
 }
 
-
-
 $tournament = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID = ? AND eventType = 'tournament'", [$tournamentID])->fetch_assoc();
 
 if ($tournament == NULL) {
-	echo create_html_head_elements(title: "Kein Turnier gefunden | Uniliga LoL - Übersicht");
-	echo "<body class='$lightmode'>";
-	echo show_old_url_warning($tournamentID);
-	echo create_header(title: "error");
-	echo "<div style='text-align: center'>Kein Turnier unter der angegebenen ID gefunden!</div></body>";
+	$_GET["error"] = "404";
+	$_GET["404type"] = "tournament";
+    $_GET["tournamentid"] = $tournamentID;
+    require "error.php";
+    echo "</html>";
 	exit();
 }
 
 $t_name_clean = preg_replace("/LoL\s/i","",$tournament["name"]);
-echo create_html_head_elements(js: ["rgapi"], title: "$t_name_clean | Uniliga LoL - Übersicht", loggedin: $logged_in);
+echo create_html_head_elements(js: ["rgapi"], title: "$t_name_clean | Uniliga LoL - Übersicht", loggedin: is_logged_in());
 
 ?>
-<body class="tournament <?php echo $lightmode?> <?php echo $admin_btns;?>">
+<body class="tournament <?= is_light_mode(true)?>">
 <?php
 
 echo create_header($dbcn, title: "tournament", tournament_id: $tournamentID);
@@ -105,14 +82,14 @@ foreach ($leagues as $league) {
                     <a href='/turnier/<?php echo $tournament_url_path ?>/gruppe/<?php echo $league['OPL_ID'] ?>'
                        class='page-link'>
                         <span class="link-text">Details</span>
-                        <span class="material-symbol page-link-icon"><?php echo file_get_contents("../icons/material/chevron_right.svg") ?></span>
+                        <span class="material-symbol page-link-icon"><?php echo file_get_contents(dirname(__DIR__)."/icons/material/chevron_right.svg") ?></span>
                     </a>
                     <div class="divider-vert-acc"></div>
                     <a href='/turnier/<?php echo $tournament_url_path ?>/teams?liga=<?php echo $league['OPL_ID'] ?>'
                        class='icon-link page-link'>
-                        <span class='material-symbol icon-link-icon'><?php echo file_get_contents("../icons/material/group.svg") ?></span>
+                        <span class='material-symbol icon-link-icon'><?php echo file_get_contents(dirname(__DIR__)."/icons/material/group.svg") ?></span>
                         <span class="link-text">Teams</span>
-                        <span class='material-symbol page-link-icon'><?php echo file_get_contents("../icons/material/chevron_right.svg") ?></span>
+                        <span class='material-symbol page-link-icon'><?php echo file_get_contents(dirname(__DIR__)."/icons/material/chevron_right.svg") ?></span>
                     </a>
                 </div>
             </div>
@@ -141,14 +118,14 @@ foreach ($leagues as $league) {
             <a href='/turnier/<?php echo $tournament_url_path ?>/gruppe/<?php echo $group['OPL_ID'] ?>'
                class='page-link'>
                 <span class="link-text">Details</span>
-                <span class="material-symbol page-link-icon"><?php echo file_get_contents("../icons/material/chevron_right.svg") ?></span>
+                <span class="material-symbol page-link-icon"><?php echo file_get_contents(dirname(__DIR__)."/icons/material/chevron_right.svg") ?></span>
             </a>
             <div class="divider-vert-acc"></div>
             <a href='/turnier/<?php echo $tournament_url_path ?>/teams?liga=<?php echo $league['OPL_ID'] ?>&gruppe=<?php echo $group['OPL_ID'] ?>'
                class='icon-link page-link'>
-                <span class='material-symbol icon-link-icon'><?php echo file_get_contents("../icons/material/group.svg") ?></span>
+                <span class='material-symbol icon-link-icon'><?php echo file_get_contents(dirname(__DIR__)."/icons/material/group.svg") ?></span>
                 <span class="link-text">Teams</span>
-                <span class='material-symbol page-link-icon'><?php echo file_get_contents("../icons/material/chevron_right.svg") ?></span>
+                <span class='material-symbol page-link-icon'><?php echo file_get_contents(dirname(__DIR__)."/icons/material/chevron_right.svg") ?></span>
             </a>
         </div>
                     <?php
@@ -179,14 +156,14 @@ foreach ($leagues as $league) {
                             <a href='/turnier/<?php echo $tournament_url_path ?>/wildcard/<?php echo $wildcard['OPL_ID'] ?>'
                                class='page-link'>
                                 <span class="link-text">Details</span>
-                                <span class="material-symbol page-link-icon"><?php echo file_get_contents("../icons/material/chevron_right.svg") ?></span>
+                                <span class="material-symbol page-link-icon"><?php echo file_get_contents(dirname(__DIR__)."/icons/material/chevron_right.svg") ?></span>
                             </a>
                             <div class="divider-vert-acc"></div>
                             <a href='/turnier/<?php echo $tournament_url_path ?>/teams?liga=<?php echo $wildcard['OPL_ID'] ?>'
                                class='icon-link page-link'>
-                                <span class='material-symbol icon-link-icon'><?php echo file_get_contents("../icons/material/group.svg") ?></span>
+                                <span class='material-symbol icon-link-icon'><?php echo file_get_contents(dirname(__DIR__)."/icons/material/group.svg") ?></span>
                                 <span class="link-text">Teams</span>
-                                <span class='material-symbol page-link-icon'><?php echo file_get_contents("../icons/material/chevron_right.svg") ?></span>
+                                <span class='material-symbol page-link-icon'><?php echo file_get_contents(dirname(__DIR__)."/icons/material/chevron_right.svg") ?></span>
                             </a>
                         </div>
                     <?php
@@ -214,14 +191,14 @@ foreach ($leagues as $league) {
                             <a href='/turnier/<?php echo $tournament_url_path ?>/playoffs/<?php echo $playoff['OPL_ID'] ?>'
                                class='page-link'>
                                 <span class="link-text">Details</span>
-                                <span class="material-symbol page-link-icon"><?php echo file_get_contents("../icons/material/chevron_right.svg") ?></span>
+                                <span class="material-symbol page-link-icon"><?php echo file_get_contents(dirname(__DIR__)."/icons/material/chevron_right.svg") ?></span>
                             </a>
                             <div class="divider-vert-acc"></div>
                             <a href='/turnier/<?php echo $tournament_url_path ?>/teams?liga=<?php echo $playoff['OPL_ID'] ?>'
                                class='icon-link page-link'>
-                                <span class='material-symbol icon-link-icon'><?php echo file_get_contents("../icons/material/group.svg") ?></span>
+                                <span class='material-symbol icon-link-icon'><?php echo file_get_contents(dirname(__DIR__)."/icons/material/group.svg") ?></span>
                                 <span class="link-text">Teams</span>
-                                <span class='material-symbol page-link-icon'><?php echo file_get_contents("../icons/material/chevron_right.svg") ?></span>
+                                <span class='material-symbol page-link-icon'><?php echo file_get_contents(dirname(__DIR__)."/icons/material/chevron_right.svg") ?></span>
                             </a>
                         </div>
 						<?php
@@ -236,4 +213,3 @@ foreach ($leagues as $league) {
 $dbcn->close();
 ?>
 </body>
-</html>

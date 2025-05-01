@@ -14,64 +14,14 @@ RewriteRule ^(.*)$ ./pages/maintenance.php [R=503,L]
 
 ErrorDocument 503 /pages/maintenance.php
 
-# redirect Pages
-RewriteRule ^$ ./pages/startpage.php [NC,L,QSA]
-
-## redirect team-list
-RewriteRule ^turnier/(.+)/teams$ ./pages/teams-list?tournament=$1 [NC,L,QSA]
-
-## redirect elo-overview
-RewriteRule ^turnier/(.+)/elo$ ./pages/elo-overview?tournament=$1 [NC,L,QSA]
-
-## redirect wildcard-tournaments
-RewriteRule ^turnier/(.+)/wildcard$ ./pages/tournament-details?tournament=$1 [NC,L,QSA]
-RewriteRule ^turnier/(.+)/wildcard/(.+)$ ./pages/wildcard-details?tournament=$1&wildcard=$2 [NC,L,QSA]
-
-## redirect groups
-RewriteRule ^turnier/(.+)/gruppe$ ./pages/tournament-details?tournament=$1 [NC,L,QSA]
-RewriteRule ^turnier/(.+)/gruppe/(.+)$ ./pages/group-details?tournament=$1&group=$2 [NC,L,QSA]
-
-## redirect playoffs
-RewriteRule ^turnier/(.+)/playoffs$ ./pages/tournament-details?tournament=$1 [NC,L,QSA]
-RewriteRule ^turnier/(.+)/playoffs/(.+)$ ./pages/playoffs-details?tournament=$1&playoffs=$2 [NC,L,QSA]
-
-## redirect matchhistory
-RewriteRule ^turnier/(.+)/team/(.+)/matchhistory$ ./pages/teams-tournament-matchhistory?team=$2&tournament=$1 [NC,L,QSA]
-RewriteRule ^team/(.+)/turnier/(.+)/matchhistory$ ./pages/teams-tournament-matchhistory?team=$1&tournament=$2 [NC,L,QSA]
-
-## redirect statistics
-RewriteRule ^turnier/(.+)/team/(.+)/stats$ ./pages/teams-tournament-statistics?team=$2&tournament=$1 [NC,L,QSA]
-RewriteRule ^team/(.+)/turnier/(.+)/stats$ ./pages/teams-tournament-statistics?team=$1&tournament=$2 [NC,L,QSA]
-
-## redirect teams tournament details
-RewriteRule ^team/(.+)/turnier$ ./pages/teams-tournament-details?team=$1 [NC,L,QSA]
-RewriteRule ^turnier/(.+)/team$ ./pages/teams-tournament-details?tournament=$1 [NC,L,QSA]
-RewriteRule ^team/(.+)/turnier/(.+)$ ./pages/teams-tournament-details?team=$1&tournament=$2 [NC,L,QSA]
-RewriteRule ^turnier/(.+)/team/(.+)$ ./pages/teams-tournament-details?team=$2&tournament=$1 [NC,L,QSA]
-
-## redirect Tournaments
-RewriteRule ^turnier$ ./pages/tournament-details [NC,L,QSA]
-RewriteRule ^turnier/(.+)$ ./pages/tournament-details?tournament=$1 [NC,L,QSA]
-
-## redirect matchhistory
-RewriteRule ^team/(.+)/matchhistory$ ./pages/teams?team-details=$1 [NC,L,QSA]
-
-## redirect statistics
-RewriteRule ^team/(.+)/stats$ ./pages/team-details?team=$1 [NC,L,QSA]
-
-## redirect teams
-RewriteRule ^team$ ./pages/team-details [NC,L]
-RewriteRule ^team/(.+)$ ./pages/team-details?team=$1 [NC,L,QSA]
-
-## redirect players
-RewriteRule ^spieler$ ./pages/player-search [NC,L]
-RewriteRule ^spieler/(.+)$ ./pages/player-details?player=$1 [NC,L,QSA]
-
-
-
 # enable opening php files without .php ending
-RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME}.php !-f
 RewriteRule ^([^.]+)$ $1.php [NC,L]
+
+# manage Pages
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*)$ index.php [QSA,L]
 
 
 ErrorDocument 404 /pages/error.php?error=404

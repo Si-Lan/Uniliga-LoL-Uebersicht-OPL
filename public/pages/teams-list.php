@@ -1,24 +1,5 @@
 <?php
-include_once dirname(__DIR__,2)."/config/data.php";
-include_once dirname(__DIR__,2)."/src/functions/fe-functions.php";
-
-check_login();
-?>
-<!DOCTYPE html>
-<html lang="de">
-<?php
-
-$lightmode = is_light_mode(true);
-
-try {
-	$dbcn = create_dbcn();
-} catch (Exception $e) {
-	echo create_html_head_elements(title: "Error");
-	echo "<body class='$lightmode'>";
-	echo create_header(title: "error");
-	echo "<div style='text-align: center'>Database Connection failed</div></body>";
-	exit();
-}
+/** @var mysqli $dbcn  */
 
 $tournament_url_path = $_GET["tournament"] ?? NULL;
 $tournamentID = $tournament_url_path;
@@ -31,11 +12,11 @@ if (preg_match("/^(winter|sommer)([0-9]{2})$/",strtolower($tournamentID),$url_pa
 $tournament = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID = ? AND eventType = 'tournament'", [$tournamentID])->fetch_assoc();
 
 if ($tournament == NULL) {
-	echo create_html_head_elements(title: "Kein Turnier gefunden | Uniliga LoL - Übersicht");
-	echo "<body class='$lightmode'>";
-	echo show_old_url_warning($tournamentID);
-	echo create_header(title: "error");
-	echo "<div style='text-align: center'>Kein Turnier unter der angegebenen ID gefunden!</div></body>";
+	$_GET["error"] = "404";
+	$_GET["404type"] = "tournament";
+	$_GET["tournamentid"] = $tournamentID;
+	require "error.php";
+	echo "</html>";
 	exit();
 }
 
@@ -43,7 +24,7 @@ $t_name_clean = preg_replace("/LoL\s/i","",$tournament["name"]);
 echo create_html_head_elements(title: "Team-Liste - $t_name_clean | Uniliga LoL - Übersicht");
 
 ?>
-<body class="teamlist <?php echo $lightmode?>">
+<body class="teamlist <?=is_light_mode(true)?>">
 <?php
 
 echo create_header($dbcn, title: "tournament", tournament_id: $tournamentID);
@@ -69,11 +50,11 @@ foreach ($wildcardsDB as $wildcard) {
     <h2 class="pagetitle">Team-Liste</h2>
     <div class="searchbar">
 		<span class="material-symbol search-icon" title="Suche">
-            <?php echo file_get_contents("../icons/material/search.svg") ?>
+            <?php echo file_get_contents(dirname(__DIR__)."/icons/material/search.svg") ?>
 		</span>
         <input class="search-teams deletable-search" onkeyup='search_teams()' placeholder="Teams durchsuchen" type="search">
         <button class="material-symbol search-clear" title="Suche leeren">
-			<?php echo file_get_contents("../icons/material/close.svg") ?>
+			<?php echo file_get_contents(dirname(__DIR__)."/icons/material/close.svg") ?>
         </button>
     </div>
 	<?php
@@ -130,7 +111,7 @@ foreach ($wildcardsDB as $wildcard) {
 				}
                 ?>
             </select>
-            <span class='material-symbol'><?php echo file_get_contents("../icons/material/arrow_drop_down.svg") ?></span>
+            <span class='material-symbol'><?php echo file_get_contents(dirname(__DIR__)."/icons/material/arrow_drop_down.svg") ?></span>
         </div>
         <div class='slct groups-select-wrap'>
             <select name='Gruppen' class='groups' onchange='filter_teams_list_group(this.value)'>
@@ -149,14 +130,14 @@ foreach ($wildcardsDB as $wildcard) {
 				}
                 ?>
             </select>
-            <span class='material-symbol'><?php echo file_get_contents("../icons/material/arrow_drop_down.svg") ?></span>
+            <span class='material-symbol'><?php echo file_get_contents(dirname(__DIR__)."/icons/material/arrow_drop_down.svg") ?></span>
         </div>
         <a class="button b-group page-link<?php echo $toGroupButtonClass?>"<?php echo $toGroupButtonLink?>>
             <span class="link-text">
                 zur Gruppe
             </span>
             <span class="material-symbol page-link-icon">
-                <?php echo file_get_contents("../icons/material/chevron_right.svg") ?>
+                <?php echo file_get_contents(dirname(__DIR__)."/icons/material/chevron_right.svg") ?>
             </span>
         </a>
     </div>
@@ -278,4 +259,3 @@ echo "</div>"; //Team-List
 ?>
 </main>
 </body>
-</html>

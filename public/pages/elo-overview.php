@@ -1,24 +1,5 @@
 <?php
-include_once dirname(__DIR__,2)."/config/data.php";
-include_once dirname(__DIR__,2)."/src/functions/fe-functions.php";
-
-$pass = check_login();
-?>
-<!DOCTYPE html>
-<html lang="de">
-<?php
-
-$lightmode = is_light_mode(true);
-
-try {
-	$dbcn = create_dbcn();
-} catch (Exception $e) {
-	echo create_html_head_elements(title: "Error");
-	echo "<body class='$lightmode'>";
-	echo create_header(title: "error");
-	echo "<div style='text-align: center'>Database Connection failed</div></body>";
-	exit();
-}
+/** @var mysqli $dbcn  */
 
 $tournament_url_path = $_GET["tournament"] ?? NULL;
 $tournamentID = $tournament_url_path;
@@ -29,26 +10,27 @@ if (preg_match("/^(winter|sommer)([0-9]{2})$/",strtolower($tournamentID),$url_pa
 }
 
 $tournament = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID = ? AND eventType = 'tournament'", [$tournamentID])->fetch_assoc();
+if ($tournament == NULL) {
+	$_GET["error"] = "404";
+	$_GET["404type"] = "tournament";
+	$_GET["tournamentid"] = $tournamentID;
+	require "error.php";
+	echo "</html>";
+	exit();
+}
+
 $leagues = $dbcn->execute_query("SELECT * FROM tournaments WHERE eventType='league' AND OPL_ID_parent = ? AND deactivated = FALSE ORDER BY number", [$tournamentID])->fetch_all(MYSQLI_ASSOC);
 $wildcards = $dbcn->execute_query("SELECT * FROM tournaments WHERE eventType='wildcard' AND OPL_ID_top_parent = ? AND deactivated = FALSE ORDER BY number", [$tournamentID])->fetch_all(MYSQLI_ASSOC);
 $second_ranked_split = get_second_ranked_split_for_tournament($dbcn, $tournamentID, string:true);
 $current_split = get_current_ranked_split($dbcn,$tournamentID);
 $use_second_split = ($second_ranked_split == $current_split);
 
-if ($tournament == NULL) {
-	echo create_html_head_elements(title: "Kein Turnier gefunden | Uniliga LoL - Übersicht");
-	echo "<body class='$lightmode'>";
-	echo show_old_url_warning($tournamentID);
-	echo create_header(title: "error");
-	echo "<div style='text-align: center'>Kein Turnier unter der angegebenen ID gefunden!</div></body>";
-	exit();
-}
 
 $t_name_clean = preg_replace("/LoL\s/i","",$tournament["name"]);
 echo create_html_head_elements(css: ["elo"], title: "Elo-Übersicht - $t_name_clean | Uniliga LoL - Übersicht");
 
 ?>
-<body class="elo-overview <?php echo $lightmode?>">
+<body class="elo-overview <?=is_light_mode(true)?>">
 <?php
 
 echo create_header($dbcn, title: "tournament", tournament_id: $tournamentID);
@@ -183,4 +165,3 @@ echo "<a class='button totop' onclick='to_top()' style='opacity: 0; pointer-even
 ?>
 </main>
 </body>
-</html>

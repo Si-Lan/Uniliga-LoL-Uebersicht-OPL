@@ -1,27 +1,7 @@
 <?php
-include_once dirname(__DIR__,2)."/config/data.php";
-include_once dirname(__DIR__,2)."/src/functions/fe-functions.php";
+/** @var mysqli $dbcn  */
+
 include_once dirname(__DIR__,2)."/src/functions/summoner-card.php";
-
-check_login();
-?>
-<!DOCTYPE html>
-<html lang="de">
-<?php
-
-$lightmode = is_light_mode(true);
-$logged_in = is_logged_in();
-$admin_btns = admin_buttons_visible(true);
-
-try {
-	$dbcn = create_dbcn();
-} catch (Exception $e) {
-	echo create_html_head_elements(title: "Error");
-	echo "<body class='$lightmode'>";
-	echo create_header(title: "error");
-	echo "<div style='text-align: center'>Database Connection failed</div></body>";
-	exit();
-}
 
 $tournament_url_path = $_GET["tournament"] ?? NULL;
 $teamID = $_GET["team"] ?? NULL;
@@ -33,36 +13,38 @@ if (preg_match("/^(winter|sommer)([0-9]{2})$/",strtolower($tournamentID),$url_pa
 	$tournamentID = $dbcn->execute_query("SELECT OPL_ID FROM tournaments WHERE season = ? AND split = ? AND eventType = 'tournament'", [$season, $split])->fetch_column();
 }
 $tournament = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID = ? AND eventType = 'tournament'", [$tournamentID])->fetch_assoc();
+if ($tournament == NULL) {
+	$_GET["error"] = "404";
+	$_GET["404type"] = "tournament";
+	$_GET["tournamentid"] = $tournamentID;
+	require "error.php";
+	echo "</html>";
+	exit();
+}
+
 $team_groups = $dbcn->execute_query("SELECT * FROM teams JOIN teams_in_tournaments tit ON teams.OPL_ID = tit.OPL_ID_team WHERE OPL_ID = ? AND OPL_ID_group IN (SELECT OPL_ID FROM tournaments WHERE (eventType='group' OR (eventType = 'league' AND format = 'swiss') OR eventType='wildcard') AND OPL_ID_top_parent = ?) ORDER BY OPL_ID_group", [$teamID, $tournamentID])->fetch_all(MYSQLI_ASSOC);
 $team_playoffs = $dbcn->execute_query("SELECT * FROM teams JOIN teams_in_tournaments tit ON teams.OPL_ID = tit.OPL_ID_team WHERE OPL_ID = ? AND OPL_ID_group IN (SELECT OPL_ID FROM tournaments WHERE eventType='playoffs' AND OPL_ID_parent = ?)", [$teamID, $tournamentID])->fetch_all(MYSQLI_ASSOC);
 $team_solo = $dbcn->execute_query("SELECT * FROM teams WHERE OPL_ID = ?", [$teamID])->fetch_assoc();
-$team_rank = $dbcn->execute_query("SELECT tsr.* FROM teams t LEFT JOIN teams_tournament_rank tsr ON tsr.OPL_ID_team = t.OPL_ID AND tsr.OPL_ID_tournament = ? AND tsr.second_ranked_split = FALSE WHERE t.OPL_ID = ?", [$tournamentID, $teamID])->fetch_assoc();
-$team_rank_2 = $dbcn->execute_query("SELECT tsr.* FROM teams t LEFT JOIN teams_tournament_rank tsr ON tsr.OPL_ID_team = t.OPL_ID AND tsr.OPL_ID_tournament = ? AND tsr.second_ranked_split = TRUE WHERE t.OPL_ID = ?", [$tournamentID, $teamID])->fetch_assoc();
-$ranked_split_1 = "{$tournament["ranked_season"]}-{$tournament["ranked_split"]}";
-$ranked_split_2 = get_second_ranked_split_for_tournament($dbcn,$tournamentID,string:true);
-$current_split = get_current_ranked_split($dbcn, $tournamentID);
-
-if ($tournament == NULL) {
-	echo create_html_head_elements(title: "Turnier nicht gefunden | Uniliga LoL - Übersicht");
-	echo "<body class='$lightmode'>";
-	echo create_header(title: "error");
-	echo "<div style='text-align: center'>Kein Turnier unter der angegebenen ID gefunden!</div></body>";
-	exit();
-}
 if ($team_groups == NULL && $team_solo != NULL) {
 	echo create_html_head_elements(title: "Team nicht im Turnier | Uniliga LoL - Übersicht");
-	echo "<body class='$lightmode'>";
+	echo "<body class='".is_light_mode(true)."'>";
 	echo create_header(title: "error");
 	echo "<div style='text-align: center'>Dieses Team spielt nicht im angegebenen Turnier!</div><div style='display: flex; flex-direction: column; align-items: center;'><a class='button' href='team/$teamID'>zur Team-Seite</a></div></body>";
 	exit();
 }
 if ($team_solo == NULL) {
 	echo create_html_head_elements(title: "Team nicht gefunden | Uniliga LoL - Übersicht");
-	echo "<body class='$lightmode'>";
+	echo "<body class='".is_light_mode(true)."'>";
 	echo create_header(title: "error");
 	echo "<div style='text-align: center'>Kein Team unter der angegebenen ID gefunden!</div></body>";
 	exit();
 }
+
+$team_rank = $dbcn->execute_query("SELECT tsr.* FROM teams t LEFT JOIN teams_tournament_rank tsr ON tsr.OPL_ID_team = t.OPL_ID AND tsr.OPL_ID_tournament = ? AND tsr.second_ranked_split = FALSE WHERE t.OPL_ID = ?", [$tournamentID, $teamID])->fetch_assoc();
+$team_rank_2 = $dbcn->execute_query("SELECT tsr.* FROM teams t LEFT JOIN teams_tournament_rank tsr ON tsr.OPL_ID_team = t.OPL_ID AND tsr.OPL_ID_tournament = ? AND tsr.second_ranked_split = TRUE WHERE t.OPL_ID = ?", [$tournamentID, $teamID])->fetch_assoc();
+$ranked_split_1 = "{$tournament["ranked_season"]}-{$tournament["ranked_split"]}";
+$ranked_split_2 = get_second_ranked_split_for_tournament($dbcn,$tournamentID,string:true);
+$current_split = get_current_ranked_split($dbcn, $tournamentID);
 
 // initial neueste Gruppe/Wildcard auswählen
 $team = end($team_groups);
@@ -89,7 +71,7 @@ $team_name_now = $dbcn->execute_query("SELECT name FROM team_name_history WHERE 
 $team["name"] = $team_name_now;
 
 $t_name_clean = preg_replace("/LoL\s/i","",$tournament["name"]);
-echo create_html_head_elements(css: ["game"], js: ["rgapi"], title: "{$team_name_now} | $t_name_clean", loggedin: $logged_in);
+echo create_html_head_elements(css: ["game"], js: ["rgapi"], title: "{$team_name_now} | $t_name_clean", loggedin: is_logged_in());
 
 $open_popup = "";
 if (isset($_GET['match'])) {
@@ -97,7 +79,7 @@ if (isset($_GET['match'])) {
 }
 
 ?>
-<body class="team <?php echo "$lightmode $open_popup $admin_btns"?>">
+<body class="team <?= is_light_mode(true)." $open_popup"?>">
 <?php
 
 $pageurl = $_SERVER['REQUEST_URI'];
@@ -344,4 +326,3 @@ echo "</main>"; // main-content
 
 ?>
 </body>
-</html>

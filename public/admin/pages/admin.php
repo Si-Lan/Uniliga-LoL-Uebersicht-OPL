@@ -1,17 +1,6 @@
 <?php
-$root = dirname(__DIR__,3);
-include_once $root . "/src/functions/fe-functions.php";
-include_once $root . "/src/functions/helper.php";
-include_once $root . "/config/data.php";
-include_once $root . "/src/admin/functions/fe-functions.php";
+/** @var mysqli $dbcn  */
 
-$pass = check_login();
-?>
-<!DOCTYPE html>
-<html lang="de">
-<?php
-
-$dbcn = create_dbcn();
 $loggedin = is_logged_in();
 $lightmode = is_light_mode(true);
 
@@ -23,7 +12,7 @@ echo create_html_head_elements(css: ["rgapi2"], js: ["admin"], title: "Admin-Pan
 
 echo create_header($dbcn, title: "admin", open_login: !$loggedin);
 
-$maintenance_mode = (file_exists($root . "/config/maintenance.enable")) ? "on" : "off";
+$maintenance_mode = (file_exists(dirname(__DIR__,3) . "/config/maintenance.enable")) ? "on" : "off";
 
 if ($loggedin) {
 	?>
@@ -85,4 +74,3 @@ if ($loggedin) {
 }
 ?>
 </body>
-</html>

@@ -1,28 +1,10 @@
 <?php
-include_once dirname(__DIR__,2)."/config/data.php";
-include_once dirname(__DIR__,2)."/src/functions/fe-functions.php";
-
-$pass = check_login();
-?>
-<!DOCTYPE html>
-<html lang="de">
-<?php
-$lightmode = is_light_mode(true);
-
-try {
-	$dbcn = create_dbcn();
-} catch (Exception $e) {
-	echo create_html_head_elements(title: "Error");
-	echo "<body class='$lightmode'>";
-	echo create_header(title: "error", home_button: false);
-	echo "<div style='text-align: center'>Database Connection failed</div></body>";
-	exit();
-}
+/** @var mysqli $dbcn  */
 
 echo create_html_head_elements();
 
 ?>
-<body class="home <?php echo $lightmode?>">
+<body class="home <?= is_light_mode(true)?>">
 <?php
 
 echo create_header($dbcn, home_button: FALSE);
@@ -64,4 +46,3 @@ echo create_header($dbcn, home_button: FALSE);
 </main>
 
 </body>
-</html>

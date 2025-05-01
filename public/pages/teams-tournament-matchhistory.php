@@ -1,26 +1,5 @@
 <?php
-include_once dirname(__DIR__,2)."/config/data.php";
-include_once dirname(__DIR__,2)."/src/functions/fe-functions.php";
-
-check_login();
-?>
-<!DOCTYPE html>
-<html lang="de">
-<?php
-
-$lightmode = is_light_mode(true);
-$logged_in = is_logged_in();
-$admin_btns = admin_buttons_visible(true);
-
-try {
-	$dbcn = create_dbcn();
-} catch (Exception $e) {
-	echo create_html_head_elements(title: "Error");
-	echo "<body class='$lightmode'>";
-	echo create_header(title: "error");
-	echo "<div style='text-align: center'>Database Connection failed</div></body>";
-	exit();
-}
+/** @var mysqli $dbcn  */
 
 $tournament_url_path = $_GET["tournament"] ?? NULL;
 $teamID = $_GET["team"] ?? NULL;
@@ -36,22 +15,23 @@ $team_groups = $dbcn->execute_query("SELECT * FROM teams JOIN teams_in_tournamen
 $team_solo = $dbcn->execute_query("SELECT * FROM teams WHERE OPL_ID = ?", [$teamID])->fetch_assoc();
 
 if ($tournament == NULL) {
-	echo create_html_head_elements(title: "Turnier nicht gefunden | Uniliga LoL - Übersicht");
-	echo "<body class='$lightmode'>";
-	echo create_header(title: "error");
-	echo "<div style='text-align: center'>Kein Turnier unter der angegebenen ID gefunden!</div></body>";
+	$_GET["error"] = "404";
+	$_GET["404type"] = "tournament";
+	$_GET["tournamentid"] = $tournamentID;
+	require "error.php";
+	echo "</html>";
 	exit();
 }
 if ($team_groups == NULL && $team_solo != NULL) {
 	echo create_html_head_elements(title: "Team nicht im Turnier | Uniliga LoL - Übersicht");
-	echo "<body class='$lightmode'>";
+	echo "<body class='".is_light_mode(true)."'>";
 	echo create_header(title: "error");
 	echo "<div style='text-align: center'>Dieses Team spielt nicht im angegebenen Turnier!</div><div style='display: flex; flex-direction: column; align-items: center;'><a class='button' href='team/$teamID'>zur Team-Seite</a></div></body>";
 	exit();
 }
 if ($team_solo == NULL) {
 	echo create_html_head_elements(title: "Team nicht gefunden | Uniliga LoL - Übersicht");
-	echo "<body class='$lightmode'>";
+	echo "<body class='".is_light_mode(true)."'>";
 	echo create_header(title: "error");
 	echo "<div style='text-align: center'>Kein Team unter der angegebenen ID gefunden!</div></body>";
 	exit();
@@ -73,11 +53,11 @@ $team_name_now = $dbcn->execute_query("SELECT name FROM team_name_history WHERE 
 $team["name"] = $team_name_now;
 
 $t_name_clean = preg_replace("/LoL\s/i","",$tournament["name"]);
-echo create_html_head_elements(css: ["game"], title: "{$team_name_now} - Matchhistory | $t_name_clean", loggedin: $logged_in);
+echo create_html_head_elements(css: ["game"], title: "{$team_name_now} - Matchhistory | $t_name_clean", loggedin: is_logged_in());
 
 
 ?>
-<body class="match-history <?php echo "$lightmode"?>">
+<body class="match-history <?=is_light_mode(true)?>">
 <?php
 
 $pageurl = $_SERVER['REQUEST_URI'];
@@ -119,4 +99,3 @@ create_matchhistory($dbcn, $tournamentID, $group["OPL_ID"], $teamID);
 ?>
 </main>
 </body>
-</html>

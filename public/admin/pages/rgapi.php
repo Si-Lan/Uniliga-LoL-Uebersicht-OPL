@@ -1,16 +1,6 @@
 <?php
-$root = dirname(__DIR__,3);
-include_once $root."/config/data.php";
-include_once $root."/src/functions/helper.php";
-include_once $root."/src/functions/fe-functions.php";
+/** @var mysqli $dbcn  */
 
-check_login();
-?>
-<!DOCTYPE html>
-<html lang="de">
-<?php
-
-$dbcn = create_dbcn();
 $loggedin = is_logged_in();
 $lightmode = is_light_mode(true);
 
@@ -62,4 +52,3 @@ if ($loggedin) {
 }
 ?>
 </body>
-</html>
