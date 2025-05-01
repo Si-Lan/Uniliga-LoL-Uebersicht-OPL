@@ -1,5 +1,5 @@
 <?php
-$ddragon_dir = __DIR__."/../../ddragon";
+$ddragon_dir = dirname(__DIR__,3)."/public/ddragon";
 
 function get_patches():array {
 	$patches = file_get_contents("https://ddragon.leagueoflegends.com/api/versions.json");
@@ -190,7 +190,7 @@ function delete_ddragon_pngs(string $patch):void {
 function get_local_patches(mysqli $dbcn = NULL):array {
 	if ($dbcn == NULL) {
 		$patches = array();
-		$dir = new DirectoryIterator(__DIR__."/../../ddragon");
+		$dir = new DirectoryIterator(dirname(__DIR__,3)."/public/ddragon");
 		foreach ($dir as $fileinfo) {
 			if (!$fileinfo->isDot() && $fileinfo->getFilename() != "img" && $fileinfo->isDir()) {
 				$patches[] = $fileinfo->getFilename();
@@ -249,7 +249,7 @@ function add_new_patch(mysqli $dbcn, string $patch):int {
 	if ($patch_data != NULL) {
 		return 0;
 	}
-	if (!file_exists(__DIR__."/../../ddragon/".$patch)) mkdir(__DIR__."/../../ddragon/".$patch);
+	if (!file_exists(dirname(__DIR__,3)."/public/ddragon/".$patch)) mkdir(dirname(__DIR__,3)."/public/ddragon/".$patch);
 	$dbcn->execute_query("INSERT INTO local_patches (patch) VALUES (?)", [$patch]);
 	return 1;
 }

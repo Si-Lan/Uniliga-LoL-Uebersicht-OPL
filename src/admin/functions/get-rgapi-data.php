@@ -1,6 +1,6 @@
 <?php
-include_once __DIR__ . "/../../config/data.php";
-include_once __DIR__."/../../functions/helper.php";
+include_once dirname(__DIR__,3)."/config/data.php";
+include_once dirname(__DIR__,3)."/src/functions/helper.php";
 
 // sendet X Anfragen an Riot API (Summoner-V4)  (X = Anzahl Spieler im Team)
 function get_puuids_by_team($teamID, $all = FALSE):array {
@@ -841,7 +841,7 @@ function calculate_teamstats($teamID, $tournamentID) {
 	$wins = 0;
 	$win_time = 0;
 
-	$ddragon_dir = new DirectoryIterator(__DIR__."/../../ddragon");
+	$ddragon_dir = new DirectoryIterator(dirname(__DIR__,3)."/public/ddragon");
 	$patches = [];
 
 	foreach ($ddragon_dir as $patch_dir) {
@@ -851,7 +851,7 @@ function calculate_teamstats($teamID, $tournamentID) {
 	}
 	usort($patches, "version_compare");
 	$latest_patch = end($patches);
-	$champion_data = json_decode(file_get_contents(__DIR__."/../../ddragon/$latest_patch/data/champion.json"),true)['data'];
+	$champion_data = json_decode(file_get_contents(dirname(__DIR__,3)."/public/ddragon/$latest_patch/data/champion.json"),true)['data'];
 	$champions_by_key = [];
 	foreach ($champion_data as $champ) {
 		$champions_by_key[$champ['key']] = $champ['id'];

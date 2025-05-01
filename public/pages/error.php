@@ -1,5 +1,5 @@
 <?php
-include_once __DIR__."/../functions/fe-functions.php";
+include_once dirname(__DIR__,2)."/src/functions/fe-functions.php";
 
 $pass = check_login();
 ?>

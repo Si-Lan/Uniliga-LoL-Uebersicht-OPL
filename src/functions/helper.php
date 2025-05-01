@@ -1,6 +1,6 @@
 <?php
 function is_logged_in(): bool {
-	include_once(dirname(__FILE__) . "/../config/data.php");
+	include_once(dirname(__DIR__,2) . "/config/data.php");
 	$admin_pass = get_admin_pass();
 	if (isset($_COOKIE['admin-login'])) {
 		if (password_verify($admin_pass, $_COOKIE['admin-login'])) {

@@ -1,6 +1,6 @@
 <?php
-include_once dirname(__FILE__) . "/../../config/data.php";
-include_once dirname(__FILE__)."/../functions/fe-functions.php";
+include_once dirname(__DIR__,3) . "/config/data.php";
+include_once dirname(__DIR__,3) . "/src/admin/functions/fe-functions.php";
 $dbcn = create_dbcn();
 
 $open_accordeons = $_SERVER["HTTP_OPEN_ACCORDEONS"] ?? "[]";

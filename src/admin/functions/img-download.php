@@ -1,17 +1,17 @@
 <?php
-include_once __DIR__ . "/../../config/data.php";
+include_once dirname(__DIR__,3) . "/config/data.php";
 function download_opl_img(int|string $itemID, string $type, bool $echo_states = false):bool {
 	$dbcn = create_dbcn();
 	$user_agent = get_user_agent_for_api_calls();
 	$today = date("Y-m-d");
 	$opl_logo_url = $opl_logo_url_light = NULL;
 	if ($type == "team_logo") {
-		$imgfolder_path = __DIR__."/../../img/team_logos";
+		$imgfolder_path = dirname(__DIR__,3)."/public/img/team_logos";
 		$item = $dbcn->execute_query("SELECT name, OPL_ID_logo FROM teams WHERE OPL_ID = ?", [$itemID])->fetch_assoc();
 		$opl_logo_url_light = "/styles/media/team/{$item["OPL_ID_logo"]}/Logo_100.webp";
 		$opl_logo_url = "/styles/media/team/{$item["OPL_ID_logo"]}/Logo_on_black_100.webp";
 	} elseif ($type == "tournament_logo") {
-		$imgfolder_path = __DIR__."/../../img/tournament_logos";
+		$imgfolder_path = dirname(__DIR__,3)."/public/img/tournament_logos";
 		$item = $dbcn->execute_query("SELECT name, OPL_ID_logo FROM tournaments WHERE OPL_ID = ?", [$itemID])->fetch_assoc();
 		$opl_logo_url_light = "/styles/media/event/{$item["OPL_ID_logo"]}/Logo_100.webp";
         $opl_logo_url = "/styles/media/event/{$item["OPL_ID_logo"]}/Logo_on_black_100.webp";
@@ -160,7 +160,7 @@ function square_logo($img) {
 }
 
 function copy_old_team_logos($id,$dir_key) {
-	$img_dir = __DIR__."/../../img/team_logos";
+	$img_dir = dirname(__DIR__,3)."/public/img/team_logos";
 	if (!is_dir("$img_dir/$id/$dir_key")) {
 		mkdir("$img_dir/$id/$dir_key");
 	}
@@ -251,7 +251,7 @@ function colorComp($color, $c){
 }
 
 function square_all_teamlogos() {
-	$img_dir = __DIR__."/../../img/team_logos";
+	$img_dir = dirname(__DIR__,3)."/public/img/team_logos";
 	$dir = new DirectoryIterator("$img_dir");
 	foreach ($dir as $team_dir) {
 		if (!$team_dir->isDir() || $team_dir->isDot()) {

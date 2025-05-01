@@ -1,7 +1,7 @@
 <?php
-$root = __DIR__."/../../";
-include_once $root . "config/data.php";
-include_once $root."admin/functions/img-download.php";
+$root = dirname(__DIR__,3);
+include_once $root."/config/data.php";
+include_once $root."/src/admin/functions/img-download.php";
 
 function get_tournament($id):array {
 	$returnArr = ["info"=>"", "data"=>[], "button"=>""];
@@ -171,7 +171,7 @@ function write_tournament(array $data):string {
 
 	}
 
-	$local_img_folder_path = __DIR__."/../../img/tournament_logos";
+	$local_img_folder_path = dirname(__DIR__,3)."/public/img/tournament_logos";
 	if ($data["OPL_logo_url"] != NULL && (!file_exists("$local_img_folder_path/{$data["OPL_ID_logo"]}/logo.webp") || !file_exists("$local_img_folder_path/{$data["OPL_ID_logo"]}/logo_light.webp"))) {
 		download_opl_img($data["OPL_ID"], "tournament_logo", true);
 	}
@@ -223,7 +223,7 @@ function create_tournament_get_button(array $data, bool $in_write_popup = false)
 								<option $typeselect_playoffs value='playoffs'>Playoffs</option>
 								<option $typeselect_wildcard value='wildcard'>Wildcard</option>
 							</select>
-							<span class='material-symbol'>".file_get_contents(__DIR__."/../../icons/material/arrow_drop_down.svg")."</span>
+							<span class='material-symbol'>".file_get_contents(dirname(__DIR__,3)."/public/icons/material/arrow_drop_down.svg")."</span>
 						</span>
 					</label>
 					<label class=\"write_tournament_parent\">Parent:<input type=\"text\" value=\"{$data["OPL_ID_parent"]}\"></label>
@@ -237,7 +237,7 @@ function create_tournament_get_button(array $data, bool $in_write_popup = false)
 								<option $splitselect_winter value='winter'>Winter</option>
 								<option $splitselect_sommer value='sommer'>Sommer</option>
 							</select>
-							<span class='material-symbol'>".file_get_contents(__DIR__."/../../icons/material/arrow_drop_down.svg") ."</span>
+							<span class='material-symbol'>".file_get_contents(dirname(__DIR__,3)."/public/icons/material/arrow_drop_down.svg") ."</span>
 						</span>
 					</label>
 					<label class=\"write_tournament_season\"><input type=\"number\" value=\"{$data["season"]}\" placeholder='##'></label>
@@ -254,7 +254,7 @@ function create_tournament_get_button(array $data, bool $in_write_popup = false)
 								<option $formatselect_double_elim value='double-elimination'>double-elim</option>
 								<option $formatselect_swiss value='swiss'>swiss</option>
 							</select>
-							<span class='material-symbol'>".file_get_contents(__DIR__."/../../icons/material/arrow_drop_down.svg")."</span>
+							<span class='material-symbol'>".file_get_contents(dirname(__DIR__,3)."/public/icons/material/arrow_drop_down.svg")."</span>
 						</span>
 					</label>
 				</div>

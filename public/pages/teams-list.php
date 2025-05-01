@@ -1,6 +1,6 @@
 <?php
-include_once __DIR__."/../setup/data.php";
-include_once __DIR__."/../functions/fe-functions.php";
+include_once dirname(__DIR__,2)."/config/data.php";
+include_once dirname(__DIR__,2)."/src/functions/fe-functions.php";
 
 check_login();
 ?>
@@ -240,7 +240,7 @@ foreach ($teams as $i_teams=>$team) {
     }
 
 
-	if ($currTeamImgID == NULL || !file_exists("..$local_img_path{$currTeamImgID}/logo.webp")) {
+	if ($currTeamImgID == NULL || !file_exists(dirname(__DIR__)."/$local_img_path{$currTeamImgID}/logo.webp")) {
 		$currTeamImgID = "";
 		$img_url = "";
 	} else {

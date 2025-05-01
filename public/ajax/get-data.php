@@ -1,6 +1,6 @@
 <?php
-include_once __DIR__."/../setup/data.php";
-include_once __DIR__."/../functions/helper.php";
+include_once dirname(__DIR__,2)."/config/data.php";
+include_once dirname(__DIR__,2)."/src/functions/helper.php";
 
 $dbcn = create_dbcn();
 

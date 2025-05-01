@@ -1,6 +1,6 @@
 <?php
-include_once __DIR__.'/../functions/get-rgapi-data.php';
-include_once __DIR__ . "/../../config/data.php";
+include_once dirname(__DIR__,3).'/src/admin/functions/get-rgapi-data.php';
+include_once dirname(__DIR__,3) . "/config/data.php";
 
 $type = $_SERVER["HTTP_TYPE"] ?? $_REQUEST["type"];
 

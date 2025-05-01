@@ -57,7 +57,7 @@ function create_summonercard(mysqli $dbcn, $playerID, $tournamentID, $teamID = N
 	<div class='card-summoner'>";
 	if ($player["riotID_name"] != null) $return .= "
 		<span class='card-riotid'>
-			<span class='league-icon'>".file_get_contents(__DIR__."/../icons/LoL_Icon_Flat.svg")."</span>
+			<span class='league-icon'>".file_get_contents(dirname(__DIR__,2)."/public/icons/LoL_Icon_Flat.svg")."</span>
 			<span class='riot-id'>{$player['riotID_name']}<span class='riot-id-tag'>$riot_tag</span></span>
 		</span>";
 
@@ -106,7 +106,7 @@ function create_summonercard(mysqli $dbcn, $playerID, $tournamentID, $teamID = N
 			if ($role_amount != 0) {
 				$return .= "
 				<div class='role-single'>
-					<div class='svg-wrapper role'>".file_get_contents(__DIR__."/../ddragon/img/positions/position-$role-light.svg")."</div>
+					<div class='svg-wrapper role'>".file_get_contents(dirname(__DIR__,2)."/public/ddragon/img/positions/position-$role-light.svg")."</div>
 					<span class='played-amount'>$role_amount</span>
 				</div>";
 			}
@@ -141,7 +141,7 @@ function create_summonercard(mysqli $dbcn, $playerID, $tournamentID, $teamID = N
 		if ($champs_cut) {
 			$return .= "
 		<div class='champ-single'>
-			<div class='material-symbol'>". file_get_contents(__DIR__."/../icons/material/more_horiz.svg") ."</div>
+			<div class='material-symbol'>". file_get_contents(dirname(__DIR__,2)."/public/icons/material/more_horiz.svg") ."</div>
 		</div>";
 		}
 	}
@@ -152,8 +152,8 @@ function create_summonercard(mysqli $dbcn, $playerID, $tournamentID, $teamID = N
 	$return .= "
 	</div>"; // summoner-card
     $return .= "<a href='javascript:void(0)' class='open-playerhistory' onclick='popup_player(\"{$player["OPL_ID"]}\")'>Spieler-Details</a>";
-    //$return .= "<a href='spieler/$playerID' class='open-playerhistory' ><div class='material-symbol'>". file_get_contents(__DIR__."/../icons/material/info.svg") ."</div>Spieler-Details</a>";
-	$return .= "<a href='https://www.op.gg/summoners/euw/$enc_riotid' target='_blank' class='op-gg-single'><div class='svg-wrapper op-gg'>".file_get_contents(__DIR__."/../img/opgglogo.svg")."</div></a>";
+    //$return .= "<a href='spieler/$playerID' class='open-playerhistory' ><div class='material-symbol'>". file_get_contents(dirname(__DIR__,2)."/public/icons/material/info.svg") ."</div>Spieler-Details</a>";
+	$return .= "<a href='https://www.op.gg/summoners/euw/$enc_riotid' target='_blank' class='op-gg-single'><div class='svg-wrapper op-gg'>".file_get_contents(dirname(__DIR__,2)."/public/img/opgglogo.svg")."</div></a>";
 	$return .= "</div>"; // summoner-card-wrapper
 
 	if ($echo) {
@@ -193,7 +193,7 @@ function create_summonercard_general(mysqli $dbcn, $playerID, $teamID = null):st
 	<div class='card-summoner'>";
 	if ($player["riotID_name"] != null) $return .= "
 		<span class='card-riotid'>
-			<span class='league-icon'>".file_get_contents(__DIR__."/../icons/LoL_Icon_Flat.svg")."</span>
+			<span class='league-icon'>".file_get_contents(dirname(__DIR__,2)."/public/icons/LoL_Icon_Flat.svg")."</span>
 			<span class='riot-id'>{$player['riotID_name']}<span class='riot-id-tag'>$riot_tag</span></span>
 		</span>";
 
@@ -217,8 +217,8 @@ function create_summonercard_general(mysqli $dbcn, $playerID, $teamID = null):st
 	$return .= "
 	</div>"; // summoner-card
 	$return .= "<a href='javascript:void(0)' class='open-playerhistory' onclick='popup_player(\"{$player["OPL_ID"]}\")'>Spieler-Details</a>";
-	//$return .= "<a href='spieler/$playerID' class='open-playerhistory' ><div class='material-symbol'>". file_get_contents(__DIR__."/../icons/material/info.svg") ."</div>Spieler-Details</a>";
-	$return .= "<a href='https://www.op.gg/summoners/euw/$enc_riotid' target='_blank' class='op-gg-single'><div class='svg-wrapper op-gg'>".file_get_contents(__DIR__."/../img/opgglogo.svg")."</div></a>";
+	//$return .= "<a href='spieler/$playerID' class='open-playerhistory' ><div class='material-symbol'>". file_get_contents(dirname(__DIR__,2)."/public/icons/material/info.svg") ."</div>Spieler-Details</a>";
+	$return .= "<a href='https://www.op.gg/summoners/euw/$enc_riotid' target='_blank' class='op-gg-single'><div class='svg-wrapper op-gg'>".file_get_contents(dirname(__DIR__,2)."/public/img/opgglogo.svg")."</div></a>";
 	$return .= "</div>"; // summoner-card-wrapper
 
 	return $return;

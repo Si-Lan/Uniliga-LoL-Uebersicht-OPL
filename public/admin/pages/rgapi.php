@@ -1,8 +1,8 @@
 <?php
-$root = __DIR__."/../../";
-include_once $root . "config/data.php";
-include_once $root."functions/helper.php";
-include_once $root."functions/fe-functions.php";
+$root = dirname(__DIR__,3);
+include_once $root."/config/data.php";
+include_once $root."/src/functions/helper.php";
+include_once $root."/src/functions/fe-functions.php";
 
 check_login();
 ?>

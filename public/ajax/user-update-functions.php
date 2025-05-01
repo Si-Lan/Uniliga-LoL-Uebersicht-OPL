@@ -1,8 +1,8 @@
 <?php
-include_once __DIR__."/../setup/data.php";
-include_once __DIR__."/../admin/functions/get-opl-data.php";
-include_once __DIR__."/../admin/functions/get-rgapi-data.php";
-include_once __DIR__."/../functions/helper.php";
+include_once dirname(__DIR__,2)."/config/data.php";
+include_once dirname(__DIR__,2)."/src/admin/functions/get-opl-data.php";
+include_once dirname(__DIR__,2)."/src/admin/functions/get-rgapi-data.php";
+include_once dirname(__DIR__,2)."/src/functions/helper.php";
 
 $type = $_SERVER['HTTP_TYPE'] ?? $_REQUEST["type"] ?? NULL;
 

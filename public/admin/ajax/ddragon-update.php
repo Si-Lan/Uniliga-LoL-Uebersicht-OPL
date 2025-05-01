@@ -1,7 +1,7 @@
 <?php
-$root = __DIR__."/../../";
+$root = dirname(__DIR__,3);
 include_once $root . "/config/data.php";
-include_once $root."/admin/functions/ddragon-update.php";
+include_once $root."/src/admin/functions/ddragon-update.php";
 
 $type = $_SERVER["HTTP_TYPE"] ?? $_REQUEST["type"] ?? NULL;
 if ($type == NULL) exit;
@@ -31,7 +31,7 @@ if ($type == "download_dd_img") {
 	$target_name = $_SERVER["HTTP_TARGETNAME"] ?? NULL;
 	$force_overwrite = filter_var(($_SERVER["HTTP_FORCEDOWNLOAD"] ?? FALSE), FILTER_VALIDATE_BOOLEAN);
 	if ($source == NULL || $target_dir == NULL || $target_name == NULL || str_contains("..",$target_dir) || str_contains("..",$target_name)) exit();
-	$target_dir = realpath(__DIR__."/../../ddragon"). "/" . $target_dir;
+	$target_dir = realpath(dirname(__DIR__,3)."/public/ddragon"). "/" . $target_dir;
 	//echo $target_dir;
 	$saved_location = download_convert_dd_img($source, $target_dir, $target_name, $force_overwrite);
 	echo $saved_location;
