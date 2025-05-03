@@ -1,30 +1,16 @@
 <?php
 /** @var array{
  *     OPL_ID: int
- * } $tournament
- */
-/** @var array{
- *     OPL_ID: int,
- *     name: string,
- *     riotID_name: string,
- *     riotID_tag: string,
- *     removed: bool,
- *     roles: array,
- *     champions: array
- * } $player
- */
+ * } $tournament */
+/** @var \App\Entity\PlayerInTeamInTournament $playerTT */
 /** @var array{
  *     array{rank_tier: string, rank_div: string, rank_LP: int},
  *     array{rank_tier: string, rank_div: string, rank_LP: int}
- * } $player_rank
- */
+ * } $player_rank */
 /** @var string $current_split */
 /** @var bool $collapsed */
 /** @var string $latest_patch */
 
-$enc_riotid = urlencode($player['riotID_name']??"")."-".urlencode($player['riotID_tag']??"");
-$riotid_full = $player["riotID_name"]."#".$player["riotID_tag"];
-$riot_tag = ($player['riotID_tag'] != NULL && $player['riotID_tag'] != "") ? "#".$player['riotID_tag'] : "";
 $player_tier = $player_rank[0]['rank_tier'] ?? null;
 $player_div = $player_rank[0]['rank_div'] ?? null;
 $player_LP = NULL;
@@ -39,22 +25,20 @@ if ($player_tier_2 == "CHALLENGER" || $player_tier_2 == "GRANDMASTER" || $player
 	$player_div_2 = "";
 	$player_LP_2 = $player_rank[1]["rank_LP"] ?? null;
 }
-$roles = $player['roles'] != null ? json_decode($player['roles']) : null;
-$champions = $player['champions'] != null ? json_decode($player['champions'],true) : null;
 
 ?>
 
 <div class='summoner-card-wrapper'>
-	<?php $card_classes = implode(' ',array_filter(["summoner-card", $player["OPL_ID"], $collapsed?"collapsed":"", ($player["removed"] == 1) ? "player-removed" : ""])) ?>
-	<div class="<?=$card_classes?>" onclick="player_to_opgg_link('<?=$player["OPL_ID"]?>','<?=$riotid_full?>')">
-		<input type='checkbox' name='OPGG' <?=$player["riotID_name"]==null ? "disabled":""?> class='opgg-checkbox' <?=($player["riotID_name"]!=null && !$player["removed"])? "checked":"" ?>>
-		<span class="card-player"><?=$player['name']?></span>
+	<?php $card_classes = implode(' ',array_filter(["summoner-card", $playerTT->player->id, $collapsed?"collapsed":"", ($playerTT->removed == 1) ? "player-removed" : ""])) ?>
+	<div class="<?=$card_classes?>" onclick="player_to_opgg_link('<?=$playerTT->player->id?>','<?=$playerTT->player->getFullRiotID()?>')">
+		<input type='checkbox' name='OPGG' <?=$playerTT->player->riotIdName==null ? "disabled":""?> class='opgg-checkbox' <?=($playerTT->player->riotIdName!=null && !$playerTT->removed)? "checked":"" ?>>
+		<span class="card-player"><?=$playerTT->player->name?></span>
 		<div class='divider'></div>
 		<div class="card-summoner">
-			<?php if ($player["riotID_name"] != null) { ?>
+			<?php if ($playerTT->player->riotIdName != null) { ?>
 			<span class="card-riotid">
 				<span class="league-icon"><?=\App\Helpers\IconRenderer::getLeagueIcon()?></span>
-				<span class="riot-id"><?=$player["riotID_name"]?><span class="riot-id-tag"><?=$riot_tag?></span></span>
+				<span class="riot-id"><?=$playerTT->player->riotIdName?><span class="riot-id-tag"><?=$playerTT->player->getRiotIdTagWithPrefix()?></span></span>
 			</span>
 			<?php
 			}
@@ -100,52 +84,40 @@ $champions = $player['champions'] != null ? json_decode($player['champions'],tru
 			<!-- Stats kommt hier noch rein -->
             <div class="played-positions">
                 <?php
-                if ($roles != null) {
-                    foreach ($roles as $role=>$role_amount) {
-                        if ($role_amount != 0) {
-                    ?>
+                foreach ($playerTT->roles as $role=>$role_amount) {
+                    if ($role_amount != 0) { ?>
                 <div class="role-single">
                     <div class="svg-wrapper role"><?=\App\Helpers\IconRenderer::getRoleIcon($role)?></div>
                     <span class="played-amount"><?=$role_amount?></span>
                 </div>
-                    <?php
-						}
-					}
+                        <?php
+                    }
                 }
                 ?>
             </div>
 
             <div class="played-champions">
 				<?php
-				if ($champions != null) {
-					arsort($champions);
-					$champs_cut = FALSE;
-					if (count($champions) > 5) {
-						$champions = array_slice($champions, 0, 5);
-						$champs_cut = TRUE;
-					}
-
-					foreach ($champions as $champion=>$champion_amount) {
-                        ?>
+				foreach ($playerTT->getTopChampions(5) as $champion=>$champion_amount) {
+                    ?>
                 <div class="champ-single">
                     <img src='/ddragon/<?=$latest_patch?>/img/champion/<?=$champion?>.webp' alt='<?=$champion?>'>
                     <span class="played-amount"><?=$champion_amount['games']?></span>
                 </div>
-						<?php
-					}
-                    if ($champs_cut) {
-                    ?>
+				    <?php
+				}
+                if (count($playerTT->champions) > 5) {
+                ?>
                 <div class="champ-single">
                     <?=\App\Helpers\IconRenderer::getMaterialIconDiv("more_horiz")?>
                 </div>
                 <?php
-					}
 				}
 				?>
             </div>
 
 		</div>
 	</div>
-	<a href="javascript:void(0)" class="open-playerhistory" onclick="popup_player('<?=$player["OPL_ID"]?>')">Spieler-Details</a>
-	<a href="https://www.op.gg/summoners/euw/<?=$enc_riotid?>" target="_blank" class="op-gg-single"><div class='svg-wrapper op-gg'><?=\App\Helpers\IconRenderer::getOPGGIcon()?></div></a>
+	<a href="javascript:void(0)" class="open-playerhistory" onclick="popup_player('<?=$playerTT->player->id?>')">Spieler-Details</a>
+	<a href="https://www.op.gg/summoners/euw/<?=$playerTT->player->getEncodedRiotID()?>" target="_blank" class="op-gg-single"><div class='svg-wrapper op-gg'><?=\App\Helpers\IconRenderer::getOPGGIcon()?></div></a>
 </div>

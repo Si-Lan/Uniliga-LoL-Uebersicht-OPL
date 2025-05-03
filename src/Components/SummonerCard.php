@@ -2,11 +2,14 @@
 
 namespace App\Components;
 
+use App\Entity\PlayerInTeamInTournament;
+use App\Repository\PlayerInTeamInTournamentRepository;
+
 include_once dirname(__DIR__)."/functions/helper.php";
 
 class SummonerCard {
 	private array $tournament;
-	private array $player;
+	private PlayerInTeamInTournament $playerTT;
 	private array $player_rank;
 	private string $current_split;
 	private string $latest_patch;
@@ -21,7 +24,8 @@ class SummonerCard {
 		$this->tournament = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID = ?",[$tournamentID])->fetch_assoc();
 		$season_1 = $this->tournament["ranked_season"];
 		$split_1 = $this->tournament["ranked_split"];
-		$this->player = $dbcn->execute_query("SELECT * FROM players p JOIN players_in_teams_in_tournament pitit on p.OPL_ID = pitit.OPL_ID_player AND OPL_ID_tournament = ? AND OPL_ID_team = ? LEFT JOIN stats_players_teams_tournaments spit ON p.OPL_ID = spit.OPL_ID_player AND pitit.OPL_ID_team = spit.OPL_ID_team AND pitit.OPL_ID_tournament = spit.OPL_ID_tournament WHERE p.OPL_ID = ?", [$tournamentID, $teamID, $playerID])->fetch_assoc();
+		$playerTTRepo = new PlayerInTeamInTournamentRepository();
+		$this->playerTT = $playerTTRepo->findByPlayerAndTeamAndTournament($playerID, $teamID, $tournamentID);
 		$player_rank = $dbcn->execute_query("SELECT * FROM players_season_rank WHERE OPL_ID_player = ? AND season = ? AND split = ?", [$playerID, $season_1, $split_1])->fetch_assoc();
 		$next_split = get_second_ranked_split_for_tournament($dbcn,$tournamentID);
 		$season_2 = $next_split["season"] ?? null;
@@ -39,7 +43,7 @@ class SummonerCard {
 	public function render(): string
 	{
 		$tournament = $this->tournament;
-		$player = $this->player;
+		$playerTT = $this->playerTT;
 		$player_rank = $this->player_rank;
 		$current_split = $this->current_split;
 		$latest_patch = $this->latest_patch;
