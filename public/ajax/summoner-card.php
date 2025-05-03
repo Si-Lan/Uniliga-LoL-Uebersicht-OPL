@@ -1,4 +1,7 @@
 <?php
+require_once dirname(__DIR__,2)."/src/autoload.php";
+use App\Components\SummonerCard;
+
 include_once dirname(__DIR__,2)."/config/data.php";
 include_once dirname(__DIR__,2)."/src/functions/summoner-card.php";
 include_once dirname(__DIR__,2)."/src/functions/helper.php";
@@ -10,7 +13,8 @@ $teamID = $_SERVER['HTTP_TEAMID'] ?? NULL;
 
 $playerID = $_SERVER['HTTP_PLAYERID'] ?? NULL;
 if ($playerID != NULL) {
-	echo create_summonercard($dbcn, $playerID, $tournamentID, $teamID);
+	$summonerCard = new SummonerCard($dbcn,$playerID,$tournamentID,$teamID);
+	echo $summonerCard->render();
 	exit;
 }
 
@@ -31,7 +35,8 @@ if ($teamID != NULL) {
 	arsort($players_gamecount_by_id);
 	$cards = array();
 	foreach ($players_gamecount_by_id as $player_id=>$player_gamecount) {
-		$cards[] = create_summonercard($dbcn, $player_id, $tournamentID, $teamID, summonercards_collapsed());
+		$summonerCard = new SummonerCard($dbcn,$player_id,$tournamentID,$teamID);
+		$cards[] = $summonerCard->render();
 	}
 	echo json_encode($cards);
 	exit;

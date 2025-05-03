@@ -1,4 +1,7 @@
 <?php
+require_once dirname(__DIR__,2)."/src/autoload.php";
+use App\Components\SummonerCard;
+
 include_once dirname(__DIR__,2)."/config/data.php";
 include_once dirname(__DIR__,2)."/src/functions/fe-functions.php";
 include_once dirname(__DIR__,2)."/src/functions/helper.php";
@@ -124,7 +127,7 @@ if ($type == "summoner-card-container") {
 	$collapsed = summonercards_collapsed();
 	echo "<div class='summoner-card-container'>";
 	foreach ($players_gamecount_by_id as $player_id => $player_gamecount) {
-		echo create_summonercard($dbcn, $player_id, $tourn_ID, $team_ID, $collapsed);
+		$summonerCard = new SummonerCard($dbcn,$player_id,$tourn_ID,$team_ID);
 	}
 	echo "</div>";
 }

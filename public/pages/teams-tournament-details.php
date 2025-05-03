@@ -1,7 +1,7 @@
 <?php
 /** @var mysqli $dbcn  */
 
-include_once dirname(__DIR__,2)."/src/functions/summoner-card.php";
+use App\Components\SummonerCard;
 
 $tournament_url_path = $_GET["tournament"] ?? NULL;
 $teamID = $_GET["team"] ?? NULL;
@@ -183,7 +183,8 @@ echo "
 echo "
                     <div class='summoner-card-container'>";
 foreach ($players_gamecount_by_id as $playerID=>$player_gamecount) {
-	echo create_summonercard($dbcn,$playerID,$tournamentID,$teamID,$collapsed);
+    $summonerCard = new SummonerCard($dbcn,$playerID,$tournamentID,$teamID);
+    echo $summonerCard->render();
 }
 echo "
                     </div> 
