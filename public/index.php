@@ -1,4 +1,5 @@
 <?php
+require_once dirname(__DIR__)."/src/autoload.php";
 include_once dirname(__DIR__)."/config/data.php";
 include_once dirname(__DIR__)."/src/functions/fe-functions.php";
 
