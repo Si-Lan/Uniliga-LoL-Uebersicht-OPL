@@ -1,30 +1,9 @@
 <?php
-/** @var array{
- *     OPL_ID: int
- * } $tournament */
 /** @var \App\Entity\PlayerInTeamInTournament $playerTT */
-/** @var array{
- *     array{rank_tier: string, rank_div: string, rank_LP: int},
- *     array{rank_tier: string, rank_div: string, rank_LP: int}
- * } $player_rank */
-/** @var string $current_split */
+/** @var array<\App\Entity\PlayerSeasonRank> $playerRanks */
+/** @var \App\Entity\RankedSplit $currentSplit */
+/** @var \App\Entity\Patch $latestPatch */
 /** @var bool $collapsed */
-/** @var string $latest_patch */
-
-$player_tier = $player_rank[0]['rank_tier'] ?? null;
-$player_div = $player_rank[0]['rank_div'] ?? null;
-$player_LP = NULL;
-if ($player_tier == "CHALLENGER" || $player_tier == "GRANDMASTER" || $player_tier == "MASTER") {
-	$player_div = "";
-	$player_LP = $player_rank[0]["rank_LP"] ?? null;
-}
-$player_tier_2 = $player_rank[1]['rank_tier'] ?? null;
-$player_div_2 = $player_rank[1]['rank_div'] ?? null;
-$player_LP_2 = NULL;
-if ($player_tier_2 == "CHALLENGER" || $player_tier_2 == "GRANDMASTER" || $player_tier_2 == "MASTER") {
-	$player_div_2 = "";
-	$player_LP_2 = $player_rank[1]["rank_LP"] ?? null;
-}
 
 ?>
 
@@ -44,42 +23,18 @@ if ($player_tier_2 == "CHALLENGER" || $player_tier_2 == "GRANDMASTER" || $player
 			}
 			?>
             <?php
-			if ($current_split == ($player_rank[1]["season"]??"")."-".($player_rank[1]["split"]??"")) {
-				$rank_hide_1 = "display: none";
-				$rank_hide_2 = "";
-			} else {
-				$rank_hide_1 = "";
-				$rank_hide_2 = "display: none";
-			}
-            ?>
-            <?php if ($player_tier != null) {
-				if ($player_LP != NULL) {
-					$player_LP = "(".$player_LP." LP)";
-				} else {
-					$player_LP = "";
-				}
-                $rank_classes = implode(" ", ["card-rank", "split_rank_element", "ranked-split-{$player_rank[0]["season"]}-{$player_rank[0]["split"]}"])?>
-            <div class="<?=$rank_classes?>" style="<?=$rank_hide_1?>">
-                <img class='rank-emblem-mini' src='/ddragon/img/ranks/mini-crests/<?=$player_tier?>.svg' alt='<?=ucfirst($player_tier)?>'>
-                <?=ucfirst($player_tier)." ".$player_div." ".$player_LP?>
+            foreach ($playerRanks as $playerRank) {
+                if ($playerRank != null) {
+                    $rank_classes = implode(" ", ["card-rank", "split_rank_element", "ranked-split-{$playerRank->season}-{$playerRank->split}"]);
+                    $css_style = $currentSplit->equals($playerRank->rankedSplit) ? "" : "display: none";?>
+            <div class="<?=$rank_classes?>" style="<?=$css_style?>">
+                <img class='rank-emblem-mini' src='/ddragon/img/ranks/mini-crests/<?=$playerRank->getRankTierLC()?>.svg' alt='<?=$playerRank->getRankTierUC()?>'>
+                <?=$playerRank->getFullRank()?>
             </div>
             <?php
-            }
-            ?>
-			<?php if ($player_tier_2 != null) {
-				if ($player_LP_2 != NULL) {
-					$player_LP_2 = "(".$player_LP_2." LP)";
-				} else {
-					$player_LP_2 = "";
-				}
-				$rank_classes = implode(" ", ["card-rank", "split_rank_element", "ranked-split-{$player_rank[1]["season"]}-{$player_rank[1]["split"]}"])?>
-                <div class="<?=$rank_classes?>" style="<?=$rank_hide_2?>">
-                    <img class='rank-emblem-mini' src='/ddragon/img/ranks/mini-crests/<?=$player_tier_2?>.svg' alt='<?=ucfirst($player_tier_2)?>'>
-					<?=ucfirst($player_tier_2)." ".$player_div_2." ".$player_LP_2?>
-                </div>
-				<?php
+                }
 			}
-			?>
+            ?>
 
 			<!-- Stats kommt hier noch rein -->
             <div class="played-positions">
@@ -101,7 +56,7 @@ if ($player_tier_2 == "CHALLENGER" || $player_tier_2 == "GRANDMASTER" || $player
 				foreach ($playerTT->getTopChampions(5) as $champion=>$champion_amount) {
                     ?>
                 <div class="champ-single">
-                    <img src='/ddragon/<?=$latest_patch?>/img/champion/<?=$champion?>.webp' alt='<?=$champion?>'>
+                    <img src='/ddragon/<?=$latestPatch->patchNumber?>/img/champion/<?=$champion?>.webp' alt='<?=$champion?>'>
                     <span class="played-amount"><?=$champion_amount['games']?></span>
                 </div>
 				    <?php
