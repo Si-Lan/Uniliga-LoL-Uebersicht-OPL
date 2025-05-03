@@ -16,7 +16,7 @@ class Player {
 		public ?string $puuid,
 		public ?string $rankTier,
 		public ?string $rankDiv,
-		public ?string $rankLp,
+		public ?int $rankLp,
 		public array $matchesGotten
 	) {}
 
