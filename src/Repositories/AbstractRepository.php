@@ -2,7 +2,10 @@
 
 namespace App\Repositories;
 
+use App\Database\DatabaseConnection;
+
 abstract class AbstractRepository {
+	protected \mysqli $dbcn;
 	/**
 	 * Alle möglichen Spalten aus der Datenbank
 	 * @var array<string>
@@ -13,6 +16,10 @@ abstract class AbstractRepository {
 	 * @var array<string>
 	 */
 	protected static array $REQUIRED_DATA_KEYS = [];
+
+	public function __construct() {
+		$this->dbcn = DatabaseConnection::getConnection();
+	}
 
 	protected function normalizeData(array $data): array {
 		$defaults = array_fill_keys(static::$ALL_DATA_KEYS, null);

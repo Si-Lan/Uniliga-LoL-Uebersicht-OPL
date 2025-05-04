@@ -2,7 +2,6 @@
 
 namespace App\Repositories;
 
-use App\Database\DatabaseConnection;
 use App\Entities\PlayerSeasonRank;
 use App\Entities\RankedSplit;
 use App\Utilities\DataParsingHelpers;
@@ -10,13 +9,12 @@ use App\Utilities\DataParsingHelpers;
 class PlayerSeasonRankRepository extends AbstractRepository {
 	use DataParsingHelpers;
 
-	private \mysqli $dbcn;
 	private RankedSplitRepository $rankedSplitRepo;
 	protected static array $ALL_DATA_KEYS = ["OPL_ID_player","season","split","rank_tier","rank_div","rank_LP"];
 	protected static array $REQUIRED_DATA_KEYS = ["OPL_ID_player","season","split"];
 
 	public function __construct() {
-		$this->dbcn = DatabaseConnection::getConnection();
+		parent::__construct();
 		$this->rankedSplitRepo = new RankedSplitRepository();
 	}
 

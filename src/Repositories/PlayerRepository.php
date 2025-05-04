@@ -2,20 +2,14 @@
 
 namespace App\Repositories;
 
-use App\Database\DatabaseConnection;
 use App\Entities\Player;
 use App\Utilities\DataParsingHelpers;
 
 class PlayerRepository extends AbstractRepository {
 	use DataParsingHelpers;
 
-	private \mysqli $dbcn;
 	protected static array $ALL_DATA_KEYS = ["OPL_ID","name","riotID_name","riotID_tag","summonerName","summonerID","PUUID","rank_tier","rank_div","rank_LP","matchesGotten"];
 	protected static array $REQUIRED_DATA_KEYS = ["OPL_ID","name"];
-
-	public function __construct() {
-		$this->dbcn = DatabaseConnection::getConnection();
-	}
 
 	public function mapToEntity(array $data) : Player {
 		$data = $this->normalizeData($data);

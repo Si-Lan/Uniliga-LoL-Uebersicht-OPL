@@ -2,17 +2,11 @@
 
 namespace App\Repositories;
 
-use App\Database\DatabaseConnection;
 use App\Entities\Patch;
 
 class PatchRepository extends AbstractRepository {
-	private \mysqli $dbcn;
 	protected static array $ALL_DATA_KEYS = ["patch","data","champion_webp","item_webp","spell_webp","runes_webp"];
 	protected static array $REQUIRED_DATA_KEYS = ["patch"];
-
-	public function __construct() {
-		$this->dbcn = DatabaseConnection::getConnection();
-	}
 
 	private function mapToEntity(array $data): Patch {
 		$data = $this->normalizeData($data);

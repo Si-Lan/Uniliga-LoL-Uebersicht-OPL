@@ -2,7 +2,6 @@
 
 namespace App\Repositories;
 
-use App\Database\DatabaseConnection;
 use App\Entities\RankedSplit;
 use App\Entities\Tournament;
 use App\Utilities\DataParsingHelpers;
@@ -10,13 +9,8 @@ use App\Utilities\DataParsingHelpers;
 class RankedSplitRepository extends AbstractRepository {
 	use DataParsingHelpers;
 
-	private \mysqli $dbcn;
 	protected static array $ALL_DATA_KEYS = ["season","split","split_start","split_end"];
 	protected static array $REQUIRED_DATA_KEYS = ["season","split","split_start"];
-
-	public function __construct() {
-		$this->dbcn = DatabaseConnection::getConnection();
-	}
 
 	public function mapToEntity(array $data): RankedSplit {
 		$data = $this->normalizeData($data);

@@ -2,20 +2,14 @@
 
 namespace App\Repositories;
 
-use App\Database\DatabaseConnection;
 use App\Entities\Tournament;
 use App\Utilities\DataParsingHelpers;
 
 class TournamentRepository extends AbstractRepository {
 	use DataParsingHelpers;
 
-	private \mysqli $dbcn;
 	protected static array $ALL_DATA_KEYS = ["OPL_ID","OPL_ID_parent","OPL_ID_top_parent","name","split","season","eventType","format","number","numberRangeTo","dateStart","dateEnd","OPL_logo_url","OPL_ID_logo","finished","deactivated","archived","ranked_season","ranked_split"];
 	protected static array $REQUIRED_DATA_KEYS = ["OPL_ID","name"];
-
-	public function __construct() {
-		$this->dbcn = DatabaseConnection::getConnection();
-	}
 
 	public function mapToEntity(array $data): Tournament {
 		$data = $this->normalizeData($data);

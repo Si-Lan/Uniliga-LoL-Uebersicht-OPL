@@ -2,7 +2,6 @@
 
 namespace App\Repositories;
 
-use App\Database\DatabaseConnection;
 use App\Entities\Player;
 use App\Entities\Team;
 use App\Entities\PlayerInTeamInTournament;
@@ -12,7 +11,6 @@ use App\Utilities\DataParsingHelpers;
 class PlayerInTeamInTournamentRepository extends AbstractRepository {
 	use DataParsingHelpers;
 
-	private \mysqli $dbcn;
 	private PlayerRepository $playerRepo;
 	private TeamRepository $teamRepo;
 	private TournamentRepository $tournamentRepo;
@@ -20,7 +18,7 @@ class PlayerInTeamInTournamentRepository extends AbstractRepository {
 	protected static array $REQUIRED_DATA_KEYS = ["OPL_ID","name","OPL_ID_team","OPL_ID_tournament"];
 
 	public function __construct() {
-		$this->dbcn = DatabaseConnection::getConnection();
+		parent::__construct();
 		$this->teamRepo = new TeamRepository();
 		$this->playerRepo = new PlayerRepository();
 		$this->tournamentRepo = new TournamentRepository();

@@ -2,20 +2,14 @@
 
 namespace App\Repositories;
 
-use App\Database\DatabaseConnection;
 use App\Entities\Team;
 use App\Utilities\DataParsingHelpers;
 
 class TeamRepository extends AbstractRepository {
 	use DataParsingHelpers;
 
-	private \mysqli $dbcn;
 	protected static array $ALL_DATA_KEYS = ["OPL_ID","name","shortName","OPL_logo_url","OPL_ID_logo","last_logo_download","avg_rank_tier","avg_rank_div","avg_rank_num"];
 	protected static array $REQUIRED_DATA_KEYS = ["OPL_ID","name"];
-
-	public function __construct() {
-		$this->dbcn = DatabaseConnection::getConnection();
-	}
 
 	public function mapToEntity(array $data): Team {
 		$data = $this->normalizeData($data);
