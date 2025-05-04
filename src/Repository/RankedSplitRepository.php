@@ -3,8 +3,8 @@
 namespace App\Repository;
 
 use App\Database\DatabaseConnection;
-use App\Entity\RankedSplit;
-use App\Entity\Tournament;
+use App\Entities\RankedSplit;
+use App\Entities\Tournament;
 
 class RankedSplitRepository {
 	private \mysqli $dbcn;

@@ -7,10 +7,10 @@ use App\Repository\PlayerSeasonRankRepository;
 use App\Repository\TournamentRepository;
 use App\Repository\PlayerInTeamInTournamentRepository;
 use App\Repository\RankedSplitRepository;
-use App\Entity\PlayerInTeamInTournament;
-use App\Entity\PlayerSeasonRank;
-use App\Entity\RankedSplit;
-use App\Entity\Patch;
+use App\Entities\PlayerInTeamInTournament;
+use App\Entities\PlayerSeasonRank;
+use App\Entities\RankedSplit;
+use App\Entities\Patch;
 
 include_once dirname(__DIR__)."/functions/helper.php";
 

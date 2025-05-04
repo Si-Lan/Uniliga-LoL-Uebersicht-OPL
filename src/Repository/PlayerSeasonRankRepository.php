@@ -3,8 +3,8 @@
 namespace App\Repository;
 
 use App\Database\DatabaseConnection;
-use App\Entity\PlayerSeasonRank;
-use App\Entity\RankedSplit;
+use App\Entities\PlayerSeasonRank;
+use App\Entities\RankedSplit;
 
 class PlayerSeasonRankRepository {
 	private \mysqli $dbcn;

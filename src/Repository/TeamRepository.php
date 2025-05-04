@@ -3,7 +3,7 @@
 namespace App\Repository;
 
 use App\Database\DatabaseConnection;
-use App\Entity\Team;
+use App\Entities\Team;
 
 class TeamRepository {
 	private \mysqli $dbcn;

@@ -3,9 +3,9 @@
 namespace App\Repository;
 
 use App\Database\DatabaseConnection;
-use App\Entity\Player;
-use App\Entity\Team;
-use App\Entity\PlayerInTeamInTournament;
+use App\Entities\Player;
+use App\Entities\Team;
+use App\Entities\PlayerInTeamInTournament;
 
 class PlayerInTeamInTournamentRepository {
 	private \mysqli $dbcn;

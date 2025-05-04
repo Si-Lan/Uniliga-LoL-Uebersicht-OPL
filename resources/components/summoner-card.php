@@ -1,8 +1,8 @@
 <?php
-/** @var \App\Entity\PlayerInTeamInTournament $playerTT */
-/** @var array<\App\Entity\PlayerSeasonRank> $playerRanks */
-/** @var \App\Entity\RankedSplit $currentSplit */
-/** @var \App\Entity\Patch $latestPatch */
+/** @var \App\Entities\PlayerInTeamInTournament $playerTT */
+/** @var array<\App\Entities\PlayerSeasonRank> $playerRanks */
+/** @var \App\Entities\RankedSplit $currentSplit */
+/** @var \App\Entities\Patch $latestPatch */
 /** @var bool $collapsed */
 
 ?>

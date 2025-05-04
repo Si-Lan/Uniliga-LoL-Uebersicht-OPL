@@ -3,7 +3,7 @@
 namespace App\Repository;
 
 use App\Database\DatabaseConnection;
-use App\Entity\Patch;
+use App\Entities\Patch;
 
 class PatchRepository {
 	private \mysqli $dbcn;

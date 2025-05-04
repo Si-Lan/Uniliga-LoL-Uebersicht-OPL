@@ -3,7 +3,7 @@
 namespace App\Repository;
 
 use App\Database\DatabaseConnection;
-use App\Entity\Tournament;
+use App\Entities\Tournament;
 
 class TournamentRepository {
 	private \mysqli $dbcn;

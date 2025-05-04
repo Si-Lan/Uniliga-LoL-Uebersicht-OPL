@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Entity;
+namespace App\Entities;
 
 class PlayerSeasonRank {
 	public function __construct(
