@@ -25,7 +25,7 @@
             <?php
             foreach ($playerRanks as $playerRank) {
                 if ($playerRank != null) {
-                    $rank_classes = implode(" ", ["card-rank", "split_rank_element", "ranked-split-{$playerRank->season}-{$playerRank->split}"]);
+                    $rank_classes = implode(" ", ["card-rank", "split_rank_element", "ranked-split-{$playerRank->rankedSplit->season}-{$playerRank->rankedSplit->split}"]);
                     $css_style = $currentSplit->equals($playerRank->rankedSplit) ? "" : "display: none";?>
             <div class="<?=$rank_classes?>" style="<?=$css_style?>">
                 <img class='rank-emblem-mini' src='/ddragon/img/ranks/mini-crests/<?=$playerRank->getRankTierLC()?>.svg' alt='<?=$playerRank->getRankTierUC()?>'>

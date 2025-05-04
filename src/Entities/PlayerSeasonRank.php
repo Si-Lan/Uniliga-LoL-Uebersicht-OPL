@@ -5,8 +5,6 @@ namespace App\Entities;
 class PlayerSeasonRank {
 	public function __construct(
 		public int $playerId,
-		public int $season,
-		public int $split,
 		public RankedSplit $rankedSplit,
 		public ?string $rankTier,
 		public ?string $rankDiv,

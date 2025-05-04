@@ -25,8 +25,6 @@ class PlayerSeasonRankRepository extends AbstractRepository {
 		}
 		return new PlayerSeasonRank(
 			playerId: (int) $data["OPL_ID_player"],
-			season: (int) $data["season"],
-			split: (int) $data["split"],
 			rankedSplit: $rankedSplit,
 			rankTier: $this->stringOrNull($data["rank_tier"]),
 			rankDiv: $this->stringOrNull($data["rank_div"]),
