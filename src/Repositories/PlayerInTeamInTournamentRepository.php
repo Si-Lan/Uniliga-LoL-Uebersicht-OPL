@@ -30,19 +30,8 @@ class PlayerInTeamInTournamentRepository {
 
 		if (!$playerdata) return null;
 
-		$player = new Player(
-			id: $playerdata['OPL_ID'],
-			name: $playerdata['name'],
-			riotIdName: $playerdata['riotID_name'],
-			riotIdTag: $playerdata['riotID_tag'],
-			summonerName: $playerdata['summonerName'],
-			summonerId: $playerdata['summonerID'],
-			puuid: $playerdata['PUUID'],
-			rankTier: $playerdata['rank_tier'],
-			rankDiv: $playerdata['rank_div'],
-			rankLp: $playerdata['rank_LP'],
-			matchesGotten: json_decode($playerdata['matches_gotten']),
-		);
+		$playerRepo = new PlayerRepository();
+		$player = $playerRepo->createEntityFromData($playerdata);
 
 		$team = new Team(
 			id: $teamdata['OPL_ID'],
