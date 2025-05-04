@@ -24,26 +24,13 @@ class PlayerInTeamInTournamentRepository {
 		$result = $this->dbcn->execute_query($query, [$tournamentId, $teamId, $playerId]);
 		$playerdata = $result->fetch_assoc();
 
-		$query = 'SELECT * FROM teams WHERE OPL_ID = ?';
-		$result = $this->dbcn->execute_query($query, [$teamId]);
-		$teamdata = $result->fetch_assoc();
-
 		if (!$playerdata) return null;
 
 		$playerRepo = new PlayerRepository();
 		$player = $playerRepo->createEntityFromData($playerdata);
 
-		$team = new Team(
-			id: $teamdata['OPL_ID'],
-			name: $teamdata['name'],
-			shortName: $teamdata['shortName'],
-			logoUrl: $teamdata['OPL_logo_url'],
-			logoId: $teamdata['OPL_ID_logo'],
-			lastLogoDownload: $teamdata['last_logo_download'],
-			avgRankTier: $teamdata['avg_rank_tier'],
-			avgRankDiv: $teamdata['avg_rank_div'],
-			avgRankNum: $teamdata['avg_rank_num'],
-		);
+		$teamRepo = new TeamRepository();
+		$team = $teamRepo->findById($teamId);
 
 		$playerTT = new PlayerInTeamInTournament(
 			player: $player,
