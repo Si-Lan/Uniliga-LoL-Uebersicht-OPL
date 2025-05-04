@@ -8,12 +8,14 @@ use App\Entities\Team;
 use App\Entities\PlayerInTeamInTournament;
 use App\Utilities\DataParsingHelpers;
 
-class PlayerInTeamInTournamentRepository {
+class PlayerInTeamInTournamentRepository extends AbstractRepository {
 	use DataParsingHelpers;
 
 	private \mysqli $dbcn;
 	private TeamRepository $teamRepo;
 	private PlayerRepository $playerRepo;
+	protected static array $ALL_DATA_KEYS = ["OPL_ID","name","riotID_name","riotID_tag","summonerName","summonerID","PUUID","rank_tier","rank_div","rank_LP","matchesGotten","OPL_ID_team","OPL_ID_tournament","removed","roles","champions"];
+	protected static array $REQUIRED_DATA_KEYS = ["OPL_ID","name","OPL_ID_team","OPL_ID_tournament"];
 
 	public function __construct() {
 		$this->dbcn = DatabaseConnection::getConnection();
@@ -22,6 +24,7 @@ class PlayerInTeamInTournamentRepository {
 	}
 
 	public function mapToEntity(array $data, ?Player $player = null, ?Team $team = null): PlayerInTeamInTournament {
+		$data = $this->normalizeData($data);
 		if (is_null($player)) {
 			$player = $this->playerRepo->mapToEntity($data);
 		}
@@ -32,8 +35,8 @@ class PlayerInTeamInTournamentRepository {
 			player: $player,
 			team: $team,
 			removed: (bool) $data['removed']??false,
-			roles: $this->decodeJsonOrDefault($data['roles']??null,'{"top":0,"jungle":0,"middle":0,"bottom":0,"utility":0}'),
-			champions: $this->decodeJsonOrDefault($data['champions']??null, "[]")
+			roles: $this->decodeJsonOrDefault($data['roles'],'{"top":0,"jungle":0,"middle":0,"bottom":0,"utility":0}'),
+			champions: $this->decodeJsonOrDefault($data['champions'], "[]")
 		);
 	}
 
@@ -47,8 +50,6 @@ class PlayerInTeamInTournamentRepository {
 		$result = $this->dbcn->execute_query($query, [$tournamentId, $teamId, $playerId]);
 		$playerdata = $result->fetch_assoc();
 
-		$playerTT = $playerdata ? $this->mapToEntity($playerdata) : null;
-
-		return $playerTT;
+		return $playerdata ? $this->mapToEntity($playerdata) : null;
 	}
 }

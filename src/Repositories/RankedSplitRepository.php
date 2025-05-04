@@ -7,21 +7,24 @@ use App\Entities\RankedSplit;
 use App\Entities\Tournament;
 use App\Utilities\DataParsingHelpers;
 
-class RankedSplitRepository {
+class RankedSplitRepository extends AbstractRepository {
 	use DataParsingHelpers;
 
 	private \mysqli $dbcn;
+	protected static array $ALL_DATA_KEYS = ["season","split","split_start","split_end"];
+	protected static array $REQUIRED_DATA_KEYS = ["season","split","split_start"];
 
 	public function __construct() {
 		$this->dbcn = DatabaseConnection::getConnection();
 	}
 
 	public function mapToEntity(array $data): RankedSplit {
+		$data = $this->normalizeData($data);
 		return new RankedSplit(
 			season: (int) $data['season'],
 			split: (int) $data['split'],
 			dateStart: new \DateTimeImmutable($data['split_start']),
-			dateEnd: $this->DateTimeImmutableOrNull($data['split_end']??null),
+			dateEnd: $this->DateTimeImmutableOrNull($data['split_end']),
 		);
 	}
 
@@ -30,9 +33,7 @@ class RankedSplitRepository {
 		$result = $this->dbcn->execute_query("SELECT * FROM lol_ranked_splits WHERE season = ? AND split = ?", [$season, $split]);
 		$data = $result->fetch_assoc();
 
-		$rankedSplit = $data ? $this->mapToEntity($data) : null;
-
-		return $rankedSplit;
+		return $data ? $this->mapToEntity($data) : null;
 	}
 
 	public function findFirstSplitForTournament(Tournament $tournament) : ?RankedSplit {
@@ -43,9 +44,7 @@ class RankedSplitRepository {
 		$result = $this->dbcn->execute_query("SELECT * FROM lol_ranked_splits WHERE season > ? OR (season = ? AND split > ?) ORDER BY season, split LIMIT 1",[$rankedSplit->season,$rankedSplit->season,$rankedSplit->split]);
 		$data = $result->fetch_assoc();
 
-		$rankedSplit = $data ? $this->mapToEntity($data) : null;
-
-		return $rankedSplit;
+		return $data ? $this->mapToEntity($data) : null;
 	}
 	public function findNextSplitForTournament(Tournament $tournament) : ?RankedSplit {
 		$firstSplit = $this->findFirstSplitForTournament($tournament);
