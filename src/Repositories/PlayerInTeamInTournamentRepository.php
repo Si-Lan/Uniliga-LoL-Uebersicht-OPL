@@ -6,14 +6,16 @@ use App\Database\DatabaseConnection;
 use App\Entities\Player;
 use App\Entities\Team;
 use App\Entities\PlayerInTeamInTournament;
+use App\Entities\Tournament;
 use App\Utilities\DataParsingHelpers;
 
 class PlayerInTeamInTournamentRepository extends AbstractRepository {
 	use DataParsingHelpers;
 
 	private \mysqli $dbcn;
-	private TeamRepository $teamRepo;
 	private PlayerRepository $playerRepo;
+	private TeamRepository $teamRepo;
+	private TournamentRepository $tournamentRepo;
 	protected static array $ALL_DATA_KEYS = ["OPL_ID","name","riotID_name","riotID_tag","summonerName","summonerID","PUUID","rank_tier","rank_div","rank_LP","matchesGotten","OPL_ID_team","OPL_ID_tournament","removed","roles","champions"];
 	protected static array $REQUIRED_DATA_KEYS = ["OPL_ID","name","OPL_ID_team","OPL_ID_tournament"];
 
@@ -21,9 +23,10 @@ class PlayerInTeamInTournamentRepository extends AbstractRepository {
 		$this->dbcn = DatabaseConnection::getConnection();
 		$this->teamRepo = new TeamRepository();
 		$this->playerRepo = new PlayerRepository();
+		$this->tournamentRepo = new TournamentRepository();
 	}
 
-	public function mapToEntity(array $data, ?Player $player = null, ?Team $team = null): PlayerInTeamInTournament {
+	public function mapToEntity(array $data, ?Player $player = null, ?Team $team = null, ?Tournament $tournament = null): PlayerInTeamInTournament {
 		$data = $this->normalizeData($data);
 		if (is_null($player)) {
 			$player = $this->playerRepo->mapToEntity($data);
@@ -31,9 +34,13 @@ class PlayerInTeamInTournamentRepository extends AbstractRepository {
 		if (is_null($team)) {
 			$team = $this->teamRepo->findById($data['OPL_ID_team']??null);
 		}
+		if (is_null($tournament)) {
+			$tournament = $this->tournamentRepo->findById($data['OPL_ID_tournament']??null);
+		}
 		return new PlayerInTeamInTournament(
 			player: $player,
 			team: $team,
+			tournament: $tournament,
 			removed: (bool) $data['removed']??false,
 			roles: $this->decodeJsonOrDefault($data['roles'],'{"top":0,"jungle":0,"middle":0,"bottom":0,"utility":0}'),
 			champions: $this->decodeJsonOrDefault($data['champions'], "[]")
