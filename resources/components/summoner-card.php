@@ -16,7 +16,7 @@
 		<div class="card-summoner">
 			<?php if ($playerTT->player->riotIdName != null) { ?>
 			<span class="card-riotid">
-				<span class="league-icon"><?=\App\Helpers\IconRenderer::getLeagueIcon()?></span>
+				<span class="league-icon"><?= \App\Components\Helpers\IconRenderer::getLeagueIcon()?></span>
 				<span class="riot-id"><?=$playerTT->player->riotIdName?><span class="riot-id-tag"><?=$playerTT->player->getRiotIdTagWithPrefix()?></span></span>
 			</span>
 			<?php
@@ -42,7 +42,7 @@
                 foreach ($playerTT->roles as $role=>$role_amount) {
                     if ($role_amount != 0) { ?>
                 <div class="role-single">
-                    <div class="svg-wrapper role"><?=\App\Helpers\IconRenderer::getRoleIcon($role)?></div>
+                    <div class="svg-wrapper role"><?= \App\Components\Helpers\IconRenderer::getRoleIcon($role)?></div>
                     <span class="played-amount"><?=$role_amount?></span>
                 </div>
                         <?php
@@ -64,7 +64,7 @@
                 if (count($playerTT->champions) > 5) {
                 ?>
                 <div class="champ-single">
-                    <?=\App\Helpers\IconRenderer::getMaterialIconDiv("more_horiz")?>
+                    <?= \App\Components\Helpers\IconRenderer::getMaterialIconDiv("more_horiz")?>
                 </div>
                 <?php
 				}
@@ -74,5 +74,5 @@
 		</div>
 	</div>
 	<a href="javascript:void(0)" class="open-playerhistory" onclick="popup_player('<?=$playerTT->player->id?>')">Spieler-Details</a>
-	<a href="https://www.op.gg/summoners/euw/<?=$playerTT->player->getEncodedRiotID()?>" target="_blank" class="op-gg-single"><div class='svg-wrapper op-gg'><?=\App\Helpers\IconRenderer::getOPGGIcon()?></div></a>
+	<a href="https://www.op.gg/summoners/euw/<?=$playerTT->player->getEncodedRiotID()?>" target="_blank" class="op-gg-single"><div class='svg-wrapper op-gg'><?= \App\Components\Helpers\IconRenderer::getOPGGIcon()?></div></a>
 </div>
