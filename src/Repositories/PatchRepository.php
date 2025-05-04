@@ -23,7 +23,7 @@ class PatchRepository {
 		);
 	}
 
-	public function getLatestPatchWithAllData(): Patch {
+	public function findLatestPatchWithAllData(): Patch {
 		$patches = $this->dbcn->execute_query("SELECT * FROM local_patches WHERE data IS TRUE AND champion_webp IS TRUE AND item_webp IS TRUE AND runes_webp IS TRUE AND spell_webp IS TRUE")->fetch_all(MYSQLI_ASSOC);
 		usort($patches, function($a, $b) {
 			return version_compare($a['patch'], $b['patch']);

@@ -5,20 +5,23 @@ namespace App\Repositories;
 use App\Database\DatabaseConnection;
 use App\Entities\RankedSplit;
 use App\Entities\Tournament;
+use App\Utilities\DataParsingHelpers;
 
 class RankedSplitRepository {
+	use DataParsingHelpers;
+
 	private \mysqli $dbcn;
 
 	public function __construct() {
 		$this->dbcn = DatabaseConnection::getConnection();
 	}
 
-	private function createEntityFromData(array $data): RankedSplit {
+	public function createEntityFromData(array $data): RankedSplit {
 		return new RankedSplit(
 			season: (int) $data['season'],
 			split: (int) $data['split'],
 			dateStart: new \DateTimeImmutable($data['split_start']),
-			dateEnd: new \DateTimeImmutable($data['split_end']??""),
+			dateEnd: $this->DateTimeImmutableOrNull($data['split_end']??null),
 		);
 	}
 
@@ -55,7 +58,7 @@ class RankedSplitRepository {
 		}
 	}
 
-	public function getSelectedSplitForTournament(Tournament $tournament) : ?RankedSplit {
+	public function findSelectedSplitForTournament(Tournament $tournament) : ?RankedSplit {
 		if (!isset($_COOKIE["tournament_ranked_splits"])) {
 			// Keine Split-Auswahl gespeichert, nehme ersten Split des Turniers
 			$current_split = $this->findFirstSplitForTournament($tournament);
