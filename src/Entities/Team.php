@@ -9,7 +9,7 @@ class Team {
 		public ?string $shortName,
 		public ?string $logoUrl,
 		public ?int $logoId,
-		public ?string $lastLogoDownload,
+		public ?\DateTimeImmutable $lastLogoDownload,
 		public ?string $avgRankTier,
 		public ?string $avgRankDiv,
 		public ?string $avgRankNum,
