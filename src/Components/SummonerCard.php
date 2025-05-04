@@ -2,11 +2,11 @@
 
 namespace App\Components;
 
-use App\Repository\PatchRepository;
-use App\Repository\PlayerSeasonRankRepository;
-use App\Repository\TournamentRepository;
-use App\Repository\PlayerInTeamInTournamentRepository;
-use App\Repository\RankedSplitRepository;
+use App\Repositories\PatchRepository;
+use App\Repositories\PlayerSeasonRankRepository;
+use App\Repositories\TournamentRepository;
+use App\Repositories\PlayerInTeamInTournamentRepository;
+use App\Repositories\RankedSplitRepository;
 use App\Entities\PlayerInTeamInTournament;
 use App\Entities\PlayerSeasonRank;
 use App\Entities\RankedSplit;
