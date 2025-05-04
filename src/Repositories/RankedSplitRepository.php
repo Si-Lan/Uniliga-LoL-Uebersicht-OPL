@@ -16,7 +16,7 @@ class RankedSplitRepository {
 		$this->dbcn = DatabaseConnection::getConnection();
 	}
 
-	public function createEntityFromData(array $data): RankedSplit {
+	public function mapToEntity(array $data): RankedSplit {
 		return new RankedSplit(
 			season: (int) $data['season'],
 			split: (int) $data['split'],
@@ -30,7 +30,7 @@ class RankedSplitRepository {
 		$result = $this->dbcn->execute_query("SELECT * FROM lol_ranked_splits WHERE season = ? AND split = ?", [$season, $split]);
 		$data = $result->fetch_assoc();
 
-		$rankedSplit = $data ? $this->createEntityFromData($data) : null;
+		$rankedSplit = $data ? $this->mapToEntity($data) : null;
 
 		return $rankedSplit;
 	}
@@ -43,7 +43,7 @@ class RankedSplitRepository {
 		$result = $this->dbcn->execute_query("SELECT * FROM lol_ranked_splits WHERE season > ? OR (season = ? AND split > ?) ORDER BY season, split LIMIT 1",[$rankedSplit->season,$rankedSplit->season,$rankedSplit->split]);
 		$data = $result->fetch_assoc();
 
-		$rankedSplit = $data ? $this->createEntityFromData($data) : null;
+		$rankedSplit = $data ? $this->mapToEntity($data) : null;
 
 		return $rankedSplit;
 	}

@@ -36,11 +36,11 @@ class SummonerCard {
 		$this->currentSplit = $rankedSplitRepo->findSelectedSplitForTournament($tournament);
 
 		$playerTTRepo = new PlayerInTeamInTournamentRepository();
-		$this->playerTT = $playerTTRepo->findByPlayerAndTeamAndTournament($playerID, $teamID, $tournamentID);
+		$this->playerTT = $playerTTRepo->findByPlayerIdAndTeamIdAndTournamentId($playerID, $teamID, $tournamentID);
 
 		$playerSeasonRankRepo = new PlayerSeasonRankRepository();
-		$this->playerSeasonRank1 = $playerSeasonRankRepo->findByPlayerAndSeasonAndSplit($playerID, $rankedSplit1->season, $rankedSplit1->split);
-		$this->playerSeasonRank2 = ($rankedSplit2 != null) ? $playerSeasonRankRepo->findByPlayerAndSeasonAndSplit($playerID, $rankedSplit2->season, $rankedSplit2->split) : null;
+		$this->playerSeasonRank1 = $playerSeasonRankRepo->findByPlayerIdAndRankedSplit($playerID, $rankedSplit1);
+		$this->playerSeasonRank2 = ($rankedSplit2 != null) ? $playerSeasonRankRepo->findByPlayerIdAndRankedSplit($playerID, $rankedSplit2) : null;
 
 		$patchRepo = new PatchRepository();
 		$this->latestPatch = $patchRepo->findLatestPatchWithAllData();

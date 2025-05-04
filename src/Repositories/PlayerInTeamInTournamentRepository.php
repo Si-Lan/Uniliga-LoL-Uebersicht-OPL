@@ -6,15 +6,38 @@ use App\Database\DatabaseConnection;
 use App\Entities\Player;
 use App\Entities\Team;
 use App\Entities\PlayerInTeamInTournament;
+use App\Utilities\DataParsingHelpers;
 
 class PlayerInTeamInTournamentRepository {
+	use DataParsingHelpers;
+
 	private \mysqli $dbcn;
+	private TeamRepository $teamRepo;
+	private PlayerRepository $playerRepo;
 
 	public function __construct() {
 		$this->dbcn = DatabaseConnection::getConnection();
+		$this->teamRepo = new TeamRepository();
+		$this->playerRepo = new PlayerRepository();
 	}
 
-	public function findByPlayerAndTeamAndTournament(int $playerId, int $teamId, int $tournamentId): ?PlayerInTeamInTournament {
+	public function mapToEntity(array $data, ?Player $player = null, ?Team $team = null): PlayerInTeamInTournament {
+		if (is_null($player)) {
+			$player = $this->playerRepo->mapToEntity($data);
+		}
+		if (is_null($team)) {
+			$team = $this->teamRepo->findById($data['OPL_ID_team']??null);
+		}
+		return new PlayerInTeamInTournament(
+			player: $player,
+			team: $team,
+			removed: (bool) $data['removed']??false,
+			roles: $this->decodeJsonOrDefault($data['roles']??null,'{"top":0,"jungle":0,"middle":0,"bottom":0,"utility":0}'),
+			champions: $this->decodeJsonOrDefault($data['champions']??null, "[]")
+		);
+	}
+
+	public function findByPlayerIdAndTeamIdAndTournamentId(int $playerId, int $teamId, int $tournamentId): ?PlayerInTeamInTournament {
 		$query = '
 			SELECT *
 				FROM players p
@@ -24,21 +47,7 @@ class PlayerInTeamInTournamentRepository {
 		$result = $this->dbcn->execute_query($query, [$tournamentId, $teamId, $playerId]);
 		$playerdata = $result->fetch_assoc();
 
-		if (!$playerdata) return null;
-
-		$playerRepo = new PlayerRepository();
-		$player = $playerRepo->createEntityFromData($playerdata);
-
-		$teamRepo = new TeamRepository();
-		$team = $teamRepo->findById($teamId);
-
-		$playerTT = new PlayerInTeamInTournament(
-			player: $player,
-			team: $team,
-			removed: (bool) $playerdata['removed'],
-			roles: json_decode($playerdata['roles'], true),
-			champions: json_decode($playerdata['champions'], true)
-		);
+		$playerTT = $playerdata ? $this->mapToEntity($playerdata) : null;
 
 		return $playerTT;
 	}

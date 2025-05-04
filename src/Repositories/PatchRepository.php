@@ -12,7 +12,7 @@ class PatchRepository {
 		$this->dbcn = DatabaseConnection::getConnection();
 	}
 
-	private function createEntityFromData(array $data): Patch {
+	private function mapToEntity(array $data): Patch {
 		return new Patch(
 			patchNumber: (string) $data['patch'],
 			data: (bool) $data['data'] ?? false,
@@ -29,7 +29,7 @@ class PatchRepository {
 			return version_compare($a['patch'], $b['patch']);
 		});
 
-		$latestPatch = $this->createEntityFromData(end($patches));
+		$latestPatch = $this->mapToEntity(end($patches));
 		return $latestPatch;
 	}
 }

@@ -15,7 +15,7 @@ class PlayerRepository {
 		$this->dbcn = DatabaseConnection::getConnection();
 	}
 
-	public function createEntityFromData(array $data) : Player {
+	public function mapToEntity(array $data) : Player {
 		return new Player(
 			id: (int) $data['OPL_ID'],
 			name: (string) $data['name'],
@@ -35,7 +35,7 @@ class PlayerRepository {
 		$result = $this->dbcn->execute_query("SELECT * FROM players WHERE OPL_ID = ?", [$playerId]);
 		$data = $result->fetch_assoc();
 
-		$player = $data ? $this->createEntityFromData($data) : null;
+		$player = $data ? $this->mapToEntity($data) : null;
 
 		return $player;
 	}

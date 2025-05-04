@@ -15,7 +15,7 @@ class TournamentRepository {
 		$this->dbcn = DatabaseConnection::getConnection();
 	}
 
-	public function createEntityFromData(array $data): Tournament {
+	public function mapToEntity(array $data): Tournament {
 		return new Tournament(
 			id: (int) $data['OPL_ID'],
 			idParent: $this->intOrNull($data['OPL_ID_parent']??null),
@@ -43,7 +43,7 @@ class TournamentRepository {
 		$result = $this->dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID = ?", [$tournamentId]);
 		$data = $result->fetch_assoc();
 
-		$tournament = $data ? $this->createEntityFromData($data) : null;
+		$tournament = $data ? $this->mapToEntity($data) : null;
 
 		return $tournament;
 	}
