@@ -14,12 +14,12 @@ class PatchRepository {
 
 	private function createEntityFromData(array $data): Patch {
 		return new Patch(
-			patchNumber: $data['patch'],
-			data: (bool) $data['data'],
-			championWebp: (bool) $data['champion_webp'],
-			itemWebp: (bool) $data['item_webp'],
-			spellWebp: (bool) $data['spell_webp'],
-			runesWebp: (bool) $data['runes_webp']
+			patchNumber: (string) $data['patch'],
+			data: (bool) $data['data'] ?? false,
+			championWebp: (bool) $data['champion_webp'] ?? false,
+			itemWebp: (bool) $data['item_webp'] ?? false,
+			spellWebp: (bool) $data['spell_webp'] ?? false,
+			runesWebp: (bool) $data['runes_webp'] ?? false
 		);
 	}
 
