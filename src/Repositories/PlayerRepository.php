@@ -4,10 +4,10 @@ namespace App\Repositories;
 
 use App\Database\DatabaseConnection;
 use App\Entities\Player;
-use App\Utilities\NullableCastTrait;
+use App\Utilities\DataParsingHelpers;
 
 class PlayerRepository {
-	use NullableCastTrait;
+	use DataParsingHelpers;
 
 	private \mysqli $dbcn;
 
@@ -19,15 +19,15 @@ class PlayerRepository {
 		return new Player(
 			id: (int) $data['OPL_ID'],
 			name: (string) $data['name'],
-			riotIdName: $this->nullableString($data['riotID_name']??null),
-			riotIdTag: $this->nullableString($data['riotID_tag']??null),
-			summonerName: $this->nullableString($data['summonerName']??null),
-			summonerId: $this->nullableString($data['summonerID']??null),
-			puuid: $this->nullableString($data['PUUID']??null),
-			rankTier: $this->nullableString($data['rank_tier']??null),
-			rankDiv: $this->nullableString($data['rank_div']??null),
-			rankLp: $this->nullableInt($data['rank_LP']??null),
-			matchesGotten: json_validate($data['matches_gotten']??"[]") ? json_decode($data['matches_gotten']) : [],
+			riotIdName: $this->stringOrNull($data['riotID_name']??null),
+			riotIdTag: $this->stringOrNull($data['riotID_tag']??null),
+			summonerName: $this->stringOrNull($data['summonerName']??null),
+			summonerId: $this->stringOrNull($data['summonerID']??null),
+			puuid: $this->stringOrNull($data['PUUID']??null),
+			rankTier: $this->stringOrNull($data['rank_tier']??null),
+			rankDiv: $this->stringOrNull($data['rank_div']??null),
+			rankLp: $this->intOrNull($data['rank_LP']??null),
+			matchesGotten: $this->decodeJsonOrDefault($data['matchesGotten']??null, "[]")
 		);
 	}
 

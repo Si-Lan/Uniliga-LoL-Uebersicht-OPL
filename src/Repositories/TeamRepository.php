@@ -4,10 +4,10 @@ namespace App\Repositories;
 
 use App\Database\DatabaseConnection;
 use App\Entities\Team;
-use App\Utilities\NullableCastTrait;
+use App\Utilities\DataParsingHelpers;
 
 class TeamRepository {
-	use NullableCastTrait;
+	use DataParsingHelpers;
 
 	private \mysqli $dbcn;
 
@@ -19,13 +19,13 @@ class TeamRepository {
 		return new Team(
 			id: (int) $data['OPL_ID'],
 			name: (string) $data['name'],
-			shortName: $this->nullableString($data['shortName']),
-			logoUrl: $this->nullableString($data['OPL_logo_url']),
-			logoId: $this->nullableInt($data['OPL_ID_logo']),
-			lastLogoDownload: $this->nullableDateTime($data['last_logo_download']),
-			avgRankTier: $this->nullableString($data['avg_rank_tier']),
-			avgRankDiv: $this->nullableString($data['avg_rank_div']),
-			avgRankNum: $this->nullableFloat($data['avg_rank_num']),
+			shortName: $this->stringOrNull($data['shortName']),
+			logoUrl: $this->stringOrNull($data['OPL_logo_url']),
+			logoId: $this->intOrNull($data['OPL_ID_logo']),
+			lastLogoDownload: $this->DateTimeImmutableOrNull($data['last_logo_download']),
+			avgRankTier: $this->stringOrNull($data['avg_rank_tier']),
+			avgRankDiv: $this->stringOrNull($data['avg_rank_div']),
+			avgRankNum: $this->floatOrNull($data['avg_rank_num']),
 		);
 	}
 

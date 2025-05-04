@@ -2,24 +2,31 @@
 
 namespace App\Utilities;
 
-trait NullableCastTrait {
+trait DataParsingHelpers {
 
-	protected function nullableString(mixed $value): ?string {
+	protected function stringOrNull(mixed $value): ?string {
 		return is_null($value) ? null : (string) $value;
 	}
 
-	protected function nullableInt(mixed $value): ?int {
+	protected function intOrNull(mixed $value): ?int {
 		return is_null($value) ? null : (int) $value;
 	}
 
-	protected function nullableFloat(mixed $value): ?float {
+	protected function floatOrNull(mixed $value): ?float {
 		return is_null($value) ? null : (float) $value;
 	}
 
-	protected function nullableDateTime(mixed $value): ?\DateTimeImmutable {
+	protected function DateTimeImmutableOrNull(mixed $value): ?\DateTimeImmutable {
 		return is_null($value) ? null : new \DateTimeImmutable($value);
 	}
 
+	/**
+	 * Dekodiert einen JSON String oder gibt eingegebenes default Array zurück
+	 *
+	 * @param string|null $json JSON-String zum dekodieren
+	 * @param array|string $default JSON-String oder Array für Standardrückgabe
+	 * @return array
+	 */
 	protected function decodeJsonOrDefault(string|null $json, array|string $default = []): array {
 		if (is_null($json) || !json_validate($json)) {
 			if (is_array($default)) {
@@ -34,6 +41,12 @@ trait NullableCastTrait {
 		return json_decode($json, true);
 	}
 
+	/**
+	 * Dekodiert einen JSON String oder gibt null zurück
+	 *
+	 * @param string|null $json JSON-String zum dekodieren
+	 * @return array|null
+	 */
 	protected function decodeJsonOrNull(string|null $json): array|null {
 		return (is_null($json) || !json_validate($json)) ? null : json_decode($json, true);
 	}
