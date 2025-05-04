@@ -35,7 +35,7 @@ class PlayerInTeamInTournamentRepository {
 		$playerTT = new PlayerInTeamInTournament(
 			player: $player,
 			team: $team,
-			removed: $playerdata['removed'],
+			removed: (bool) $playerdata['removed'],
 			roles: json_decode($playerdata['roles'], true),
 			champions: json_decode($playerdata['champions'], true)
 		);
