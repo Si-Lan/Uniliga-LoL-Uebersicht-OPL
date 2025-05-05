@@ -1,7 +1,7 @@
 <?php
 /** @var mysqli $dbcn  */
 
-use App\Components\SummonerCard;
+use App\Components\Cards\SummonerCard;
 
 $tournament_url_path = $_GET["tournament"] ?? NULL;
 $teamID = $_GET["team"] ?? NULL;

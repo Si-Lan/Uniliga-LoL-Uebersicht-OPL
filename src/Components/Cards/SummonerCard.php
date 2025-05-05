@@ -1,18 +1,18 @@
 <?php
 
-namespace App\Components;
+namespace App\Components\Cards;
 
-use App\Repositories\PatchRepository;
-use App\Repositories\PlayerSeasonRankRepository;
-use App\Repositories\TournamentRepository;
-use App\Repositories\PlayerInTeamInTournamentRepository;
-use App\Repositories\RankedSplitRepository;
+use App\Entities\Patch;
 use App\Entities\PlayerInTeamInTournament;
 use App\Entities\PlayerSeasonRank;
 use App\Entities\RankedSplit;
-use App\Entities\Patch;
+use App\Repositories\PatchRepository;
+use App\Repositories\PlayerInTeamInTournamentRepository;
+use App\Repositories\PlayerSeasonRankRepository;
+use App\Repositories\RankedSplitRepository;
+use App\Repositories\TournamentRepository;
 
-include_once dirname(__DIR__)."/functions/helper.php";
+include_once dirname(__DIR__,2)."/functions/helper.php";
 
 class SummonerCard {
 	private PlayerInTeamInTournament $playerTT;
@@ -56,7 +56,7 @@ class SummonerCard {
 		$collapsed = $this->collapsed;
 
 		ob_start();
-		include dirname(__DIR__,2).'/resources/components/summoner-card.php';
+		include dirname(__DIR__,3).'/resources/components/cards/summoner-card.php';
 		return ob_get_clean();
 	}
 }

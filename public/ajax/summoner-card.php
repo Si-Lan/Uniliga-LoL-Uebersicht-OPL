@@ -1,6 +1,7 @@
 <?php
 require_once dirname(__DIR__,2)."/src/autoload.php";
-use App\Components\SummonerCard;
+
+use App\Components\Cards\SummonerCard;
 
 include_once dirname(__DIR__,2)."/config/data.php";
 include_once dirname(__DIR__,2)."/src/functions/summoner-card.php";
