@@ -3,6 +3,7 @@
 namespace App\Repositories;
 
 use App\Entities\Tournament;
+use App\Enums\EventType;
 use App\Utilities\DataParsingHelpers;
 
 class TournamentRepository extends AbstractRepository {
@@ -11,12 +12,22 @@ class TournamentRepository extends AbstractRepository {
 	protected static array $ALL_DATA_KEYS = ["OPL_ID","OPL_ID_parent","OPL_ID_top_parent","name","split","season","eventType","format","number","numberRangeTo","dateStart","dateEnd","OPL_logo_url","OPL_ID_logo","finished","deactivated","archived","ranked_season","ranked_split"];
 	protected static array $REQUIRED_DATA_KEYS = ["OPL_ID","name"];
 
-	public function mapToEntity(array $data): Tournament {
+	public function mapToEntity(array $data, ?Tournament $directParentTournament=null, ?Tournament $rootTournament=null): Tournament {
 		$data = $this->normalizeData($data);
+		if (is_null($directParentTournament)) {
+			if (!is_null($data["OPL_ID_parent"]) && $data["eventType"] !== EventType::TOURNAMENT->value) {
+				$directParentTournament = $this->findById($data["OPL_ID_parent"]);
+			}
+		}
+		if (is_null($rootTournament)) {
+			if (!is_null($data["OPL_ID_top_parent"]) && $data["eventType"] !== EventType::TOURNAMENT->value) {
+				$rootTournament = $this->findById($data["OPL_ID_top_parent"]);
+			}
+		}
 		return new Tournament(
 			id: (int) $data['OPL_ID'],
-			idParent: $this->intOrNull($data['OPL_ID_parent']),
-			idTopParent: $this->intOrNull($data['OPL_ID_top_parent']),
+			directParentTournament: $directParentTournament,
+			rootTournament: $rootTournament,
 			name: (string) $data['name'],
 			split: $this->stringOrNull($data['split']),
 			season: $this->intOrNull($data['season']),

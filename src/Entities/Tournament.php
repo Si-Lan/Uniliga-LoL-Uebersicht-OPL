@@ -8,8 +8,8 @@ use App\Enums\EventType;
 class Tournament {
 	/**
 	 * @param int $id
-	 * @param int|null $idParent
-	 * @param int|null $idTopParent
+	 * @param Tournament|null $directParentTournament
+	 * @param Tournament|null $rootTournament
 	 * @param string $name
 	 * @param 'sommmer'|'winter'|null $split
 	 * @param int|null $season
@@ -29,8 +29,8 @@ class Tournament {
 	 */
 	public function __construct(
 		public int $id,
-		public ?int $idParent,
-		public ?int $idTopParent,
+		public ?Tournament $directParentTournament,
+		public ?Tournament $rootTournament,
 		public string $name,
 		public ?string $split,
 		public ?int $season,
