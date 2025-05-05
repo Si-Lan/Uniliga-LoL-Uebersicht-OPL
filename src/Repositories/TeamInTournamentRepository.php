@@ -59,9 +59,9 @@ class TeamInTournamentRepository extends AbstractRepository {
 		$ranks = [];
 		foreach ($data as $rank) {
 			$ranks[] = new RankAverage(
-				$this->stringOrNull($rank['rank_tier']),
-				$this->stringOrNull($rank['rank_div']),
-				$this->floatOrNull($rank['rank_num']),
+				$this->stringOrNull($rank['avg_rank_tier']),
+				$this->stringOrNull($rank['avg_rank_div']),
+				$this->floatOrNull($rank['avg_rank_num'])
 			);
 		}
 		return $ranks;
