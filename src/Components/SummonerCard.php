@@ -22,7 +22,6 @@ class SummonerCard {
 	private Patch $latestPatch;
 	private bool $collapsed;
 	public function __construct(
-		\mysqli $dbcn,
 		int $playerID,
 		int $tournamentID,
 		int $teamID,

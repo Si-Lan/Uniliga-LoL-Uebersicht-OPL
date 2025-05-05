@@ -183,7 +183,7 @@ echo "
 echo "
                     <div class='summoner-card-container'>";
 foreach ($players_gamecount_by_id as $playerID=>$player_gamecount) {
-    $summonerCard = new SummonerCard($dbcn,$playerID,$tournamentID,$teamID);
+    $summonerCard = new SummonerCard($playerID,$tournamentID,$teamID);
     echo $summonerCard->render();
 }
 echo "
