@@ -48,4 +48,58 @@ class Tournament {
 		public ?int $rankedSeason,
 		public ?int $rankedSplit
 	) {}
+
+	public function isEventWithStanding():bool {
+		if ($this->eventType === EventType::GROUP) return true;
+		if ($this->eventType === EventType::LEAGUE && $this->format === EventFormat::SWISS) return true;
+		if ($this->eventType === EventType::WILDCARD) return true;
+		if ($this->eventType === EventType::PLAYOFFS) return true;
+		return false;
+	}
+
+	public function getNumberFormatted():string {
+		if (is_null($this->number)) return "";
+		if (is_null($this->numberRangeTo)) return $this->number;
+		return $this->number."-".$this->numberRangeTo;
+	}
+	public function getShortenedTournamentName():string {
+		return preg_replace("/LoL\s/i","",$this->name);
+	}
+
+	public function getFullSubStageName():string {
+		if ($this->eventType === EventType::TOURNAMENT) {
+			return $this->name;
+		}
+		if ($this->eventType === EventType::LEAGUE) {
+			return "Liga ".$this->getNumberFormatted();
+		}
+		if ($this->eventType === EventType::GROUP) {
+			return "Liga ".$this->directParentTournament->getNumberFormatted()." / Gruppe ".$this->getNumberFormatted();
+		}
+		if ($this->eventType === EventType::WILDCARD) {
+			return "Wildcard-Turnier Liga ".$this->getNumberFormatted();
+		}
+		if ($this->eventType === EventType::PLAYOFFS) {
+			return "Playoffs Liga".$this->getNumberFormatted();
+		}
+		return "";
+	}
+	public function getShortSubStageName():string {
+		if ($this->eventType === EventType::TOURNAMENT) {
+			return $this->getShortenedTournamentName();
+		}
+		if ($this->eventType === EventType::LEAGUE) {
+			return "Liga ".$this->getNumberFormatted();
+		}
+		if ($this->eventType === EventType::GROUP) {
+			return "Gruppe ".$this->getNumberFormatted();
+		}
+		if ($this->eventType === EventType::WILDCARD) {
+			return "Wildcard Liga ".$this->getNumberFormatted();
+		}
+		if ($this->eventType === EventType::PLAYOFFS) {
+			return "Playoffs Liga".$this->getNumberFormatted();
+		}
+		return "";
+	}
 }
