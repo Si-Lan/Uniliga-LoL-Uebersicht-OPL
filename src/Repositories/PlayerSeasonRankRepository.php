@@ -4,6 +4,7 @@ namespace App\Repositories;
 
 use App\Entities\PlayerSeasonRank;
 use App\Entities\RankedSplit;
+use App\Entities\ValueObjects\RankForPlayer;
 use App\Utilities\DataParsingHelpers;
 
 class PlayerSeasonRankRepository extends AbstractRepository {
@@ -26,9 +27,11 @@ class PlayerSeasonRankRepository extends AbstractRepository {
 		return new PlayerSeasonRank(
 			playerId: (int) $data["OPL_ID_player"],
 			rankedSplit: $rankedSplit,
-			rankTier: $this->stringOrNull($data["rank_tier"]),
-			rankDiv: $this->stringOrNull($data["rank_div"]),
-			rankLp: $this->intOrNull($data["rank_LP"])
+			rank: new RankForPlayer(
+				$this->stringOrNull($data["rank_tier"]),
+				$this->stringOrNull($data["rank_div"]),
+				$this->intOrNull($data["rank_LP"])
+			)
 		);
 	}
 

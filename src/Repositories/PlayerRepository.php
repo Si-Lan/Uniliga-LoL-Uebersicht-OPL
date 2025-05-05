@@ -3,6 +3,7 @@
 namespace App\Repositories;
 
 use App\Entities\Player;
+use App\Entities\ValueObjects\RankForPlayer;
 use App\Utilities\DataParsingHelpers;
 
 class PlayerRepository extends AbstractRepository {
@@ -21,9 +22,11 @@ class PlayerRepository extends AbstractRepository {
 			summonerName: $this->stringOrNull($data['summonerName']),
 			summonerId: $this->stringOrNull($data['summonerID']),
 			puuid: $this->stringOrNull($data['PUUID']),
-			rankTier: $this->stringOrNull($data['rank_tier']),
-			rankDiv: $this->stringOrNull($data['rank_div']),
-			rankLp: $this->intOrNull($data['rank_LP']),
+			rank: new RankForPlayer(
+				$this->stringOrNull($data['rank_tier']),
+				$this->stringOrNull($data['rank_div']),
+				$this->intOrNull($data['rank_LP'])
+			),
 			matchesGotten: $this->decodeJsonOrDefault($data['matchesGotten'], "[]")
 		);
 	}

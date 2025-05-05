@@ -2,6 +2,8 @@
 
 namespace App\Entities;
 
+use App\Entities\ValueObjects\RankAverage;
+
 class Team {
 	public function __construct(
 		public int $id,
@@ -10,8 +12,6 @@ class Team {
 		public ?string $logoUrl,
 		public ?int $logoId,
 		public ?\DateTimeImmutable $lastLogoDownload,
-		public ?string $avgRankTier,
-		public ?string $avgRankDiv,
-		public ?string $avgRankNum,
+		public RankAverage $avgRank
 	) {}
 }

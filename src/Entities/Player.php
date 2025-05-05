@@ -2,6 +2,8 @@
 
 namespace App\Entities;
 
+use App\Entities\ValueObjects\RankForPlayer;
+
 class Player {
 	/**
 	 * @param array<string> $matchesGotten
@@ -14,9 +16,7 @@ class Player {
 		public ?string $summonerName,
 		public ?string $summonerId,
 		public ?string $puuid,
-		public ?string $rankTier,
-		public ?string $rankDiv,
-		public ?int $rankLp,
+		public RankForPlayer $rank,
 		public array $matchesGotten
 	) {}
 

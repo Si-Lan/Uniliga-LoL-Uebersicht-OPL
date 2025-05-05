@@ -3,6 +3,7 @@
 namespace App\Repositories;
 
 use App\Entities\Team;
+use App\Entities\ValueObjects\RankAverage;
 use App\Utilities\DataParsingHelpers;
 
 class TeamRepository extends AbstractRepository {
@@ -20,9 +21,11 @@ class TeamRepository extends AbstractRepository {
 			logoUrl: $this->stringOrNull($data['OPL_logo_url']),
 			logoId: $this->intOrNull($data['OPL_ID_logo']),
 			lastLogoDownload: $this->DateTimeImmutableOrNull($data['last_logo_download']),
-			avgRankTier: $this->stringOrNull($data['avg_rank_tier']),
-			avgRankDiv: $this->stringOrNull($data['avg_rank_div']),
-			avgRankNum: $this->floatOrNull($data['avg_rank_num']),
+			avgRank: new RankAverage(
+				$this->stringOrNull($data['avg_rank_tier']),
+				$this->stringOrNull($data['avg_rank_div']),
+				$this->floatOrNull($data['avg_rank_num']),
+			)
 		);
 	}
 

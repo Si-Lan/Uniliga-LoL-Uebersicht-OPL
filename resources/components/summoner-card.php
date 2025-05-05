@@ -28,8 +28,8 @@
                     $rank_classes = implode(" ", ["card-rank", "split_rank_element", "ranked-split-{$playerRank->rankedSplit->season}-{$playerRank->rankedSplit->split}"]);
                     $css_style = $currentSplit->equals($playerRank->rankedSplit) ? "" : "display: none";?>
             <div class="<?=$rank_classes?>" style="<?=$css_style?>">
-                <img class='rank-emblem-mini' src='/ddragon/img/ranks/mini-crests/<?=$playerRank->getRankTierLC()?>.svg' alt='<?=$playerRank->getRankTierUC()?>'>
-                <?=$playerRank->getFullRank()?>
+                <img class='rank-emblem-mini' src='/ddragon/img/ranks/mini-crests/<?=$playerRank->rank->getRankTierLowercase()?>.svg' alt='<?=$playerRank->rank->getRankTier()?>'>
+                <?=$playerRank->rank->getRank()?>
             </div>
             <?php
                 }
