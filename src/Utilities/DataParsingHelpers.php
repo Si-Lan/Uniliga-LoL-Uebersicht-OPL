@@ -2,6 +2,9 @@
 
 namespace App\Utilities;
 
+use App\Enums\EventFormat;
+use App\Enums\EventType;
+
 trait DataParsingHelpers {
 
 	protected function stringOrNull(mixed $value): ?string {
@@ -18,6 +21,14 @@ trait DataParsingHelpers {
 
 	protected function DateTimeImmutableOrNull(mixed $value): ?\DateTimeImmutable {
 		return is_null($value) ? null : new \DateTimeImmutable($value);
+	}
+
+	protected function EventTypeEnumOrNull(mixed $value): ?EventType {
+		return is_null($value) ? null : EventType::tryFrom($value);
+	}
+
+	protected function EventFormatEnumOrNull(mixed $value): ?EventFormat {
+		return is_null($value) ? null : EventFormat::tryFrom($value);
 	}
 
 	/**

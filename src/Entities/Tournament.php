@@ -2,6 +2,9 @@
 
 namespace App\Entities;
 
+use App\Enums\EventFormat;
+use App\Enums\EventType;
+
 class Tournament {
 	/**
 	 * @param int $id
@@ -10,8 +13,8 @@ class Tournament {
 	 * @param string $name
 	 * @param 'sommmer'|'winter'|null $split
 	 * @param int|null $season
-	 * @param 'tournament'|'league'|'group'|'wildcard'|'playoffs'|null $event
-	 * @param 'round-robin'|'single-elimination'|'double-elimination'|'swiss'|null $format
+	 * @param EventType|null $eventType
+	 * @param EventFormat|null $format
 	 * @param string|null $number
 	 * @param string|null $numberRangeTo
 	 * @param \DateTimeImmutable|null $dateStart
@@ -31,8 +34,8 @@ class Tournament {
 		public string $name,
 		public ?string $split,
 		public ?int $season,
-		public ?string $event,
-		public ?string $format,
+		public ?EventType $eventType,
+		public ?EventFormat $format,
 		public ?string $number,
 		public ?string $numberRangeTo,
 		public ?\DateTimeImmutable $dateStart,
