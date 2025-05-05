@@ -12,7 +12,7 @@ use App\Repositories\PlayerSeasonRankRepository;
 use App\Repositories\RankedSplitRepository;
 use App\Repositories\TournamentRepository;
 
-include_once dirname(__DIR__,2)."/functions/helper.php";
+include_once BASE_PATH."/src/functions/helper.php";
 
 class SummonerCard {
 	private PlayerInTeamInTournament $playerTT;
@@ -56,7 +56,7 @@ class SummonerCard {
 		$collapsed = $this->collapsed;
 
 		ob_start();
-		include dirname(__DIR__,3).'/resources/components/cards/summoner-card.php';
+		include BASE_PATH.'/resources/components/cards/summoner-card.php';
 		return ob_get_clean();
 	}
 }

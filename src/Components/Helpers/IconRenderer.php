@@ -3,11 +3,11 @@
 namespace App\Components\Helpers;
 
 class IconRenderer {
-	protected const string ICON_PATH = __DIR__.'/../../../public/icons/';
-	protected const string MATERIAL_ICON_PATH = __DIR__.'/../../../public/icons/material/';
-	protected const string IMG_PATH = __DIR__.'/../../../public/img/';
-	protected const string ROLE_ICON_PATH = __DIR__.'/../../../public/ddragon/img/positions/';
-	protected const string RANK_ICON_PATH = __DIR__.'/../../../public/ddragon/img/ranks/mini-crests/';
+	protected const string ICON_PATH = BASE_PATH.'/public/icons/';
+	protected const string MATERIAL_ICON_PATH = BASE_PATH.'/public/icons/material/';
+	protected const string IMG_PATH = BASE_PATH.'/public/img/';
+	protected const string ROLE_ICON_PATH = BASE_PATH.'/public/ddragon/img/positions/';
+	protected const string RANK_ICON_PATH = BASE_PATH.'/public/ddragon/img/ranks/mini-crests/';
 
 	public static function getMaterialIcon(string $name): string
 	{
