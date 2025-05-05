@@ -29,7 +29,6 @@ class TeamInTournamentStageRepository extends AbstractRepository {
 		if (is_null($tournament)) {
 			$tournament = $this->tournamentRepo->findById($data['OPL_ID_group']);
 		}
-		$data = $this->normalizeData($data);
 		return new TeamInTournamentStage(
 			team: $team,
 			tournamentStage: $tournament,
