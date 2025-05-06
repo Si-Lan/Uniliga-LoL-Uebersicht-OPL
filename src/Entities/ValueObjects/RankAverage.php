@@ -11,7 +11,7 @@ class RankAverage extends Rank {
 		parent::__construct($rankTier, $rankDiv);
 	}
 
-	public function getRank(): string {
+	public function getRankWithEloNum(): string {
 		if (is_null($this->rankTier)) return "";
 		$roundedNum = round($this->rankNum,2);
 		if (in_array($this->rankTier, self::APEX_TIERS)) {
