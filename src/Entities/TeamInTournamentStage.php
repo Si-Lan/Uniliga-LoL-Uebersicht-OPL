@@ -6,6 +6,7 @@ class TeamInTournamentStage {
 	public function __construct(
 		public Team $team,
 		public Tournament $tournamentStage,
+		public TeamInTournament $teamInRootTournament,
 		public ?int $standing,
 		public ?int $played,
 		public ?int $wins,

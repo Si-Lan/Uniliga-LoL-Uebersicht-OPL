@@ -29,4 +29,11 @@ class TeamInTournament {
 		public ?int $avgWinTime,
 		public array $ranks
 	) {}
+
+	public function hasAnAvgRank():bool {
+		foreach ($this->ranks as $rank) {
+			if ($rank->rankTier !== null) return true;
+		}
+		return false;
+	}
 }

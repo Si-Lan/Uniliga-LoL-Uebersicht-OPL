@@ -68,7 +68,7 @@ class TeamInTournamentRepository extends AbstractRepository {
 		return $ranks;
 	}
 
-	public function findByTeamIdAndTournamentId(int $teamId, int $tournamentId): ?TeamInTournament {
+	private function findInternal(int $teamId, int $tournamentId, ?Team $team=null, ?Tournament $tournament=null): ?TeamInTournament {
 		$query = '
 			SELECT *
 				FROM stats_teams_in_tournaments
@@ -76,6 +76,26 @@ class TeamInTournamentRepository extends AbstractRepository {
 		$result = $this->dbcn->execute_query($query, [$teamId, $tournamentId]);
 		$data = $result->fetch_assoc();
 
-		return $data ? $this->mapToEntity($data) : null;
+		return $data ? $this->mapToEntity($data, $team, $tournament) : null;
+	}
+
+	public function findByTeamIdAndTournamentId(int $teamId, int $tournamentId): ?TeamInTournament {
+		return $this->findInternal($teamId, $tournamentId);
+	}
+	public function findByTeamAndTournament(Team $team, Tournament $tournament): ?TeamInTournament {
+		return $this->findInternal($team->id, $tournament->id, $team, $tournament);
+	}
+
+	public function findOrGetEmptyByTeamAndTournament(Team $team, Tournament $tournament): TeamInTournament {
+		$teamInTournament = $this->findInternal($team->id, $tournament->id, $team, $tournament);
+		if (is_null($teamInTournament)) {
+			$emptyData = [
+				"OPL_ID_team" => $team->id,
+				"OPL_ID_tournament" => $tournament->id
+			];
+			return $this->mapToEntity($emptyData,$team,$tournament);
+		}
+
+		return $teamInTournament;
 	}
 }
