@@ -31,7 +31,7 @@ class RankedSplitRepository extends AbstractRepository {
 	}
 
 	public function findFirstSplitForTournament(Tournament $tournament) : ?RankedSplit {
-		return $this->findBySeasonAndSplit($tournament->rankedSeason, $tournament->rankedSplit);
+		return $this->findBySeasonAndSplit($tournament->rankedSplit->season, $tournament->rankedSplit->split);
 	}
 
 	public function findNextSplit(RankedSplit $rankedSplit) : ?RankedSplit {

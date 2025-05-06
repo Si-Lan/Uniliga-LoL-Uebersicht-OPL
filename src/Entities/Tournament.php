@@ -24,8 +24,7 @@ class Tournament {
 	 * @param bool $finished
 	 * @param bool $deactivated
 	 * @param bool $archived
-	 * @param int|null $rankedSeason
-	 * @param int|null $rankedSplit
+	 * @param RankedSplit|null $rankedSplit
 	 * @param int|null $mostCommonBestOf
 	 */
 	public function __construct(
@@ -46,8 +45,7 @@ class Tournament {
 		public bool $finished,
 		public bool $deactivated,
 		public bool $archived,
-		public ?int $rankedSeason,
-		public ?int $rankedSplit,
+		public ?RankedSplit $rankedSplit,
 		public ?int $mostCommonBestOf
 	) {}
 
