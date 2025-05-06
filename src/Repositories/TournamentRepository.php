@@ -24,6 +24,7 @@ class TournamentRepository extends AbstractRepository {
 				$rootTournament = $this->findById($data["OPL_ID_top_parent"]);
 			}
 		}
+		$mostCommonBestOf = $this->dbcn->execute_query("SELECT bestOf, SUM(bestOf) AS amount FROM matchups WHERE OPL_ID_tournament = ? GROUP BY bestOf ORDER BY amount DESC",[$data["OPL_ID"]])->fetch_column();
 		return new Tournament(
 			id: (int) $data['OPL_ID'],
 			directParentTournament: $directParentTournament,
@@ -43,7 +44,8 @@ class TournamentRepository extends AbstractRepository {
 			deactivated: (bool) $data['deactivated']??false,
 			archived: (bool) $data['archived']??false,
 			rankedSeason: $this->intOrNull($data['ranked_season']),
-			rankedSplit: $this->intOrNull($data['ranked_split'])
+			rankedSplit: $this->intOrNull($data['ranked_split']),
+			mostCommonBestOf: $this->intOrNull($mostCommonBestOf)
 		);
 	}
 
