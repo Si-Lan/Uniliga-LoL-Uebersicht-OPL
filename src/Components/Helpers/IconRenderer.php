@@ -9,27 +9,24 @@ class IconRenderer {
 	protected const string ROLE_ICON_PATH = BASE_PATH.'/public/ddragon/img/positions/';
 	protected const string RANK_ICON_PATH = BASE_PATH.'/public/ddragon/img/ranks/mini-crests/';
 
-	public static function getMaterialIcon(string $name): string
-	{
-		$path = self::MATERIAL_ICON_PATH . $name . '.svg';
-		if (!file_exists($path)) {
-			return "";
-		}
-		return file_get_contents($path);
+	private static function createMaterialSymbolClasses(array $additionalClasses): string {
+		return implode(' ', array_filter(["material-symbol", ...$additionalClasses]));
 	}
-	public static function getMaterialIconDiv(string $name): string {
+
+	public static function getMaterialIcon(string $name): string {
 		$path = self::MATERIAL_ICON_PATH . $name . '.svg';
-		if (!file_exists($path)) {
-			return "<div class='material-symbol'></div>";
-		}
-		return "<div class='material-symbol'>".file_get_contents($path)."</div>";
+		return file_exists($path) ? file_get_contents($path) : '';
 	}
-	public static function getMaterialIconSpan(string $name): string {
-		$path = self::MATERIAL_ICON_PATH . $name . '.svg';
-		if (!file_exists($path)) {
-			return "<span class='material-symbol'></span>";
-		}
-		return "<span class='material-symbol'>".file_get_contents($path)."</span>";
+	private static function getWrappedMaterialIcon(string $name, string $tag = 'span', ?array $addClasses = []): string {
+		$classes = self::createMaterialSymbolClasses($addClasses);
+		$content = self::getMaterialIcon($name);
+		return "<$tag class='$classes'>$content</$tag>";
+	}
+	public static function getMaterialIconDiv(string $name, ?array $addClasses = []): string {
+		return self::getWrappedMaterialIcon($name, 'div', $addClasses);
+	}
+	public static function getMaterialIconSpan(string $name, ?array $addClasses = []): string {
+		return self::getWrappedMaterialIcon($name, 'span', $addClasses);
 	}
 
 	public static function getRankIcon(string $rank): string {
