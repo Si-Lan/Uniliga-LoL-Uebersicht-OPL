@@ -41,6 +41,12 @@ class PlayerSeasonRankRepository extends AbstractRepository {
 		);
 	}
 
+	/**
+	 * @param Player|int $player Player-Objekt oder Spieler-ID
+	 * @param string|RankedSplit $seasonOrRankedSplit Season oder RankedSplit-Objekt
+	 * @param string|null $split Split (nur notwendig, wenn Season als String übergeben wird)
+	 * @return PlayerSeasonRank|null
+	 */
 	public function findPlayerSeasonRank(Player|int $player, string|RankedSplit $seasonOrRankedSplit, ?string $split = null): ?PlayerSeasonRank {
 		$playerId = $player instanceof Player ? $player->id : $player;
 		$playerObj = $player instanceof Player ? $player : null;
