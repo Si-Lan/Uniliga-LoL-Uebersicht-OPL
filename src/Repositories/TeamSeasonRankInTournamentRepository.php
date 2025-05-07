@@ -24,7 +24,7 @@ class TeamSeasonRankInTournamentRepository extends AbstractRepository {
 		$this->teamRepo = new TeamRepository();
 	}
 
-	public function mapToEntity(array $data, ?Team $team, ?Tournament $tournament, ?RankedSplit $rankedSplit): TeamSeasonRankInTournament {
+	public function mapToEntity(array $data, ?Team $team=null, ?Tournament $tournament=null, ?RankedSplit $rankedSplit=null): TeamSeasonRankInTournament {
 		$data = $this->normalizeData($data);
 		if (is_null($team)) {
 			$team = $this->teamRepo->findById($data['OPL_ID_team']);
@@ -78,5 +78,23 @@ class TeamSeasonRankInTournamentRepository extends AbstractRepository {
 		$data = $result->fetch_assoc();
 
 		return $data ? $this->mapToEntity($data, team: $teamObj, tournament: $tournamentObj, rankedSplit: $rankedSplitObj) : null;
+	}
+
+	public function findAllByTeamAndTournament(Team|int $team, Tournament|int $tournament): array {
+		$teamId = $team instanceof Team ? $team->id : $team;
+		$teamObj = $team instanceof Team ? $team : null;
+
+		$tournamentId = $tournament instanceof Tournament ? $tournament->id : $tournament;
+		$tournamentObj = $tournament instanceof Tournament ? $tournament : null;
+
+		$query = 'SELECT * FROM teams_season_rank_in_tournament WHERE OPL_ID_team = ? AND OPL_ID_tournament = ?';
+		$result = $this->dbcn->execute_query($query, [$teamId,$tournamentId]);
+		$data = $result->fetch_all(MYSQLI_ASSOC);
+
+		$ranks = [];
+		foreach ($data as $rankData) {
+			$ranks[] = $this->mapToEntity($rankData, $teamObj, $tournamentObj);
+		}
+		return $ranks;
 	}
 }
