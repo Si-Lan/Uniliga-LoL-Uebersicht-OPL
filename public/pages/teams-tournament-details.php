@@ -1,6 +1,9 @@
 <?php
 /** @var mysqli $dbcn  */
 
+use App\Repositories\TournamentRepository;
+use App\Repositories\TeamRepository;
+
 use App\Components\Cards\SummonerCard;
 
 $tournament_url_path = $_GET["tournament"] ?? NULL;
@@ -21,6 +24,11 @@ if ($tournament == NULL) {
 	echo "</html>";
 	exit();
 }
+
+$teamRepo = new TeamRepository();
+$tournamentRepo = new TournamentRepository();
+$teamObj = $teamRepo->findById($teamID);
+$rootTournamentObj = $tournamentRepo->findById($tournamentID);
 
 $team_groups = $dbcn->execute_query("SELECT * FROM teams JOIN teams_in_tournaments tit ON teams.OPL_ID = tit.OPL_ID_team WHERE OPL_ID = ? AND OPL_ID_group IN (SELECT OPL_ID FROM tournaments WHERE (eventType='group' OR (eventType = 'league' AND format = 'swiss') OR eventType='wildcard') AND OPL_ID_top_parent = ?) ORDER BY OPL_ID_group", [$teamID, $tournamentID])->fetch_all(MYSQLI_ASSOC);
 $team_playoffs = $dbcn->execute_query("SELECT * FROM teams JOIN teams_in_tournaments tit ON teams.OPL_ID = tit.OPL_ID_team WHERE OPL_ID = ? AND OPL_ID_group IN (SELECT OPL_ID FROM tournaments WHERE eventType='playoffs' AND OPL_ID_parent = ?)", [$teamID, $tournamentID])->fetch_all(MYSQLI_ASSOC);
@@ -222,7 +230,9 @@ if (count($team_groups)>1) {
 
 echo "<div class='inner-content'>";
 
-echo create_standings($dbcn,$tournamentID,$group['OPL_ID'],$teamID);
+$tournamentStageObj = $tournamentRepo->findById($group['OPL_ID']);
+$standings = new \App\Components\Standings\StandingsTable($tournamentStageObj,$teamObj);
+echo $standings->render();
 
 echo "<div class='matches'>
                      <div class='title'><h3>Spiele</h3></div>";

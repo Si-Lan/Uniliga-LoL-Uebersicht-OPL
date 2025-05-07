@@ -14,4 +14,14 @@ class Team {
 		public ?\DateTimeImmutable $lastLogoDownload,
 		public RankAverage $avgRank
 	) {}
+
+	public function getLogoUrlForColorMode() : ?string {
+		if (is_null($this->logoUrl)) return null;
+		$baseUrl = "/img/team_logos/{$this->logoId}/";
+		if (isset($_COOKIE['lightmode']) && $_COOKIE['lightmode'] === "1") {
+			return $baseUrl."logo_light.webp";
+		} else {
+			return $baseUrl."logo.webp";
+		}
+	}
 }
