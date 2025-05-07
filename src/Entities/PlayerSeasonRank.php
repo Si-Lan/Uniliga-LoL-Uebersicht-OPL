@@ -6,7 +6,7 @@ use App\Entities\ValueObjects\RankForPlayer;
 
 class PlayerSeasonRank {
 	public function __construct(
-		public int $playerId,
+		public Player $player,
 		public RankedSplit $rankedSplit,
 		public RankForPlayer $rank,
 	) {}

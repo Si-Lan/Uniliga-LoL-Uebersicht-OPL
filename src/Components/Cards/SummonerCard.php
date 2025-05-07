@@ -38,8 +38,8 @@ class SummonerCard {
 		$this->playerTT = $playerTTRepo->findByPlayerIdAndTeamIdAndTournamentId($playerID, $teamID, $tournamentID);
 
 		$playerSeasonRankRepo = new PlayerSeasonRankRepository();
-		$this->playerSeasonRank1 = $playerSeasonRankRepo->findByPlayerIdAndRankedSplit($playerID, $rankedSplit1);
-		$this->playerSeasonRank2 = ($rankedSplit2 != null) ? $playerSeasonRankRepo->findByPlayerIdAndRankedSplit($playerID, $rankedSplit2) : null;
+		$this->playerSeasonRank1 = $playerSeasonRankRepo->findPlayerSeasonRank($playerID, $rankedSplit1);
+		$this->playerSeasonRank2 = ($rankedSplit2 != null) ? $playerSeasonRankRepo->findPlayerSeasonRank($playerID, $rankedSplit2) : null;
 
 		$patchRepo = new PatchRepository();
 		$this->latestPatch = $patchRepo->findLatestPatchWithAllData();
