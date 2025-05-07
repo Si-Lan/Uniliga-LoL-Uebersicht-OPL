@@ -11,4 +11,8 @@ class TeamSeasonRankInTournament {
 		public RankedSplit $rankedSplit,
 		public RankAverage $rank,
 	) {}
+
+	public function isSelectedByUser():bool {
+		return $this->tournament->userSelectedRankedSplit->equals($this->rankedSplit);
+	}
 }
