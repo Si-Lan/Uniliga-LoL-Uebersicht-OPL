@@ -41,7 +41,6 @@ class TeamInTournamentRepository extends AbstractRepository {
 			gamesPlayed: $this->intOrNull($data['games_played']),
 			gamesWon: $this->intOrNull($data['games_won']),
 			avgWinTime: $this->intOrNull($data['avg_win_time']),
-			ranks: $ranks
 		);
 	}
 

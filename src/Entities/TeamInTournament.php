@@ -2,8 +2,6 @@
 
 namespace App\Entities;
 
-use App\Entities\ValueObjects\RankAverage;
-
 class TeamInTournament {
 	/**
 	 * @param Team $team
@@ -15,7 +13,6 @@ class TeamInTournament {
 	 * @param int|null $gamesPlayed
 	 * @param int|null $gamesWon
 	 * @param int|null $avgWinTime
-	 * @param array<RankAverage> $ranks
 	 */
 	public function __construct(
 		public Team $team,
@@ -26,14 +23,6 @@ class TeamInTournament {
 		public ?array $champsBannedAgainst,
 		public ?int $gamesPlayed,
 		public ?int $gamesWon,
-		public ?int $avgWinTime,
-		public array $ranks
+		public ?int $avgWinTime
 	) {}
-
-	public function hasAnAvgRank():bool {
-		foreach ($this->ranks as $rank) {
-			if ($rank->rankTier !== null) return true;
-		}
-		return false;
-	}
 }
