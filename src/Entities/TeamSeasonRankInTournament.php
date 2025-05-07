@@ -1,0 +1,14 @@
+<?php
+
+namespace App\Entities;
+
+use App\Entities\ValueObjects\RankAverage;
+
+class TeamSeasonRankInTournament {
+	public function __construct(
+		public Team $team,
+		public Tournament $tournament,
+		public RankedSplit $rankedSplit,
+		public RankAverage $rank,
+	) {}
+}
