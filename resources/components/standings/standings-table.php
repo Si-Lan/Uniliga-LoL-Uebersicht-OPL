@@ -44,7 +44,7 @@
         <?php
         $prevStanding = 0;
         foreach ($this->teamsInTournamentStage as $teamInTournamentStage) {
-            $teamSelected = $teamInTournamentStage->team->id === $this->selectedTeam->id;
+            $teamSelected = $this->selectedTeam && $teamInTournamentStage->team->id === $this->selectedTeam->id;
             echo new \App\Components\Standings\StandingsRow($teamInTournamentStage,$prevStanding,$teamSelected);
             $prevStanding = $teamInTournamentStage->standing;
         }
