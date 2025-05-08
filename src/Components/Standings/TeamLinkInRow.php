@@ -20,15 +20,14 @@ class TeamLinkInRow {
 		$this->href = "/turnier/{$teamInTournamentStage->tournamentStage->rootTournament->id}/team/{$teamInTournamentStage->team->id}";
 
 		$this->teamNameTargetHtml = PageLinkWrapper::makeTarget(
-			"<span class='team-name' title='{$teamInTournamentStage->team->name}'>{$teamInTournamentStage->team->name}</span>"
+			"<span class='team-name' title='{$teamInTournamentStage->teamInRootTournament->name}'>{$teamInTournamentStage->teamInRootTournament->name}</span>"
 		);
 
-		if ($this->teamInTournamentStage->team->logoId != null && file_exists(BASE_PATH."/public".$this->teamInTournamentStage->team->getLogoUrlForColorMode())) {
-			$src = $this->teamInTournamentStage->team->getLogoUrlForColorMode();
-		} else {
-			$src = "data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs%3D";
+		$logoSrc = $this->teamInTournamentStage->teamInRootTournament->getLogoUrl();
+		if (!$logoSrc || !file_exists(BASE_PATH."/public".$logoSrc)) {
+			$logoSrc = "data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs%3D";
 		}
-		$this->teamLogoHtml = "<img class='color-switch' src='$src' alt='Teamlogo'>";
+		$this->teamLogoHtml = "<img class='color-switch' src='$logoSrc' alt='Teamlogo'>";
 
 		foreach ($this->teamSeasonRanksInTournament as $teamSeasonRankInTournament) {
 			if (!$teamSeasonRankInTournament->hasRank()) continue;

@@ -30,7 +30,10 @@ class TeamInTournamentRepository extends AbstractRepository {
 		if (is_null($tournament)) {
 			$tournament = $this->tournamentRepo->findById($data['OPL_ID_tournament']);
 		}
-		$ranks = $this->findRanksInTournament($data['OPL_ID_team'], $data['OPL_ID_tournament']);
+		$endDateFormatted = $tournament->dateEnd->format("Y-m-d");
+		$teamLogoDirInTournament = $this->dbcn->execute_query("SELECT dir_key FROM team_logo_history WHERE OPL_ID_team = ? AND (update_time < ? OR ? IS NULL) ORDER BY update_time DESC", [$team->id,$endDateFormatted,$endDateFormatted])->fetch_column();
+		if ($teamLogoDirInTournament === false) $teamLogoDirInTournament = null;
+		$teamNameInTournament = $this->dbcn->execute_query("SELECT name FROM team_name_history WHERE OPL_ID_team = ? AND (update_time < ? OR ? IS NULL) ORDER BY update_time DESC", [$team->id,$endDateFormatted,$endDateFormatted])->fetch_column();
 		return new TeamInTournament(
 			team: $team,
 			tournament: $tournament,
@@ -41,6 +44,8 @@ class TeamInTournamentRepository extends AbstractRepository {
 			gamesPlayed: $this->intOrNull($data['games_played']),
 			gamesWon: $this->intOrNull($data['games_won']),
 			avgWinTime: $this->intOrNull($data['avg_win_time']),
+			logoHistoryDir: $this->intOrNull($teamLogoDirInTournament),
+			name: $this->stringOrNull($teamNameInTournament)
 		);
 	}
 

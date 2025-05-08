@@ -9,7 +9,7 @@ use App\Utilities\DataParsingHelpers;
 class TeamRepository extends AbstractRepository {
 	use DataParsingHelpers;
 
-	protected static array $ALL_DATA_KEYS = ["OPL_ID","name","shortName","OPL_logo_url","OPL_ID_logo","last_logo_download","avg_rank_tier","avg_rank_div","avg_rank_num"];
+	protected static array $ALL_DATA_KEYS = ["OPL_ID","name","shortName","OPL_ID_logo","last_logo_download","avg_rank_tier","avg_rank_div","avg_rank_num"];
 	protected static array $REQUIRED_DATA_KEYS = ["OPL_ID","name"];
 
 	public function mapToEntity(array $data): Team {
@@ -18,7 +18,6 @@ class TeamRepository extends AbstractRepository {
 			id: (int) $data['OPL_ID'],
 			name: (string) $data['name'],
 			shortName: $this->stringOrNull($data['shortName']),
-			logoUrl: $this->stringOrNull($data['OPL_logo_url']),
 			logoId: $this->intOrNull($data['OPL_ID_logo']),
 			lastLogoDownload: $this->DateTimeImmutableOrNull($data['last_logo_download']),
 			avgRank: new RankAverage(
