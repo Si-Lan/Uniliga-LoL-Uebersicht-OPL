@@ -11,7 +11,7 @@ class StandingsRow {
 	public array $teamSeasonRanksInTournament;
 	public function __construct(
 		public TeamInTournamentStage $teamInTournamentStage,
-		public int $previousRowStanding = 0,
+		public ?int $previousRowStanding = 0,
 		public bool $teamSelected = false
 	) {
 		$teamSeasonRankInTournamentRepo = new TeamSeasonRankInTournamentRepository;
