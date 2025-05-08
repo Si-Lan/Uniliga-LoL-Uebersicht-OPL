@@ -2458,13 +2458,8 @@ function switch_team_event(page, event_id, team_id, playoff_id = null,tournament
 		if ($('.content-loading-indicator').length === 0) $('body').append("<div class='content-loading-indicator'></div>");
 		let page_updates = [];
 		page_updates.push(
-			fetch(`/ajax/create-page-elements`, {
+			fetch(`/ajax/fragment/standingsTable?tournamentId=${event_id}&teamId=${team_id}`, {
 				method: "GET",
-				headers: {
-					"type": "standings",
-					"groupid": event_id,
-					"teamid": team_id,
-				},
 				signal: team_event_switch_control.signal,
 			})
 				.then(res => res.text())

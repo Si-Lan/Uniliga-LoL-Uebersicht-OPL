@@ -68,4 +68,11 @@ class TournamentRepository extends AbstractRepository {
 
 		return $data ? $this->mapToEntity($data) : null;
 	}
+
+	public function findStandingsEventById(int $tournamentId) : ?Tournament {
+		$result = $this->dbcn->execute_query("SELECT * FROM events_with_standings WHERE OPL_ID = ?", [$tournamentId]);
+		$data = $result->fetch_assoc();
+
+		return $data ? $this->mapToEntity($data) : null;
+	}
 }
