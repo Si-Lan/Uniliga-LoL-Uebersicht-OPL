@@ -1,6 +1,7 @@
 <?php
 /** @var mysqli $dbcn  */
 
+use App\Components\Standings\StandingsTable;
 use App\Repositories\TournamentRepository;
 use App\Repositories\TeamRepository;
 
@@ -231,8 +232,7 @@ if (count($team_groups)>1) {
 echo "<div class='inner-content'>";
 
 $tournamentStageObj = $tournamentRepo->findById($group['OPL_ID']);
-$standings = new \App\Components\Standings\StandingsTable($tournamentStageObj,$teamObj);
-echo $standings->render();
+echo new StandingsTable($tournamentStageObj,$teamObj);
 
 echo "<div class='matches'>
                      <div class='title'><h3>Spiele</h3></div>";

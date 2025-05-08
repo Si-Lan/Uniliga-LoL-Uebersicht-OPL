@@ -13,18 +13,6 @@ $dbcn = create_dbcn();
 $type = $_SERVER["HTTP_TYPE"] ?? $_REQUEST["type"] ?? NULL;
 if ($type == NULL) exit;
 
-if ($type == "standings") {
-	$group_ID = $_SERVER["HTTP_GROUPID"] ?? $_REQUEST['group'] ?? NULL;
-	$team_ID = $_SERVER["HTTP_TEAMID"] ?? $_REQUEST['team'] ?? NULL;
-	if ($group_ID == NULL) {
-		exit;
-	}
-
-	$group = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID = ?", [$group_ID])->fetch_assoc();
-	if (!($group["eventType"] == "group" || ($group["eventType"] == "league" && $group["format"] == "swiss") || $group["eventType"] == "wildcard")) exit;
-	$tourn_ID = $group["OPL_ID_top_parent"];
-	echo create_standings($dbcn, $tourn_ID, $group_ID, $team_ID);
-}
 if ($type == "matchbutton") {
 	$match_ID = $_SERVER["HTTP_MATCHID"] ?? $_REQUEST['match'] ?? NULL;
 	$team_ID = $_SERVER["HTTP_TEAMID"] ?? $_REQUEST['team'] ?? NULL;

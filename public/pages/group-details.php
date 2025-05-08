@@ -1,8 +1,15 @@
 <?php
 /** @var mysqli $dbcn  */
 
+use App\Components\Standings\StandingsTable;
+use App\Repositories\TournamentRepository;
+
+$tournamentRepo = new TournamentRepository();
+
 $tournament_url_path = $_GET["tournament"] ?? NULL;
 $groupID= $_GET["group"] ?? NULL;
+
+$groupObj = $tournamentRepo->findById($groupID);
 
 $tournamentID = $tournament_url_path;
 if (preg_match("/^(winter|sommer)([0-9]{2})$/",strtolower($tournamentID),$url_path_matches)) {
@@ -98,7 +105,7 @@ echo "
               </div>";
 
 echo "<main>";
-echo create_standings($dbcn,$tournamentID,$groupID);
+echo new StandingsTable($groupObj);
 echo create_matchlist($dbcn,$tournamentID,$groupID);
 echo "</main>";
 

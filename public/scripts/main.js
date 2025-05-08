@@ -1674,12 +1674,8 @@ async function user_update_group(button) {
 	loading_width = 0;
 	button.style.setProperty("--update-loading-bar-width", "0");
 
-	fetch(`/ajax/create-page-elements.php`, {
+	fetch(`/ajax/fragment/standingsTable?tournamentId=${group_ID}`, {
 		method: "GET",
-		headers: {
-			type: "standings",
-			groupid: group_ID,
-		}
 	})
 		.then(res => res.text())
 		.then(standings => {
@@ -2019,13 +2015,8 @@ async function user_update_team(button) {
 	groupButtons.prop("disabled", true);
 
 	let fetch_array = [];
-	fetch_array.push(fetch(`/ajax/create-page-elements.php`, {
+	fetch_array.push(fetch(`/ajax/fragment/standingsTable?tournamentId=${activeGroupID}&teamId=${team_ID}`, {
 		method: "GET",
-		headers: {
-			type: "standings",
-			groupID: activeGroupID,
-			teamid: team_ID,
-		}
 	})
 		.then(res => res.text())
 		.then(standings => {
@@ -2204,13 +2195,8 @@ async function user_update_match(button) {
 	groupButtons.prop("disabled", true);
 	let fetch_array = [];
 
-	if (activeGroupID === group_ID) fetch_array.push(fetch(`/ajax/create-page-elements.php`, {
+	if (activeGroupID === group_ID) fetch_array.push(fetch(`/ajax/fragment/standingsTable?tournamentId=${activeGroupID}&teamId=${team_ID}`, {
 		method: "GET",
-		headers: {
-			type: "standings",
-			groupID: activeGroupID,
-			teamid: team_ID,
-		}
 	})
 		.then(res => res.text())
 		.then(standings => {
