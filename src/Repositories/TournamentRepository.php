@@ -21,11 +21,6 @@ class TournamentRepository extends AbstractRepository {
 
 	public function mapToEntity(array $data, ?Tournament $directParentTournament=null, ?Tournament $rootTournament=null, ?RankedSplit $rankedSplit=null): Tournament {
 		$data = $this->normalizeData($data);
-		if (is_null($directParentTournament)) {
-			if (!is_null($data["OPL_ID_parent"]) && $data["eventType"] !== EventType::TOURNAMENT->value) {
-				$directParentTournament = $this->findById($data["OPL_ID_parent"]);
-			}
-		}
 		if (is_null($rootTournament)) {
 			if (!is_null($data["OPL_ID_top_parent"]) && $data["eventType"] !== EventType::TOURNAMENT->value) {
 				$rootTournament = $this->findById($data["OPL_ID_top_parent"]);
@@ -33,9 +28,17 @@ class TournamentRepository extends AbstractRepository {
 		}
 		$rankedSplit = !is_null($rootTournament) ? $rootTournament->rankedSplit : $rankedSplit;
 		if (is_null($rankedSplit) && !is_null($data["ranked_season"])) {
-				$rankedSplit = $this->rankedSplitRepo->findBySeasonAndSplit($data["ranked_season"], $data["ranked_split"]);
+			$rankedSplit = $this->rankedSplitRepo->findBySeasonAndSplit($data["ranked_season"], $data["ranked_split"]);
 		}
-		$mostCommonBestOf = $this->dbcn->execute_query("SELECT bestOf, SUM(bestOf) AS amount FROM matchups WHERE OPL_ID_tournament = ? GROUP BY bestOf ORDER BY amount DESC",[$data["OPL_ID"]])->fetch_column();
+		if (is_null($directParentTournament)) {
+			if (!is_null($data["OPL_ID_parent"]) && $data["eventType"] !== EventType::TOURNAMENT->value) {
+				if (!is_null($rootTournament) && $data["OPL_ID_parent"] === $rootTournament->id) {
+					$directParentTournament = $rootTournament;
+				} else {
+					$directParentTournament = $this->findById($data["OPL_ID_parent"], rootParent: $rootTournament);
+				}
+			}
+		}
 		$tournament = new Tournament(
 			id: (int) $data['OPL_ID'],
 			directParentTournament: $directParentTournament,
@@ -56,23 +59,29 @@ class TournamentRepository extends AbstractRepository {
 			archived: (bool) $data['archived']??false,
 			rankedSplit: $rankedSplit,
 			userSelectedRankedSplit: null,
-			mostCommonBestOf: $this->intOrNull($mostCommonBestOf)
+			mostCommonBestOf: null
 		);
-		$tournament->userSelectedRankedSplit = $this->rankedSplitRepo->findSelectedSplitForTournament($tournament);
+		if ($data["eventType"] !== EventType::TOURNAMENT->value && $rootTournament !== null) {
+			$tournament->userSelectedRankedSplit = $rootTournament->userSelectedRankedSplit;
+		} elseif ($data["eventType"] === EventType::TOURNAMENT->value) {
+			$tournament->userSelectedRankedSplit = $this->rankedSplitRepo->findSelectedSplitForTournament($tournament);
+		}
+		if ($tournament->isEventWithStanding()) $mostCommonBestOf = $this->dbcn->execute_query("SELECT bestOf, SUM(bestOf) AS amount FROM matchups WHERE OPL_ID_tournament = ? GROUP BY bestOf ORDER BY amount DESC",[$data["OPL_ID"]])->fetch_column();
+		$tournament->mostCommonBestOf = $this->intOrNull($mostCommonBestOf??null);
 		return $tournament;
 	}
 
-	public function findById(int $tournamentId) : ?Tournament {
+	public function findById(int $tournamentId, ?Tournament $directParent=null, ?Tournament $rootParent=null) : ?Tournament {
 		$result = $this->dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID = ?", [$tournamentId]);
 		$data = $result->fetch_assoc();
 
-		return $data ? $this->mapToEntity($data) : null;
+		return $data ? $this->mapToEntity($data,$directParent,$rootParent) : null;
 	}
 
-	public function findStandingsEventById(int $tournamentId) : ?Tournament {
+	public function findStandingsEventById(int $tournamentId, ?Tournament $directParent=null, ?Tournament $rootParent=null) : ?Tournament {
 		$result = $this->dbcn->execute_query("SELECT * FROM events_with_standings WHERE OPL_ID = ?", [$tournamentId]);
 		$data = $result->fetch_assoc();
 
-		return $data ? $this->mapToEntity($data) : null;
+		return $data ? $this->mapToEntity($data,$directParent,$rootParent) : null;
 	}
 }
