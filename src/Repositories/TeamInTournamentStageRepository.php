@@ -26,7 +26,11 @@ class TeamInTournamentStageRepository extends AbstractRepository {
 	public function mapToEntity(array $data, ?Team $team=null, ?Tournament $tournamentStage=null): TeamInTournamentStage {
 		$data = $this->normalizeData($data);
 		if (is_null($team)) {
-			$team = $this->teamRepo->findById($data['OPL_ID_team']);
+			if ($this->teamRepo->dataHasAllFields($data)) {
+				$team = $this->teamRepo->mapToEntity($data);
+			} else {
+				$team = $this->teamRepo->findById($data['OPL_ID_team']);
+			}
 		}
 		if (is_null($tournamentStage)) {
 			$tournamentStage = $this->tournamentRepo->findById($data['OPL_ID_group']);

@@ -41,4 +41,12 @@ abstract class AbstractRepository {
 		}
 		return true;
 	}
+	public function dataHasAllFields(array $data): bool {
+		foreach (static::$ALL_DATA_KEYS as $key) {
+			if (!array_key_exists($key, $data)) {
+				return false;
+			}
+		}
+		return true;
+	}
 }
