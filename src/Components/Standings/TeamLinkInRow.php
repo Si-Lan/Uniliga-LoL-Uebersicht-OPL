@@ -31,6 +31,7 @@ class TeamLinkInRow {
 		$this->teamLogoHtml = "<img class='color-switch' src='$src' alt='Teamlogo'>";
 
 		foreach ($this->teamSeasonRanksInTournament as $teamSeasonRankInTournament) {
+			if (!$teamSeasonRankInTournament->hasRank()) continue;
 			$displayStyle = $teamSeasonRankInTournament->isSelectedByUser() ? "" : "display:none;";
 			$classes = implode(' ', ['rank', 'split_rank_element', "ranked-split-".$teamSeasonRankInTournament->rankedSplit->getName()]);
 			$src = "/ddragon/img/ranks/mini-crests/{$teamSeasonRankInTournament->rank->getRankTierLowercase()}.svg";

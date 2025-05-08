@@ -15,4 +15,7 @@ class TeamSeasonRankInTournament {
 	public function isSelectedByUser():bool {
 		return $this->tournament->userSelectedRankedSplit->equals($this->rankedSplit);
 	}
+	public function hasRank(): bool {
+		return $this->rank->rankTier !== null;
+	}
 }
