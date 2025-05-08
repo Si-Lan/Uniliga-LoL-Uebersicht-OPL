@@ -35,7 +35,7 @@ class TeamInTournamentStageRepository extends AbstractRepository {
 		if (is_null($tournamentStage)) {
 			$tournamentStage = $this->tournamentRepo->findById($data['OPL_ID_group']);
 		}
-		$teamInRootTournament = $this->teamInTournamentRepo->findOrGetEmptyByTeamAndTournament($team,$tournamentStage->rootTournament);
+		$teamInRootTournament = $this->teamInTournamentRepo->findByTeamAndTournament($team,$tournamentStage->rootTournament);
 		return new TeamInTournamentStage(
 			team: $team,
 			tournamentStage: $tournamentStage,
