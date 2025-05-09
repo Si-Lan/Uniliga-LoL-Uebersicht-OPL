@@ -66,21 +66,6 @@ async function toggle_darkmode() {
 		tags[i].style.transition = null;
 	}
 }
-function toggle_admin_buttons() {
-	event.preventDefault();
-	let cookie_expiry = new Date();
-	cookie_expiry.setFullYear(cookie_expiry.getFullYear()+1);
-	let body = $('body');
-	if (body.hasClass("admin_li")) {
-		body.removeClass("admin_li");
-		$('.settings-option.toggle-admin-b-vis').html(`Buttons${get_material_icon("visibility_off")}`);
-		document.cookie = `admin_btns=0; expires=${cookie_expiry}; path=/`;
-	} else {
-		body.addClass("admin_li");
-		$('.settings-option.toggle-admin-b-vis').html(`Buttons${get_material_icon("visibility")}`);
-		document.cookie = `admin_btns=1; expires=${cookie_expiry}; path=/`;
-	}
-}
 $(document).ready(function () {
 	$('header .settings-button').on("click",()=>{toggle_settings_menu()});
 	$('header .settings-option.toggle-mode').on("click",toggle_darkmode);
@@ -98,7 +83,6 @@ $(document).ready(function () {
 			toggle_settings_menu(false);
 		}
 	});
-	$('header .settings-option.toggle-admin-b-vis').on("click",toggle_admin_buttons);
 });
 $(document).ready(function() {
 	let encMail = "aW5mb0BzaWxlbmNlLmxvbA==";

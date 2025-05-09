@@ -9,12 +9,6 @@ function is_logged_in(): bool {
 	}
 	return FALSE;
 }
-function admin_buttons_visible(bool $return_class_name = FALSE): bool|string {
-	if (is_logged_in() && isset($_COOKIE['admin_btns']) && $_COOKIE['admin_btns'] === "1") {
-		return $return_class_name ? "admin_li" : TRUE;
-	}
-	return $return_class_name ? "" : FALSE;
-}
 function is_light_mode(bool $return_class_name = FALSE): bool|string {
 	if (isset($_COOKIE['lightmode']) && $_COOKIE['lightmode'] === "1") {
 		return $return_class_name ? "light" : TRUE;
