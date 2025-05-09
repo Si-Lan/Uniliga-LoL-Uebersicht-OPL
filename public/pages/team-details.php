@@ -1,7 +1,7 @@
 <?php
 /** @var mysqli $dbcn  */
 
-include_once dirname(__DIR__,2)."/src/functions/summoner-card.php";
+use App\Components\Cards\SummonerCard;
 
 $teamID = $_GET["team"] ?? NULL;
 
@@ -82,7 +82,7 @@ echo "
 echo "
                     <div class='summoner-card-container'>";
 foreach ($players_current as $player) {
-	echo create_summonercard_general($dbcn,$player["OPL_ID"],$teamID);
+    echo new SummonerCard($player["OPL_ID"],$teamID);
 }
 echo "
                     </div> 

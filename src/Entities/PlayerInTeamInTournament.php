@@ -18,4 +18,8 @@ class PlayerInTeamInTournament extends AbstractPlayerInTournament {
 	) {
 		parent::__construct($player, $tournament, $roles, $champions);
 	}
+
+	public function getTotalRoles(): int {
+		return array_sum($this->roles);
+	}
 }

@@ -21,7 +21,11 @@ class PlayerInTeamRepository extends AbstractRepository {
 	public function mapToEntity(array $data, ?Player $player = null, ?Team $team = null): PlayerInTeam {
 		$data = $this->normalizeData($data);
 		if (is_null($player)) {
-			$player = $this->playerRepo->mapToEntity($data);
+			if ($this->playerRepo->dataHasAllFields($data)) {
+				$player = $this->playerRepo->mapToEntity($data);
+			} else {
+				$player = $this->playerRepo->findById($data["OPL_ID"]);
+			}
 		}
 		if (is_null($team)) {
 			$team = $this->teamRepo->findById($data['OPL_ID_team']??null);
@@ -43,5 +47,35 @@ class PlayerInTeamRepository extends AbstractRepository {
 		$data = $result->fetch_assoc();
 
 		return $data ? $this->mapToEntity($data) : null;
+	}
+
+	public function findAllInternal(int $teamId, ?Team $team=null): array {
+		$query = '
+			SELECT *
+			FROM players p
+			    JOIN players_in_teams pit ON p.OPL_ID = pit.OPL_ID_player
+			WHERE pit.OPL_ID_team = ?';
+		$result = $this->dbcn->execute_query($query, [$teamId]);
+		$data = $result->fetch_all(MYSQLI_ASSOC);
+
+		$players = [];
+		foreach ($data as $playerData) {
+			$players[] = $this->mapToEntity($playerData, team: $team);
+		}
+
+		return $players;
+	}
+
+	/**
+	 * @return array<PlayerInTeam>
+	 */
+	public function findAllByTeam(Team $team): array {
+		return $this->findAllInternal($team->id, $team);
+	}
+	/**
+	 * @return array<PlayerInTeam>
+	 */
+	public function findAllByTeamId(int $teamId): array {
+		return $this->findAllInternal($teamId);
 	}
 }

@@ -1,5 +1,6 @@
 <?php
 /** @var \App\Entities\PlayerInTeamInTournament $playerTT */
+/** @var \App\Entities\Player $player */
 /** @var array<\App\Entities\PlayerSeasonRank> $playerRanks */
 /** @var \App\Entities\RankedSplit $currentSplit */
 /** @var \App\Entities\Patch $latestPatch */
@@ -8,21 +9,32 @@
 ?>
 
 <div class='summoner-card-wrapper'>
-	<?php $card_classes = implode(' ',array_filter(["summoner-card", $playerTT->player->id, $collapsed?"collapsed":"", ($playerTT->removed == 1) ? "player-removed" : ""])) ?>
-	<div class="<?=$card_classes?>" onclick="player_to_opgg_link('<?=$playerTT->player->id?>','<?=$playerTT->player->getFullRiotID()?>')">
-		<input type='checkbox' name='OPGG' <?=$playerTT->player->riotIdName==null ? "disabled":""?> class='opgg-checkbox' <?=($playerTT->player->riotIdName!=null && !$playerTT->removed)? "checked":"" ?>>
-		<span class="card-player"><?=$playerTT->player->name?></span>
+	<?php
+	$removed = ($playerTT != null) ? $playerTT->removed : false;
+	$card_classes = implode(' ',array_filter(["summoner-card", $player->id, $collapsed?"collapsed":"", $removed?"player-removed":""]));
+    ?>
+	<div class="<?=$card_classes?>" onclick="player_to_opgg_link('<?=$player->id?>','<?=$player->getFullRiotID()?>')">
+		<input type='checkbox' name='OPGG' <?=$player->riotIdName==null ? "disabled":""?> class='opgg-checkbox' <?=($player->riotIdName!=null && !$removed)? "checked":"" ?>>
+		<span class="card-player"><?=$player->name?></span>
 		<div class='divider'></div>
 		<div class="card-summoner">
-			<?php if ($playerTT->player->riotIdName != null) { ?>
+			<?php if ($player->riotIdName != null) { ?>
 			<span class="card-riotid">
 				<span class="league-icon"><?= \App\Components\Helpers\IconRenderer::getLeagueIcon()?></span>
-				<span class="riot-id"><?=$playerTT->player->riotIdName?><span class="riot-id-tag"><?=$playerTT->player->getRiotIdTagWithPrefix()?></span></span>
+				<span class="riot-id"><?=$player->riotIdName?><span class="riot-id-tag"><?=$player->getRiotIdTagWithPrefix()?></span></span>
 			</span>
 			<?php
 			}
 			?>
             <?php
+            if ($playerTT == null && $player->rank->rankTier != null) {
+                ?>
+            <div class="card-rank">
+                <img class='rank-emblem-mini' src='/ddragon/img/ranks/mini-crests/<?=$player->rank->getRankTierLowercase()?>.svg' alt='<?=$player->rank->getRankTier()?>'>
+    			<?=$player->rank->getRank()?>
+            </div>
+            <?php
+            }
             foreach ($playerRanks as $playerRank) {
                 if ($playerRank != null) {
                     $rank_classes = implode(" ", ["card-rank", "split_rank_element", "ranked-split-{$playerRank->rankedSplit->season}-{$playerRank->rankedSplit->split}"]);
@@ -34,9 +46,8 @@
             <?php
                 }
 			}
+            if ($playerTT != null) {
             ?>
-
-			<!-- Stats kommt hier noch rein -->
             <div class="played-positions">
                 <?php
                 foreach ($playerTT->roles as $role=>$role_amount) {
@@ -50,7 +61,6 @@
                 }
                 ?>
             </div>
-
             <div class="played-champions">
 				<?php
 				foreach ($playerTT->getTopChampions(5) as $champion=>$champion_amount) {
@@ -70,9 +80,11 @@
 				}
 				?>
             </div>
-
+            <?php
+            }
+            ?>
 		</div>
 	</div>
-	<a href="javascript:void(0)" class="open-playerhistory" onclick="popup_player('<?=$playerTT->player->id?>')">Spieler-Details</a>
-	<a href="https://www.op.gg/summoners/euw/<?=$playerTT->player->getEncodedRiotID()?>" target="_blank" class="op-gg-single"><div class='svg-wrapper op-gg'><?= \App\Components\Helpers\IconRenderer::getOPGGIcon()?></div></a>
+	<a href="javascript:void(0)" class="open-playerhistory" onclick="popup_player('<?=$player->id?>')">Spieler-Details</a>
+	<a href="https://www.op.gg/summoners/euw/<?=$player->getEncodedRiotID()?>" target="_blank" class="op-gg-single"><div class='svg-wrapper op-gg'><?= \App\Components\Helpers\IconRenderer::getOPGGIcon()?></div></a>
 </div>

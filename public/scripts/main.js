@@ -447,18 +447,12 @@ async function popup_team(teamID, tournamentID = null) {
 					card_container.append(`<div class='summoner-card-wrapper placeholder p${i} ${coll_class}'></div>`);
 				}
 
-				fetch(`/ajax/summoner-card.php`, {
+				fetch(`/ajax/fragment/summoner-cards?teamId=${teamID}&tournamentId=${tournamentID}`, {
 					method: "GET",
-					headers: {
-						teamid: teamID,
-						tournamentID: tournamentID,
-					}
 				})
-					.then(res => res.json())
-					.then(async card_results => {
-						for (let i = 0; i < card_results.length; i++) {
-							card_container.find(".placeholder.p" + i).replaceWith(card_results[i]);
-						}
+					.then(res => res.text())
+					.then(async summonercards => {
+						card_container.replaceWith(summonercards);
 						let popup_loader = $('.popup-loading-indicator');
 						popup_loader.css("opacity", "0");
 						await new Promise(r => setTimeout(r, 210));
@@ -1674,7 +1668,7 @@ async function user_update_group(button) {
 	loading_width = 0;
 	button.style.setProperty("--update-loading-bar-width", "0");
 
-	fetch(`/ajax/fragment/standingsTable?tournamentId=${group_ID}`, {
+	fetch(`/ajax/fragment/standings-table?tournamentId=${group_ID}`, {
 		method: "GET",
 	})
 		.then(res => res.text())
@@ -1969,13 +1963,8 @@ async function user_update_team(button) {
 	loading_width = 0;
 	button.style.setProperty("--update-loading-bar-width", "0");
 
-	fetch(`/ajax/create-page-elements.php`, {
+	fetch(`/ajax/fragment/summoner-cards?teamId=${team_ID}&tournamentId=${tournamentID}`, {
 		method: "GET",
-		headers: {
-			type: "summoner-card-container",
-			teamid: team_ID,
-			tournamentID: tournamentID,
-		}
 	})
 		.then(res => res.text())
 		.then(summonercards => {
@@ -2015,7 +2004,7 @@ async function user_update_team(button) {
 	groupButtons.prop("disabled", true);
 
 	let fetch_array = [];
-	fetch_array.push(fetch(`/ajax/fragment/standingsTable?tournamentId=${activeGroupID}&teamId=${team_ID}`, {
+	fetch_array.push(fetch(`/ajax/fragment/standings-table?tournamentId=${activeGroupID}&teamId=${team_ID}`, {
 		method: "GET",
 	})
 		.then(res => res.text())
@@ -2195,7 +2184,7 @@ async function user_update_match(button) {
 	groupButtons.prop("disabled", true);
 	let fetch_array = [];
 
-	if (activeGroupID === group_ID) fetch_array.push(fetch(`/ajax/fragment/standingsTable?tournamentId=${activeGroupID}&teamId=${team_ID}`, {
+	if (activeGroupID === group_ID) fetch_array.push(fetch(`/ajax/fragment/standings-table?tournamentId=${activeGroupID}&teamId=${team_ID}`, {
 		method: "GET",
 	})
 		.then(res => res.text())
@@ -2444,7 +2433,7 @@ function switch_team_event(page, event_id, team_id, playoff_id = null,tournament
 		if ($('.content-loading-indicator').length === 0) $('body').append("<div class='content-loading-indicator'></div>");
 		let page_updates = [];
 		page_updates.push(
-			fetch(`/ajax/fragment/standingsTable?tournamentId=${event_id}&teamId=${team_id}`, {
+			fetch(`/ajax/fragment/standings-table?tournamentId=${event_id}&teamId=${team_id}`, {
 				method: "GET",
 				signal: team_event_switch_control.signal,
 			})

@@ -24,7 +24,7 @@ class Player {
 		return $this->riotIdName."#".$this->riotIdTag;
 	}
 	public function getEncodedRiotID(): string {
-		return urlencode($this->riotIdTag??"")."-".urlencode($this->riotIdTag??"");
+		return urlencode($this->riotIdName??"")."-".urlencode($this->riotIdTag??"");
 	}
 	public function getRiotIdTagWithPrefix(): string {
 		return (($this->riotIdTag??"") != "") ? "#".$this->riotIdTag : "";
