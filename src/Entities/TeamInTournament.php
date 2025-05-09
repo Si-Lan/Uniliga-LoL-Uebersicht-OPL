@@ -14,7 +14,7 @@ class TeamInTournament {
 	 * @param int|null $gamesWon
 	 * @param int|null $avgWinTime
 	 * @param int|null $logoHistoryDir
-	 * @param string $name
+	 * @param string $nameInTournament
 	 */
 	public function __construct(
 		public Team $team,
@@ -27,7 +27,7 @@ class TeamInTournament {
 		public ?int $gamesWon,
 		public ?int $avgWinTime,
 		private ?int $logoHistoryDir,
-		public string $name
+		public string $nameInTournament
 	) {}
 
 	public function getLogoUrl() : string|bool {

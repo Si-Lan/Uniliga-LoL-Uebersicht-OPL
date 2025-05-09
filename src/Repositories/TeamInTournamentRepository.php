@@ -41,7 +41,7 @@ class TeamInTournamentRepository extends AbstractRepository {
 			gamesWon: $this->intOrNull($data['games_won']),
 			avgWinTime: $this->intOrNull($data['avg_win_time']),
 			logoHistoryDir: $this->intOrNull($data["dir_key"]),
-			name: $this->stringOrNull($data["name"])
+			nameInTournament: $this->stringOrNull($data["name"])
 		);
 	}
 

@@ -20,7 +20,7 @@ class TeamLinkInRow {
 		$this->href = "/turnier/{$teamInTournamentStage->tournamentStage->rootTournament->id}/team/{$teamInTournamentStage->team->id}";
 
 		$this->teamNameTargetHtml = PageLinkWrapper::makeTarget(
-			"<span class='team-name' title='{$teamInTournamentStage->teamInRootTournament->name}'>{$teamInTournamentStage->teamInRootTournament->name}</span>"
+			"<span class='team-name' title='{$teamInTournamentStage->teamInRootTournament->nameInTournament}'>{$teamInTournamentStage->teamInRootTournament->nameInTournament}</span>"
 		);
 
 		$logoSrc = $this->teamInTournamentStage->teamInRootTournament->getLogoUrl();

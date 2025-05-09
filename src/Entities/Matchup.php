@@ -19,4 +19,17 @@ class Matchup {
 		public bool $draw,
 		public bool $defWin
 	) {}
+
+	public function getTeam1Result(): ?string {
+		if ($this->team1 === null || !$this->played) return null;
+		if ($this->draw) return 'draw';
+		if ($this->winnerId === $this->team1->id) return 'win';
+		return 'loss';
+	}
+	public function getTeam2Result(): ?string {
+		if ($this->team1 === null || !$this->played) return null;
+		if ($this->draw) return 'draw';
+		if ($this->winnerId === $this->team1->id) return 'loss';
+		return 'win';
+	}
 }

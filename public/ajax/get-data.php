@@ -1,8 +1,8 @@
 <?php
-include_once dirname(__DIR__,2)."/config/data.php";
+include_once dirname(__DIR__,2)."/bootstrap.php";
 include_once dirname(__DIR__,2)."/src/functions/helper.php";
 
-$dbcn = create_dbcn();
+$dbcn = \App\Database\DatabaseConnection::getConnection();
 
 $type = $_SERVER["HTTP_TYPE"] ?? $_REQUEST["type"] ?? NULL;
 if ($type == NULL) exit;
