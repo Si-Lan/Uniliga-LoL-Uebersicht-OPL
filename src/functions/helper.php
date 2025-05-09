@@ -22,13 +22,6 @@ function is_light_mode(bool $return_class_name = FALSE): bool|string {
 	return $return_class_name ? "" : FALSE;
 }
 
-function summonercards_collapsed(): bool {
-	if (isset($_COOKIE["preference_sccollapsed"]) && $_COOKIE["preference_sccollapsed"] === "1") {
-		return TRUE;
-	} else {
-		return FALSE;
-	}
-}
 function playertables_extended(): bool {
 	if (isset($_COOKIE["preference_ptextended"]) && $_COOKIE["preference_ptextended"] === "0") {
 		return FALSE;

@@ -4,53 +4,46 @@ namespace App\Components\Cards;
 
 use App\Entities\Patch;
 use App\Entities\Player;
+use App\Entities\PlayerInTeam;
 use App\Entities\PlayerInTeamInTournament;
 use App\Entities\PlayerSeasonRank;
 use App\Entities\RankedSplit;
 use App\Repositories\PatchRepository;
-use App\Repositories\PlayerInTeamInTournamentRepository;
-use App\Repositories\PlayerRepository;
 use App\Repositories\PlayerSeasonRankRepository;
 use App\Repositories\RankedSplitRepository;
-use App\Repositories\TournamentRepository;
-
-include_once BASE_PATH."/src/functions/helper.php";
 
 class SummonerCard {
 	private Player $player;
-	private ?PlayerInTeamInTournament $playerTT;
-	private ?PlayerSeasonRank $playerSeasonRank1;
-	private ?PlayerSeasonRank $playerSeasonRank2;
-	private ?RankedSplit $currentSplit;
-	private Patch $latestPatch;
+	private ?PlayerInTeamInTournament $playerTT=null;
+	private ?PlayerSeasonRank $playerSeasonRank1=null;
+	private ?PlayerSeasonRank $playerSeasonRank2=null;
+	private ?RankedSplit $currentSplit=null;
+	private ?Patch $latestPatch=null;
 	private bool $collapsed;
 	public function __construct(
-		int $playerID,
-		int $teamID,
-		?int $tournamentID=null,
+		PlayerInTeam|PlayerInTeamInTournament $playerInTeam,
 	) {
-		$playerRepo = new PlayerRepository();
-		$this->player = $playerRepo->findById($playerID);
+		if ($playerInTeam instanceof PlayerInTeamInTournament) {
+			$this->playerTT = $playerInTeam;
+			$this->player = $playerInTeam->player;
 
-		$tournamentRepo = new TournamentRepository();
-		$tournament = ($tournamentID != null) ? $tournamentRepo->findById($tournamentID) : null;
+			$rankedSplitRepo = new RankedSplitRepository();
+			$rankedSplit1 = $rankedSplitRepo->findFirstSplitForTournament($playerInTeam->tournament);
+			$rankedSplit2 = $rankedSplitRepo->findNextSplitForTournament($playerInTeam->tournament);
+			$this->currentSplit = $rankedSplitRepo->findSelectedSplitForTournament($playerInTeam->tournament);
 
-		$rankedSplitRepo = new RankedSplitRepository();
-		$rankedSplit1 =  ($tournamentID != null) ? $rankedSplitRepo->findFirstSplitForTournament($tournament) : null;
-		$rankedSplit2 = ($tournamentID != null) ? $rankedSplitRepo->findNextSplitForTournament($tournament) : null;
-		$this->currentSplit = ($tournamentID != null) ? $rankedSplitRepo->findSelectedSplitForTournament($tournament) : null;
+			$playerSeasonRankRepo = new PlayerSeasonRankRepository();
+			$this->playerSeasonRank1 = $playerSeasonRankRepo->findPlayerSeasonRank($playerInTeam->player, $rankedSplit1);
+			$this->playerSeasonRank2 = ($rankedSplit2 != null) ? $playerSeasonRankRepo->findPlayerSeasonRank($playerInTeam->player, $rankedSplit2) : null;
 
-		$playerTTRepo = new PlayerInTeamInTournamentRepository();
-		$this->playerTT = ($tournamentID != null) ? $playerTTRepo->findByPlayerIdAndTeamIdAndTournamentId($playerID, $teamID, $tournamentID) : null;
+			$patchRepo = new PatchRepository();
+			$this->latestPatch = $patchRepo->findLatestPatchWithAllData();
 
-		$playerSeasonRankRepo = new PlayerSeasonRankRepository();
-		$this->playerSeasonRank1 = ($tournamentID != null) ? $playerSeasonRankRepo->findPlayerSeasonRank($playerID, $rankedSplit1) : null;
-		$this->playerSeasonRank2 = ($rankedSplit2 != null && $tournamentID != null) ? $playerSeasonRankRepo->findPlayerSeasonRank($playerID, $rankedSplit2) : null;
-
-		$patchRepo = new PatchRepository();
-		$this->latestPatch = $patchRepo->findLatestPatchWithAllData();
-
-		$this->collapsed = ($tournamentID === null) || summonercards_collapsed();
+			$this->collapsed = self::collapsed();
+		} else {
+			$this->player = $playerInTeam->player;
+			$this->collapsed = true;
+		}
 	}
 
 	public function render(): string
@@ -68,5 +61,13 @@ class SummonerCard {
 	}
 	public function __toString(): string {
 		return $this->render();
+	}
+
+	public static function collapsed(): bool {
+		if (isset($_COOKIE["preference_sccollapsed"]) && $_COOKIE["preference_sccollapsed"] === "1") {
+			return TRUE;
+		} else {
+			return FALSE;
+		}
 	}
 }

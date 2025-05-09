@@ -49,7 +49,7 @@ class PlayerInTeamInTournamentRepository extends AbstractRepository {
 		);
 	}
 
-	public function findByPlayerIdAndTeamIdAndTournamentId(int $playerId, int $teamId, int $tournamentId): ?PlayerInTeamInTournament {
+	public function findInternal(int $playerId, int $teamId, int $tournamentId, ?Player $player=null, ?Team $team=null, ?Tournament $tournament=null): ?PlayerInTeamInTournament {
 		$query = '
 			SELECT *
 				FROM players p
@@ -59,7 +59,14 @@ class PlayerInTeamInTournamentRepository extends AbstractRepository {
 		$result = $this->dbcn->execute_query($query, [$tournamentId, $teamId, $playerId]);
 		$playerdata = $result->fetch_assoc();
 
-		return $playerdata ? $this->mapToEntity($playerdata) : null;
+		return $playerdata ? $this->mapToEntity($playerdata, $player, $team, $tournament) : null;
+	}
+
+	public function findByPlayerIdAndTeamIdAndTournamentId(int $playerId, int $teamId, int $tournamentId): ?PlayerInTeamInTournament {
+		return $this->findInternal($playerId, $teamId, $tournamentId);
+	}
+	public function findByPlayerAndTeamAndTournament(Player $player, Team $team, Tournament $tournament): ?PlayerInTeamInTournament {
+		return $this->findInternal($player->id, $team->id, $tournament->id, $player, $team, $tournament);
 	}
 
 	public function findAllInternal(int $teamId, int $tournamentId, Team $team = null, Tournament $tournament = null): array {

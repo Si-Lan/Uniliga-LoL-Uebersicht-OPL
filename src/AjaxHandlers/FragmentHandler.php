@@ -68,12 +68,11 @@ class FragmentHandler {
 			$playersInTeam = EntitySorter::sortPlayersByAllRoles($playersInTeam);
 		}
 
-		ob_start();
+		$summonerCardHtml = '';
 		foreach ($playersInTeam as $playerInTeam) {
-			echo new SummonerCard($playerInTeam->player->id,$team->id,$tournamentId);
+			$summonerCardHtml .= new SummonerCard($playerInTeam);
 		}
-		$summoner_cards = ob_get_clean();
-		echo "<div class='summoner-card-container'>$summoner_cards</div>";
+		echo "<div class='summoner-card-container'>$summonerCardHtml</div>";
 
 	}
 }

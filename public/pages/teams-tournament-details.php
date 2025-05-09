@@ -2,10 +2,12 @@
 /** @var mysqli $dbcn  */
 
 use App\Components\Standings\StandingsTable;
+use App\Repositories\PlayerInTeamInTournamentRepository;
 use App\Repositories\TournamentRepository;
 use App\Repositories\TeamRepository;
 
 use App\Components\Cards\SummonerCard;
+use App\Utilities\EntitySorter;
 
 $tournament_url_path = $_GET["tournament"] ?? NULL;
 $teamID = $_GET["team"] ?? NULL;
@@ -111,21 +113,6 @@ foreach ($players as $i=>$player) {
 	$opgglink .= urlencode($player["riotID_name"]."#".$player["riotID_tag"]);
 	$opgg_amount++;
 }
-//$players_by_id = array();
-$players_gamecount_by_id = array();
-foreach ($players as $player) {
-	//$players_by_id[$player['OPL_ID']] = $player;
-	$played_games = 0;
-	if ($player['roles'] == NULL) {
-		$players_gamecount_by_id[$player['OPL_ID']] = $played_games;
-		continue;
-	}
-	foreach (json_decode($player['roles'],true) as $role_played_amount) {
-		$played_games += $role_played_amount;
-	}
-	$players_gamecount_by_id[$player['OPL_ID']] = $played_games;
-}
-arsort($players_gamecount_by_id);
 
 $last_user_update = $dbcn->execute_query("SELECT last_update FROM updates_user_team WHERE OPL_ID_team = ?", [$teamID])->fetch_column();
 $last_cron_update = $dbcn->execute_query("SELECT last_update FROM updates_cron WHERE OPL_ID_tournament = ?", [$tournamentID])->fetch_column();
@@ -152,8 +139,7 @@ echo "
                     <div class='title'>
                         <h3>Spieler</h3>
                         <a href='$opgglink' class='button op-gg' target='_blank'><div class='svg-wrapper op-gg'>$opgg_logo_svg</div><span class='player-amount'>({$opgg_amount} Spieler)</span></a>";
-$collapsed = summonercards_collapsed();
-if ($collapsed) {
+if (SummonerCard::collapsed()) {
 	echo "<button type='button' class='exp_coll_sc'><div class='material-symbol'>".file_get_contents(__DIR__."/../icons/material/unfold_more.svg")."</div>Stats ein</button>";
 } else {
 	echo "<button type='button' class='exp_coll_sc'><div class='material-symbol'>".file_get_contents(__DIR__."/../icons/material/unfold_less.svg")."</div>Stats aus</button>";
@@ -189,14 +175,17 @@ if ($team_rank_2['avg_rank_tier'] != NULL) {
 }
 echo "
                      </div>"; //title
-echo "
-                    <div class='summoner-card-container'>";
-foreach ($players_gamecount_by_id as $playerID=>$player_gamecount) {
-    echo new SummonerCard($playerID,$teamID,$tournamentID);
+
+$playerInTeamInTournamentRepo = new PlayerInTeamInTournamentRepository();
+$playersInTeamInTournament = $playerInTeamInTournamentRepo->findAllByTeamAndTournament($teamObj, $rootTournamentObj);
+$playersInTeamInTournament = EntitySorter::sortPlayersByAllRoles($playersInTeamInTournament);
+$summonerCardHtml = '';
+foreach ($playersInTeamInTournament as $playerInTeamInTournament) {
+	$summonerCardHtml .= new SummonerCard($playerInTeamInTournament);
 }
+echo "<div class='summoner-card-container'>$summonerCardHtml</div>";
 echo "
-                    </div> 
-                </div>"; //summoner-card-container -then- player-cards
+                </div>"; //player-cards
 
 if (count($team_groups)>1) {
 	echo "<div id='teampage_switch_group_buttons'>";

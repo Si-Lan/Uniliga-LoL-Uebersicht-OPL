@@ -2,8 +2,13 @@
 /** @var mysqli $dbcn  */
 
 use App\Components\Cards\SummonerCard;
+use App\Repositories\PlayerInTeamRepository;
+use App\Repositories\TeamRepository;
 
 $teamID = $_GET["team"] ?? NULL;
+
+$teamRepo = new TeamRepository();
+$teamObj = $teamRepo->findById($teamID);
 
 $team = $dbcn->execute_query("SELECT * FROM teams WHERE OPL_ID = ?", [$teamID])->fetch_assoc();
 $groups_played_in = $dbcn->execute_query("SELECT * FROM teams_in_tournaments WHERE OPL_ID_team=? ORDER BY OPL_ID_group DESC",[$teamID])->fetch_all(MYSQLI_ASSOC);
@@ -79,14 +84,15 @@ echo "
 
 echo "
                      </div>";
-echo "
-                    <div class='summoner-card-container'>";
-foreach ($players_current as $player) {
-    echo new SummonerCard($player["OPL_ID"],$teamID);
+$playerInTeamRepo = new PlayerInTeamRepository();
+$playersInTeam = $playerInTeamRepo->findAllByTeam($teamObj);
+$summonerCardHtml = '';
+foreach ($playersInTeam as $playerInTeam) {
+	$summonerCardHtml .= new SummonerCard($playerInTeam);
 }
+echo "<div class='summoner-card-container'>$summonerCardHtml</div>";
 echo "
-                    </div> 
-                </div>"; //summoner-card-container -then- player-cards
+                </div>"; //player-cards
 
 
 echo "</main>";
