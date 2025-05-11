@@ -3,18 +3,22 @@
 namespace App\AjaxHandlers;
 
 use App\Components\Cards\SummonerCard;
+use App\Components\Matches\MatchButton;
+use App\Components\Matches\MatchButtonList;
 use App\Components\Standings\StandingsTable;
-use App\Entities\PlayerInTeamInTournament;
+use App\Repositories\MatchupRepository;
 use App\Repositories\PlayerInTeamInTournamentRepository;
 use App\Repositories\PlayerInTeamRepository;
 use App\Repositories\TeamRepository;
 use App\Repositories\TournamentRepository;
+use App\Utilities\DataParsingHelpers;
 use App\Utilities\EntitySorter;
 
 class FragmentHandler {
+	use DataParsingHelpers;
 	public function standingsTable(array $dataGet): void {
-		$tournamentId = $dataGet['tournamentId'] ?? null;
-		$teamId = $dataGet['teamId'] ?? null;
+		$tournamentId = $this->IntOrNull($dataGet['tournamentId'] ?? null);
+		$teamId = $this->IntOrNull($dataGet['teamId'] ?? null);
 
 		if (is_null($tournamentId)) {
 			http_response_code(400);
@@ -39,8 +43,8 @@ class FragmentHandler {
 	}
 
 	public function summonerCards(array $dataGet): void {
-		$teamId = $dataGet['teamId'] ?? null;
-		$tournamentId = $dataGet['tournamentId'] ?? null;
+		$teamId = $this->intOrNull($dataGet['teamId'] ?? null);
+		$tournamentId = $this->intOrNull($dataGet['tournamentId'] ?? null);
 
 		if (is_null($teamId)) {
 			http_response_code(400);
@@ -74,5 +78,55 @@ class FragmentHandler {
 		}
 		echo "<div class='summoner-card-container'>$summonerCardHtml</div>";
 
+	}
+
+	public function matchButton(array $dataGet): void {
+		$matchupId = $this->intOrNull($dataGet['matchupId'] ?? null);
+		$teamId = $this->intOrNull($dataGet['teamId'] ?? null);
+
+		if (is_null($matchupId)) {
+			http_response_code(400);
+			echo 'Missing matchupId';
+			return;
+		}
+
+		$matchupRepo = new MatchupRepository();
+		$matchup = $matchupRepo->findById($matchupId);
+		if (is_null($matchup)) {
+			http_response_code(404);
+			echo 'Matchup not found';
+			return;
+		}
+
+		$teamRepo = new TeamRepository();
+		$team = ($teamId) ? $teamRepo->findById($teamId) : null;
+
+		echo new MatchButton($matchup,$team);
+	}
+
+	public function matchButtonList(array $dataGet): void {
+		$tournamentId = $this->intOrNull($dataGet['tournamentId'] ?? null);
+		$playoffId = $this->intOrNull($dataGet['playoffId'] ?? null);
+		$teamId = $this->intOrNull($dataGet['teamId'] ?? null);
+
+		if (is_null($tournamentId)) {
+			http_response_code(400);
+			echo 'Missing tournamentId';
+			return;
+		}
+
+		$tournamentRepo = new TournamentRepository();
+		$tournamentStage = $tournamentRepo->findById($tournamentId);
+		if (is_null($tournamentStage)) {
+			http_response_code(404);
+			echo 'Tournament not found';
+			return;
+		}
+
+		$teamRepo = new TeamRepository();
+		$team = ($teamId) ? $teamRepo->findById($teamId) : null;
+		$playoffStage = ($playoffId) ? $tournamentRepo->findById($playoffId) : null;
+
+		echo new MatchButtonList($tournamentStage,$team,$playoffStage);
 	}
 }

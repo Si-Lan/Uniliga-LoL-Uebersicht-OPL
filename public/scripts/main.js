@@ -1661,16 +1661,12 @@ async function user_update_group(button) {
 		})
 		.catch(error => console.error(error));
 
-	fetch(`/ajax/create-page-elements.php`, {
+	fetch(`/ajax/fragment/match-button-list?tournamentId=${group_ID}`, {
 		method: "GET",
-		headers: {
-			"type": "matchbutton-list-group",
-			"groupid": group_ID,
-		},
 	})
 		.then(res => res.text())
 		.then(matchlist => {
-			$("main .matches .match-content").replaceWith(matchlist);
+			$("main .matches").replaceWith(matchlist);
 		})
 		.catch(error => console.error(error));
 }
@@ -1997,18 +1993,12 @@ async function user_update_team(button) {
 		})
 		.catch(e => console.warn(e)));
 
-	fetch_array.push(fetch(`/ajax/create-page-elements`, {
+	fetch_array.push(fetch(`/ajax/fragment/match-button-list?tournamentId=${activeGroupID}&teamId=${team_ID}&playoffId=${activePlayoffID}`, {
 		method: "GET",
-		headers: {
-			"type": "matchbutton-list-team",
-			"groupid": activeGroupID,
-			"teamid": team_ID,
-			"playoffid": activePlayoffID,
-		},
 	})
 		.then(res => res.text())
 		.then(matchlist => {
-			$("main .matches .match-content").replaceWith(matchlist);
+			$("main .matches").replaceWith(matchlist);
 		})
 		.catch(error => console.warn(error)));
 	Promise.all(fetch_array).then(() => {
@@ -2175,14 +2165,8 @@ async function user_update_match(button) {
 			$("div.standings").replaceWith(standings);
 		})
 		.catch(e => console.warn(e)));
-	fetch_array.push(fetch(`/ajax/create-page-elements.php`, {
+	fetch_array.push(fetch(`/ajax/fragment/match-button?matchupId=${match_ID}&teamId=${team_ID}`, {
 		method: "GET",
-		headers: {
-			"type": "matchbutton",
-			"matchid": match_ID,
-			"tournamentid": tournament_ID,
-			"teamid": team_ID,
-		},
 	})
 		.then(res => res.text())
 		.then(new_matchbutton => {
@@ -2431,19 +2415,13 @@ function switch_team_event(page, event_id, team_id, playoff_id = null,tournament
 					}
 				}));
 		page_updates.push(
-			fetch(`/ajax/create-page-elements`, {
+			fetch(`/ajax/fragment/match-button-list?tournamentId=${event_id}&teamId=${team_id}&playoffId=${playoff_id}`, {
 				method: "GET",
-				headers: {
-					"type": "matchbutton-list-team",
-					"groupid": event_id,
-					"teamid": team_id,
-					"playoffid": playoff_id,
-				},
 				signal: team_event_switch_control.signal,
 			})
 				.then(res => res.text())
 				.then(matchlist => {
-					$(".inner-content .matches .match-content").replaceWith(matchlist);
+					$(".inner-content .matches").replaceWith(matchlist);
 				})
 				.catch(error => {
 					if (error.name === "AbortError") {
