@@ -15,6 +15,10 @@ class TeamInTournamentRepository extends AbstractRepository {
 	private TournamentRepository $tournamentRepo;
 	protected static array $ALL_DATA_KEYS = ["OPL_ID_team","OPL_ID_tournament","champs_played","champs_banned","champs_played_against","champs_banned_against","games_played","games_won","avg_win_time","name","dir_key"];
 	protected static array $REQUIRED_DATA_KEYS = ["OPL_ID_team","OPL_ID_tournament"];
+	/**
+	 * @var array<int,TeamInTournament> $cache
+	 */
+	private array $cache = [];
 
 	public function __construct() {
 		parent::__construct();
@@ -46,6 +50,11 @@ class TeamInTournamentRepository extends AbstractRepository {
 	}
 
 	private function findInternal(int $teamId, int $tournamentId, ?Team $team=null, ?Tournament $tournament=null): ?TeamInTournament {
+		$cacheKey = $teamId."_".$tournamentId;
+		if (isset($this->cache[$cacheKey])) {
+			return $this->cache[$cacheKey];
+		}
+
 		$query = '
 			SELECT stit.*, tnh.name, tlh.dir_key
 			FROM teams t
@@ -68,7 +77,10 @@ class TeamInTournamentRepository extends AbstractRepository {
 			$data["OPL_ID_tournament"] = $tournamentId;
 		}
 
-		return $data ? $this->mapToEntity($data, team: $team, tournament: $tournament) : null;
+		$teamInTournament = $data ? $this->mapToEntity($data, team: $team, tournament: $tournament) : null;
+		$this->cache[$cacheKey] = $teamInTournament;
+
+		return $teamInTournament;
 	}
 
 	public function findByTeamIdAndTournamentId(int $teamId, int $tournamentId): ?TeamInTournament {
