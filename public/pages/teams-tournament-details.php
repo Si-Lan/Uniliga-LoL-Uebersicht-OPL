@@ -1,6 +1,7 @@
 <?php
 /** @var mysqli $dbcn  */
 
+use App\Components\Matches\MatchButtonList;
 use App\Components\Standings\StandingsTable;
 use App\Repositories\PlayerInTeamInTournamentRepository;
 use App\Repositories\TournamentRepository;
@@ -78,6 +79,9 @@ $league = $dbcn->execute_query("SELECT * FROM tournaments WHERE eventType='leagu
 if ($group["format"] == "swiss" || $group["eventType"] == "wildcard") $league = $group;
 $playoff = $dbcn->execute_query("SELECT * FROM tournaments WHERE eventType='playoffs' AND OPL_ID = ?", [$playoff_ID])->fetch_assoc();
 
+$tournamentStageObj = $tournamentRepo->findById($group['OPL_ID']);
+$playoffObj = ($playoff) ? $tournamentRepo->findById($playoff['OPL_ID']) : null;
+
 $team_name_now = $dbcn->execute_query("SELECT name FROM team_name_history WHERE OPL_ID_team = ? AND (update_time < ? OR ? IS NULL) ORDER BY update_time DESC", [$teamID,$tournament["dateEnd"],$tournament["dateEnd"]])->fetch_column();
 $team["name"] = $team_name_now;
 
@@ -133,12 +137,12 @@ echo create_tournament_nav_buttons($tournamentID, $dbcn,"",$league['OPL_ID'],$gr
 
 echo create_team_nav_buttons($tournamentID,$group["OPL_ID"],$team,"details",allGroupIDs: $all_groupids_string,playoffID: $playoff_ID,updatediff: $updatediff, hide_update: $tournament["archived"]);
 
-echo "<main>";
-echo "
-                <div class='player-cards opgg-cards'>
-                    <div class='title'>
-                        <h3>Spieler</h3>
-                        <a href='$opgglink' class='button op-gg' target='_blank'><div class='svg-wrapper op-gg'>$opgg_logo_svg</div><span class='player-amount'>({$opgg_amount} Spieler)</span></a>";
+?>
+<main>
+    <div class='player-cards opgg-cards'>
+        <div class='title'>
+            <?php
+echo "<h3>Spieler</h3><a href='$opgglink' class='button op-gg' target='_blank'><div class='svg-wrapper op-gg'>$opgg_logo_svg</div><span class='player-amount'>({$opgg_amount} Spieler)</span></a>";
 if (SummonerCard::collapsed()) {
 	echo "<button type='button' class='exp_coll_sc'><div class='material-symbol'>".file_get_contents(__DIR__."/../icons/material/unfold_more.svg")."</div>Stats ein</button>";
 } else {
@@ -173,8 +177,9 @@ if ($team_rank_2['avg_rank_tier'] != NULL) {
                         <span>{$avg_rank_cap} {$team_rank_2['avg_rank_div']}</span>
                     </div>";
 }
-echo "
-                     </div>"; //title
+?>
+        </div>
+    <?php
 
 $playerInTeamInTournamentRepo = new PlayerInTeamInTournamentRepository();
 $playersInTeamInTournament = $playerInTeamInTournamentRepo->findAllByTeamAndTournament($teamObj, $rootTournamentObj);
@@ -184,8 +189,9 @@ foreach ($playersInTeamInTournament as $playerInTeamInTournament) {
 	$summonerCardHtml .= new SummonerCard($playerInTeamInTournament);
 }
 echo "<div class='summoner-card-container'>$summonerCardHtml</div>";
-echo "
-                </div>"; //player-cards
+?>
+    </div>
+    <?php
 
 if (count($team_groups)>1) {
 	echo "<div id='teampage_switch_group_buttons'>";
@@ -217,14 +223,15 @@ if (count($team_groups)>1) {
     echo "</div>";
 }
 
-echo "<div class='inner-content'>";
+?>
+    <div class='inner-content'>
+        <?php
 
-$tournamentStageObj = $tournamentRepo->findById($group['OPL_ID']);
 echo new StandingsTable($tournamentStageObj,$teamObj);
 
-echo "<div class='matches'>
-                     <div class='title'><h3>Spiele</h3></div>";
+echo new MatchButtonList($tournamentStageObj,$teamObj,$playoffObj);
 
+/* TODO: Component für Popups erstellen und für MatchButtons einbinden
 $curr_matchID = $_GET['match'] ?? NULL;
 if ($curr_matchID != NULL) {
 	$curr_matchData = $dbcn->execute_query("SELECT * FROM matchups WHERE OPL_ID = ?",[$curr_matchID])->fetch_assoc();
@@ -304,24 +311,9 @@ if ($curr_matchID != NULL) {
                             <div class='mh-popup'></div>
                      </div>";
 }
-
-
-echo "<div class='match-content content'>";
-foreach ($matches as $match) {
-	echo create_matchbutton($dbcn,$match['OPL_ID'],"groups",$tournamentID,$teamID);
-}
-if ($group["eventType"] != "wildcard") {
-	if ($matches_playoffs != null && count($matches_playoffs) > 0) {
-		echo "<h4>Playoffs</h4>";
-	}
-	foreach ($matches_playoffs as $match) {
-		echo create_matchbutton($dbcn,$match['OPL_ID'],"playoffs",$tournamentID,$teamID);
-	}
-}
-echo "</div>";
-echo "</div>"; // matches
-echo "</div>"; // inner-content
-echo "</main>"; // main-content
+*/
 
 ?>
+    </div>
+</main>
 </body>

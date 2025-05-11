@@ -59,6 +59,12 @@ class Tournament {
 		return false;
 	}
 
+	public function isEventWithRounds():bool {
+		if ($this->format === EventFormat::ROUND_ROBIN) return true;
+		if ($this->format === EventFormat::SWISS) return true;
+		return false;
+	}
+
 	public function getUrlKey():string {
 		return match ($this->eventType) {
 			EventType::TOURNAMENT => "turnier",

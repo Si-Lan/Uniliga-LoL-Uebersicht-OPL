@@ -482,7 +482,7 @@ $(document).ready(function() {
 	let url = new URL(window.location.href);
 	current_match_in_popup = url.searchParams.get('match');
 });
-async function popup_match(matchID,teamID=null,matchtype="groups",tournamentID=null) {
+async function popup_match(matchID,teamID=null,tournamentID=null) {
 	event.preventDefault();
 	let popup = $('.mh-popup');
 	let popupbg = $('.mh-popup-bg');
@@ -537,7 +537,7 @@ async function popup_match(matchID,teamID=null,matchtype="groups",tournamentID=n
 			let teamid_data = "";
 			if (teamID !== null) teamid_data = `data-team='${teamID}'`;
 			if (!data["tournament"]["archived"]) {
-				buttonwrapper += `<div class='updatebuttonwrapper'><button type='button' class='user_update user_update_match update_data' data-match='${matchID}' data-matchformat='${matchtype}' data-group='${data["match"]["OPL_ID_tournament"]}' data-tournament='${tournamentID}' ${teamid_data}>${get_material_icon('sync')}</button><span class="last-update">letztes Update:<br>&nbsp;</span></div>`;
+				buttonwrapper += `<div class='updatebuttonwrapper'><button type='button' class='user_update user_update_match update_data' data-match='${matchID}' data-group='${data["match"]["OPL_ID_tournament"]}' data-tournament='${tournamentID}' ${teamid_data}>${get_material_icon('sync')}</button><span class="last-update">letztes Update:<br>&nbsp;</span></div>`;
 			}
 			buttonwrapper += "</div>";
 			popup.append(buttonwrapper);
@@ -2023,7 +2023,6 @@ $(document).ready(function () {
 
 async function user_update_match(button) {
 	let match_ID = button.getAttribute("data-match");
-	let format = button.getAttribute("data-matchformat");
 	let team_ID = button.getAttribute("data-team");
 	let group_ID = button.getAttribute("data-group");
 	let tournament_ID = button.getAttribute("data-tournament");
@@ -2182,7 +2181,6 @@ async function user_update_match(button) {
 			"type": "matchbutton",
 			"matchid": match_ID,
 			"tournamentid": tournament_ID,
-			"matchtype": format,
 			"teamid": team_ID,
 		},
 	})

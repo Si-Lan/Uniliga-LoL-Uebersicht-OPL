@@ -1,6 +1,7 @@
 <?php
 /** @var mysqli $dbcn  */
 
+use App\Components\Matches\MatchButtonList;
 use App\Components\Standings\StandingsTable;
 use App\Repositories\TournamentRepository;
 
@@ -89,7 +90,7 @@ echo "
 
 echo "<main>";
 echo new StandingsTable($wildcardObj);
-echo create_matchlist($dbcn,$tournamentID,$wildcardID);
+echo new MatchButtonList($wildcardObj);
 echo "</main>";
 
 ?>
