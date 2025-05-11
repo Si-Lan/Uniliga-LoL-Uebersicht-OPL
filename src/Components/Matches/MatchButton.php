@@ -8,15 +8,19 @@ use App\Entities\TeamInTournament;
 use App\Repositories\TeamInTournamentRepository;
 
 class MatchButton {
-	private TeamInTournament $team1InTournament;
-	private TeamInTournament $team2InTournament;
+	private ?TeamInTournament $team1InTournament = null;
+	private ?TeamInTournament $team2InTournament = null;
 	public function __construct(
 		public Matchup $matchup,
-		public ?Team $team=null
+		public ?Team $team = null,
+		private ?TeamInTournamentRepository $teamInTournamentRepo = null
 	) {
-		$teamInTournamentRepo = new TeamInTournamentRepository();
-		$this->team1InTournament = $teamInTournamentRepo->findByTeamAndTournament($this->matchup->team1,$this->matchup->tournamentStage->rootTournament);
-		$this->team2InTournament = $teamInTournamentRepo->findByTeamAndTournament($this->matchup->team2,$this->matchup->tournamentStage->rootTournament);
+		if (is_null($this->teamInTournamentRepo)) {
+			$this->teamInTournamentRepo = new TeamInTournamentRepository();
+		}
+		if ($this->matchup->team1 !== null) $this->team1InTournament = $this->teamInTournamentRepo->findByTeamAndTournament($this->matchup->team1,$this->matchup->tournamentStage->rootTournament);
+		if ($this->matchup->team2 !== null) $this->team2InTournament = $this->teamInTournamentRepo->findByTeamAndTournament($this->matchup->team2,$this->matchup->tournamentStage->rootTournament);
+
 	}
 
 	public function render(): string {
