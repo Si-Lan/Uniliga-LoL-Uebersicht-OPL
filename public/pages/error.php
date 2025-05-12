@@ -10,12 +10,10 @@ switch($errortype) {
         switch ($type404) {
             case "tournament":
 				$errortext = "Kein Turnier unter der angegebenen ID gefunden!";
-				$old_url_warning = show_old_url_warning($_GET["tournamentid"]??"");
 				echo create_html_head_elements(title: "404 - Turnier nicht gefunden | Uniliga LoL - Übersicht");
 				break;
 			case "group":
 				$errortext = "Keine Gruppe unter der angegebenen ID gefunden!";
-				$old_url_warning = show_old_url_warning($_GET["groupid"]??"");
 				echo create_html_head_elements(title: "404 - Gruppe nicht gefunden | Uniliga LoL - Übersicht");
 				break;
 			case "wildcard":
@@ -40,6 +38,12 @@ switch($errortype) {
                 break;
 		}
 		break;
+    case "db":
+        http_response_code(500);
+        $errortype = "error";
+        $errortext = "Fehler bei der Datenbankverbindung!";
+		echo create_html_head_elements(title: "Fehler | Uniliga LoL - Übersicht");
+        break;
 	default:
 		$errortype = "error";
 		$errortext = "Ein unbekannter Fehler ist aufgetreten";
@@ -49,7 +53,6 @@ switch($errortype) {
 
 ?>
 <body class="error <?=is_light_mode(true)?>">
-    <?=$old_url_warning??""?>
     <?=create_header(title: $errortype)?>
     <div style='text-align: center'>
         <?=$errortext?>

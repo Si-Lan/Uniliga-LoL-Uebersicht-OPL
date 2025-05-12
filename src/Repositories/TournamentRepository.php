@@ -84,4 +84,9 @@ class TournamentRepository extends AbstractRepository {
 
 		return $data ? $this->mapToEntity($data,$directParent,$rootParent) : null;
 	}
+
+	public function tournamentExists(int $tournamentId, EventType $eventType): bool {
+		$result = $this->dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID = ? AND eventType = ?", [$tournamentId, $eventType->value]);
+		return $result !== false;
+	}
 }

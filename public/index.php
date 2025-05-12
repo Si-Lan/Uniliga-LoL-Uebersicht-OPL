@@ -1,141 +1,69 @@
 <?php
+
+use App\Database\DatabaseConnection;
+use App\Enums\EventType;
+use App\Repositories\PlayerRepository;
+use App\Repositories\TeamRepository;
+use App\Repositories\TournamentRepository;
+
 require_once dirname(__DIR__).'/bootstrap.php';
 
+/** @var array<string,string> $routes */
+require_once BASE_PATH."/config/routes.php";
 include_once BASE_PATH."/config/data.php";
 include_once BASE_PATH."/src/functions/fe-functions.php";
 
 check_login();
-?>
-<!DOCTYPE html>
-<html lang="de">
-<?php
 
 try {
-    $dbcn = \App\Database\DatabaseConnection::getConnection();
+    $dbcn = DatabaseConnection::getConnection();
 } catch (Exception $e) {
-	echo create_html_head_elements(title: "Error");
-	echo "<body class='".is_light_mode(true)."'>";
-	echo create_header(title: "error");
-	echo "<div style='text-align: center'>Database Connection failed</div></body>";
+    $_GET["error"] = "db";
+	$pageFile = BASE_PATH."/public/pages/error.php";
+	renderPage($pageFile);
 	exit();
 }
 
-$request = parse_url($_SERVER['REQUEST_URI'],PHP_URL_PATH);
-$request = trim($request, '/');
+$requestPath = trim(parse_url($_SERVER['REQUEST_URI'],PHP_URL_PATH),'/');
+$routeMatch = matchRoute($requestPath, $routes);
 
-$segments = explode('/', $request);
+if (!$routeMatch) trigger404();
 
-// Routing-Logik
-switch ($segments[0]??'') {
-	case '':
-		require 'pages/startpage.php';
-		break;
-	case 'turnier':
-		$_GET["tournament"] = $segments[1] ?? null;
-		if ($segments[2]??"" === 'team') $_GET["team"] = $segments[3] ?? null;
-		if ($segments[2]??"" === 'gruppe') $_GET["group"] = $segments[3] ?? null;
-		if ($segments[2]??"" === 'wildcard') $_GET["wildcard"] = $segments[3] ?? null;
-		if ($segments[2]??"" === 'playoffs') $_GET["playoffs"] = $segments[3] ?? null;
+$_GET = array_merge($_GET, $routeMatch['params']);
 
-		// Turnier-Seite - /turnier/123
-		if (!isset($segments[2])) {
-			require 'pages/tournament-details.php';
-			break;
-		}
-        // Team-Liste - /turnier/123/teams
-        if ($segments[2] === 'teams') {
-			require 'pages/teams-list.php';
-			break;
-        }
-		// Team-Liste - /turnier/123/elo
-		if ($segments[2] === 'elo') {
-			require 'pages/elo-overview.php';
-			break;
-		}
-		// Gruppen-Seite - /turnier/123/gruppe/123
-		if ($segments[2] === 'gruppe') {
-			require 'pages/group-details.php';
-			break;
-		}
-		// Wildcard-Seite - /turnier/123/wildcard/123
-		if ($segments[2] === 'wildcard') {
-			require 'pages/wildcard-details.php';
-			break;
-		}
-		// Playoffs-Seite - /turnier/123/playoffs/123
-		if ($segments[2] === 'playoffs') {
-			require 'pages/playoffs-details.php';
-			break;
-		}
-		// Turnier-Team-Seite - /turnier/123/team/123
-		if ($segments[2] === 'team' && !isset($segments[4])) {
-			require 'pages/teams-tournament-details.php';
-			break;
-		}
-		// Turnier-Team-Matchhistory-Seite - /turnier/123/team/123/matchhistory
-        if ($segments[2] === 'team' && $segments[4] === 'matchhistory') {
-            require 'pages/teams-tournament-matchhistory.php';
-            break;
-        }
-		// Turnier-Team-Stats-Seite - /turnier/123/team/123/stats
-		if ($segments[2] === 'team' && $segments[4] === 'stats') {
-			require 'pages/teams-tournament-statistics.php';
-			break;
-		}
-        // Route nicht gefunden
-		include404();
-        break;
-
-    case 'team':
-		$_GET["team"] = $segments[1] ?? null;
-		if ($segments[2]??"" === 'turnier') $_GET["tournament"] = $segments[3] ?? null;
-
-		// Team-Seite - /team/123
-		if (!isset($segments[2])) {
-			require 'pages/team-details.php';
-			break;
-		}
-		// Turnier-Team-Seite - /team/123/turnier/123
-		if ($segments[2] === 'turnier' && !isset($segments[4])) {
-			require 'pages/teams-tournament-details.php';
-			break;
-		}
-		// Turnier-Team-Matchhistory-Seite - /team/123/turnier/123/matchhistory
-		if ($segments[2] === 'turnier' && $segments[4] === 'matchhistory') {
-			require 'pages/teams-tournament-matchhistory.php';
-			break;
-		}
-		// Turnier-Team-Stats-Seite - /team/123/turnier/123/stats
-		if ($segments[2] === 'turnier' && $segments[4] === 'stats') {
-			require 'pages/teams-tournament-statistics.php';
-			break;
-		}
-		// Route nicht gefunden
-		include404();
-        break;
-
-    case 'spieler':
-        $playerId = $segments[1] ?? null;
-        // Spieler-Seite - /spieler/123
-        if ($playerId) {
-            $_GET["player"] = $playerId;
-			require 'pages/player-details.php';
-        }
-        // Spieler-Suche - /spieler
-        else {
-			require 'pages/player-search.php';
-		}
-		break;
-
-	default:
-		include404();
-		break;
+if (isset($_GET['tournament']) && !(new TournamentRepository())->tournamentExists($_GET['tournament'], EventType::TOURNAMENT)) {
+    trigger404('tournament');
 }
-function include404():void {
+if (isset($_GET['group']) && !(new TournamentRepository())->tournamentExists($_GET['group'], EventType::GROUP)) {
+	trigger404('group');
+}
+if (isset($_GET['wildcard']) && !(new TournamentRepository())->tournamentExists($_GET['wildcard'], EventType::WILDCARD)) {
+	trigger404('wildcard');
+}
+if (isset($_GET['playoffs']) && !(new TournamentRepository())->tournamentExists($_GET['playoffs'], EventType::PLAYOFFS)) {
+	trigger404('playoffs');
+}
+if (isset($_GET['team']) && !(new TeamRepository())->teamExists($_GET['team'])) {
+	trigger404('team');
+}
+if (isset($_GET['player']) && !(new PlayerRepository())->playerExists($_GET['player'])) {
+	trigger404('player');
+}
+
+renderPage($routeMatch['file']);
+
+function trigger404(string $type = ''):void {
 	$_GET["error"] = "404";
-	http_response_code(404);
-	require 'pages/error.php';
+	$_GET["404type"] = $type;
+    $pageFile = BASE_PATH.'/public/pages/error.php';
+    renderPage($pageFile);
+	exit();
 }
 
-?>
-</html>
+function renderPage(string $pageFile): void {
+	$dbcn = DatabaseConnection::getConnection(); // TODO: entfernen (Workaround, solange noch Seitenelemente mit direkten DB-Zugriffen arbeiten)
+    echo "<!DOCTYPE html>";
+    echo "<html lang='de'>";
+    require $pageFile;
+    echo "</html>";
+}

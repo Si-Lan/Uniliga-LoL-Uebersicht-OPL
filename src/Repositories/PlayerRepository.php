@@ -37,4 +37,9 @@ class PlayerRepository extends AbstractRepository {
 
 		return $data ? $this->mapToEntity($data) : null;
 	}
+
+	public function playerExists(int $playerId): bool {
+		$result = $this->dbcn->execute_query("SELECT * FROM players WHERE OPL_ID = ?", [$playerId]);
+		return $result !== false;
+	}
 }
