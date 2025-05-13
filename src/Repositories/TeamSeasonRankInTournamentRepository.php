@@ -80,6 +80,11 @@ class TeamSeasonRankInTournamentRepository extends AbstractRepository {
 		return $data ? $this->mapToEntity($data, team: $teamObj, tournament: $tournamentObj, rankedSplit: $rankedSplitObj) : null;
 	}
 
+	/**
+	 * @param Team|int $team
+	 * @param Tournament|int $tournament
+	 * @return array<TeamSeasonRankInTournament>
+	 */
 	public function findAllByTeamAndTournament(Team|int $team, Tournament|int $tournament): array {
 		$teamId = $team instanceof Team ? $team->id : $team;
 		$teamObj = $team instanceof Team ? $team : null;
