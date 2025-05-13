@@ -1,8 +1,8 @@
 <?php
 /** @var mysqli $dbcn  */
 
-use App\Components\Helpers\IconRenderer;
 use App\Components\Matches\MatchButtonList;
+use App\Components\OplOutLink;
 use App\Components\Standings\StandingsTable;
 use App\Components\UpdateButton;
 use App\Enums\EventType;
@@ -38,7 +38,7 @@ echo create_tournament_nav_buttons($group->rootTournament->id, $dbcn,"group",$le
     <div class='pagetitlewrapper withupdatebutton'>
 	    <div class='pagetitle'>
 		    <h2 class='pagetitle'><?= $group->getFullName() ?></h2>
-                <a href='https://www.opleague.pro/event/<?= $group->id?>' target='_blank' class='opl-link'><?= IconRenderer::getMaterialIconDiv('open_in_new') ?></a>
+            <?= new OplOutLink($group)?>
         </div>
     <?php
 if (!$group->rootTournament->archived) {
