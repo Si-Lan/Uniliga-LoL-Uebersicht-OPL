@@ -28,6 +28,10 @@ switch($errortype) {
 				$errortext = "Kein Team unter der angegebenen ID gefunden!";
 				echo create_html_head_elements(title: "404 - Team nicht gefunden | Uniliga LoL - Übersicht");
 				break;
+            case "team-in-tournament":
+                $errortext = "Dieses Team spielt nicht im angegebenen Turnier";
+                echo create_html_head_elements(title: "404 - Team nicht im Turnier | Uniliga LoL - Übersicht");
+                break;
 			case "player":
                 $errortext = "Kein Spieler unter der angegebenen ID gefunden!";
 				echo create_html_head_elements(title: "404 - Spieler nicht gefunden | Uniliga LoL - Übersicht");
