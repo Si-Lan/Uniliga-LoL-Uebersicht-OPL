@@ -6,6 +6,7 @@ use App\Entities\Matchup;
 use App\Entities\TeamInTournament;
 use App\Entities\Tournament;
 use App\Entities\UpdateHistory;
+use App\Repositories\TeamInTournamentStageRepository;
 use App\Repositories\UpdateHistoryRepository;
 
 class UpdateButton {
@@ -22,8 +23,14 @@ class UpdateButton {
 			$this->updateHistory = $updateHistoryRepo->findByTournamentStage($entity);
 		}
 		if ($entity instanceof TeamInTournament) {
+			$teamInTournamentStagesRepo = new TeamInTournamentStageRepository();
+			$stages = $teamInTournamentStagesRepo->findAllbyTeamInTournament($entity);
+			$teamsGroupsIds='';
+			foreach ($stages as $stage) {
+				$teamsGroupsIds .= $stage->tournamentStage->id . ' ';
+			}
 			$this->htmlClassString = 'user_update_team';
-			$this->htmlDataString = "data-team='{$entity->tournament->id}'";
+			$this->htmlDataString = "data-team='{$entity->team->id}' data-group='' data-tournament='{$entity->tournament->id}' data-groups='".trim($teamsGroupsIds)."'";
 			$this->updateHistory = $updateHistoryRepo->findByTeamInTournament($entity);
 		}
 		if ($entity instanceof Matchup) {

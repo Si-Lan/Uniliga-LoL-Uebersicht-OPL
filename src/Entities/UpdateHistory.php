@@ -6,7 +6,7 @@ use DateTimeImmutable;
 
 class UpdateHistory {
 	public function __construct(
-		public Tournament|Team|Matchup $entity,
+		public Tournament|TeamInTournament|Matchup $entity,
 		public ?\DateTimeImmutable $lastUpdate,
 		public ?\DateTimeImmutable $lastCronUpdate,
 	) {}
