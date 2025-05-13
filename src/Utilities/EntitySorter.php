@@ -4,8 +4,48 @@ namespace App\Utilities;
 
 use App\Entities\Matchup;
 use App\Entities\PlayerInTeamInTournament;
+use App\Entities\TeamInTournamentStage;
+use App\Enums\EventType;
 
 class EntitySorter {
+	/**
+	 * @param array<TeamInTournamentStage> $tournamentStages
+	 * @return array<TeamInTournamentStage>
+	 */
+	public static function sortTeamInTournamentStages(array $teamInTournamentStages): array {
+		usort($teamInTournamentStages, function (TeamInTournamentStage $a, TeamInTournamentStage $b) {
+			$prioMap = [
+				EventType::WILDCARD->value => 1,
+				EventType::LEAGUE->value => 2,
+				EventType::GROUP->value => 2,
+				EventType::PLAYOFFS->value => 3,
+			];
+
+			$compare = $prioMap[$a->tournamentStage->eventType->value] <=> $prioMap[$b->tournamentStage->eventType->value];
+			if ($compare !== 0) {
+				return $compare;
+			}
+
+			if ($a->tournamentStage->eventType == EventType::WILDCARD || $a->tournamentStage->eventType == EventType::PLAYOFFS) {
+				return $a->tournamentStage->number <=> $b->tournamentStage->number;
+			}
+
+			if ($a->tournamentStage->eventType === EventType::GROUP) {
+				$aComparer = $a->tournamentStage->directParentTournament->number."-".$a->tournamentStage->number;
+			} else {
+				$aComparer = (string) $a->tournamentStage->number;
+			}
+			if ($b->tournamentStage->eventType === EventType::GROUP) {
+				$bComparer = $b->tournamentStage->directParentTournament->number."-".$b->tournamentStage->number;
+			} else {
+				$bComparer = (string) $b->tournamentStage->number;
+			}
+
+			return $aComparer <=> $bComparer;
+
+		});
+		return $teamInTournamentStages;
+	}
 	/**
 	 * @param array<PlayerInTeamInTournament> $players
 	 * @return array<PlayerInTeamInTournament>
