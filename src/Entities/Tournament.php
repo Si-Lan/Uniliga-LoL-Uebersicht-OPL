@@ -83,22 +83,28 @@ class Tournament {
 	}
 
 	public function getFullName():string {
+		if ($this->eventType === EventType::LEAGUE && $this->format === EventFormat::SWISS) {
+			return "Liga ".$this->getNumberFormatted()." - Swiss-Gruppe";
+		}
 		return match ($this->eventType) {
 			EventType::TOURNAMENT => $this->name,
 			EventType::LEAGUE => "Liga ".$this->getNumberFormatted(),
-			EventType::GROUP => "Liga ".$this->directParentTournament->getNumberFormatted()." / Gruppe ".$this->getNumberFormatted(),
+			EventType::GROUP => "Liga ".$this->directParentTournament->getNumberFormatted()." - Gruppe ".$this->getNumberFormatted(),
 			EventType::WILDCARD => "Wildcard-Turnier Liga ".$this->getNumberFormatted(),
 			EventType::PLAYOFFS => "Playoffs Liga".$this->getNumberFormatted(),
 			default => "",
 		};
 	}
 	public function getShortName():string {
+		if ($this->eventType === EventType::LEAGUE && $this->format === EventFormat::SWISS) {
+			return "Swiss-Gruppe";
+		}
 		return match ($this->eventType) {
 			EventType::TOURNAMENT => preg_replace("/LoL\s/i","",$this->name),
-			EventType::LEAGUE => "Liga ".$this->getNumberFormatted(),
+			EventType::LEAGUE => $this->getFullName(),
 			EventType::GROUP => "Gruppe ".$this->getNumberFormatted(),
 			EventType::WILDCARD => "Wildcard Liga ".$this->getNumberFormatted(),
-			EventType::PLAYOFFS => "Playoffs Liga".$this->getNumberFormatted(),
+			EventType::PLAYOFFS => $this->getFullName(),
 			default => "",
 		};
 	}
