@@ -3,6 +3,7 @@
 namespace App\Repositories;
 
 use App\Entities\Team;
+use App\Entities\TeamInTournament;
 use App\Entities\Tournament;
 use App\Entities\TeamInTournamentStage;
 use App\Utilities\DataParsingHelpers;
@@ -23,7 +24,7 @@ class TeamInTournamentStageRepository extends AbstractRepository {
 		$this->teamInTournamentRepo = new TeamInTournamentRepository();
 	}
 
-	public function mapToEntity(array $data, ?Team $team=null, ?Tournament $tournamentStage=null): TeamInTournamentStage {
+	public function mapToEntity(array $data, ?Team $team=null, ?Tournament $tournamentStage=null, ?TeamInTournament $teamInRootTournament=null): TeamInTournamentStage {
 		$data = $this->normalizeData($data);
 		if (is_null($team)) {
 			if ($this->teamRepo->dataHasAllFields($data)) {
@@ -35,7 +36,9 @@ class TeamInTournamentStageRepository extends AbstractRepository {
 		if (is_null($tournamentStage)) {
 			$tournamentStage = $this->tournamentRepo->findById($data['OPL_ID_group']);
 		}
-		$teamInRootTournament = $this->teamInTournamentRepo->findByTeamAndTournament($team,$tournamentStage->rootTournament);
+		if (is_null($teamInRootTournament)) {
+			$teamInRootTournament = $this->teamInTournamentRepo->findByTeamAndTournament($team,$tournamentStage->rootTournament);
+		}
 		return new TeamInTournamentStage(
 			team: $team,
 			tournamentStage: $tournamentStage,
@@ -86,5 +89,49 @@ class TeamInTournamentStageRepository extends AbstractRepository {
 			$teams[] = $this->mapToEntity($team, tournamentStage: $tournamentStage);
 		}
 		return $teams;
+	}
+
+	/**
+	 * @param Team $team
+	 * @param Tournament $tournament
+	 * @return array<TeamInTournamentStage>|null
+	 */
+	public function findAllByTeamAndTournament(Team $team, Tournament $tournament): ?array {
+		$query = '
+			SELECT *
+			FROM teams t
+			    LEFT JOIN teams_in_tournament_stages tits
+			        ON t.OPL_ID = tits.OPL_ID_team
+			WHERE t.OPL_ID = ?
+			  AND tits.OPL_ID_group IN (SELECT * FROM tournaments WHERE OPL_ID_top_parent = ?)';
+		$result = $this->dbcn->execute_query($query, [$team->id, $tournament->id]);
+		$data = $result->fetch_all(MYSQLI_ASSOC);
+
+		$stages = [];
+		foreach ($data as $stage) {
+			$stages[] = $this->mapToEntity($stage, team: $team);
+		}
+		return $stages;
+	}
+	/**
+	 * @param TeamInTournament $teamInTournament
+	 * @return array<TeamInTournamentStage>|null
+	 */
+	public function findAllbyTeamInTournament(TeamInTournament $teamInTournament): ?array {
+		$query = '
+			SELECT *
+			FROM teams t
+			    LEFT JOIN teams_in_tournament_stages tits
+			        ON t.OPL_ID = tits.OPL_ID_team
+			WHERE t.OPL_ID = ?
+			  AND tits.OPL_ID_group IN (SELECT OPL_ID FROM tournaments WHERE OPL_ID_top_parent = ?)';
+		$result = $this->dbcn->execute_query($query, [$teamInTournament->team->id, $teamInTournament->tournament->id]);
+		$data = $result->fetch_all(MYSQLI_ASSOC);
+
+		$stages = [];
+		foreach ($data as $stage) {
+			$stages[] = $this->mapToEntity($stage, team: $teamInTournament->team, teamInRootTournament: $teamInTournament);
+		}
+		return $stages;
 	}
 }
