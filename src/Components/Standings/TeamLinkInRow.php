@@ -24,7 +24,7 @@ class TeamLinkInRow {
 		);
 
 		$logoSrc = $this->teamInTournamentStage->teamInRootTournament->getLogoUrl();
-		if (!$logoSrc || !file_exists(BASE_PATH."/public".$logoSrc)) {
+		if (!$logoSrc) {
 			$logoSrc = "data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs%3D";
 		}
 		$this->teamLogoHtml = "<img class='color-switch' src='$logoSrc' alt='Teamlogo'>";

@@ -14,9 +14,10 @@ class Team {
 		public RankAverage $avgRank
 	) {}
 
-	public function getLogoUrl() : ?string {
-		if (is_null($this->logoId)) return null;
+	public function getLogoUrl() : string|false {
+		if (is_null($this->logoId)) return false;
 		$baseUrl = "/img/team_logos/{$this->logoId}/";
+		if (!file_exists(BASE_PATH.'/public'.$baseUrl)) return false;
 		if (isset($_COOKIE['lightmode']) && $_COOKIE['lightmode'] === "1") {
 			return $baseUrl."logo_light.webp";
 		} else {
