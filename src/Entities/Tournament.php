@@ -91,7 +91,7 @@ class Tournament {
 			EventType::LEAGUE => "Liga ".$this->getNumberFormatted(),
 			EventType::GROUP => "Liga ".$this->directParentTournament->getNumberFormatted()." - Gruppe ".$this->getNumberFormatted(),
 			EventType::WILDCARD => "Wildcard-Turnier Liga ".$this->getNumberFormatted(),
-			EventType::PLAYOFFS => "Playoffs Liga".$this->getNumberFormatted(),
+			EventType::PLAYOFFS => "Playoffs Liga ".$this->getNumberFormatted(),
 			default => "",
 		};
 	}
