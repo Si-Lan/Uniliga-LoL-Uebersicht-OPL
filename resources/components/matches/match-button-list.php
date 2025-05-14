@@ -2,8 +2,6 @@
 /** @var array<array<\App\Entities\Matchup>> $matchupRounds */
 /** @var \App\Entities\Tournament $tournamentStage */
 /** @var \App\Entities\Team|null $team */
-/** @var \App\Entities\Tournament $playoffStage */
-/** @var array<\App\Entities\Matchup> $matchupsPlayoff */
 /** @var \App\Repositories\TeamInTournamentRepository $teamInTournamentRepository */
 
 use App\Components\Matches\MatchButton;
@@ -32,30 +30,21 @@ use App\Components\Matches\MatchButton;
         <div class="match-round">
             <h4>Runde <?= $roundCounter ?></h4>
             <div class="divider"></div>
+            <div class="match-wrapper">
             <?php
 			}
-            ?>
-            <div class="match-wrapper">
-                <?= $currentMatchButtonHtml ?>
-            </div>
-			<?php
+
+            echo $currentMatchButtonHtml;
+
 			if ($team == null) {
 			?>
+            </div>
         </div>
 				<?php
 			}
 			?>
         <?php
             $roundCounter++;
-        }
-
-        if ($playoffStage != null && $team != null) {
-            ?>
-        <h4>Playoffs</h4>
-        <?php
-            foreach ($matchupsPlayoff as $matchup) {
-                echo new MatchButton($matchup, $team, $teamInTournamentRepository);
-            }
         }
         ?>
     </div>

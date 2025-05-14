@@ -12,12 +12,10 @@ use App\Utilities\EntitySorter;
 class MatchButtonList {
 	/** @var array<Matchup> $matchups  */
 	private array $matchupRounds;
-	private array $matchupsPlayoff=[];
 	private TeamInTournamentRepository $teamInTournamentRepository; // Für die Matchbuttons
 	public function __construct(
 		public Tournament $tournamentStage,
-		public ?Team $team=null,
-		public ?Tournament $playoffStage=null
+		public ?Team $team=null
 	) {
 		$matchupRepo = new MatchupRepository();
 		if ($team != null) {
@@ -30,10 +28,6 @@ class MatchButtonList {
 		} else {
 			$this->matchupRounds = EntitySorter::sortAndGroupMatchupsByPlannedDate($this->matchupRounds);
 		}
-		if ($this->playoffStage != null && $this->team != null) {
-			$this->matchupsPlayoff = $matchupRepo->findAllByTournamentStageAndTeam($this->playoffStage, $this->team);
-			$this->matchupsPlayoff = EntitySorter::sortMatchupsByPlannedDate($this->matchupsPlayoff);
-		}
 		$this->teamInTournamentRepository = new TeamInTournamentRepository();
 	}
 
@@ -41,8 +35,6 @@ class MatchButtonList {
 		$matchupRounds = $this->matchupRounds;
 		$tournamentStage = $this->tournamentStage;
 		$team = $this->team;
-		$playoffStage = $this->playoffStage;
-		$matchupsPlayoff = $this->matchupsPlayoff;
 		$teamInTournamentRepository = $this->teamInTournamentRepository;
 		ob_start();
 		include BASE_PATH.'/resources/components/matches/match-button-list.php';
