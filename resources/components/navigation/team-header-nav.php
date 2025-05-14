@@ -31,7 +31,7 @@ use App\Components\UpdateButton;
 ?>
 </div>
 <nav class='team-titlebutton-wrapper'>
-	<a href='/turnier/<?=$teamInTournament->tournament->id?>/team/<?=$teamInTournament->team->id?>' class='<?= $activeTab === 'details' ? 'active' : ''?>>'>
+	<a href='/turnier/<?=$teamInTournament->tournament->id?>/team/<?=$teamInTournament->team->id?>' class='<?= $activeTab === 'details' ? 'active' : ''?>'>
         <?= IconRenderer::getMaterialIconDiv('info')?>
 		Team-Übersicht
 	</a>
