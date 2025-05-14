@@ -23,14 +23,8 @@ class UpdateButton {
 			$this->updateHistory = $updateHistoryRepo->findByTournamentStage($entity);
 		}
 		if ($entity instanceof TeamInTournament) {
-			$teamInTournamentStagesRepo = new TeamInTournamentStageRepository();
-			$stages = $teamInTournamentStagesRepo->findAllbyTeamInTournament($entity);
-			$teamsGroupsIds='';
-			foreach ($stages as $stage) {
-				$teamsGroupsIds .= $stage->tournamentStage->id . ' ';
-			}
 			$this->htmlClassString = 'user_update_team';
-			$this->htmlDataString = "data-team='{$entity->team->id}' data-group='' data-tournament='{$entity->tournament->id}' data-groups='".trim($teamsGroupsIds)."'";
+			$this->htmlDataString = "data-team='{$entity->team->id}' data-tournament='{$entity->tournament->id}'";
 			$this->updateHistory = $updateHistoryRepo->findByTeamInTournament($entity);
 		}
 		if ($entity instanceof Matchup) {
