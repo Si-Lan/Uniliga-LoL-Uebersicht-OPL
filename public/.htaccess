@@ -8,8 +8,8 @@ RewriteCond %{HTTP_COOKIE} !admin-login=(.+);? [NC]
 RewriteCond %{DOCUMENT_ROOT}/../config/maintenance.enable -f
 RewriteCond %{SCRIPT_FILENAME} !maintenance.php
 RewriteCond %{QUERY_STRING} !login
-RewriteCond %{REQUEST_URI} !./styles/
-RewriteCond %{REQUEST_URI} !./scripts/
+RewriteCond %{REQUEST_URI} !/styles/
+RewriteCond %{REQUEST_URI} !/scripts/
 RewriteRule ^(.*)$ ./pages/maintenance.php [R=503,L]
 
 ErrorDocument 503 /pages/maintenance.php
