@@ -1502,6 +1502,9 @@ div.standings {
 	color: var(--text-sec);
 	font-size: 0.75rem;
 	padding-left: 8px;
+	& span {
+		color: var(--text-sec);
+	}
 }
 .standing-item.team .team-name {
 	display: block;
@@ -1840,17 +1843,20 @@ button.exp_coll_sc {
 	height: 48px;
 	width: 140px;
 }
-div.team-avg-rank {
+.team-avg-rank {
 	display: flex;
 	align-items: center;
 	justify-content: center;
-}
-div.team-avg-rank img.rank-emblem-mini {
-	width: 28px;
-	height: 28px;
-}
-div.team-avg-rank span {
-	color: var(--text-sec);
+
+	& img.rank-emblem-mini {
+		width: 28px;
+		height: 28px;
+		margin-left: 4px;
+		margin-right: 2px;
+	}
+	& span {
+		color: var(--text-sec);
+	}
 }
 body.team .inner-content {
 	display: flex;
