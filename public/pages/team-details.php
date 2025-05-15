@@ -1,8 +1,7 @@
 <?php
 /** @var mysqli $dbcn  */
 
-use App\Components\Cards\SummonerCard;
-use App\Repositories\PlayerInTeamRepository;
+use App\Components\Cards\SummonerCardContainer;
 use App\Repositories\TeamRepository;
 
 $teamID = $_GET["team"] ?? NULL;
@@ -84,13 +83,7 @@ echo "
 
 echo "
                      </div>";
-$playerInTeamRepo = new PlayerInTeamRepository();
-$playersInTeam = $playerInTeamRepo->findAllByTeam($teamObj);
-$summonerCardHtml = '';
-foreach ($playersInTeam as $playerInTeam) {
-	$summonerCardHtml .= new SummonerCard($playerInTeam);
-}
-echo "<div class='summoner-card-container'>$summonerCardHtml</div>";
+echo new SummonerCardContainer($teamObj);
 echo "
                 </div>"; //player-cards
 

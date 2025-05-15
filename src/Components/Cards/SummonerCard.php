@@ -11,6 +11,7 @@ use App\Entities\RankedSplit;
 use App\Repositories\PatchRepository;
 use App\Repositories\PlayerSeasonRankRepository;
 use App\Repositories\RankedSplitRepository;
+use App\Utilities\UserPreferences;
 
 class SummonerCard {
 	private Player $player;
@@ -39,7 +40,7 @@ class SummonerCard {
 			$patchRepo = new PatchRepository();
 			$this->latestPatch = $patchRepo->findLatestPatchWithAllData();
 
-			$this->collapsed = self::collapsed();
+			$this->collapsed = UserPreferences::summonerCardCollapsed();
 		} else {
 			$this->player = $playerInTeam->player;
 			$this->collapsed = true;
@@ -61,13 +62,5 @@ class SummonerCard {
 	}
 	public function __toString(): string {
 		return $this->render();
-	}
-
-	public static function collapsed(): bool {
-		if (isset($_COOKIE["preference_sccollapsed"]) && $_COOKIE["preference_sccollapsed"] === "1") {
-			return TRUE;
-		} else {
-			return FALSE;
-		}
 	}
 }

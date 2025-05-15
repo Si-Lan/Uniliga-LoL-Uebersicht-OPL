@@ -13,4 +13,8 @@ class UserPreferences {
 			return "";
 		}
 	}
+
+	public static function summonerCardCollapsed(): bool {
+		return (isset($_COOKIE['preference_sccollapsed']) && $_COOKIE['preference_sccollapsed'] === '1');
+	}
 }
