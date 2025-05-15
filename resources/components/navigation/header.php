@@ -38,7 +38,7 @@ use App\Utilities\UserContext;
 	<button type='button' class='material-symbol settings-button'><?= IconRenderer::getMaterialIcon('tune')?></button>
 
     <div class='settings-menu'>
-        <a class='settings-option toggle-mode' href=''><?= IconRenderer::getMaterialIconDiv(UserContext::isLightMode()?'light':'dark'."_mode")?></a>
+        <a class='settings-option toggle-mode' href=''><?= IconRenderer::getMaterialIconDiv((UserContext::isLightMode()?'light':'dark').'_mode')?></a>
         <?php if (UserContext::isLoggedIn()): ?>
             <a class='settings-option opl-write' href='/admin'>Admin<?= IconRenderer::getMaterialIconDiv('edit_square')?></a>
             <a class='settings-option rgapi-write' href='/admin/rgapi'>RGAPI<?= IconRenderer::getMaterialIconDiv('videogame_asset')?></a>
