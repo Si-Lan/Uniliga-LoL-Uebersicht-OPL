@@ -1,92 +1,50 @@
 <?php
 /** @var mysqli $dbcn  */
 
+use App\Components\Cards\SummonerCardContainer;
 use App\Components\Matches\MatchButtonList;
+use App\Components\MultiOpggButton;
+use App\Components\Navigation\SwitchTournamentStageButtons;
+use App\Components\Navigation\TeamHeaderNav;
 use App\Components\Standings\StandingsTable;
-use App\Repositories\PlayerInTeamInTournamentRepository;
-use App\Repositories\TournamentRepository;
-use App\Repositories\TeamRepository;
-
-use App\Components\Cards\SummonerCard;
+use App\Components\Team\TeamRankDisplay;
+use App\Enums\EventType;
+use App\Repositories\TeamInTournamentRepository;
+use App\Repositories\TeamInTournamentStageRepository;
 use App\Utilities\EntitySorter;
+use App\Utilities\UserPreferences;
 
-$tournament_url_path = $_GET["tournament"] ?? NULL;
-$teamID = $_GET["team"] ?? NULL;
+$teamInTournamentRepo = new TeamInTournamentRepository();
+$teamInTournamentStageRepo = new TeamInTournamentStageRepository();
 
-$tournamentID = $tournament_url_path;
-if (preg_match("/^(winter|sommer)([0-9]{2})$/",strtolower($tournamentID),$url_path_matches)) {
-	$split = $url_path_matches[1];
-	$season = $url_path_matches[2];
-	$tournamentID = $dbcn->execute_query("SELECT OPL_ID FROM tournaments WHERE season = ? AND split = ? AND eventType = 'tournament'", [$season, $split])->fetch_column();
-}
-$tournament = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID = ? AND eventType = 'tournament'", [$tournamentID])->fetch_assoc();
-if ($tournament == NULL) {
-	$_GET["error"] = "404";
-	$_GET["404type"] = "tournament";
-	$_GET["tournamentid"] = $tournamentID;
-	require "error.php";
-	echo "</html>";
-	exit();
+$teamInTournament = $teamInTournamentRepo->findByTeamIdAndTournamentId($_GET["team"], $_GET["tournament"]);
+
+// alle Gruppen / Wildcard-Turniere / Playoffs, in denen das Team spielt, holen und sortieren
+$teamInTournamentStages = $teamInTournamentStageRepo->findAllbyTeamInTournament($teamInTournament);
+$teamInTournamentStages = EntitySorter::sortTeamInTournamentStages($teamInTournamentStages);
+
+// Über Routing ist bereits klar, dass Team und Turnier existieren, hier wird noch geprüft, ob das Team auch im Turnier spielt
+if (count($teamInTournamentStages) === 0) {
+	trigger404("team-in-tournament");
+    exit();
 }
 
-$teamRepo = new TeamRepository();
-$tournamentRepo = new TournamentRepository();
-$teamObj = $teamRepo->findById($teamID);
-$rootTournamentObj = $tournamentRepo->findById($tournamentID);
-
-$team_groups = $dbcn->execute_query("SELECT * FROM teams JOIN teams_in_tournaments tit ON teams.OPL_ID = tit.OPL_ID_team WHERE OPL_ID = ? AND OPL_ID_group IN (SELECT OPL_ID FROM tournaments WHERE (eventType='group' OR (eventType = 'league' AND format = 'swiss') OR eventType='wildcard') AND OPL_ID_top_parent = ?) ORDER BY OPL_ID_group", [$teamID, $tournamentID])->fetch_all(MYSQLI_ASSOC);
-$team_playoffs = $dbcn->execute_query("SELECT * FROM teams JOIN teams_in_tournaments tit ON teams.OPL_ID = tit.OPL_ID_team WHERE OPL_ID = ? AND OPL_ID_group IN (SELECT OPL_ID FROM tournaments WHERE eventType='playoffs' AND OPL_ID_parent = ?)", [$teamID, $tournamentID])->fetch_all(MYSQLI_ASSOC);
-$team_solo = $dbcn->execute_query("SELECT * FROM teams WHERE OPL_ID = ?", [$teamID])->fetch_assoc();
-if ($team_groups == NULL && $team_solo != NULL) {
-	echo create_html_head_elements(title: "Team nicht im Turnier | Uniliga LoL - Übersicht");
-	echo "<body class='".is_light_mode(true)."'>";
-	echo create_header(title: "error");
-	echo "<div style='text-align: center'>Dieses Team spielt nicht im angegebenen Turnier!</div><div style='display: flex; flex-direction: column; align-items: center;'><a class='button' href='team/$teamID'>zur Team-Seite</a></div></body>";
-	exit();
-}
-if ($team_solo == NULL) {
-	echo create_html_head_elements(title: "Team nicht gefunden | Uniliga LoL - Übersicht");
-	echo "<body class='".is_light_mode(true)."'>";
-	echo create_header(title: "error");
-	echo "<div style='text-align: center'>Kein Team unter der angegebenen ID gefunden!</div></body>";
-	exit();
+// initial neueste Stage auswählen, die nicht Playoffs ist
+$teamInTournamentStage = end($teamInTournamentStages);
+foreach ($teamInTournamentStages as $teamInTournamentStageInLoop) {
+    if ($teamInTournamentStageInLoop->tournamentStage->eventType !== EventType::PLAYOFFS) {
+        $teamInTournamentStage = $teamInTournamentStageInLoop;
+    }
 }
 
-$team_rank = $dbcn->execute_query("SELECT tsr.* FROM teams t LEFT JOIN teams_tournament_rank tsr ON tsr.OPL_ID_team = t.OPL_ID AND tsr.OPL_ID_tournament = ? AND tsr.second_ranked_split = FALSE WHERE t.OPL_ID = ?", [$tournamentID, $teamID])->fetch_assoc();
-$team_rank_2 = $dbcn->execute_query("SELECT tsr.* FROM teams t LEFT JOIN teams_tournament_rank tsr ON tsr.OPL_ID_team = t.OPL_ID AND tsr.OPL_ID_tournament = ? AND tsr.second_ranked_split = TRUE WHERE t.OPL_ID = ?", [$tournamentID, $teamID])->fetch_assoc();
-$ranked_split_1 = "{$tournament["ranked_season"]}-{$tournament["ranked_split"]}";
-$ranked_split_2 = get_second_ranked_split_for_tournament($dbcn,$tournamentID,string:true);
-$current_split = get_current_ranked_split($dbcn, $tournamentID);
-
-// initial neueste Gruppe/Wildcard auswählen
-$team = end($team_groups);
-
-if (count($team_playoffs) == 0) {
-    $playoff_ID = null;
+$group = $teamInTournamentStage->tournamentStage;
+if ($group->eventType !== EventType::GROUP) {
+    $league = $group;
 } else {
-    // TODO: mehrere Playoffs anzeigen können
-    $playoff_ID = $team_playoffs[0]["OPL_ID_group"];
+    $league = $group->directParentTournament;
 }
 
-$all_groupids_string = "";
-foreach ($team_groups as $i_tg=>$team_group) {
-    if ($i_tg != 0) $all_groupids_string .= " ";
-    $all_groupids_string .= $team_group["OPL_ID_group"];
-}
-
-$group = $dbcn->execute_query("SELECT * FROM tournaments WHERE (eventType='group' OR (eventType = 'league' AND format = 'swiss') OR eventType = 'wildcard') AND OPL_ID = ?", [$team["OPL_ID_group"]])->fetch_assoc();
-$league = $dbcn->execute_query("SELECT * FROM tournaments WHERE eventType='league' AND OPL_ID = ?", [$group["OPL_ID_parent"]])->fetch_assoc();
-if ($group["format"] == "swiss" || $group["eventType"] == "wildcard") $league = $group;
-$playoff = $dbcn->execute_query("SELECT * FROM tournaments WHERE eventType='playoffs' AND OPL_ID = ?", [$playoff_ID])->fetch_assoc();
-
-$tournamentStageObj = $tournamentRepo->findById($group['OPL_ID']);
-$playoffObj = ($playoff) ? $tournamentRepo->findById($playoff['OPL_ID']) : null;
-
-$team_name_now = $dbcn->execute_query("SELECT name FROM team_name_history WHERE OPL_ID_team = ? AND (update_time < ? OR ? IS NULL) ORDER BY update_time DESC", [$teamID,$tournament["dateEnd"],$tournament["dateEnd"]])->fetch_column();
-$team["name"] = $team_name_now;
-
-$t_name_clean = preg_replace("/LoL\s/i","",$tournament["name"]);
-echo create_html_head_elements(css: ["game"], js: ["rgapi"], title: "{$team_name_now} | $t_name_clean", loggedin: is_logged_in());
+echo create_html_head_elements(css: ["game"], js: ["rgapi"], title: "{$teamInTournament->nameInTournament} | {$teamInTournament->tournament->getShortName()}", loggedin: is_logged_in());
 
 $open_popup = "";
 if (isset($_GET['match'])) {
@@ -94,143 +52,43 @@ if (isset($_GET['match'])) {
 }
 
 ?>
-<body class="team <?= is_light_mode(true)." $open_popup"?>">
-<?php
+<body class="team <?= UserPreferences::getLightModeClass()." $open_popup"?>">
 
-$pageurl = $_SERVER['REQUEST_URI'];
-$local_img_path = "img/team_logos/";
-$opl_tourn_url = "https://www.opleague.pro/event/";
-$opgg_logo_svg = file_get_contents(__DIR__."/../img/opgglogo.svg");
-$opgg_url = "https://www.op.gg/multisearch/euw?summoners=";
+<?= create_header(dbcn: $dbcn, title: "tournament", tournament_id: $teamInTournament->tournament->id) ?>
 
-$players = $dbcn->execute_query("SELECT * FROM players JOIN players_in_teams_in_tournament pit on players.OPL_ID = pit.OPL_ID_player AND pit.OPL_ID_tournament = ? LEFT JOIN stats_players_teams_tournaments spit ON pit.OPL_ID_player = spit.OPL_ID_player AND spit.OPL_ID_team = pit.OPL_ID_team AND spit.OPL_ID_tournament = ? WHERE pit.OPL_ID_team = ? ", [$tournamentID, $tournamentID, $teamID])->fetch_all(MYSQLI_ASSOC);
-$matches = $dbcn->execute_query("SELECT * FROM matchups WHERE OPL_ID_tournament = ? AND (OPL_ID_team1 = ? OR OPL_ID_team2 = ?)", [$group["OPL_ID"],$teamID,$teamID])->fetch_all(MYSQLI_ASSOC);
-$matches_playoffs = $dbcn->execute_query("SELECT * FROM matchups WHERE OPL_ID_tournament = ? AND (OPL_ID_team1 = ? OR OPL_ID_team2 = ?)", [$playoff_ID,$teamID,$teamID])->fetch_all(MYSQLI_ASSOC);
-$opgg_amount = 0;
-$opgglink = $opgg_url;
-foreach ($players as $i=>$player) {
-	if ($player["removed"]) continue;
-	if ($player["riotID_name"] == null) continue;
-	if ($i != 0) {
-		$opgglink .= urlencode(",");
-	}
-	$opgglink .= urlencode($player["riotID_name"]."#".$player["riotID_tag"]);
-	$opgg_amount++;
-}
+<?= create_tournament_nav_buttons($teamInTournament->tournament->id, $dbcn,"",$league->id,$group->id) ?>
 
-$last_user_update = $dbcn->execute_query("SELECT last_update FROM updates_user_team WHERE OPL_ID_team = ?", [$teamID])->fetch_column();
-$last_cron_update = $dbcn->execute_query("SELECT last_update FROM updates_cron WHERE OPL_ID_tournament = ?", [$tournamentID])->fetch_column();
+<?= new TeamHeaderNav($teamInTournamentStage->teamInRootTournament, "details") ?>
 
-$last_update = max($last_user_update,$last_cron_update);
-
-if ($last_update == NULL) {
-	$updatediff = "unbekannt";
-} else {
-	$last_update = strtotime($last_update);
-	$currtime = time();
-	$updatediff = max_time_from_timestamp($currtime-$last_update);
-}
-
-echo create_header(dbcn: $dbcn, title: "tournament", tournament_id: $tournamentID);
-
-echo create_tournament_nav_buttons($tournamentID, $dbcn,"",$league['OPL_ID'],$group["OPL_ID"]);
-
-echo create_team_nav_buttons($tournamentID,$group["OPL_ID"],$team,"details",allGroupIDs: $all_groupids_string,playoffID: $playoff_ID,updatediff: $updatediff, hide_update: $tournament["archived"]);
-
-?>
 <main>
     <div class='player-cards opgg-cards'>
         <div class='title'>
+            <h3>Spieler</h3>
+
+            <?= new MultiOpggButton($teamInTournament) ?>
+
             <?php
-echo "<h3>Spieler</h3><a href='$opgglink' class='button op-gg' target='_blank'><div class='svg-wrapper op-gg'>$opgg_logo_svg</div><span class='player-amount'>({$opgg_amount} Spieler)</span></a>";
-if (SummonerCard::collapsed()) {
-	echo "<button type='button' class='exp_coll_sc'><div class='material-symbol'>".file_get_contents(__DIR__."/../icons/material/unfold_more.svg")."</div>Stats ein</button>";
-} else {
-	echo "<button type='button' class='exp_coll_sc'><div class='material-symbol'>".file_get_contents(__DIR__."/../icons/material/unfold_less.svg")."</div>Stats aus</button>";
-}
+            if (UserPreferences::summonerCardCollapsed()) {
+                echo "<button type='button' class='exp_coll_sc'><div class='material-symbol'>".file_get_contents(__DIR__."/../icons/material/unfold_more.svg")."</div>Stats ein</button>";
+            } else {
+                echo "<button type='button' class='exp_coll_sc'><div class='material-symbol'>".file_get_contents(__DIR__."/../icons/material/unfold_less.svg")."</div>Stats aus</button>";
+            }
+            ?>
 
-if ($current_split == $ranked_split_2) {
-	$rank_hide_1 = "display: none";
-	$rank_hide_2 = "";
-} else {
-	$rank_hide_1 = "";
-	$rank_hide_2 = "display: none";
-}
+            <?= new TeamRankDisplay($teamInTournament,true) ?>
 
-if ($team_rank['avg_rank_tier'] != NULL) {
-	$avg_rank = strtolower($team_rank['avg_rank_tier']);
-	$avg_rank_cap = ucfirst($avg_rank);
-	echo "
-                    <div class='team-avg-rank split_rank_element ranked-split-$ranked_split_1' style='$rank_hide_1'>
-                        Team-Rang: 
-                        <img class='rank-emblem-mini' src='/ddragon/img/ranks/mini-crests/{$avg_rank}.svg' alt='$avg_rank_cap'>
-                        <span>{$avg_rank_cap} {$team_rank['avg_rank_div']}</span>
-                    </div>";
-}
-if ($team_rank_2['avg_rank_tier'] != NULL) {
-	$avg_rank = strtolower($team_rank_2['avg_rank_tier']);
-	$avg_rank_cap = ucfirst($avg_rank);
-	echo "
-                    <div class='team-avg-rank split_rank_element ranked-split-$ranked_split_2' style='$rank_hide_2'>
-                        Team-Rang: 
-                        <img class='rank-emblem-mini' src='/ddragon/img/ranks/mini-crests/{$avg_rank}.svg' alt='$avg_rank_cap'>
-                        <span>{$avg_rank_cap} {$team_rank_2['avg_rank_div']}</span>
-                    </div>";
-}
-?>
         </div>
-    <?php
-
-$playerInTeamInTournamentRepo = new PlayerInTeamInTournamentRepository();
-$playersInTeamInTournament = $playerInTeamInTournamentRepo->findAllByTeamAndTournament($teamObj, $rootTournamentObj);
-$playersInTeamInTournament = EntitySorter::sortPlayersByAllRoles($playersInTeamInTournament);
-$summonerCardHtml = '';
-foreach ($playersInTeamInTournament as $playerInTeamInTournament) {
-	$summonerCardHtml .= new SummonerCard($playerInTeamInTournament);
-}
-echo "<div class='summoner-card-container'>$summonerCardHtml</div>";
-?>
+        <?= new SummonerCardContainer($teamInTournament) ?>
     </div>
-    <?php
 
-if (count($team_groups)>1) {
-	echo "<div id='teampage_switch_group_buttons'>";
+    <?= new SwitchTournamentStageButtons($teamInTournamentStages, $teamInTournamentStage) ?>
 
-    foreach ($team_groups as $team_group) {
-        $group_details = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID = ?", [$team_group["OPL_ID_group"]])->fetch_assoc();
-        if ($group_details["eventType"] == "group") {
-            $league = $dbcn->execute_query("SELECT * FROM tournaments WHERE eventType = 'league' AND OPL_ID = ?", [$group_details["OPL_ID_parent"]])->fetch_assoc();
-            $group_title = "Liga {$league['number']} - Gruppe {$group_details['number']}";
-        } elseif ($group_details["eventType"] == "wildcard") {
-			$wildcard_numbers_combined = ($group_details["numberRangeTo"] == null) ? $group_details["number"] : $group_details["number"]."-".$group_details["numberRangeTo"];
-			$group_title = "Wildcard Liga ".$wildcard_numbers_combined;
-        } elseif ($group_details["eventType"] == "league" && $group_details["format"] == "swiss") {
-            $group_title = "Liga {$group_details['number']} Swiss-Gruppe";
-        } else {
-            $group_title = "Gruppe {$group_details['number']}";
-        }
-        if ($group_details["eventType"] != "wildcard") {
-            $playoff_button_data = "data-playoff='$playoff_ID'";
-        } else {
-            $playoff_button_data = "";
-        }
-        $active_group = ($team_group["OPL_ID_group"] == $group["OPL_ID"]) ? "active" : "";
-        echo "<button type='button' class='teampage_switch_group $active_group' data-group='{$team_group["OPL_ID_group"]}' data-team='$teamID' $playoff_button_data>
-                $group_title
-              </button>";
-    }
-
-    echo "</div>";
-}
-
-?>
     <div class='inner-content'>
+        <?= new StandingsTable($teamInTournamentStage->tournamentStage,$teamInTournament->team) ?>
+
+        <?= new MatchButtonList($teamInTournamentStage->tournamentStage,$teamInTournament->team) ?>
+
         <?php
-
-echo new StandingsTable($tournamentStageObj,$teamObj);
-
-echo new MatchButtonList($tournamentStageObj,$teamObj,$playoffObj);
-
 /* TODO: Component für Popups erstellen und für MatchButtons einbinden
 $curr_matchID = $_GET['match'] ?? NULL;
 if ($curr_matchID != NULL) {
@@ -312,8 +170,7 @@ if ($curr_matchID != NULL) {
                      </div>";
 }
 */
-
-?>
+        ?>
     </div>
 </main>
 </body>
