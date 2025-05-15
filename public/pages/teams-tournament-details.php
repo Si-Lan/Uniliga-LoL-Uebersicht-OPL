@@ -6,6 +6,7 @@ use App\Components\Matches\MatchButtonList;
 use App\Components\MultiOpggButton;
 use App\Components\Navigation\SwitchTournamentStageButtons;
 use App\Components\Navigation\TeamHeaderNav;
+use App\Components\Navigation\TournamentNav;
 use App\Components\Standings\StandingsTable;
 use App\Components\Team\TeamRankDisplay;
 use App\Enums\EventType;
@@ -37,13 +38,6 @@ foreach ($teamInTournamentStages as $teamInTournamentStageInLoop) {
     }
 }
 
-$group = $teamInTournamentStage->tournamentStage;
-if ($group->eventType !== EventType::GROUP) {
-    $league = $group;
-} else {
-    $league = $group->directParentTournament;
-}
-
 echo create_html_head_elements(css: ["game"], js: ["rgapi"], title: "{$teamInTournament->nameInTournament} | {$teamInTournament->tournament->getShortName()}", loggedin: is_logged_in());
 
 $open_popup = "";
@@ -56,7 +50,7 @@ if (isset($_GET['match'])) {
 
 <?= create_header(dbcn: $dbcn, title: "tournament", tournament_id: $teamInTournament->tournament->id) ?>
 
-<?= create_tournament_nav_buttons($teamInTournament->tournament->id, $dbcn,"",$league->id,$group->id) ?>
+<?= new TournamentNav($teamInTournament->tournament)?>
 
 <?= new TeamHeaderNav($teamInTournamentStage->teamInRootTournament, "details") ?>
 
