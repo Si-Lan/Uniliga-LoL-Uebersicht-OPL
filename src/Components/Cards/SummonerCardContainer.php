@@ -25,6 +25,7 @@ class SummonerCardContainer {
 			$playerInTeamRepo = new PlayerInTeamRepository();
 			$playersInTeam = $playerInTeamRepo->findAllByTeam($team);
 			foreach ($playersInTeam as $playerInTeam) {
+				if ($playerInTeam->removed) continue;
 				$this->summonerCardHtml .= new SummonerCard($playerInTeam);
 			}
 		}
