@@ -15,7 +15,7 @@ use App\Enums\HeaderType;
 use App\Repositories\TeamInTournamentRepository;
 use App\Repositories\TeamInTournamentStageRepository;
 use App\Utilities\EntitySorter;
-use App\Utilities\UserPreferences;
+use App\Utilities\UserContext;
 
 $teamInTournamentRepo = new TeamInTournamentRepository();
 $teamInTournamentStageRepo = new TeamInTournamentStageRepository();
@@ -48,7 +48,7 @@ if (isset($_GET['match'])) {
 }
 
 ?>
-<body class="team <?= UserPreferences::getLightModeClass()." $open_popup"?>">
+<body class="team <?= UserContext::getLightModeClass()." $open_popup"?>">
 
 <?= new Header(HeaderType::TOURNAMENT, $teamInTournament->tournament)?>
 
@@ -64,7 +64,7 @@ if (isset($_GET['match'])) {
             <?= new MultiOpggButton($teamInTournament) ?>
 
             <?php
-            if (UserPreferences::summonerCardCollapsed()) {
+            if (UserContext::summonerCardCollapsed()) {
                 echo "<button type='button' class='exp_coll_sc'><div class='material-symbol'>".file_get_contents(__DIR__."/../icons/material/unfold_more.svg")."</div>Stats ein</button>";
             } else {
                 echo "<button type='button' class='exp_coll_sc'><div class='material-symbol'>".file_get_contents(__DIR__."/../icons/material/unfold_less.svg")."</div>Stats aus</button>";

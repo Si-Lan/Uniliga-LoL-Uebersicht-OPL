@@ -4,7 +4,7 @@ namespace App\Enums;
 
 use App\Components\OplOutLink;
 use App\Entities\Tournament;
-use App\Utilities\UserPreferences;
+use App\Utilities\UserContext;
 
 enum HeaderType: string {
 	case HOME = 'home';
@@ -40,7 +40,7 @@ enum HeaderType: string {
 		return $this !== self::MAINTENANCE;
 	}
 	public function autoOpenLogin(): bool {
-		return (!UserPreferences::isLoggedIn() && in_array($this, [self::ADMIN, self::ADMIN_DDRAGON, self::ADMIN_LOG, self::ADMIN_RGAPI]))
+		return (!UserContext::isLoggedIn() && in_array($this, [self::ADMIN, self::ADMIN_DDRAGON, self::ADMIN_LOG, self::ADMIN_RGAPI]))
 			|| isset($_GET["login"]);
 	}
 	public function passwordText(): string {

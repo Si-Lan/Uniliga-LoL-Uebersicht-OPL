@@ -7,7 +7,7 @@ use App\Components\OplOutLink;
 use App\Components\Standings\StandingsTable;
 use App\Components\UpdateButton;
 use App\Repositories\TournamentRepository;
-use App\Utilities\UserPreferences;
+use App\Utilities\UserContext;
 
 $tournamentRepo = new TournamentRepository();
 
@@ -21,7 +21,7 @@ if (isset($_GET['match'])) {
 }
 
 ?>
-<body class="group <?= UserPreferences::getLightModeClass()." $open_popup"?>">
+<body class="group <?= UserContext::getLightModeClass()." $open_popup"?>">
 
 <?= create_header(dbcn: $dbcn, title: "tournament", tournament_id: $group->rootTournament->id)?>
 

@@ -3,11 +3,11 @@
 /** @var \App\Entities\Tournament|null $tournament */
 
 use App\Components\Helpers\IconRenderer;
-use App\Utilities\UserPreferences;
+use App\Utilities\UserContext;
 
 ?>
 
-<?php if (UserPreferences::isMaintenanceMode()):?>
+<?php if (UserContext::isMaintenanceMode()):?>
     <div style='text-align: center; padding: 5px 0; background-color: #7e1616'>Achtung: Wartungsmodus ist aktiviert!</div>
 <?php endif; ?>
 
@@ -38,8 +38,8 @@ use App\Utilities\UserPreferences;
 	<button type='button' class='material-symbol settings-button'><?= IconRenderer::getMaterialIcon('tune')?></button>
 
     <div class='settings-menu'>
-        <a class='settings-option toggle-mode' href=''><?= IconRenderer::getMaterialIconDiv(UserPreferences::isLightMode()?'light':'dark'."_mode")?></a>
-        <?php if (UserPreferences::isLoggedIn()): ?>
+        <a class='settings-option toggle-mode' href=''><?= IconRenderer::getMaterialIconDiv(UserContext::isLightMode()?'light':'dark'."_mode")?></a>
+        <?php if (UserContext::isLoggedIn()): ?>
             <a class='settings-option opl-write' href='/admin'>Admin<?= IconRenderer::getMaterialIconDiv('edit_square')?></a>
             <a class='settings-option rgapi-write' href='/admin/rgapi'>RGAPI<?= IconRenderer::getMaterialIconDiv('videogame_asset')?></a>
         	<a class='settings-option ddragon-write' href='/admin/ddragon'>DDragon<?= IconRenderer::getMaterialIconDiv('photo_library')?></a>

@@ -11,7 +11,7 @@ use App\Entities\RankedSplit;
 use App\Repositories\PatchRepository;
 use App\Repositories\PlayerSeasonRankRepository;
 use App\Repositories\RankedSplitRepository;
-use App\Utilities\UserPreferences;
+use App\Utilities\UserContext;
 
 class SummonerCard {
 	private Player $player;
@@ -40,7 +40,7 @@ class SummonerCard {
 			$patchRepo = new PatchRepository();
 			$this->latestPatch = $patchRepo->findLatestPatchWithAllData();
 
-			$this->collapsed = UserPreferences::summonerCardCollapsed();
+			$this->collapsed = UserContext::summonerCardCollapsed();
 		} else {
 			$this->player = $playerInTeam->player;
 			$this->collapsed = true;

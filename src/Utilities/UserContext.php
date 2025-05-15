@@ -2,7 +2,7 @@
 
 namespace App\Utilities;
 
-class UserPreferences {
+class UserContext {
 	public static function isLightMode():bool {
 		return (isset($_COOKIE['lightmode']) && $_COOKIE['lightmode'] === "1");
 	}
