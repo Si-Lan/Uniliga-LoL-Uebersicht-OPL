@@ -13,10 +13,7 @@ class StandingsRow {
 		public TeamInTournamentStage $teamInTournamentStage,
 		public ?int $previousRowStanding = 0,
 		public bool $teamSelected = false
-	) {
-		$teamSeasonRankInTournamentRepo = new TeamSeasonRankInTournamentRepository;
-		$this->teamSeasonRanksInTournament = $teamSeasonRankInTournamentRepo->findAllByTeamAndTournament($this->teamInTournamentStage->team, $this->teamInTournamentStage->teamInRootTournament->tournament);
-	}
+	) {}
 
 	public function render(): string {
 		ob_start();

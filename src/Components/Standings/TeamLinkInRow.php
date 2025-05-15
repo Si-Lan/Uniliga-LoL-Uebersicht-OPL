@@ -2,9 +2,9 @@
 
 namespace App\Components\Standings;
 
+use App\Components\Team\TeamRankDisplay;
 use App\Components\UI\PageLinkWrapper;
 use App\Entities\TeamInTournamentStage;
-use App\Entities\TeamSeasonRankInTournament;
 
 class TeamLinkInRow {
 	public string $href;
@@ -13,9 +13,7 @@ class TeamLinkInRow {
 	public string $ranksHtml = "";
 
 	public function __construct(
-		public TeamInTournamentStage $teamInTournamentStage,
-		/** @var array<TeamSeasonRankInTournament> $teamSeasonRanksInTournament */
-		public array $teamSeasonRanksInTournament
+		public TeamInTournamentStage $teamInTournamentStage
 	) {
 		$this->href = "/turnier/{$teamInTournamentStage->tournamentStage->rootTournament->id}/team/{$teamInTournamentStage->team->id}";
 
@@ -29,14 +27,7 @@ class TeamLinkInRow {
 		}
 		$this->teamLogoHtml = "<img class='color-switch' src='$logoSrc' alt='Teamlogo'>";
 
-		foreach ($this->teamSeasonRanksInTournament as $teamSeasonRankInTournament) {
-			if (!$teamSeasonRankInTournament->hasRank()) continue;
-			$displayStyle = $teamSeasonRankInTournament->isSelectedByUser() ? "" : "display:none;";
-			$classes = implode(' ', ['rank', 'split_rank_element', "ranked-split-".$teamSeasonRankInTournament->rankedSplit->getName()]);
-			$src = "/ddragon/img/ranks/mini-crests/{$teamSeasonRankInTournament->rank->getRankTierLowercase()}.svg";
-
-			$this->ranksHtml .= "<span class='{$classes}' style='$displayStyle'><img class='rank-emblem-mini' src='{$src}' alt='{$teamSeasonRankInTournament->rank->getRankTier()}'>{$teamSeasonRankInTournament->rank->getRank()}</span>";
-		}
+		$this->ranksHtml = new TeamRankDisplay($this->teamInTournamentStage->teamInRootTournament);
 	}
 
 	public function render(): string {

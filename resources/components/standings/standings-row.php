@@ -13,7 +13,7 @@ $classes = implode(' ', array_filter(["standing-row", "standing-team", $currentC
     </div>
     <div class="standing-item-wrapper">
         <?php
-        echo new \App\Components\Standings\TeamLinkInRow($this->teamInTournamentStage,$this->teamSeasonRanksInTournament);
+        echo new \App\Components\Standings\TeamLinkInRow($this->teamInTournamentStage);
         ?>
         <div class="standing-item played"><?=$this->teamInTournamentStage->played?></div>
 		<?php
