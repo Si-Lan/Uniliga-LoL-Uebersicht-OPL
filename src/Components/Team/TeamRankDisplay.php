@@ -31,7 +31,7 @@ class TeamRankDisplay {
 		foreach ($this->teamRanks as $teamRank) {
 			if (!$teamRank->hasRank()) continue;
 			$displayStyle = ($teamRank instanceof Team || $teamRank->isSelectedByUser()) ? '' : 'display:none';
-			$classes = implode(' ', [$this->withLabel ? 'team-avg-rank' : 'rank', 'split_rank_element', $teamRank instanceof TeamSeasonRankInTournament ? 'ranked-split-'.$teamRank->rankedSplit->getName() : '']);
+			$classes = implode(' ', array_filter([$this->withLabel ? 'team-avg-rank' : 'rank', 'split_rank_element', $teamRank instanceof TeamSeasonRankInTournament ? 'ranked-split-'.$teamRank->rankedSplit->getName() : '']));
 			$src = "/ddragon/img/ranks/mini-crests/{$teamRank->rank->getRankTierLowercase()}.svg";
 			include BASE_PATH.'/resources/components/team/team-rank-display.php';
 		}
