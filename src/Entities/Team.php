@@ -11,7 +11,7 @@ class Team {
 		public ?string $shortName,
 		public ?int $logoId,
 		public ?\DateTimeImmutable $lastLogoDownload,
-		public RankAverage $avgRank
+		public RankAverage $rank
 	) {}
 
 	public function getLogoUrl() : string|false {
@@ -23,5 +23,9 @@ class Team {
 		} else {
 			return $baseUrl."logo.webp";
 		}
+	}
+
+	public function hasRank(): bool {
+		return $this->rank->rankTier !== null;
 	}
 }

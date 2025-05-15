@@ -20,7 +20,7 @@ class TeamRepository extends AbstractRepository {
 			shortName: $this->stringOrNull($data['shortName']),
 			logoId: $this->intOrNull($data['OPL_ID_logo']),
 			lastLogoDownload: $this->DateTimeImmutableOrNull($data['last_logo_download']),
-			avgRank: new RankAverage(
+			rank: new RankAverage(
 				$this->stringOrNull($data['avg_rank_tier']),
 				$this->stringOrNull($data['avg_rank_div']),
 				$this->floatOrNull($data['avg_rank_num']),

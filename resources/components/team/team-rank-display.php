@@ -1,5 +1,5 @@
 <?php
-/** @var \App\Entities\TeamSeasonRankInTournament $teamSeasonRankInTournament */
+/** @var \App\Entities\TeamSeasonRankInTournament|\App\Entities\Team $teamRank */
 /** @var string $classes */
 /** @var string $displayStyle */
 /** @var string $src */
@@ -9,6 +9,6 @@
 	<?php if ($withLabel): ?>
     Team-Rang:
 	<?php endif; ?>
-    <img class='rank-emblem-mini' src='<?=$src?>' alt='<?=$teamSeasonRankInTournament->rank->getRankTier()?>'>
-    <span><?= $teamSeasonRankInTournament->rank->getRank()?></span>
+    <img class='rank-emblem-mini' src='<?=$src?>' alt='<?=$teamRank->rank->getRankTier()?>'>
+    <span><?= $teamRank->rank->getRank()?></span>
 </span>

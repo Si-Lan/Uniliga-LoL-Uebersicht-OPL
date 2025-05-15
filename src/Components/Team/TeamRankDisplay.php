@@ -2,31 +2,37 @@
 
 namespace App\Components\Team;
 
+use App\Entities\Team;
 use App\Entities\TeamInTournament;
 use App\Entities\TeamSeasonRankInTournament;
 use App\Repositories\TeamSeasonRankInTournamentRepository;
 
 class TeamRankDisplay {
 	/**
-	 * @var array<TeamSeasonRankInTournament> $teamSeasonRanksInTournament
+	 * @var array<TeamSeasonRankInTournament>|array<Team> $teamRanks
 	 */
-	private array $teamSeasonRanksInTournament;
+	private array $teamRanks;
 	public function __construct(
-		public TeamInTournament $teamInTournament,
+		public TeamInTournament|Team $team,
 		public bool $withLabel=false
 	) {
-		$teamSeasonRankInTournamentRepo = new TeamSeasonRankInTournamentRepository();
-		$this->teamSeasonRanksInTournament = $teamSeasonRankInTournamentRepo->findAllByTeamAndTournament($this->teamInTournament->team, $this->teamInTournament->tournament);
+		if ($team instanceof TeamInTournament) {
+			$teamSeasonRankInTournamentRepo = new TeamSeasonRankInTournamentRepository();
+			$this->teamRanks = $teamSeasonRankInTournamentRepo->findAllByTeamAndTournament($this->team->team, $this->team->tournament);
+		}
+		if ($team instanceof Team) {
+			$this->teamRanks = [$team];
+		}
 	}
 
 	public function render(): string {
 		$withLabel = $this->withLabel;
 		ob_start();
-		foreach ($this->teamSeasonRanksInTournament as $teamSeasonRankInTournament) {
-			if (!$teamSeasonRankInTournament->hasRank()) continue;
-			$displayStyle = $teamSeasonRankInTournament->isSelectedByUser() ? '' : 'display:none';
-			$classes = implode(' ', [$this->withLabel ? 'team-avg-rank' : 'rank', 'split_rank_element', 'ranked-split-'.$teamSeasonRankInTournament->rankedSplit->getName()]);
-			$src = "/ddragon/img/ranks/mini-crests/{$teamSeasonRankInTournament->rank->getRankTierLowercase()}.svg";
+		foreach ($this->teamRanks as $teamRank) {
+			if (!$teamRank->hasRank()) continue;
+			$displayStyle = ($teamRank instanceof Team || $teamRank->isSelectedByUser()) ? '' : 'display:none';
+			$classes = implode(' ', [$this->withLabel ? 'team-avg-rank' : 'rank', 'split_rank_element', $teamRank instanceof TeamSeasonRankInTournament ? 'ranked-split-'.$teamRank->rankedSplit->getName() : '']);
+			$src = "/ddragon/img/ranks/mini-crests/{$teamRank->rank->getRankTierLowercase()}.svg";
 			include BASE_PATH.'/resources/components/team/team-rank-display.php';
 		}
 		return ob_get_clean();

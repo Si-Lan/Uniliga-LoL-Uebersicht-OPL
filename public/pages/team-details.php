@@ -80,7 +80,7 @@ echo "
                     <div class='title'>
                         <h3>Aktuelle Spieler</h3>
                         <a href='$opgglink' class='button op-gg' target='_blank'><div class='svg-wrapper op-gg'>$opgg_logo_svg</div><span class='player-amount'>({$opgg_amount} Spieler)</span></a>";
-
+echo new \App\Components\Team\TeamRankDisplay($teamObj,true);
 echo "
                      </div>";
 echo new SummonerCardContainer($teamObj);
