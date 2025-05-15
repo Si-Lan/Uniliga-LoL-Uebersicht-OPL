@@ -4,12 +4,14 @@
 use App\Components\Cards\SummonerCardContainer;
 use App\Components\Matches\MatchButtonList;
 use App\Components\MultiOpggButton;
+use App\Components\Navigation\Header;
 use App\Components\Navigation\SwitchTournamentStageButtons;
 use App\Components\Navigation\TeamHeaderNav;
 use App\Components\Navigation\TournamentNav;
 use App\Components\Standings\StandingsTable;
 use App\Components\Team\TeamRankDisplay;
 use App\Enums\EventType;
+use App\Enums\HeaderType;
 use App\Repositories\TeamInTournamentRepository;
 use App\Repositories\TeamInTournamentStageRepository;
 use App\Utilities\EntitySorter;
@@ -48,7 +50,7 @@ if (isset($_GET['match'])) {
 ?>
 <body class="team <?= UserPreferences::getLightModeClass()." $open_popup"?>">
 
-<?= create_header(dbcn: $dbcn, title: "tournament", tournament_id: $teamInTournament->tournament->id) ?>
+<?= new Header(HeaderType::TOURNAMENT, $teamInTournament->tournament)?>
 
 <?= new TournamentNav($teamInTournament->tournament)?>
 

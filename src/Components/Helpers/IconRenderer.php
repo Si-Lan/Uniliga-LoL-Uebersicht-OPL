@@ -53,5 +53,8 @@ class IconRenderer {
 	public static function getGithubIcon(): string {
 		return file_get_contents(self::IMG_PATH.'github-mark-white.svg');
 	}
+	public static function getGithubIconDiv(): string {
+		return "<div class='material-symbol'>".self::getGithubIcon()."</div>";
+	}
 
 }

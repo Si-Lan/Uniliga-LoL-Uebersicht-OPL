@@ -17,4 +17,17 @@ class UserPreferences {
 	public static function summonerCardCollapsed(): bool {
 		return (isset($_COOKIE['preference_sccollapsed']) && $_COOKIE['preference_sccollapsed'] === '1');
 	}
+
+	public static function isLoggedIn(): bool {
+		if (isset($_COOKIE['admin-login'])) {
+			if (password_verify($_ENV['ADMIN_PASS'], $_COOKIE['admin-login'])) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public static function isMaintenanceMode(): bool {
+		return file_exists(dirname(__DIR__,2) . "/config/maintenance.enable");
+	}
 }
