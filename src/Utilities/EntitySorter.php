@@ -5,11 +5,23 @@ namespace App\Utilities;
 use App\Entities\Matchup;
 use App\Entities\PlayerInTeamInTournament;
 use App\Entities\TeamInTournamentStage;
+use App\Entities\Tournament;
 use App\Enums\EventType;
 
 class EntitySorter {
 	/**
-	 * @param array<TeamInTournamentStage> $tournamentStages
+	 * @param array<Tournament> $tournaments
+	 * @return array<Tournament>
+	 */
+	public static function sortTournamentsByStartDate(array $tournaments): array {
+		usort($tournaments, function(Tournament $a, Tournament $b) {
+			return $b->dateStart <=> $a->dateStart;
+		});
+		return $tournaments;
+	}
+
+	/**
+	 * @param array<TeamInTournamentStage> $teamInTournamentStages
 	 * @return array<TeamInTournamentStage>
 	 */
 	public static function sortTeamInTournamentStages(array $teamInTournamentStages): array {
