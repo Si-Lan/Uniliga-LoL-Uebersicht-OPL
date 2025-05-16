@@ -7,6 +7,7 @@ use App\Page\PageMeta;
 use App\Repositories\PlayerRepository;
 use App\Repositories\TeamRepository;
 use App\Repositories\TournamentRepository;
+use App\Utilities\UserContext;
 
 require_once dirname(__DIR__).'/bootstrap.php';
 
@@ -16,6 +17,12 @@ include_once BASE_PATH."/config/data.php";
 include_once BASE_PATH."/src/functions/fe-functions.php";
 
 check_login();
+
+if (UserContext::isMaintenanceMode() && !UserContext::isLoggedIn()) {
+	http_response_code(503);
+	renderPage(BASE_PATH.'/public/pages/maintenance.php');
+	exit();
+}
 
 try {
     $dbcn = DatabaseConnection::getConnection();

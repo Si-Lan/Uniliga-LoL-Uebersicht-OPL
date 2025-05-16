@@ -1,20 +1,7 @@
+
 <?php
-include_once dirname(__DIR__,2)."/src/functions/fe-functions.php";
-
-$pass = check_login();
+$pageMeta = new \App\Page\PageMeta('Wartung',bodyClass: 'error');
 ?>
-<!DOCTYPE html>
-<html lang="de">
-<?php
+<?= new \App\Components\Navigation\Header(\App\Enums\HeaderType::MAINTENANCE)?>
 
-echo create_html_head_elements();
-
-?>
-<body class="error <?=is_light_mode(true)?>">
-<?php
-
-echo create_header(title: "maintenance", home_button: false, search_button: false);
-echo "<div style='text-align: center'>Die Webseite wird gerade gewartet, versuche es bitte später erneut!</div>";
-?>
-</body>
-</html>
+<div style='text-align: center'>Die Webseite wird gerade gewartet, versuche es bitte später erneut!</div>

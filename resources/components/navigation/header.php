@@ -7,7 +7,7 @@ use App\Utilities\UserContext;
 
 ?>
 
-<?php if (UserContext::isMaintenanceMode()):?>
+<?php if (UserContext::isMaintenanceMode() && UserContext::isLoggedIn()):?>
     <div style='text-align: center; padding: 5px 0; background-color: #7e1616'>Achtung: Wartungsmodus ist aktiviert!</div>
 <?php endif; ?>
 

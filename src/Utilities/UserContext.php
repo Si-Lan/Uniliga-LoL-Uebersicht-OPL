@@ -28,6 +28,6 @@ class UserContext {
 	}
 
 	public static function isMaintenanceMode(): bool {
-		return file_exists(dirname(__DIR__,2) . "/config/maintenance.enable");
+		return file_exists(BASE_PATH.'/config/maintenance.enable');
 	}
 }
