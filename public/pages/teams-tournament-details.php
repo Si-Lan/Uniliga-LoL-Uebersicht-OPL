@@ -1,5 +1,4 @@
 <?php
-/** @var mysqli $dbcn  */
 
 use App\Components\Cards\SummonerCardContainer;
 use App\Components\Matches\MatchButtonList;
@@ -12,6 +11,7 @@ use App\Components\Standings\StandingsTable;
 use App\Components\Team\TeamRankDisplay;
 use App\Enums\EventType;
 use App\Enums\HeaderType;
+use App\Page\PageMeta;
 use App\Repositories\TeamInTournamentRepository;
 use App\Repositories\TeamInTournamentStageRepository;
 use App\Utilities\EntitySorter;
@@ -40,15 +40,13 @@ foreach ($teamInTournamentStages as $teamInTournamentStageInLoop) {
     }
 }
 
-echo create_html_head_elements(css: ["game"], js: ["rgapi"], title: "{$teamInTournament->nameInTournament} | {$teamInTournament->tournament->getShortName()}", loggedin: is_logged_in());
-
-$open_popup = "";
-if (isset($_GET['match'])) {
-	$open_popup = "popup_open";
-}
+$pageMeta = new PageMeta(
+	title: $teamInTournament->nameInTournament." | ".$teamInTournament->tournament->getShortName(),
+	css: ['game'],
+	bodyClass: 'team'
+);
 
 ?>
-<body class="team <?= UserContext::getLightModeClass()." $open_popup"?>">
 
 <?= new Header(HeaderType::TOURNAMENT, $teamInTournament->tournament)?>
 
@@ -169,4 +167,3 @@ if ($curr_matchID != NULL) {
         ?>
     </div>
 </main>
-</body>

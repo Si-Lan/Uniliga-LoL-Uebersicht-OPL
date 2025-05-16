@@ -2,6 +2,8 @@
 
 use App\Database\DatabaseConnection;
 use App\Enums\EventType;
+use App\Page\LayoutRenderer;
+use App\Page\PageMeta;
 use App\Repositories\PlayerRepository;
 use App\Repositories\TeamRepository;
 use App\Repositories\TournamentRepository;
@@ -62,8 +64,11 @@ function trigger404(string $type = ''):void {
 
 function renderPage(string $pageFile): void {
 	$dbcn = DatabaseConnection::getConnection(); // TODO: entfernen (Workaround, solange noch Seitenelemente mit direkten DB-Zugriffen arbeiten)
-    echo "<!DOCTYPE html>";
-    echo "<html lang='de'>";
-    require $pageFile;
-    echo "</html>";
+	ob_start();
+	require $pageFile;
+	$pageContent = ob_get_clean();
+	if (!isset($pageMeta) || !$pageMeta instanceof PageMeta) {
+		$pageMeta = new PageMeta();
+	}
+	LayoutRenderer::render($pageMeta, $pageContent);
 }
