@@ -103,4 +103,37 @@ class TournamentRepository extends AbstractRepository {
 		}
 		return $tournaments;
 	}
+
+	/**
+	 * @param Tournament $rootTournament
+	 * @param EventType $type
+	 * @return array<Tournament>
+	 */
+	public function findAllByRootTournamentAndType(Tournament $rootTournament, EventType $type):array {
+		$query = 'SELECT * FROM tournaments WHERE OPL_ID_top_parent = ? AND eventType = ? ORDER BY number';
+		$result = $this->dbcn->execute_query($query,[$rootTournament->id,$type->value]);
+		$data = $result->fetch_all(MYSQLI_ASSOC);
+
+		$tournaments = [];
+		foreach ($data as $tournamentData) {
+			$tournaments[] = $this->mapToEntity($tournamentData, rootTournament: $rootTournament);
+		}
+		return $tournaments;
+	}
+	/**
+	 * @param Tournament $parentTournament
+	 * @param EventType $type
+	 * @return array<Tournament>
+	 */
+	public function findAllByParentTournamentAndType(Tournament $parentTournament, EventType $type):array {
+		$query = 'SELECT * FROM tournaments WHERE OPL_ID_parent = ? AND eventType = ? ORDER BY number';
+		$result = $this->dbcn->execute_query($query,[$parentTournament->id,$type->value]);
+		$data = $result->fetch_all(MYSQLI_ASSOC);
+
+		$tournaments = [];
+		foreach ($data as $tournamentData) {
+			$tournaments[] = $this->mapToEntity($tournamentData, directParentTournament: $parentTournament);
+		}
+		return $tournaments;
+	}
 }
