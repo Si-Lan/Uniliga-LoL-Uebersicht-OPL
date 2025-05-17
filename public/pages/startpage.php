@@ -1,48 +1,36 @@
 <?php
-/** @var mysqli $dbcn  */
 
-echo create_html_head_elements();
+use App\Components\Navigation\Header;
+use App\Components\UI\PageLink;
+use App\Enums\HeaderType;
+use App\Page\PageMeta;
+use App\Repositories\TournamentRepository;
+use App\Utilities\EntitySorter;
 
-?>
-<body class="home <?= is_light_mode(true)?>">
-<?php
+$pageMeta = new PageMeta(bodyClass: 'home');
 
-echo create_header($dbcn, home_button: FALSE);
+$tournamentRepo = new TournamentRepository();
+$tournaments = $tournamentRepo->findAllRootTournaments();
+$tournaments = EntitySorter::sortTournamentsByStartDate($tournaments);
 
+echo new Header(HeaderType::HOME);
 ?>
 <main>
 	<div id="turnier-select">
-		<a href='/spieler' class="icon-link page-link">
-            <?php echo "<span class='material-symbol icon-link-icon'>" . file_get_contents(dirname(__FILE__) . "/../icons/material/person.svg") . "</span>" ?>
-            <span class="link-text">Spieler</span>
-			<?php echo "<span class='material-symbol page-link-icon'>" . file_get_contents(dirname(__FILE__) . "/../icons/material/chevron_right.svg") . "</span>" ?>
-        </a>
+        <?= new PageLink('/spieler','Spieler', materialIcon: 'person')?>
         <div id="turnier-liste">
 		    <h2>Turniere</h2>
-		<?php
-		$local_img_path = "/img/tournament_logos";
-		$logo_filename = is_light_mode() ? "logo_light.webp" : "logo.webp";
-		$tournaments = $dbcn->execute_query("SELECT * FROM tournaments WHERE eventType = 'tournament' AND deactivated = FALSE ORDER BY dateStart DESC")->fetch_all(MYSQLI_ASSOC);
-		foreach ($tournaments as $i=>$tournament) {
-			if ($tournament["OPL_ID_logo"] == NULL) {
-				$tournimg_url = "";
-			} else {
-				$tournimg_url = $local_img_path."/". $tournament['OPL_ID_logo']."/".$logo_filename;
-			}
-
-			$t_name_clean = preg_replace("/LoL\s/i","",$tournament["name"]);
-
-			if ($i != 0) echo "<div class='divider'></div>";
-			echo "
-				<a href='/turnier/{$tournament["OPL_ID"]}' class=\"turnier-button {$tournament["OPL_ID"]}\">
-					<img class='color-switch' alt src='$tournimg_url'>
-					<span>$t_name_clean</span>
-				</a>";
-		}
-		$dbcn->close();
-		?>
+            <?php foreach ($tournaments as $i=>$tournament):?>
+				<?= ($i != 0) ? '<div class="divider"></div>' : '' ?>
+                <a href="/turnier/<?= $tournament->id ?>" class="turnier-button <?= $tournament->id ?>">
+                    <?php if($tournament->getLogoUrl()): ?>
+                        <img class='color-switch' alt src='<?= $tournament->getLogoUrl() ?>'>
+                    <?php else: ?>
+                        <img alt src="data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs%3D">
+                    <?php endif; ?>
+                    <span><?= $tournament->getShortName() ?></span>
+				</a>
+            <?php endforeach; ?>
         </div>
 	</div>
 </main>
-
-</body>
