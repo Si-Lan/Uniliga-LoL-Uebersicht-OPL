@@ -40,6 +40,7 @@ class PlayerRepository extends AbstractRepository {
 
 	public function playerExists(int $playerId): bool {
 		$result = $this->dbcn->execute_query("SELECT * FROM players WHERE OPL_ID = ?", [$playerId]);
-		return $result !== false;
+		$data = $result->fetch_assoc();
+		return $data !== null;
 	}
 }

@@ -37,6 +37,7 @@ class TeamRepository extends AbstractRepository {
 
 	public function teamExists(int $teamId): bool {
 		$result = $this->dbcn->execute_query("SELECT * FROM teams WHERE OPL_ID = ?", [$teamId]);
-		return $result !== false;
+		$data = $result->fetch_assoc();
+		return $data !== null;
 	}
 }
