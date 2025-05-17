@@ -56,20 +56,29 @@ class TeamInTournamentRepository extends AbstractRepository {
 		}
 
 		$query = '
-			SELECT stit.*, tnh.name, tlh.dir_key
+			SELECT 
+			    ltnt.name,
+			    ltlt.dir_key,
+			    t.OPL_ID as OPL_ID_team,
+			    tr.OPL_ID as OPL_ID_tournament,
+			    stit.champs_played,
+			    stit.champs_banned,
+			    stit.champs_played_against,
+			    stit.champs_banned_against,
+			    stit.games_played,
+			    stit.games_won,
+    			stit.avg_win_time
 			FROM teams t
+			    JOIN tournaments tr
+			    	ON tr.OPL_ID = ?
         		LEFT JOIN stats_teams_in_tournaments stit
-                	ON t.OPL_ID = stit.OPL_ID_team AND stit.OPL_ID_tournament = ?
-	        	LEFT JOIN tournaments tr
-					ON tr.OPL_ID = ?
-				LEFT JOIN team_logo_history tlh
-					ON t.OPL_ID = tlh.OPL_ID_team AND (tlh.update_time < tr.dateEnd OR tr.dateEnd IS NULL)
-				LEFT JOIN team_name_history tnh
-					ON t.OPL_ID = tnh.OPL_ID_team AND (tnh.update_time < tr.dateEnd OR tr.dateEnd IS NULL)
-			WHERE t.OPL_ID = ?
-			ORDER BY tlh.update_time DESC, tnh.update_time DESC
-			LIMIT 1';
-		$result = $this->dbcn->execute_query($query, [$tournamentId,$tournamentId,$teamId]);
+                	ON t.OPL_ID = stit.OPL_ID_team AND stit.OPL_ID_tournament = tr.OPL_ID
+			    LEFT JOIN latest_team_name_in_tournament ltnt
+					ON t.OPL_ID = ltnt.OPL_ID_team AND tr.OPL_ID = ltnt.OPL_ID_tournament
+				LEFT JOIN latest_team_logo_in_tournament ltlt
+					ON t.OPL_ID = ltlt.OPL_ID_team AND tr.OPL_ID = ltlt.OPL_ID_tournament
+			WHERE t.OPL_ID = ?';
+		$result = $this->dbcn->execute_query($query, [$tournamentId,$teamId]);
 		$data = $result->fetch_assoc();
 
 		if (is_null($data["OPL_ID_team"]) || is_null($data["OPL_ID_tournament"])) {
@@ -88,5 +97,40 @@ class TeamInTournamentRepository extends AbstractRepository {
 	}
 	public function findByTeamAndTournament(Team $team, Tournament $tournament): ?TeamInTournament {
 		return $this->findInternal($team->id, $tournament->id, $team, $tournament);
+	}
+
+	/**
+	 * @param Team $team
+	 * @return array<TeamInTournament>
+	 */
+	public function findAllByTeam(Team $team): array {
+		$query = '
+			SELECT
+			ltnt.name,
+			ltlt.dir_key,
+			t.OPL_ID as OPL_ID_team,
+			tr.OPL_ID as OPL_ID_tournament,
+		    stit.champs_played,
+   			stit.champs_banned,
+		    stit.champs_played_against,
+		    stit.champs_banned_against,
+		    stit.games_played,
+		    stit.games_won,
+		    stit.avg_win_time
+			FROM teams t
+			    JOIN tournaments tr
+			        ON tr.OPL_ID IN (SELECT OPL_ID_top_parent FROM teams_in_tournaments JOIN tournaments ON teams_in_tournaments.OPL_ID_group = tournaments.OPL_ID WHERE OPL_ID_team = t.OPL_ID)
+			    LEFT JOIN stats_teams_in_tournaments stit ON t.OPL_ID = stit.OPL_ID_team AND tr.OPL_ID = stit.OPL_ID_tournament
+			    LEFT JOIN latest_team_name_in_tournament ltnt ON t.OPL_ID = ltnt.OPL_ID_team AND tr.OPL_ID = ltnt.OPL_ID_tournament
+			    LEFT JOIN latest_team_logo_in_tournament ltlt ON t.OPL_ID = ltlt.OPL_ID_team AND tr.OPL_ID = ltlt.OPL_ID_tournament
+			WHERE t.OPL_ID = ?';
+		$result = $this->dbcn->execute_query($query, [$team->id]);
+		$data = $result->fetch_all(MYSQLI_ASSOC);
+
+		$teamInTournaments = [];
+		foreach ($data as $teamInTournamentData) {
+			$teamInTournaments[] = $this->mapToEntity($teamInTournamentData, team: $team);
+		}
+		return $teamInTournaments;
 	}
 }
