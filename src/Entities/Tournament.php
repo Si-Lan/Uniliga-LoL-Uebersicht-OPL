@@ -95,7 +95,7 @@ class Tournament {
 	}
 	public function getShortName():string {
 		if ($this->eventType === EventType::LEAGUE && $this->format === EventFormat::SWISS) {
-			return "Swiss-Gruppe";
+			return "Liga ".$this->getNumberFormatted();
 		}
 		return match ($this->eventType) {
 			EventType::TOURNAMENT => preg_replace("/LoL\s/i","",$this->name),
