@@ -7,7 +7,7 @@ use App\Enums\HeaderType;
 
 class Header {
 	public function __construct(
-		private HeaderType $type,
+		private HeaderType $type = HeaderType::DEFAULT,
 		private ?Tournament $tournament = null
 	) {}
 

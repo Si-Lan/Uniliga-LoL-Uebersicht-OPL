@@ -17,10 +17,11 @@ enum HeaderType: string {
 	case ADMIN_LOG = 'admin_update_log';
 	case ERROR = 'error';
 	case NOT_FOUND = '404';
+	case DEFAULT = 'default';
 
 	public function getTitle(?Tournament $tournament = null): string {
 		return match($this) {
-			self::HOME => 'Uniliga LoL - Übersicht',
+			self::HOME, self::DEFAULT => 'Uniliga LoL - Übersicht',
 			self::TOURNAMENT => $tournament?->getShortName().(new OplOutLink($tournament)) ?? 'Uniliga LoL - Übersicht',
 			self::PLAYERS => 'Uniliga LoL - Spieler',
 			self::MAINTENANCE => 'Uniliga LoL - Übersicht - Wartung',
