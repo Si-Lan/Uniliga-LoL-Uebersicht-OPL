@@ -1,29 +1,21 @@
 <?php
 /** @var mysqli $dbcn  */
 
-$playerID = $_GET["player"] ?? NULL;
+use App\Components\Navigation\Header;
+use App\Enums\HeaderType;
+use App\Page\PageMeta;
+use App\Repositories\PlayerRepository;
 
-$player = $dbcn->execute_query("SELECT * FROM players WHERE OPL_ID = ?", [$playerID])->fetch_assoc();
+$playerRepo = new PlayerRepository();
 
-if ($player == NULL) {
-    $_GET["error"] = "404";
-    $_GET["404type"] = "player";
-    require 'error.php';
-    echo "</html>";
-    exit();
-}
+$player = $playerRepo->findById($_GET["player"]);
 
-echo create_html_head_elements(title: "{$player["name"]} | Uniliga LoL - Übersicht", loggedin: is_logged_in());
+$pageMeta = new PageMeta($player->name, bodyClass: 'player');
 
 ?>
-<body class="player <?=is_light_mode(true)?>">
-<?php
 
-echo create_header(dbcn: $dbcn, title: "player");
+<?= new Header(HeaderType::PLAYERS) ?>
 
-echo "<div class='main-content'>";
-echo create_player_overview($dbcn,$playerID, true);
-echo "</div>";
-
-?>
-</body>
+<div class='main-content'>
+    <?= create_player_overview($dbcn,$player->id, true) ?>
+</div>
