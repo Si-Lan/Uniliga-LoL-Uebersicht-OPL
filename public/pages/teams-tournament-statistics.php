@@ -1,6 +1,8 @@
 <?php
 /** @var mysqli $dbcn  */
 
+use App\Page\PageMeta;
+
 $tournament_url_path = $_GET["tournament"] ?? NULL;
 $teamID = $_GET["team"] ?? NULL;
 
@@ -54,12 +56,7 @@ $team_name_now = $dbcn->execute_query("SELECT name FROM team_name_history WHERE 
 $team["name"] = $team_name_now;
 
 $t_name_clean = preg_replace("/LoL\s/i","",$tournament["name"]);
-echo create_html_head_elements(title: "{$team_name_now} - Statistiken | $t_name_clean", loggedin: is_logged_in());
-
-
-?>
-<body class="statistics <?=is_light_mode(true)?>">
-<?php
+$pageMeta = new PageMeta("$team_name_now - Statistiken | $t_name_clean", bodyClass: 'statistics');
 
 $pageurl = $_SERVER['REQUEST_URI'];
 $opl_tourn_url = "https://www.opleague.pro/event/";
@@ -387,4 +384,3 @@ echo "</main>";
 
 
 ?>
-</body>

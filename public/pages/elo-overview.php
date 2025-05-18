@@ -1,6 +1,8 @@
 <?php
 /** @var mysqli $dbcn  */
 
+use App\Page\PageMeta;
+
 $tournament_url_path = $_GET["tournament"] ?? NULL;
 $tournamentID = $tournament_url_path;
 if (preg_match("/^(winter|sommer)([0-9]{2})$/",strtolower($tournamentID),$url_path_matches)) {
@@ -27,11 +29,7 @@ $use_second_split = ($second_ranked_split == $current_split);
 
 
 $t_name_clean = preg_replace("/LoL\s/i","",$tournament["name"]);
-echo create_html_head_elements(css: ["elo"], title: "Elo-Übersicht - $t_name_clean | Uniliga LoL - Übersicht");
-
-?>
-<body class="elo-overview <?=is_light_mode(true)?>">
-<?php
+$pageMeta = new PageMeta("Elo-Übersicht - $t_name_clean",css: ['elo'],bodyClass: 'elo-overview');
 
 echo create_header($dbcn, title: "tournament", tournament_id: $tournamentID);
 
@@ -164,4 +162,3 @@ echo "<a class='button totop' onclick='to_top()' style='opacity: 0; pointer-even
 
 ?>
 </main>
-</body>

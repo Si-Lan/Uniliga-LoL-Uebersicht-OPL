@@ -1,6 +1,8 @@
 <?php
 /** @var mysqli $dbcn  */
 
+use App\Page\PageMeta;
+
 $tournament_url_path = $_GET["tournament"] ?? NULL;
 $tournamentID = $tournament_url_path;
 if (preg_match("/^(winter|sommer)([0-9]{2})$/",strtolower($tournamentID),$url_path_matches)) {
@@ -21,11 +23,7 @@ if ($tournament == NULL) {
 }
 
 $t_name_clean = preg_replace("/LoL\s/i","",$tournament["name"]);
-echo create_html_head_elements(title: "Team-Liste - $t_name_clean | Uniliga LoL - Übersicht");
-
-?>
-<body class="teamlist <?=is_light_mode(true)?>">
-<?php
+$pageMeta = new PageMeta("Team-Liste - $t_name_clean", bodyClass: 'teamlist');
 
 echo create_header($dbcn, title: "tournament", tournament_id: $tournamentID);
 
@@ -258,4 +256,3 @@ echo "</div>"; //Team-List
 
 ?>
 </main>
-</body>
