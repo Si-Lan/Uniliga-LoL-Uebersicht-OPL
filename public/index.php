@@ -40,24 +40,28 @@ if (!$routeMatch) trigger404();
 
 $_GET = array_merge($_GET, $routeMatch['params']);
 
-if (isset($_GET['tournament']) && !(new TournamentRepository())->tournamentExists($_GET['tournament'], EventType::TOURNAMENT)) {
-    trigger404('tournament');
+$tournamentRepo = new TournamentRepository();
+$teamRepo = new TeamRepository();
+$playerRepo = new PlayerRepository();
+
+function validateIntId(string $param, callable $existsCallback): void {
+	if (!isset($_GET[$param])) {
+		return;
+	}
+
+	$_GET[$param] = filter_var($_GET[$param], FILTER_VALIDATE_INT);
+
+	if (!$_GET[$param] || !$existsCallback($_GET[$param])) {
+		trigger404($param);
+	}
 }
-if (isset($_GET['group']) && !(new TournamentRepository())->tournamentExists($_GET['group'], EventType::GROUP)) {
-	trigger404('group');
-}
-if (isset($_GET['wildcard']) && !(new TournamentRepository())->tournamentExists($_GET['wildcard'], EventType::WILDCARD)) {
-	trigger404('wildcard');
-}
-if (isset($_GET['playoffs']) && !(new TournamentRepository())->tournamentExists($_GET['playoffs'], EventType::PLAYOFFS)) {
-	trigger404('playoffs');
-}
-if (isset($_GET['team']) && !(new TeamRepository())->teamExists($_GET['team'])) {
-	trigger404('team');
-}
-if (isset($_GET['player']) && !(new PlayerRepository())->playerExists($_GET['player'])) {
-	trigger404('player');
-}
+
+validateIntId('tournament', fn($id)=>($tournamentRepo->tournamentExists($id, EventType::TOURNAMENT)));
+validateIntId('group', fn($id)=>($tournamentRepo->tournamentExists($id, EventType::GROUP)));
+validateIntId('wildcard', fn($id)=>($tournamentRepo->tournamentExists($id, EventType::WILDCARD)));
+validateIntId('playoffs', fn($id)=>($tournamentRepo->tournamentExists($id, EventType::PLAYOFFS)));
+validateIntId('team', fn($id)=>($teamRepo->teamExists($id)));
+validateIntId('player', fn($id)=>($playerRepo->playerExists($id)));
 
 renderPage($routeMatch['file']);
 
