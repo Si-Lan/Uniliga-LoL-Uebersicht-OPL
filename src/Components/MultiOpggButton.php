@@ -37,7 +37,7 @@ class MultiOpggButton {
 		$opggUrl = $this->opggUrl;
 		$playerAmount = $this->playerAmount;
 		ob_start();
-		include BASE_PATH.'/resources/components/multi-opgg-button.php';
+		include __DIR__.'/multi-opgg-button.template.php';
 		return ob_get_clean();
 	}
 	public function __toString(): string {

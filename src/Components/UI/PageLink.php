@@ -16,7 +16,7 @@ class PageLink {
 
 	public function render(): string {
 		ob_start();
-		include BASE_PATH.'/resources/components/ui/page-link.php';
+		include __DIR__.'/page-link.template.php';
 		return ob_get_clean();
 	}
 

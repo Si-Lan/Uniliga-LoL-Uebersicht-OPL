@@ -29,7 +29,7 @@ class MatchButton {
 		$team1InTournament = $this->team1InTournament;
 		$team2InTournament = $this->team2InTournament;
 		ob_start();
-		include BASE_PATH.'/resources/components/matches/match-button.php';
+		include __DIR__.'/match-button.template.php';
 		return ob_get_clean();
 	}
 

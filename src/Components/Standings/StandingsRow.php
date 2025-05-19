@@ -17,7 +17,7 @@ class StandingsRow {
 
 	public function render(): string {
 		ob_start();
-		include BASE_PATH.'/resources/components/standings/standings-row.php';
+		include __DIR__.'/standings-row.template.php';
 		return ob_get_clean();
 	}
 

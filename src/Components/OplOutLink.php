@@ -27,7 +27,7 @@ class OplOutLink {
 		$oplUrl = $this->oplUrl;
 		$entityId = $this->entityId;
 		ob_start();
-		include BASE_PATH.'/resources/components/opl-out-link.php';
+		include __DIR__.'/opl-out-link.template.php';
 		return ob_get_clean();
 	}
 	public function __toString(): string {

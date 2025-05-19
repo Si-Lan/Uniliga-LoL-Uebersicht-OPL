@@ -32,7 +32,7 @@ class TeamLinkInRow {
 
 	public function render(): string {
 		ob_start();
-		include BASE_PATH . '/resources/components/standings/team-link-in-row.php';
+		include __DIR__.'/team-link-in-row.template.php';
 		return ob_get_clean();
 	}
 

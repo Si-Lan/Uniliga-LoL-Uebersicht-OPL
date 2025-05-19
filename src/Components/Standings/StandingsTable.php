@@ -21,7 +21,7 @@ class StandingsTable {
 
 	public function render(): string {
 		ob_start();
-		include BASE_PATH.'/resources/components/standings/standings-table.php';
+		include __DIR__.'/standings-table.template.php';
 		return ob_get_clean();
 	}
 

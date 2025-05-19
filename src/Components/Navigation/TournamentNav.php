@@ -25,7 +25,7 @@ class TournamentNav {
 		$nextSplit = $this->nextSplit;
 		$activeTab = $this->activeTab;
 		ob_start();
-		include BASE_PATH.'/resources/components/navigation/tournament-nav.php';
+		include __DIR__.'/tournament-nav.template.php';
 		return ob_get_clean();
 	}
 	public function __toString():string {

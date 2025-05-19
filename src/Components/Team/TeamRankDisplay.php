@@ -33,7 +33,7 @@ class TeamRankDisplay {
 			$displayStyle = ($teamRank instanceof Team || $teamRank->isSelectedByUser()) ? '' : 'display:none';
 			$classes = implode(' ', array_filter([$this->withLabel ? 'team-avg-rank' : 'rank', 'split_rank_element', $teamRank instanceof TeamSeasonRankInTournament ? 'ranked-split-'.$teamRank->rankedSplit->getName() : '']));
 			$src = "/ddragon/img/ranks/mini-crests/{$teamRank->rank->getRankTierLowercase()}.svg";
-			include BASE_PATH.'/resources/components/team/team-rank-display.php';
+			include __DIR__.'/team-rank-display.template.php';
 		}
 		return ob_get_clean();
 	}

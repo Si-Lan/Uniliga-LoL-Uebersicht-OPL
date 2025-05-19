@@ -17,7 +17,7 @@ class SwitchTournamentStageButtons {
 		$teamInTournamentStages = $this->teamInTournamentStages;
 		$activeStage = $this->activeStage;
 		ob_start();
-		include BASE_PATH.'/resources/components/navigation/switch-tournament-stage-buttons.php';
+		include __DIR__.'/switch-tournament-stage-buttons.template.php';
 		return ob_get_clean();
 	}
 	public function __toString(): string {

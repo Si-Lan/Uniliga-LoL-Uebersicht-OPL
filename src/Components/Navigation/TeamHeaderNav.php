@@ -14,7 +14,7 @@ class TeamHeaderNav {
 		$teamInTournament = $this->teamInTournament;
 		$activeTab = $this->activeTab;
 		ob_start();
-		include BASE_PATH.'/resources/components/navigation/team-header-nav.php';
+		include __DIR__.'/team-header-nav.template.php';
 		return ob_get_clean();
 	}
 	public function __toString(): string {

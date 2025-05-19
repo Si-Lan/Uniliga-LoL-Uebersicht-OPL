@@ -39,7 +39,7 @@ class UpdateButton {
 		$htmlClassString = $this->htmlClassString;
 		$updatediff = $this->updateHistory->getLastUpdateString();
 		ob_start();
-		include BASE_PATH.'/resources/components/update-button.php';
+		include __DIR__.'/update-button.template.php';
 		return ob_get_clean();
 	}
 	public function __toString(): string {

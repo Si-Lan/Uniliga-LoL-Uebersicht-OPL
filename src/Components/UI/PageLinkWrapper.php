@@ -17,7 +17,7 @@ class PageLinkWrapper {
 
 	public function render(): string {
 		ob_start();
-		include BASE_PATH.'/resources/components/ui/page-link-wrapper.php';
+		include __DIR__.'/page-link-wrapper.template.php';
 		return ob_get_clean();
 	}
 	public function __toString(): string {

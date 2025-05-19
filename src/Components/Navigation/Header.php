@@ -15,7 +15,7 @@ class Header {
 		$type = $this->type;
 		$tournament = $this->tournament;
 		ob_start();
-		include BASE_PATH.'/resources/components/navigation/header.php';
+		include __DIR__.'/header.template.php';
 		return ob_get_clean();
 	}
 	public function __toString(): string {

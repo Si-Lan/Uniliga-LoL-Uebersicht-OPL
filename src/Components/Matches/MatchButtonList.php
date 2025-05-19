@@ -37,7 +37,7 @@ class MatchButtonList {
 		$team = $this->team;
 		$teamInTournamentRepository = $this->teamInTournamentRepository;
 		ob_start();
-		include BASE_PATH.'/resources/components/matches/match-button-list.php';
+		include __DIR__.'/match-button-list.template.php';
 		return ob_get_clean();
 	}
 

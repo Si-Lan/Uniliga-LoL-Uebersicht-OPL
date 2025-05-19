@@ -57,7 +57,7 @@ class SummonerCard {
 		$collapsed = $this->collapsed;
 
 		ob_start();
-		include BASE_PATH.'/resources/components/cards/summoner-card.php';
+		include __DIR__.'/summoner-card.template.php';
 		return ob_get_clean();
 	}
 	public function __toString(): string {
