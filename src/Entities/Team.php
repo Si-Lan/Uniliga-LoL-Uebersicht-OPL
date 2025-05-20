@@ -14,14 +14,15 @@ class Team {
 		public RankAverage $rank
 	) {}
 
-	public function getLogoUrl() : string|false {
+	public function getLogoUrl(bool $squared = false) : string|false {
+		$squareAddition = $squared ? "_square" : "";
 		if (is_null($this->logoId)) return false;
 		$baseUrl = "/img/team_logos/{$this->logoId}/";
 		if (!file_exists(BASE_PATH.'/public'.$baseUrl)) return false;
 		if (isset($_COOKIE['lightmode']) && $_COOKIE['lightmode'] === "1") {
-			return $baseUrl."logo_light.webp";
+			return $baseUrl."logo_light$squareAddition.webp";
 		} else {
-			return $baseUrl."logo.webp";
+			return $baseUrl."logo$squareAddition.webp";
 		}
 	}
 

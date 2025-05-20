@@ -30,16 +30,17 @@ class TeamInTournament {
 		public string $nameInTournament
 	) {}
 
-	public function getLogoUrl() : string|bool {
+	public function getLogoUrl(bool $squared = false) : string|bool {
+		$squareAddition = $squared ? "_square" : "";
 		if (is_null($this->team->logoId)) return false;
 		if (is_null($this->logoHistoryDir)) return false;
-		if ($this->logoHistoryDir < 0) return $this->team->getLogoUrl();
+		if ($this->logoHistoryDir < 0) return $this->team->getLogoUrl($squared);
 		$baseUrl = "/img/team_logos/{$this->team->logoId}/{$this->logoHistoryDir}/";
 		if (!file_exists(BASE_PATH.'/public'.$baseUrl)) return false;
 		if (isset($_COOKIE['lightmode']) && $_COOKIE['lightmode'] === "1") {
-			return $baseUrl."logo_light.webp";
+			return $baseUrl."logo_light$squareAddition.webp";
 		} else {
-			return $baseUrl."logo.webp";
+			return $baseUrl."logo$squareAddition.webp";
 		}
 	}
 }

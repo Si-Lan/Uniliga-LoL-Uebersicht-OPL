@@ -16,4 +16,12 @@ class TeamInTournamentStage {
 		public ?int $singleWins,
 		public ?int $singleLosses
 	) {}
+
+	public function getWinsLosses():string {
+		if ($this->tournamentStage->mostCommonBestOf === null || $this->tournamentStage->mostCommonBestOf % 2 == 1) {
+			return "{$this->wins}-{$this->losses}";
+		} else {
+			return "{$this->wins}-{$this->draws}-{$this->losses}";
+		}
+	}
 }

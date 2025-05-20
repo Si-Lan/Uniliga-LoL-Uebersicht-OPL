@@ -79,6 +79,31 @@ class EntitySorter {
 		});
 		return $players;
 	}
+	/**
+	 * @param array<PlayerInTeamInTournament> $players
+	 * @return array<PlayerInTeamInTournament>
+	 */
+	public static function sortPlayersByMostPlayedRoles(array $players): array {
+		usort($players, function (PlayerInTeamInTournament $a,PlayerInTeamInTournament $b) {
+			$prioMap = [
+				"top" => 6,
+				"jungle" => 5,
+				"middle" => 4,
+				"bottom" => 3,
+				"utility" => 2,
+				"none" => 1
+			];
+			return $prioMap[self::highestRole($b->roles)] <=> $prioMap[self::highestRole($a->roles)];
+		});
+		return $players;
+	}
+	private static function highestRole(array $array) {
+		arsort($array);
+		if ($array[array_key_first($array)] == 0) {
+			return "none";
+		}
+		return array_key_first($array);
+	}
 
 	/**
 	 * @param array<Matchup> $matchups

@@ -63,6 +63,11 @@ class Tournament {
 		return false;
 	}
 
+	public function isRunning():bool {
+		$today = new \DateTimeImmutable();
+		return (is_null($this->dateEnd) || $this->dateEnd > $today);
+	}
+
 	public function getUrlKey():string {
 		return match ($this->eventType) {
 			EventType::TOURNAMENT => "turnier",
@@ -72,6 +77,16 @@ class Tournament {
 			EventType::PLAYOFFS => "playoffs",
 			default => "",
 		};
+	}
+	public function getHref(): string {
+		if ($this->eventType == EventType::TOURNAMENT) {
+			return "/turnier/".$this->id;
+		}
+		$urlKey = $this->getUrlKey();
+		if ($this->eventType === EventType::LEAGUE && $this->format === EventFormat::SWISS) {
+			$urlKey = 'gruppe';
+		}
+		return "/turnier/{$this->rootTournament->id}/$urlKey/{$this->id}";
 	}
 
 	public function getNumberFormatted():string {
@@ -105,6 +120,9 @@ class Tournament {
 			EventType::PLAYOFFS => $this->getFullName(),
 			default => "",
 		};
+	}
+	public function getSplitAndSeason():string {
+		return ucfirst($this->split)." ".$this->season;
 	}
 
 	public function getLogoUrl() : string|false {

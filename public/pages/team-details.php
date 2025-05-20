@@ -1,7 +1,7 @@
 <?php
-/** @var mysqli $dbcn  */
 
 use App\Components\Cards\SummonerCardContainer;
+use App\Components\Cards\TeamInTournamentCard;
 use App\Components\MultiOpggButton;
 use App\Components\Navigation\Header;
 use App\Components\OplOutLink;
@@ -40,17 +40,7 @@ $pageMeta = new PageMeta($team->name, bodyClass: 'team general-team');
 <main>
     <div class='team-card-list'>
 		<?php foreach ($teamInTournaments as $teamInTournament): ?>
-            <?php
-            // TODO: Logik zur Auswahl der angezeigten Stage in neuer TeamCard Komponente regeln, sobald diese implementiert
-            $teamInTournamentStages = $teamInTournamentStageRepo->findAllbyTeamInTournament($teamInTournament);
-            $teamInTournamentStages = EntitySorter::sortTeamInTournamentStages($teamInTournamentStages);
-			foreach ($teamInTournamentStages as $index=>$teamInTournamentStage) {
-                if ($teamInTournamentStage->tournamentStage->eventType == \App\Enums\EventType::PLAYOFFS) {
-                    unset($teamInTournamentStages[$index]);
-                }
-            }
-            ?>
-            <?= create_teamcard($dbcn,$team->id,end($teamInTournamentStages)->tournamentStage->id) ?>
+            <?= new TeamInTournamentCard($teamInTournament) ?>
 		<?php endforeach; ?>
     </div>
 	<div class='player-cards opgg-cards'>

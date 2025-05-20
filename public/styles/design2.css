@@ -2538,17 +2538,22 @@ button.team-card-div {
 	display: flex;
 	gap: 4px;
 	padding: 8px;
+
+	&:not(:has(img)) {
+		text-align: center;
+		padding-top: 12px;
+		padding-bottom: 12px;
+	}
 }
 .team-card-teampage img {
 	height: 42px;
 	border-radius: 8px;
 }
-.team-card-teampage span.team-card-nologo {
-	text-align: center;
-	padding: 8px 0;
-}
 .team-card-standings {
 	padding: 12px 0;
+}
+.team-card-rank img.rank-emblem-mini {
+	margin-right: 4px;
 }
 button.team-card-playeramount {
 	padding: 16px 0;
