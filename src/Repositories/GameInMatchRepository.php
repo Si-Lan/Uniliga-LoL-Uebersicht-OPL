@@ -51,4 +51,11 @@ class GameInMatchRepository extends AbstractRepository {
 
 		return $data ? $this->mapToEntity($data) : null;
 	}
+	public function findByGame(Game $game): ?GameInMatch {
+		$query = 'SELECT * FROM games_to_matches WHERE RIOT_matchID = ?';
+		$result = $this->dbcn->execute_query($query, [$game->id]);
+		$data = $result->fetch_assoc();
+
+		return $data ? $this->mapToEntity($data, game: $game) : null;
+	}
 }
