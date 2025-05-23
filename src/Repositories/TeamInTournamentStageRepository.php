@@ -16,6 +16,10 @@ class TeamInTournamentStageRepository extends AbstractRepository {
 	private TeamInTournamentRepository $teamInTournamentRepo;
 	protected static array $ALL_DATA_KEYS = ["OPL_ID_team","OPL_ID_group","standing","played","wins","draws","losses","points","single_wins","single_losses"];
 	protected static array $REQUIRED_DATA_KEYS = ["OPL_ID_team","OPL_ID_group"];
+	/**
+	 * @var array<int,TeamInTournamentStage> $cache
+	 */
+	private array $cache = [];
 
 	public function __construct() {
 		parent::__construct();
@@ -54,7 +58,11 @@ class TeamInTournamentStageRepository extends AbstractRepository {
 		);
 	}
 
-	public function findByTeamIdAndTournamentId(int $teamId, int $tournamentId): ?TeamInTournamentStage {
+	public function findByTeamIdAndTournamentStageId(int $teamId, int $tournamentId): ?TeamInTournamentStage {
+		$cacheKey = $teamId."_".$tournamentId;
+		if (isset($this->cache[$cacheKey])) {
+			return $this->cache[$cacheKey];
+		}
 		$query = '
 			SELECT *
 				FROM teams t
@@ -63,7 +71,10 @@ class TeamInTournamentStageRepository extends AbstractRepository {
 		$result = $this->dbcn->execute_query($query, [$tournamentId, $teamId]);
 		$data = $result->fetch_assoc();
 
-		return $data ? $this->mapToEntity($data) : null;
+		$teamInTournamentStage = $data ? $this->mapToEntity($data) : null;
+		$this->cache[$cacheKey] = $teamInTournamentStage;
+
+		return $teamInTournamentStage;
 	}
 
 	/**
