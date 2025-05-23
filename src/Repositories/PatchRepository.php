@@ -28,4 +28,36 @@ class PatchRepository extends AbstractRepository {
 
 		return $this->mapToEntity(end($patches));
 	}
+
+	public function findLatestPatchByPatchString(string $patch): Patch {
+		$patches = $this->dbcn->execute_query("SELECT * FROM local_patches WHERE data IS TRUE AND champion_webp IS TRUE AND item_webp IS TRUE AND runes_webp IS TRUE AND spell_webp IS TRUE")->fetch_all(MYSQLI_ASSOC);
+
+		usort($patches, function($a, $b) {
+			return version_compare($a['patch'], $b['patch']);
+		});
+
+		$selectedPatch = end($patches); // wähle zuerst neuesten Patch (fallback)
+		// durchlaufe Patches, alt->neu
+		foreach ($patches as $localPatch) {
+			if (self::patchNumberCompare($localPatch['patch'], $patch) == 0) {
+				$selectedPatch = $localPatch; // Patch existiert lokal, wähle ihn aus
+				break;
+			}
+			if (self::patchNumberCompare($localPatch['patch'], $patch) > 0) {
+				$selectedPatch = $localPatch; // Patch existiert nicht direkt, nehme ersten, der neuer ist
+				break;
+			}
+		}
+		return $this->mapToEntity($selectedPatch);
+	}
+
+	private static function patchNumberCompare(string $patch1, string $patch2): int {
+		[$aMajor, $aMinor] = explode('.', $patch1);
+		[$bMajor, $bMinor] = explode('.', $patch2);
+
+		if ((int)$aMajor !== (int)$bMajor) {
+			return (int)$aMajor <=> (int)$bMajor;
+		}
+		return (int)$aMinor <=> (int)$bMinor;
+	}
 }
