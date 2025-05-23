@@ -91,7 +91,15 @@ if (count($team_groups)>1) {
 	echo "</div>";
 }
 
-create_matchhistory($dbcn, $tournamentID, $group["OPL_ID"], $teamID);
+//echo new \App\Components\Navigation\SwitchTournamentStageButtons()
+
+$teamInTournamentRepo = new \App\Repositories\TeamInTournamentRepository();
+$tournamentRepo = new \App\Repositories\TournamentRepository();
+
+$tournamentStage = $tournamentRepo->findById($group["OPL_ID"]);
+$teamInTournament = $teamInTournamentRepo->findByTeamIdAndTournament($team["OPL_ID"],$tournamentStage->rootTournament);
+
+echo new \App\Components\Matches\MatchHistory($teamInTournament,$tournamentStage);
 
 ?>
 </main>

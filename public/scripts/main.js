@@ -2383,7 +2383,7 @@ function close_warningheader() {
 }
 
 let team_event_switch_control = null;
-function switch_team_event(page, event_id, team_id, playoff_id = null,tournament_ID = null) {
+function switch_team_event(page, event_id, team_id, playoff_id = null) {
 	const buttons = $(`#teampage_switch_group_buttons .teampage_switch_group`);
 	const button = $(`#teampage_switch_group_buttons .teampage_switch_group[data-group=${event_id}]`);
 
@@ -2433,14 +2433,8 @@ function switch_team_event(page, event_id, team_id, playoff_id = null,tournament
 		})
 	} else if (page === "matchhistory") {
 		if ($('.content-loading-indicator').length === 0) $('body').append("<div class='content-loading-indicator'></div>");
-		fetch(`/ajax/create-page-elements`, {
+		fetch(`/ajax/fragment/match-history?teamId=${team_id}&tournamentStageId=${event_id}`, {
 			method: "GET",
-			headers: {
-				"type": "matchhistory",
-				"groupid": event_id,
-				"teamid": team_id,
-				"tournamentid": tournament_ID,
-			},
 			signal: team_event_switch_control.signal,
 		})
 			.then(res => res.text())
@@ -2468,7 +2462,7 @@ $(()=>{
 		const playoffID = $(this).attr("data-playoff") ?? null;
 		const tournamentID = $(this).attr("data-tournament") ?? null;
 		const pagetype = $("body").hasClass("match-history") ? "matchhistory" : "details";
-		switch_team_event(pagetype,groupID,teamID,playoffID,tournamentID);
+		switch_team_event(pagetype,groupID,teamID,playoffID);
 	});
 })
 

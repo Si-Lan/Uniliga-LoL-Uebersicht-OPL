@@ -6,11 +6,13 @@ use App\Components\Cards\SummonerCard;
 use App\Components\Games\GameDetails;
 use App\Components\Matches\MatchButton;
 use App\Components\Matches\MatchButtonList;
+use App\Components\Matches\MatchHistory;
 use App\Components\Standings\StandingsTable;
 use App\Repositories\GameRepository;
 use App\Repositories\MatchupRepository;
 use App\Repositories\PlayerInTeamInTournamentRepository;
 use App\Repositories\PlayerInTeamRepository;
+use App\Repositories\TeamInTournamentRepository;
 use App\Repositories\TeamRepository;
 use App\Repositories\TournamentRepository;
 use App\Utilities\DataParsingHelpers;
@@ -108,7 +110,6 @@ class FragmentHandler {
 
 	public function matchButtonList(array $dataGet): void {
 		$tournamentId = $this->intOrNull($dataGet['tournamentId'] ?? null);
-		$playoffId = $this->intOrNull($dataGet['playoffId'] ?? null);
 		$teamId = $this->intOrNull($dataGet['teamId'] ?? null);
 
 		if (is_null($tournamentId)) {
@@ -125,11 +126,10 @@ class FragmentHandler {
 			return;
 		}
 
-		$teamRepo = new TeamRepository();
-		$team = ($teamId) ? $teamRepo->findById($teamId) : null;
-		$playoffStage = ($playoffId) ? $tournamentRepo->findById($playoffId) : null;
+		$teamInTournamentRepo = new TeamInTournamentRepository();
+		$teamInTournament = ($teamId) ? $teamInTournamentRepo->findByTeamIdAndTournament($teamId, $tournamentStage->rootTournament) : null;
 
-		echo new MatchButtonList($tournamentStage,$team,$playoffStage);
+		echo new MatchButtonList($tournamentStage,$teamInTournament);
 	}
 
 	public function gameDetails(array $dataGet): void {
@@ -153,5 +153,29 @@ class FragmentHandler {
 		$focusTeam = $teamId ? $teamRepo->findById($teamId) : null;
 
 		echo new GameDetails($game, $focusTeam);
+	}
+
+	public function matchHistory(array $dataGet): void {
+		$teamId = $this->intOrNull($dataGet['teamId'] ?? null);
+		$tournamentStageId = $this->intOrNull($dataGet['tournamentStageId'] ?? null);
+
+		if (is_null($teamId)) {
+			http_response_code(400);
+			echo 'missing teamId';
+			return;
+		}
+		if (is_null($tournamentStageId)) {
+			http_response_code(400);
+			echo 'missing tournamentStageId';
+			return;
+		}
+
+		$tournamentRepo = new TournamentRepository();
+		$teamInTournamentRepo = new TeamInTournamentRepository();
+
+		$tournamentStage = $tournamentRepo->findById($tournamentStageId);
+		$teamInTournament = $teamInTournamentRepo->findByTeamIdAndTournament($teamId, $tournamentStage->rootTournament);
+
+		echo new MatchHistory($teamInTournament, $tournamentStage);
 	}
 }
