@@ -16,6 +16,14 @@ class PlayerInTeamInTournamentRepository extends AbstractRepository {
 	private TournamentRepository $tournamentRepo;
 	protected static array $ALL_DATA_KEYS = ["OPL_ID","name","riotID_name","riotID_tag","summonerName","summonerID","PUUID","rank_tier","rank_div","rank_LP","matchesGotten","OPL_ID_team","OPL_ID_tournament","removed","roles","champions"];
 	protected static array $REQUIRED_DATA_KEYS = ["OPL_ID","name","OPL_ID_team","OPL_ID_tournament"];
+	/**
+	 * @var array<string,PlayerInTeamInTournament> $cache
+	 */
+	private array $cache = [];
+	/**
+	 * @var array<string,array<PlayerInTeamInTournament>> $cache
+	 */
+	private array $teamCache = [];
 
 	public function __construct() {
 		parent::__construct();
@@ -50,6 +58,10 @@ class PlayerInTeamInTournamentRepository extends AbstractRepository {
 	}
 
 	public function findInternal(int $playerId, int $teamId, int $tournamentId, ?Player $player=null, ?Team $team=null, ?Tournament $tournament=null): ?PlayerInTeamInTournament {
+		$cacheKey = $playerId."_".$teamId."_".$tournamentId;
+		if (isset($this->cache[$cacheKey])) {
+			return $this->cache[$cacheKey];
+		}
 		$query = '
 			SELECT *
 				FROM players p
@@ -59,7 +71,10 @@ class PlayerInTeamInTournamentRepository extends AbstractRepository {
 		$result = $this->dbcn->execute_query($query, [$tournamentId, $teamId, $playerId]);
 		$playerdata = $result->fetch_assoc();
 
-		return $playerdata ? $this->mapToEntity($playerdata, $player, $team, $tournament) : null;
+		$playerInTeamInTournament = $playerdata ? $this->mapToEntity($playerdata, $player, $team, $tournament) : null;
+		$this->cache[$cacheKey] = $playerInTeamInTournament;
+
+		return $playerInTeamInTournament;
 	}
 
 	public function findByPlayerIdAndTeamIdAndTournamentId(int $playerId, int $teamId, int $tournamentId): ?PlayerInTeamInTournament {
@@ -70,6 +85,10 @@ class PlayerInTeamInTournamentRepository extends AbstractRepository {
 	}
 
 	public function findAllInternal(int $teamId, int $tournamentId, Team $team = null, Tournament $tournament = null): array {
+		$cacheKey = $teamId."_".$tournamentId;
+		if (isset($this->teamCache[$cacheKey])) {
+			return $this->teamCache[$cacheKey];
+		}
 		$query = '
 			SELECT *
 			FROM players p
@@ -85,6 +104,7 @@ class PlayerInTeamInTournamentRepository extends AbstractRepository {
 		foreach ($data as $playerData) {
 			$players[] = $this->mapToEntity($playerData, team: $team, tournament: $tournament);
 		}
+		$this->teamCache[$cacheKey] = $players;
 
 		return $players;
 	}
