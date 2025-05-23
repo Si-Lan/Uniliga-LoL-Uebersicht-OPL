@@ -9,7 +9,7 @@ use App\Entities\Patch;
 use App\Entities\PlayerInTeamInTournament;
 use App\Entities\PlayerSeasonRank;
 use App\Entities\RankedSplit;
-use App\Entities\TeamInTournament;
+use App\Entities\Team;
 use App\Repositories\GameInMatchRepository;
 use App\Repositories\PatchRepository;
 use App\Repositories\PlayerInTeamInTournamentRepository;
@@ -31,7 +31,7 @@ class GameDetails {
 	private Patch $patch;
 	public function __construct(
 		private Game $game,
-		private ?TeamInTournament $currentTeamInTournament = null,
+		private ?Team $currentTeam = null,
 		private ?PlayerInTeamInTournamentRepository $playerInTeamInTournamentRepo = null,
 		private ?PlayerSeasonRankRepository $playerSeasonRankRepo = null,
 	) {
@@ -81,7 +81,7 @@ class GameDetails {
 
 	public function render(): string {
 		$gameData = $this->game->gameData;
-		$currentTeamInTournament = $this->currentTeamInTournament;
+		$currentTeam = $this->currentTeam;
 		$gameInMatch = $this->gameInMatch;
 		$patch = $this->patch;
 		$currentSplit = $this->currentSplit;

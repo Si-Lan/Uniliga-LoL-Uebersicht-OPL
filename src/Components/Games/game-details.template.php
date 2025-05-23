@@ -1,14 +1,14 @@
 <?php
 /** @var \App\Components\Games\GameDetails $this */
 /** @var \App\Entities\LolGame\GameData $gameData */
-/** @var \App\Entities\TeamInTournament|null $currentTeamInTournament */
+/** @var \App\Entities\Team|null $currentTeam */
 /** @var \App\Entities\GameInMatch $gameInMatch */
 /** @var \App\Entities\Patch $patch */
 /** @var \App\Entities\RankedSplit $currentSplit */
 
 use App\Components\Helpers\IconRenderer;
 
-$teamFocus = !is_null($currentTeamInTournament);
+$teamFocus = !is_null($currentTeam);
 
 $blueTeamScoreText = ($gameData->blueTeamWin) ? 'Victory' : 'Defeat';
 $redTeamScoreText = ($gameData->redTeamWin) ? 'Victory' : 'Defeat';
@@ -18,14 +18,14 @@ $blueTeamScoreClass = ($gameData->blueTeamWin) ? 'win' : 'loss';
 $redTeamScoreClass = ($gameData->redTeamWin) ? 'win' : 'loss';
 $teamScoreClasses = [$blueTeamScoreClass, $redTeamScoreClass];
 
-$currentTeamIsBlueClass = ($teamFocus && $currentTeamInTournament->equals($gameInMatch->blueTeam)) ? 'current' : '';
-$currentTeamIsRedClass = ($teamFocus && $currentTeamInTournament->equals($gameInMatch->redTeam)) ? 'current' : '';
+$currentTeamIsBlueClass = ($teamFocus && $currentTeam->equals($gameInMatch->blueTeam->team)) ? 'current' : '';
+$currentTeamIsRedClass = ($teamFocus && $currentTeam->equals($gameInMatch->redTeam->team)) ? 'current' : '';
 $currentTeamClasses = [$currentTeamIsBlueClass, $currentTeamIsRedClass];
 
-if ($teamFocus && $currentTeamInTournament->equals($gameInMatch->getWinningTeam())) {
+if ($teamFocus && $currentTeam->equals($gameInMatch->getWinningTeam()->team)) {
 	$resultWrapperClass = 'win';
     $miniScoreText = 'Victory';
-} elseif ($teamFocus && $currentTeamInTournament->equals($gameInMatch->getLosingTeam())) {
+} elseif ($teamFocus && $currentTeam->equals($gameInMatch->getLosingTeam()->team)) {
 	$resultWrapperClass = 'loss';
 	$miniScoreText = 'Defeat';
 } else {

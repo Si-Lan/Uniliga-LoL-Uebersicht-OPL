@@ -14,6 +14,10 @@ class Team {
 		public RankAverage $rank
 	) {}
 
+	public function equals(Team $team):bool {
+		return ($this->id === $team->id);
+	}
+
 	public function getLogoUrl(bool $squared = false) : string|false {
 		$squareAddition = $squared ? "_square" : "";
 		if (is_null($this->logoId)) return false;
