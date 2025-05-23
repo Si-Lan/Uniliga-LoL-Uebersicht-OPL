@@ -15,7 +15,7 @@ class GameRepository extends AbstractRepository {
 		$data = $this->normalizeData($data);
 		return new Game(
 			id: (string) $data['RIOT_matchID'],
-			matchdata: $this->decodeJsonOrNull($data['matchdata']),
+			rawMatchdata: $this->decodeJsonOrNull($data['matchdata']),
 			playedAt: $this->DateTimeImmutableOrNull($data['played_at'])
 		);
 	}
