@@ -613,7 +613,7 @@ async function popup_match(matchID,teamID=null,tournamentID=null) {
 			let game_counter = 0;
 			for (const [i, game] of games.entries()) {
 				if (current_match_in_popup === game['OPL_ID_match']) {
-					popup.append(`<div class='game game${i}'></div>`);
+					popup.append(`<div class='game game${i}'><div class="game-placeholder"></div></div>`);
 				}
 				let gameID = game['RIOT_matchID'];
 
