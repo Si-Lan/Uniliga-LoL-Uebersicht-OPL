@@ -30,6 +30,10 @@ class TeamInTournament {
 		public string $nameInTournament
 	) {}
 
+	public function equals(TeamInTournament $teamInTournament):bool {
+		return ($this->team->id === $teamInTournament->team->id);
+	}
+
 	public function getLogoUrl(bool $squared = false) : string|bool {
 		$squareAddition = $squared ? "_square" : "";
 		if (is_null($this->team->logoId)) return false;
