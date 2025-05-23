@@ -5,12 +5,12 @@ namespace App\Repositories;
 use App\Entities\Game;
 use App\Entities\Matchup;
 use App\Entities\GameInMatch;
-use App\Entities\Team;
+use App\Entities\TeamInTournamentStage;
 
 class GameInMatchRepository extends AbstractRepository {
 	private GameRepository $gameRepo;
 	private MatchupRepository $matchupRepo;
-	private TeamRepository $teamRepo;
+	private TeamInTournamentRepository $teamInTournamentRepo;
 	protected static array $ALL_DATA_KEYS = ["RIOT_matchID","OPL_ID_matches","OPL_ID_blueTeam","OPL_ID_redTeam","opl_confirmed"];
 	protected static array $REQUIRED_DATA_KEYS = ["RIOT_matchID","OPL_ID_matches"];
 
@@ -18,10 +18,10 @@ class GameInMatchRepository extends AbstractRepository {
 		parent::__construct();
 		$this->gameRepo = new GameRepository();
 		$this->matchupRepo = new MatchupRepository();
-		$this->teamRepo = new TeamRepository();
+		$this->teamInTournamentRepo = new TeamInTournamentRepository();
 	}
 
-	public function mapToEntity(array $data, ?Game $game=null, ?Matchup $matchup=null, ?Team $blueTeam=null, ?Team $redTeam=null): GameInMatch {
+	public function mapToEntity(array $data, ?Game $game=null, ?Matchup $matchup=null, ?TeamInTournamentStage $blueTeam=null, ?TeamInTournamentStage $redTeam=null): GameInMatch {
 		$data = $this->normalizeData($data);
 		if (is_null($game)) {
 			$game = $this->gameRepo->findById($data['RIOT_matchID']);
@@ -30,10 +30,10 @@ class GameInMatchRepository extends AbstractRepository {
 			$matchup = $this->matchupRepo->findById($data['OPL_ID_matches']);
 		}
 		if (is_null($blueTeam)) {
-			$blueTeam = $this->teamRepo->findById($data['OPL_ID_blueTeam']);
+			$blueTeam = $this->teamInTournamentRepo->findByTeamIdAndTournament($data['OPL_ID_blueTeam'],$matchup->tournamentStage->rootTournament);
 		}
 		if (is_null($redTeam)) {
-			$redTeam = $this->teamRepo->findById($data['OPL_ID_redTeam']);
+			$redTeam = $this->teamInTournamentRepo->findByTeamIdAndTournament($data['OPL_ID_redTeam'],$matchup->tournamentStage->rootTournament);
 		}
 		return new GameInMatch(
 			game: $game,
