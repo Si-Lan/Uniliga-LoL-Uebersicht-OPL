@@ -64,7 +64,8 @@ div.game-details div.game-row {
 	border-width: 0 0 2px 0;
 }
 div.game-row div.game-row-divider {
-	height: 100%;
+	height: auto;
+	align-self: stretch;
 	width: 2px;
 	background-color: var(--game-border-color);
 }
@@ -98,6 +99,11 @@ div.game-row.teams .team.\31 {
 div.game-row.teams .team.\32 {
 	padding-right: 10px;
 	flex: 4;
+	flex-direction: row-reverse;
+
+	& .name {
+		flex-direction: row-reverse;
+	}
 }
 .game-wrapper div.game-row.teams .team.current {
 	border: none!important;
@@ -216,6 +222,36 @@ div.game-row.objectives img.obj-dragon {
 }
 div.game-row.objectives img.obj-baron {
 	object-position: 0 80%;
+}
+
+div.game-details div.game-row.summoner-details {
+	border: none;
+}
+.game-item.team-summoners {
+	flex-direction: column;
+	flex: 1;
+
+	& .summoner {
+		height: 72px;
+		padding: 0 10px;
+		border-color: var(--game-border-color);
+		border-style: solid;
+		border-width: 0 0 2px 0;
+
+		&.blue {
+			flex-direction: row;
+		}
+		&.red {
+			flex-direction: row-reverse;
+		}
+
+		div.champ-lvl {
+			top: 40px;
+		}
+		img.sec-rune {
+			top: 36px;
+		}
+	}
 }
 
 div.game-details div.game-row.summoners {
