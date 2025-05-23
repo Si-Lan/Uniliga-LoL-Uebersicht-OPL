@@ -10,7 +10,10 @@ class RankedSplit {
 		public ?\DateTimeImmutable $dateEnd
 	) {}
 
-	public function getName(): string {
+	public function getName(bool $trailingZero = true): string {
+		if (!$trailingZero && $this->split === 0) {
+			return $this->season;
+		}
 		return $this->season."-".($this->split??0);
 	}
 	public function getPrettyName(): string {

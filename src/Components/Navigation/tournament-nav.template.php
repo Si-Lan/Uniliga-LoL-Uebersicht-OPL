@@ -28,7 +28,7 @@ use App\Components\Helpers\IconRenderer;
 
 	<div class='ranked-settings-wrapper'>
 		<button type='button' class='ranked-settings'>
-			<span><?= $tournament->userSelectedRankedSplit?->getName()?></span>
+			<span><?= $tournament->userSelectedRankedSplit?->getName(trailingZero: false)?></span>
 			<img src='/ddragon/img/ranks/emblems/unranked.webp' alt='Rank-Einstellungen'>
 		</button>
 		<div class='ranked-settings-popover'>
