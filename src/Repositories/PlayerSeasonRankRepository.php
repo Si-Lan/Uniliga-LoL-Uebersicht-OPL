@@ -15,6 +15,10 @@ class PlayerSeasonRankRepository extends AbstractRepository {
 	private RankedSplitRepository $rankedSplitRepo;
 	protected static array $ALL_DATA_KEYS = ["OPL_ID_player","season","split","rank_tier","rank_div","rank_LP"];
 	protected static array $REQUIRED_DATA_KEYS = ["OPL_ID_player","season","split"];
+	/**
+	 * @var array<string,PlayerSeasonRank> $cache
+	 */
+	private array $cache = [];
 
 	public function __construct() {
 		parent::__construct();
@@ -63,9 +67,17 @@ class PlayerSeasonRankRepository extends AbstractRepository {
 			}
 		}
 
+		$cacheKey = $playerId."_".$season."_".$split;
+		if (isset($this->cache[$cacheKey])) {
+			return $this->cache[$cacheKey];
+		}
+
 		$result = $this->dbcn->execute_query("SELECT * FROM players_season_rank WHERE OPL_ID_player = ? AND season = ? AND split = ?",[$playerId, $season, $split]);
 		$data = $result->fetch_assoc();
 
-		return $data ? $this->mapToEntity($data, player: $playerObj, rankedSplit: $rankedSplitObj) : null;
+		$playerSeasonRank = $data ? $this->mapToEntity($data, player: $playerObj, rankedSplit: $rankedSplitObj) : null;
+		$this->cache[$cacheKey] = $playerSeasonRank;
+
+		return $playerSeasonRank;
 	}
 }
