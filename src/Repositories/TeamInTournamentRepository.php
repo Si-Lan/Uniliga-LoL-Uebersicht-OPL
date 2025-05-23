@@ -98,6 +98,9 @@ class TeamInTournamentRepository extends AbstractRepository {
 	public function findByTeamAndTournament(Team $team, Tournament $tournament): ?TeamInTournament {
 		return $this->findInternal($team->id, $tournament->id, $team, $tournament);
 	}
+	public function findByTeamIdAndTournament(int $teamId, Tournament $tournament): ?TeamInTournament {
+		return $this->findInternal($teamId, $tournament->id, null, $tournament);
+	}
 
 	/**
 	 * @param Team $team
