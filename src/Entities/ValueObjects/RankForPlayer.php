@@ -11,10 +11,14 @@ class RankForPlayer extends Rank {
 		parent::__construct($rankTier, $rankDiv);
 	}
 
-	public function getRank(): string {
+	public function getRank(bool $withApexLP = true): string {
 		if (is_null($this->rankTier)) return "";
 		if (in_array($this->rankTier, self::APEX_TIERS)) {
-			return $this->getRankTier()." (".$this->rankLp." LP)";
+			if ($withApexLP) {
+				return $this->getRankTier()." (".$this->rankLp." LP)";
+			} else {
+				return $this->getRankTier();
+			}
 		}
 		return $this->getRankTier()." ".$this->rankDiv;
 	}
