@@ -158,7 +158,7 @@ a.icon-link>.material-symbol.icon-link-icon svg {
 a.icon-link .link-text {
 	margin-left: 8px;
 }
-.page-link .link-text {
+.page-link:has(.page-link-icon) .link-text {
 	margin-right: 12px;
 }
 .icon-link::before, .page-link:not(:has(.page-link-target))::before, .page-link-target::before {
@@ -402,6 +402,9 @@ h2.round-title span.score .loss {
 }
 h2.round-title .team.loss {
 	color: var(--match-loss-name-grey);
+	& span {
+		color: var(--match-loss-name-grey);
+	}
 }
 @media (max-width: 1280px) {
 	.team-popup, .mh-popup {
