@@ -3,7 +3,7 @@
 namespace App\Repositories;
 
 use App\Entities\Matchup;
-use App\Entities\Team;
+use App\Entities\TeamInTournament;
 use App\Entities\Tournament;
 use App\Utilities\DataParsingHelpers;
 
@@ -11,26 +11,26 @@ class MatchupRepository extends AbstractRepository {
 	use DataParsingHelpers;
 
 	private TournamentRepository $tournamentRepo;
-	private TeamRepository $teamRepo;
+	private TeamInTournamentRepository $teamInTournamentRepo;
 	protected static array $ALL_DATA_KEYS = ["OPL_ID","OPL_ID_tournament","OPL_ID_team1","OPL_ID_team2","team1Score","team2Score","plannedDate","playday","bestOf","played","winner","loser","draw","def_win"];
 	protected static array $REQUIRED_DATA_KEYS = ["OPL_ID","OPL_ID_tournament","played"];
 
 	public function __construct() {
 		parent::__construct();
 		$this->tournamentRepo = new TournamentRepository();
-		$this->teamRepo = new TeamRepository();
+		$this->teamInTournamentRepo = new TeamInTournamentRepository();
 	}
 
-	public function mapToEntity(array $data, ?Tournament $tournamentStage=null, ?Team $team1=null, ?Team $team2=null): Matchup {
+	public function mapToEntity(array $data, ?Tournament $tournamentStage=null, ?TeamInTournament $team1=null, ?TeamInTournament $team2=null): Matchup {
 		$data = $this->normalizeData($data);
-		if (is_null($team1) && !is_null($data["OPL_ID_team1"])) {
-			$team1 = $this->teamRepo->findById($data['OPL_ID_team1']);
-		}
-		if (is_null($team2) && !is_null($data["OPL_ID_team2"])) {
-			$team2 = $this->teamRepo->findById($data['OPL_ID_team2']);
-		}
 		if (is_null($tournamentStage)) {
 			$tournamentStage = $this->tournamentRepo->findById($data['OPL_ID_tournament']);
+		}
+		if (is_null($team1) && !is_null($data["OPL_ID_team1"])) {
+			$team1 = $this->teamInTournamentRepo->findByTeamIdAndTournament($data['OPL_ID_team1'],$tournamentStage->rootTournament);
+		}
+		if (is_null($team2) && !is_null($data["OPL_ID_team2"])) {
+			$team2 = $this->teamInTournamentRepo->findByTeamIdAndTournament($data['OPL_ID_team2'],$tournamentStage->rootTournament);
 		}
 		return new Matchup(
 			id: (int) $data["OPL_ID"],
@@ -61,14 +61,14 @@ class MatchupRepository extends AbstractRepository {
 	/**
 	 * @return array<Matchup>
 	 */
-	private function findAllInternalByQuery(string $query, array $queryParams, ?Tournament $tournamentStage=null, ?Team $team=null): array {
+	private function findAllInternalByQuery(string $query, array $queryParams, ?Tournament $tournamentStage=null, ?TeamInTournament $teamInTournament=null): array {
 		$result = $this->dbcn->execute_query($query, $queryParams);
 		$data = $result->fetch_all(MYSQLI_ASSOC);
 
 		$matchups = [];
 		foreach ($data as $matchupData) {
-			$team1 = ($team?->id == $matchupData["OPL_ID_team1"]) ? $team : null;
-			$team2 = ($team?->id == $matchupData["OPL_ID_team2"]) ? $team : null;
+			$team1 = ($teamInTournament?->team->id == $matchupData["OPL_ID_team1"]) ? $teamInTournament : null;
+			$team2 = ($teamInTournament?->team->id == $matchupData["OPL_ID_team2"]) ? $teamInTournament : null;
 			$matchups[] = $this->mapToEntity($matchupData, $tournamentStage, $team1, $team2);
 		}
 
@@ -78,23 +78,23 @@ class MatchupRepository extends AbstractRepository {
 	/**
 	 * @return array<Matchup>
 	 */
-	public function findAllByRootTournamentAndTeam(Tournament $tournament, Team $team): array {
+	public function findAllByRootTournamentAndTeam(Tournament $tournament, TeamInTournament $team): array {
 		$query = '
 			SELECT m.*
 			FROM matchups m
 			    LEFT JOIN tournaments t
 			        ON m.OPL_ID_tournament = t.OPL_ID
 			WHERE t.OPL_ID_top_parent = ? AND (OPL_ID_team1 = ? OR OPL_ID_team2 = ?)';
-		$queryParams = [$tournament->id, $team->id, $team->id];
+		$queryParams = [$tournament->id, $team->team->id, $team->team->id];
 
-		return $this->findAllInternalByQuery($query, $queryParams, team: $team);
+		return $this->findAllInternalByQuery($query, $queryParams, teamInTournament: $team);
 	}
 	/**
 	 * @return array<Matchup>
 	 */
-	public function findAllByTournamentStageAndTeam(Tournament $tournamentStage, Team $team): array {
+	public function findAllByTournamentStageAndTeam(Tournament $tournamentStage, TeamInTournament $team): array {
 		$query = 'SELECT * FROM matchups WHERE OPL_ID_tournament = ? AND (OPL_ID_team1 = ? OR OPL_ID_team2 = ?)';
-		$queryParams = [$tournamentStage->id, $team->id, $team->id];
+		$queryParams = [$tournamentStage->id, $team->team->id, $team->team->id];
 
 		return $this->findAllInternalByQuery($query, $queryParams, $tournamentStage, $team);
 	}

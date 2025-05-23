@@ -3,7 +3,7 @@
 namespace App\Components\Matches;
 
 use App\Entities\Matchup;
-use App\Entities\Team;
+use App\Entities\TeamInTournament;
 use App\Entities\Tournament;
 use App\Repositories\MatchupRepository;
 use App\Repositories\TeamInTournamentRepository;
@@ -15,11 +15,11 @@ class MatchButtonList {
 	private TeamInTournamentRepository $teamInTournamentRepository; // Für die Matchbuttons
 	public function __construct(
 		public Tournament $tournamentStage,
-		public ?Team $team=null
+		public ?TeamInTournament $teamInTournament=null
 	) {
 		$matchupRepo = new MatchupRepository();
-		if ($team != null) {
-			$this->matchupRounds = $matchupRepo->findAllByTournamentStageAndTeam($this->tournamentStage, $this->team);
+		if ($teamInTournament != null) {
+			$this->matchupRounds = $matchupRepo->findAllByTournamentStageAndTeam($this->tournamentStage, $this->teamInTournament);
 		} else {
 			$this->matchupRounds = $matchupRepo->findAllWithATeamByTournamentStage($this->tournamentStage);
 		}
@@ -34,7 +34,7 @@ class MatchButtonList {
 	public function render(): string {
 		$matchupRounds = $this->matchupRounds;
 		$tournamentStage = $this->tournamentStage;
-		$team = $this->team;
+		$teamInTournament = $this->teamInTournament;
 		$teamInTournamentRepository = $this->teamInTournamentRepository;
 		ob_start();
 		include __DIR__.'/match-button-list.template.php';

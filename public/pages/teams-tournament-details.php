@@ -80,7 +80,7 @@ $pageMeta = new PageMeta(
     <div class='inner-content'>
         <?= new StandingsTable($teamInTournamentStage->tournamentStage,$teamInTournament->team) ?>
 
-        <?= new MatchButtonList($teamInTournamentStage->tournamentStage,$teamInTournament->team) ?>
+        <?= new MatchButtonList($teamInTournamentStage->tournamentStage,$teamInTournament) ?>
 
         <?php
 /* TODO: Component für Popups erstellen und für MatchButtons einbinden
