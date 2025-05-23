@@ -3,9 +3,11 @@
 namespace App\AjaxHandlers;
 
 use App\Components\Cards\SummonerCard;
+use App\Components\Games\GameDetails;
 use App\Components\Matches\MatchButton;
 use App\Components\Matches\MatchButtonList;
 use App\Components\Standings\StandingsTable;
+use App\Repositories\GameRepository;
 use App\Repositories\MatchupRepository;
 use App\Repositories\PlayerInTeamInTournamentRepository;
 use App\Repositories\PlayerInTeamRepository;
@@ -128,5 +130,28 @@ class FragmentHandler {
 		$playoffStage = ($playoffId) ? $tournamentRepo->findById($playoffId) : null;
 
 		echo new MatchButtonList($tournamentStage,$team,$playoffStage);
+	}
+
+	public function gameDetails(array $dataGet): void {
+		$gameId = $this->stringOrNull($dataGet['gameId'] ?? null);
+		$teamId = $this->intOrNull($dataGet['teamId'] ?? null);
+
+		if (is_null($gameId)) {
+			http_response_code(400);
+			echo 'missing gameId';
+			return;
+		}
+		$gameRepo = new GameRepository();
+		$game = $gameRepo->findById($gameId);
+		if (is_null($game)) {
+			http_response_code(404);
+			echo 'Game not found';
+			return;
+		}
+
+		$teamRepo = new TeamRepository();
+		$focusTeam = $teamId ? $teamRepo->findById($teamId) : null;
+
+		echo new GameDetails($game, $focusTeam);
 	}
 }

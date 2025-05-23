@@ -626,9 +626,8 @@ async function popup_match(matchID,teamID=null,tournamentID=null) {
 				if (tournamentID !== null) {
 					fetchheaders.append("tournamentid",tournamentID)
 				}
-				fetch(`/ajax/game.php`, {
-					method: "GET",
-					headers: fetchheaders,
+				fetch(`/ajax/fragment/game-details?gameId=${gameID}&teamId=${teamID}`, {
+					method: "GET"
 				})
 					.then(res => res.text())
 					.then(async data => {
@@ -2133,9 +2132,8 @@ async function user_update_match(button) {
 		if (team_ID !== null) {
 			fetchheaders.append("teamid", team_ID)
 		}
-		fetch(`/ajax/game.php`, {
-			method: "GET",
-			headers: fetchheaders,
+		fetch(`/ajax/fragment/game-details?gameId=${gameID}&teamId=${team_ID}`, {
+			method: "GET"
 		})
 			.then(res => res.text())
 			.then(data => {
