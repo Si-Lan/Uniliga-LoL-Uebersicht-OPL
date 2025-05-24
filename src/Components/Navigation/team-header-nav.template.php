@@ -25,7 +25,7 @@ use App\Components\UpdateButton;
         <?= new OplOutLink($teamInTournament->team)?>
 	</div>
 	<?php
-	if (!$teamInTournament->tournament->archived) {
+	if (!$teamInTournament->tournament->archived && $activeTab === 'details') {
         echo new UpdateButton($teamInTournament);
 	}
 ?>
