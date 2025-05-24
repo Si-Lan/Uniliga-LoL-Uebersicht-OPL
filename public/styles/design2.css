@@ -1797,6 +1797,9 @@ body.match-history div.round-wrapper {
 body.match-history h2 {
 	text-align: center;
 }
+.no-game-found {
+	text-align: center;
+}
 main .player-cards {
 	align-self: center;
 	display: flex;

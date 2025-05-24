@@ -37,6 +37,13 @@ class MatchHistory {
 			}
 			echo "<div id='$matchup->id' class='round-wrapper'>";
 			echo new MatchRound($matchup);
+			if (count($games) == 0) {
+				if ($matchup->defWin) {
+					echo "<div class='no-game-found'>Keine Spieldaten vorhanden (Default Win)</div>";
+				} else {
+					echo "<div class='no-game-found'>Noch keine Spieldaten gefunden</div>";
+				}
+			}
 			foreach ($games as $gameInMatchup) {
 				echo new GameDetails($gameInMatchup->game,$this->teamInTournament->team,$this->playerInTeamInTournamentRepo, $this->playerSeasonRankRepo);
 			}
