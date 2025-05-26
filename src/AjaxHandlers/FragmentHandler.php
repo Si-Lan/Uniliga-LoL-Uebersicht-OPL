@@ -7,11 +7,13 @@ use App\Components\Games\GameDetails;
 use App\Components\Matches\MatchButton;
 use App\Components\Matches\MatchButtonList;
 use App\Components\Matches\MatchHistory;
+use App\Components\Player\PlayerOverview;
 use App\Components\Standings\StandingsTable;
 use App\Repositories\GameRepository;
 use App\Repositories\MatchupRepository;
 use App\Repositories\PlayerInTeamInTournamentRepository;
 use App\Repositories\PlayerInTeamRepository;
+use App\Repositories\PlayerRepository;
 use App\Repositories\TeamInTournamentRepository;
 use App\Repositories\TeamRepository;
 use App\Repositories\TournamentRepository;
@@ -177,5 +179,24 @@ class FragmentHandler {
 		$teamInTournament = $teamInTournamentRepo->findByTeamIdAndTournament($teamId, $tournamentStage->rootTournament);
 
 		echo new MatchHistory($teamInTournament, $tournamentStage);
+	}
+
+	public function playerOverview(array $dataGet): void {
+		$playerId = $this->intOrNull($dataGet['playerId'] ?? null);
+
+		if (is_null($playerId)) {
+			http_response_code(400);
+			echo 'missing playerId';
+			return;
+		}
+		$playerRepo = new PlayerRepository();
+		$player = $playerRepo->findById($playerId);
+		if (is_null($player)) {
+			http_response_code(404);
+			echo 'Player not found';
+			return;
+		}
+
+		echo new PlayerOverview($player);
 	}
 }

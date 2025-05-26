@@ -1425,11 +1425,8 @@ async function popup_player(playerID, add_to_recents = false) {
 	popupbg.css("opacity","1");
 	pagebody.addClass("popup_open");
 
-	fetch(`/ajax/player-overview.php`, {
+	fetch(`/ajax/fragment/player-overview?playerId=${playerID}`, {
 		method: "GET",
-		headers: {
-			playerid: playerID,
-		}
 	})
 		.then(res => res.text())
 		.then(async content => {
