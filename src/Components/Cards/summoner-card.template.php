@@ -50,7 +50,7 @@
             ?>
             <div class="played-positions">
                 <?php
-                foreach ($playerTT->roles as $role=>$role_amount) {
+                foreach ($playerTT->stats->roles as $role=>$role_amount) {
                     if ($role_amount != 0) { ?>
                 <div class="role-single">
                     <div class="svg-wrapper role"><?= \App\Components\Helpers\IconRenderer::getRoleIcon($role)?></div>
@@ -63,7 +63,7 @@
             </div>
             <div class="played-champions">
 				<?php
-				foreach ($playerTT->getTopChampions(5) as $champion=>$champion_amount) {
+				foreach ($playerTT->stats->getTopChampions(5) as $champion=>$champion_amount) {
                     ?>
                 <div class="champ-single">
                     <img src='/ddragon/<?=$latestPatch->patchNumber?>/img/champion/<?=$champion?>.webp' alt='<?=$champion?>'>
@@ -71,7 +71,7 @@
                 </div>
 				    <?php
 				}
-                if (count($playerTT->champions) > 5) {
+                if (count($playerTT->stats->champions) > 5) {
                 ?>
                 <div class="champ-single">
                     <?= \App\Components\Helpers\IconRenderer::getMaterialIconDiv("more_horiz")?>

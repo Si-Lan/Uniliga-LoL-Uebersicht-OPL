@@ -3,23 +3,21 @@
 namespace App\Entities;
 
 
-class PlayerInTeamInTournament extends AbstractPlayerInTournament {
+use App\Entities\ValueObjects\PlayerStats;
+
+class PlayerInTeamInTournament {
+	public PlayerStats $stats;
 	/**
 	 * @param array{top: int, jungle: int, middle: int, bottom: int, utility: int} $roles
 	 * @param array<string, array{games: int, wins: int, kills: int, deaths: int, assists: int}> $champions
 	 */
 	public function __construct(
 		public Player $player,
-		public Team $team,
-		public Tournament $tournament,
+		public TeamInTournament $teamInTournament,
 		public bool $removed,
-		public array $roles,
-		public array $champions
+		array $roles,
+		array $champions,
 	) {
-		parent::__construct($player, $tournament, $roles, $champions);
-	}
-
-	public function getTotalRoles(): int {
-		return array_sum($this->roles);
+		$this->stats = new PlayerStats($roles, $champions);
 	}
 }

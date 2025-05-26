@@ -57,10 +57,10 @@ $classes = implode(' ', array_filter(['team-card', $teamInTournamentStage->tourn
             <?php foreach ($playersInTeamInTournament as $playerInTeamInTournament): ?>
                 <?php
                 $roleHtml = '';
-                arsort($playerInTeamInTournament->roles);
-                if (array_sum($playerInTeamInTournament->roles) > 0) {
+                arsort($playerInTeamInTournament->stats->roles);
+                if (array_sum($playerInTeamInTournament->stats->roles) > 0) {
 					$roles = '';
-                    foreach ($playerInTeamInTournament->roles as $role=>$amount) {
+                    foreach ($playerInTeamInTournament->stats->roles as $role=>$amount) {
                         if ($amount == 0) continue;
                         $roles .= '<span class="svg-wrapper role">'.IconRenderer::getRoleIcon($role).'</span>';
                     }

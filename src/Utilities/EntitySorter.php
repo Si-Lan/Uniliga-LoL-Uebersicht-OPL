@@ -75,7 +75,7 @@ class EntitySorter {
 	 */
 	public static function sortPlayersByAllRoles(array $players): array {
 		usort($players, function (PlayerInTeamInTournament $a,PlayerInTeamInTournament $b) {
-			return $b->getTotalRoles() <=> $a->getTotalRoles();
+			return $b->stats->getTotalRoles() <=> $a->stats->getTotalRoles();
 		});
 		return $players;
 	}
@@ -93,7 +93,7 @@ class EntitySorter {
 				"utility" => 2,
 				"none" => 1
 			];
-			return $prioMap[self::highestRole($b->roles)] <=> $prioMap[self::highestRole($a->roles)];
+			return $prioMap[self::highestRole($b->stats->roles)] <=> $prioMap[self::highestRole($a->stats->roles)];
 		});
 		return $players;
 	}

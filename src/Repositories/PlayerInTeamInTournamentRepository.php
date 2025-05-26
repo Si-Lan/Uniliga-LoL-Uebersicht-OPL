@@ -5,6 +5,7 @@ namespace App\Repositories;
 use App\Entities\Player;
 use App\Entities\Team;
 use App\Entities\PlayerInTeamInTournament;
+use App\Entities\TeamInTournament;
 use App\Entities\Tournament;
 use App\Utilities\DataParsingHelpers;
 
@@ -12,8 +13,7 @@ class PlayerInTeamInTournamentRepository extends AbstractRepository {
 	use DataParsingHelpers;
 
 	private PlayerRepository $playerRepo;
-	private TeamRepository $teamRepo;
-	private TournamentRepository $tournamentRepo;
+	private TeamInTournamentRepository $teamInTournamentRepo;
 	protected static array $ALL_DATA_KEYS = ["OPL_ID","name","riotID_name","riotID_tag","summonerName","summonerID","PUUID","rank_tier","rank_div","rank_LP","matchesGotten","OPL_ID_team","OPL_ID_tournament","removed","roles","champions"];
 	protected static array $REQUIRED_DATA_KEYS = ["OPL_ID","name","OPL_ID_team","OPL_ID_tournament"];
 	/**
@@ -27,12 +27,11 @@ class PlayerInTeamInTournamentRepository extends AbstractRepository {
 
 	public function __construct() {
 		parent::__construct();
-		$this->teamRepo = new TeamRepository();
 		$this->playerRepo = new PlayerRepository();
-		$this->tournamentRepo = new TournamentRepository();
+		$this->teamInTournamentRepo = new TeamInTournamentRepository();
 	}
 
-	public function mapToEntity(array $data, ?Player $player = null, ?Team $team = null, ?Tournament $tournament = null): PlayerInTeamInTournament {
+	public function mapToEntity(array $data, ?Player $player = null, ?TeamInTournament $teamInTournament = null, ?Team $team = null, ?Tournament $tournament = null): PlayerInTeamInTournament {
 		$data = $this->normalizeData($data);
 		if (is_null($player)) {
 			if ($this->playerRepo->dataHasAllFields($data)) {
@@ -41,23 +40,27 @@ class PlayerInTeamInTournamentRepository extends AbstractRepository {
 				$player = $this->playerRepo->findById($data["OPL_ID"]);
 			}
 		}
-		if (is_null($team)) {
-			$team = $this->teamRepo->findById($data['OPL_ID_team']??null);
-		}
-		if (is_null($tournament)) {
-			$tournament = $this->tournamentRepo->findById($data['OPL_ID_tournament']??null);
+		if (is_null($teamInTournament)) {
+			if (!is_null($team) && !is_null($tournament)) {
+				$teamInTournament = $this->teamInTournamentRepo->findByTeamAndTournament($team, $tournament);
+			} elseif (!is_null($team)) {
+				$teamInTournament = $this->teamInTournamentRepo->findByTeamAndTournamentId($team, $data['OPL_ID_tournament']??null);
+			} elseif (!is_null($tournament)) {
+				$teamInTournament = $this->teamInTournamentRepo->findByTeamIdAndTournament($data['OPL_ID_team']??null, $tournament);
+			} else {
+				$teamInTournament = $this->teamInTournamentRepo->findByTeamIdAndTournamentId($data['OPL_ID_team']??null, $data['OPL_ID_tournament']??null);
+			}
 		}
 		return new PlayerInTeamInTournament(
 			player: $player,
-			team: $team,
-			tournament: $tournament,
+			teamInTournament: $teamInTournament,
 			removed: (bool) $data['removed']??false,
 			roles: $this->decodeJsonOrDefault($data['roles'],'{"top":0,"jungle":0,"middle":0,"bottom":0,"utility":0}'),
 			champions: $this->decodeJsonOrDefault($data['champions'], "[]")
 		);
 	}
 
-	public function findInternal(int $playerId, int $teamId, int $tournamentId, ?Player $player=null, ?Team $team=null, ?Tournament $tournament=null): ?PlayerInTeamInTournament {
+	public function findInternal(int $playerId, int $teamId, int $tournamentId, ?Player $player=null, ?TeamInTournament $teamInTournament=null, ?Team $team=null, ?Tournament $tournament=null): ?PlayerInTeamInTournament {
 		$cacheKey = $playerId."_".$teamId."_".$tournamentId;
 		if (isset($this->cache[$cacheKey])) {
 			return $this->cache[$cacheKey];
@@ -71,7 +74,7 @@ class PlayerInTeamInTournamentRepository extends AbstractRepository {
 		$result = $this->dbcn->execute_query($query, [$tournamentId, $teamId, $playerId]);
 		$playerdata = $result->fetch_assoc();
 
-		$playerInTeamInTournament = $playerdata ? $this->mapToEntity($playerdata, $player, $team, $tournament) : null;
+		$playerInTeamInTournament = $playerdata ? $this->mapToEntity($playerdata, $player, $teamInTournament, $team, $tournament) : null;
 		$this->cache[$cacheKey] = $playerInTeamInTournament;
 
 		return $playerInTeamInTournament;
@@ -81,10 +84,13 @@ class PlayerInTeamInTournamentRepository extends AbstractRepository {
 		return $this->findInternal($playerId, $teamId, $tournamentId);
 	}
 	public function findByPlayerAndTeamAndTournament(Player $player, Team $team, Tournament $tournament): ?PlayerInTeamInTournament {
-		return $this->findInternal($player->id, $team->id, $tournament->id, $player, $team, $tournament);
+		return $this->findInternal($player->id, $team->id, $tournament->id, $player, team: $team, tournament: $tournament);
+	}
+	public function findByPlayerAndTeamInTournament(Player $player, TeamInTournament $teamInTournament): ?PlayerInTeamInTournament {
+		return $this->findInternal($player->id, $teamInTournament->team->id, $teamInTournament->tournament->id, $player, $teamInTournament);
 	}
 
-	public function findAllInternal(int $teamId, int $tournamentId, Team $team = null, Tournament $tournament = null): array {
+	public function findAllInternal(int $teamId, int $tournamentId, TeamInTournament $teamInTournament = null, Team $team = null, Tournament $tournament = null): array {
 		$cacheKey = $teamId."_".$tournamentId;
 		if (isset($this->teamCache[$cacheKey])) {
 			return $this->teamCache[$cacheKey];
@@ -102,7 +108,7 @@ class PlayerInTeamInTournamentRepository extends AbstractRepository {
 
 		$players = [];
 		foreach ($data as $playerData) {
-			$players[] = $this->mapToEntity($playerData, team: $team, tournament: $tournament);
+			$players[] = $this->mapToEntity($playerData, teamInTournament: $teamInTournament, team: $team, tournament: $tournament);
 		}
 		$this->teamCache[$cacheKey] = $players;
 
@@ -112,8 +118,14 @@ class PlayerInTeamInTournamentRepository extends AbstractRepository {
 	/**
 	 * @return array<PlayerInTeamInTournament>
 	 */
+	public function findAllByTeamInTournament(TeamInTournament $teamInTournament): array {
+		return $this->findAllInternal($teamInTournament->team->id, $teamInTournament->tournament->id, teamInTournament: $teamInTournament);
+	}
+	/**
+	 * @return array<PlayerInTeamInTournament>
+	 */
 	public function findAllByTeamAndTournament(Team $team, Tournament $tournament): array {
-		return $this->findAllInternal($team->id, $tournament->id, $team, $tournament);
+		return $this->findAllInternal($team->id, $tournament->id, team: $team, tournament: $tournament);
 	}
 	/**
 	 * @return array<PlayerInTeamInTournament>

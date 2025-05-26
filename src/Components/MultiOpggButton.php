@@ -2,7 +2,6 @@
 
 namespace App\Components;
 
-use App\Entities\PlayerInTeamInTournament;
 use App\Entities\Team;
 use App\Entities\TeamInTournament;
 use App\Repositories\PlayerInTeamInTournamentRepository;

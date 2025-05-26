@@ -1,18 +1,20 @@
 <?php
 
-namespace App\Entities;
+namespace App\Entities\ValueObjects;
 
-abstract class AbstractPlayerInTournament {
+class PlayerStats {
 	/**
 	 * @param array{top: int, jungle: int, middle: int, bottom: int, utility: int} $roles
 	 * @param array<string, array{games: int, wins: int, kills: int, deaths: int, assists: int}> $champions
 	 */
 	public function __construct(
-		public Player $player,
-		public Tournament $tournament,
 		public array $roles,
 		public array $champions
 	) {}
+
+	public function getTotalRoles(): int {
+		return array_sum($this->roles);
+	}
 
 	/**
 	 * @param 'ASC'|'DESC' $direction

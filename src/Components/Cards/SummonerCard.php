@@ -29,9 +29,9 @@ class SummonerCard {
 			$this->player = $playerInTeam->player;
 
 			$rankedSplitRepo = new RankedSplitRepository();
-			$rankedSplit1 = $rankedSplitRepo->findFirstSplitForTournament($playerInTeam->tournament);
-			$rankedSplit2 = $rankedSplitRepo->findNextSplitForTournament($playerInTeam->tournament);
-			$this->currentSplit = $rankedSplitRepo->findSelectedSplitForTournament($playerInTeam->tournament);
+			$rankedSplit1 = $rankedSplitRepo->findFirstSplitForTournament($playerInTeam->teamInTournament->tournament);
+			$rankedSplit2 = $rankedSplitRepo->findNextSplitForTournament($playerInTeam->teamInTournament->tournament);
+			$this->currentSplit = $rankedSplitRepo->findSelectedSplitForTournament($playerInTeam->teamInTournament->tournament);
 
 			$playerSeasonRankRepo = new PlayerSeasonRankRepository();
 			$this->playerSeasonRank1 = $playerSeasonRankRepo->findPlayerSeasonRank($playerInTeam->player, $rankedSplit1);

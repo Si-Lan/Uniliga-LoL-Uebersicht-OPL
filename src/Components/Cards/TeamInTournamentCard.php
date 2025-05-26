@@ -35,7 +35,7 @@ class TeamInTournamentCard {
 		}
 		$this->TeamInTournamentStage = end($teamInTournamentStages);
 
-		$this->playersInTeamInTournament = $playerInTeamInTournamentRepo->findAllByTeamAndTournament($teamInTournament->team, $teamInTournament->tournament);
+		$this->playersInTeamInTournament = $playerInTeamInTournamentRepo->findAllByTeamInTournament($teamInTournament);
 		$this->playersInTeamInTournament = EntitySorter::sortPlayersByMostPlayedRoles($this->playersInTeamInTournament);
 
 		$this->teamSeasonRankInTournament = $teamSeasonRankRepo->findTeamSeasonRankInTournament($teamInTournament->team, $teamInTournament->tournament, $teamInTournament->tournament->rankedSplit);
