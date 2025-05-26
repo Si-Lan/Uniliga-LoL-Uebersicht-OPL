@@ -1,7 +1,7 @@
 
 <?php
-$pageMeta = new \App\Page\PageMeta('Wartung',bodyClass: 'error');
+$pageMeta = new \App\UI\Page\PageMeta('Wartung',bodyClass: 'error');
 ?>
-<?= new \App\Components\Navigation\Header(\App\Enums\HeaderType::MAINTENANCE)?>
+<?= new \App\UI\Components\Navigation\Header(\App\UI\Enums\HeaderType::MAINTENANCE)?>
 
 <div style='text-align: center'>Die Webseite wird gerade gewartet, versuche es bitte später erneut!</div>

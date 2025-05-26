@@ -1,14 +1,14 @@
 <?php
 
-use App\Components\Matches\MatchButtonList;
-use App\Components\Navigation\Header;
-use App\Components\Navigation\TournamentNav;
-use App\Components\OplOutLink;
-use App\Components\Standings\StandingsTable;
-use App\Components\UpdateButton;
-use App\Enums\HeaderType;
-use App\Page\PageMeta;
-use App\Repositories\TournamentRepository;
+use App\Domain\Repositories\TournamentRepository;
+use App\UI\Components\Matches\MatchButtonList;
+use App\UI\Components\Navigation\Header;
+use App\UI\Components\Navigation\TournamentNav;
+use App\UI\Components\OplOutLink;
+use App\UI\Components\Standings\StandingsTable;
+use App\UI\Components\UpdateButton;
+use App\UI\Enums\HeaderType;
+use App\UI\Page\PageMeta;
 
 $tournamentRepo = new TournamentRepository();
 

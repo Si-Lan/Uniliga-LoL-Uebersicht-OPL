@@ -1,10 +1,10 @@
 <?php
 
-use App\Components\Navigation\Header;
-use App\Components\Player\PlayerOverview;
-use App\Enums\HeaderType;
-use App\Page\PageMeta;
-use App\Repositories\PlayerRepository;
+use App\Domain\Repositories\PlayerRepository;
+use App\UI\Components\Navigation\Header;
+use App\UI\Components\Player\PlayerOverview;
+use App\UI\Enums\HeaderType;
+use App\UI\Page\PageMeta;
 
 $playerRepo = new PlayerRepository();
 

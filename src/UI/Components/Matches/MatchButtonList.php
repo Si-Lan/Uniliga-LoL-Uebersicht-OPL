@@ -1,0 +1,47 @@
+<?php
+
+namespace App\UI\Components\Matches;
+
+use App\Domain\Entities\Matchup;
+use App\Domain\Entities\TeamInTournament;
+use App\Domain\Entities\Tournament;
+use App\Domain\Repositories\MatchupRepository;
+use App\Domain\Repositories\TeamInTournamentRepository;
+use App\Domain\Services\EntitySorter;
+
+class MatchButtonList {
+	/** @var array<Matchup> $matchups  */
+	private array $matchupRounds;
+	private TeamInTournamentRepository $teamInTournamentRepository; // Für die Matchbuttons
+	public function __construct(
+		public Tournament $tournamentStage,
+		public ?TeamInTournament $teamInTournament=null
+	) {
+		$matchupRepo = new MatchupRepository();
+		if ($teamInTournament != null) {
+			$this->matchupRounds = $matchupRepo->findAllByTournamentStageAndTeam($this->tournamentStage, $this->teamInTournament);
+		} else {
+			$this->matchupRounds = $matchupRepo->findAllWithATeamByTournamentStage($this->tournamentStage);
+		}
+		if ($this->tournamentStage->isEventWithRounds()) {
+			$this->matchupRounds = EntitySorter::sortAndGroupMatchupsByPlayday($this->matchupRounds);
+		} else {
+			$this->matchupRounds = EntitySorter::sortAndGroupMatchupsByPlannedDate($this->matchupRounds);
+		}
+		$this->teamInTournamentRepository = new TeamInTournamentRepository();
+	}
+
+	public function render(): string {
+		$matchupRounds = $this->matchupRounds;
+		$tournamentStage = $this->tournamentStage;
+		$teamInTournament = $this->teamInTournament;
+		$teamInTournamentRepository = $this->teamInTournamentRepository;
+		ob_start();
+		include __DIR__.'/match-button-list.template.php';
+		return ob_get_clean();
+	}
+
+	public function __toString(): string {
+		return $this->render();
+	}
+}

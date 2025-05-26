@@ -1,21 +1,21 @@
 <?php
 
-use App\Components\Cards\SummonerCardContainer;
-use App\Components\Matches\MatchButtonList;
-use App\Components\MultiOpggButton;
-use App\Components\Navigation\Header;
-use App\Components\Navigation\SwitchTournamentStageButtons;
-use App\Components\Navigation\TeamHeaderNav;
-use App\Components\Navigation\TournamentNav;
-use App\Components\Standings\StandingsTable;
-use App\Components\Team\TeamRankDisplay;
-use App\Enums\EventType;
-use App\Enums\HeaderType;
-use App\Page\PageMeta;
-use App\Repositories\TeamInTournamentRepository;
-use App\Repositories\TeamInTournamentStageRepository;
-use App\Utilities\EntitySorter;
-use App\Utilities\UserContext;
+use App\Core\Utilities\UserContext;
+use App\Domain\Enums\EventType;
+use App\Domain\Repositories\TeamInTournamentRepository;
+use App\Domain\Repositories\TeamInTournamentStageRepository;
+use App\Domain\Services\EntitySorter;
+use App\UI\Components\Cards\SummonerCardContainer;
+use App\UI\Components\Matches\MatchButtonList;
+use App\UI\Components\MultiOpggButton;
+use App\UI\Components\Navigation\Header;
+use App\UI\Components\Navigation\SwitchTournamentStageButtons;
+use App\UI\Components\Navigation\TeamHeaderNav;
+use App\UI\Components\Navigation\TournamentNav;
+use App\UI\Components\Standings\StandingsTable;
+use App\UI\Components\Team\TeamRankDisplay;
+use App\UI\Enums\HeaderType;
+use App\UI\Page\PageMeta;
 
 $teamInTournamentRepo = new TeamInTournamentRepository();
 $teamInTournamentStageRepo = new TeamInTournamentStageRepository();

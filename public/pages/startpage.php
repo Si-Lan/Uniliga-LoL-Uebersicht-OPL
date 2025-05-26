@@ -1,11 +1,11 @@
 <?php
 
-use App\Components\Navigation\Header;
-use App\Components\UI\PageLink;
-use App\Enums\HeaderType;
-use App\Page\PageMeta;
-use App\Repositories\TournamentRepository;
-use App\Utilities\EntitySorter;
+use App\Domain\Repositories\TournamentRepository;
+use App\Domain\Services\EntitySorter;
+use App\UI\Components\Navigation\Header;
+use App\UI\Components\UI\PageLink;
+use App\UI\Enums\HeaderType;
+use App\UI\Page\PageMeta;
 
 $pageMeta = new PageMeta(bodyClass: 'home');
 

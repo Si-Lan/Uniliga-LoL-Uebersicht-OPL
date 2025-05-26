@@ -1,20 +1,20 @@
 <?php
 
-use App\Database\DatabaseConnection;
-use App\Enums\EventType;
-use App\Page\LayoutRenderer;
-use App\Page\PageMeta;
-use App\Repositories\PlayerRepository;
-use App\Repositories\TeamRepository;
-use App\Repositories\TournamentRepository;
-use App\Utilities\UserContext;
+use App\Core\DatabaseConnection;
+use App\Core\Utilities\UserContext;
+use App\Domain\Enums\EventType;
+use App\Domain\Repositories\PlayerRepository;
+use App\Domain\Repositories\TeamRepository;
+use App\Domain\Repositories\TournamentRepository;
+use App\UI\Page\LayoutRenderer;
+use App\UI\Page\PageMeta;
 
 require_once dirname(__DIR__).'/bootstrap.php';
 
 /** @var array<string,string> $routes */
 require_once BASE_PATH."/config/routes.php";
 include_once BASE_PATH."/config/data.php";
-include_once BASE_PATH."/src/functions/fe-functions.php";
+include_once BASE_PATH."/src/old_functions/fe-functions.php";
 
 check_login();
 

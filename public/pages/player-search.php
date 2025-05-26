@@ -1,10 +1,10 @@
 <?php
 /** @var mysqli $dbcn  */
 
-use App\Components\Helpers\IconRenderer;
-use App\Components\Navigation\Header;
-use App\Enums\HeaderType;
-use App\Page\PageMeta;
+use App\UI\Components\Helpers\IconRenderer;
+use App\UI\Components\Navigation\Header;
+use App\UI\Enums\HeaderType;
+use App\UI\Page\PageMeta;
 
 $pageMeta = new PageMeta('Spielersuche',bodyClass: 'players');
 

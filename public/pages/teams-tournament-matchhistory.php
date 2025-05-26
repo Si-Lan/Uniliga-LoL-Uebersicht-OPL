@@ -1,16 +1,16 @@
 <?php
 
-use App\Components\Matches\MatchHistory;
-use App\Components\Navigation\Header;
-use App\Components\Navigation\SwitchTournamentStageButtons;
-use App\Components\Navigation\TeamHeaderNav;
-use App\Components\Navigation\TournamentNav;
-use App\Enums\EventType;
-use App\Enums\HeaderType;
-use App\Page\PageMeta;
-use App\Repositories\TeamInTournamentRepository;
-use App\Repositories\TeamInTournamentStageRepository;
-use App\Utilities\EntitySorter;
+use App\Domain\Enums\EventType;
+use App\Domain\Repositories\TeamInTournamentRepository;
+use App\Domain\Repositories\TeamInTournamentStageRepository;
+use App\Domain\Services\EntitySorter;
+use App\UI\Components\Matches\MatchHistory;
+use App\UI\Components\Navigation\Header;
+use App\UI\Components\Navigation\SwitchTournamentStageButtons;
+use App\UI\Components\Navigation\TeamHeaderNav;
+use App\UI\Components\Navigation\TournamentNav;
+use App\UI\Enums\HeaderType;
+use App\UI\Page\PageMeta;
 
 $teamInTournamentRepo = new TeamInTournamentRepository();
 $teamInTournamentStageRepo = new TeamInTournamentStageRepository();

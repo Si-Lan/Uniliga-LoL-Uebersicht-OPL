@@ -1,6 +1,6 @@
 <?php
 $root = dirname(__DIR__,3);
-include_once $root . "/src/admin/functions/fe-functions.php";
+include_once $root . "/src/old_functions/admin/fe-functions.php";
 include_once $root . "/config/data.php";
 
 $type = $_SERVER["HTTP_TYPE"] ?? NULL;

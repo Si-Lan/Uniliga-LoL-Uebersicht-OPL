@@ -1,10 +1,10 @@
 <?php
 
 include_once dirname(__DIR__,2)."/config/data.php";
-include_once dirname(__DIR__,2)."/src/functions/fe-functions.php";
-include_once dirname(__DIR__,2)."/src/functions/helper.php";
-include_once dirname(__DIR__,2)."/src/admin/functions/fe-functions.php";
-include_once dirname(__DIR__,2)."/src/admin/functions/ddragon-update.php";
+include_once dirname(__DIR__,2)."/src/old_functions/fe-functions.php";
+include_once dirname(__DIR__,2)."/src/old_functions/helper.php";
+include_once dirname(__DIR__,2)."/src/old_functions/admin/fe-functions.php";
+include_once dirname(__DIR__,2)."/src/old_functions/admin/ddragon-update.php";
 
 check_login();
 ?>

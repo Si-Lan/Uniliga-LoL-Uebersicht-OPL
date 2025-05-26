@@ -1,13 +1,13 @@
 <?php
 
-use App\Components\Navigation\Header;
-use App\Components\Navigation\TournamentNav;
-use App\Components\UI\PageLink;
-use App\Enums\EventFormat;
-use App\Enums\EventType;
-use App\Enums\HeaderType;
-use App\Page\PageMeta;
-use App\Repositories\TournamentRepository;
+use App\Domain\Enums\EventFormat;
+use App\Domain\Enums\EventType;
+use App\Domain\Repositories\TournamentRepository;
+use App\UI\Components\Navigation\Header;
+use App\UI\Components\Navigation\TournamentNav;
+use App\UI\Components\UI\PageLink;
+use App\UI\Enums\HeaderType;
+use App\UI\Page\PageMeta;
 
 $tournamentRepo = new TournamentRepository();
 

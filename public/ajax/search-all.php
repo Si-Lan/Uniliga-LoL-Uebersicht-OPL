@@ -1,6 +1,6 @@
 <?php
 include_once dirname(__DIR__,2)."/config/data.php";
-include_once dirname(__DIR__,2)."/src/functions/fe-functions.php";
+include_once dirname(__DIR__,2)."/src/old_functions/fe-functions.php";
 
 $dbcn = create_dbcn();
 

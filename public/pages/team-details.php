@@ -1,16 +1,16 @@
 <?php
 
-use App\Components\Cards\SummonerCardContainer;
-use App\Components\Cards\TeamInTournamentCard;
-use App\Components\MultiOpggButton;
-use App\Components\Navigation\Header;
-use App\Components\OplOutLink;
-use App\Components\Team\TeamRankDisplay;
-use App\Page\PageMeta;
-use App\Repositories\TeamInTournamentRepository;
-use App\Repositories\TeamInTournamentStageRepository;
-use App\Repositories\TeamRepository;
-use App\Utilities\EntitySorter;
+use App\Domain\Repositories\TeamInTournamentRepository;
+use App\Domain\Repositories\TeamInTournamentStageRepository;
+use App\Domain\Repositories\TeamRepository;
+use App\Domain\Services\EntitySorter;
+use App\UI\Components\Cards\SummonerCardContainer;
+use App\UI\Components\Cards\TeamInTournamentCard;
+use App\UI\Components\MultiOpggButton;
+use App\UI\Components\Navigation\Header;
+use App\UI\Components\OplOutLink;
+use App\UI\Components\Team\TeamRankDisplay;
+use App\UI\Page\PageMeta;
 
 $teamRepo = new TeamRepository();
 $teamInTournamentRepo = new TeamInTournamentRepository();

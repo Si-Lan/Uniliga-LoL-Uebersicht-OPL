@@ -1,8 +1,8 @@
 <?php
 
-use App\Components\Navigation\Header;
-use App\Enums\HeaderType;
-use App\Page\PageMeta;
+use App\UI\Components\Navigation\Header;
+use App\UI\Enums\HeaderType;
+use App\UI\Page\PageMeta;
 
 $errortype = $_GET["error"] ?? NULL;
 

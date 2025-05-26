@@ -21,7 +21,7 @@ if (!$controller || !$method) {
 	exit;
 }
 
-$controllerClass = 'App\\AjaxHandlers\\' . ucfirst($controller) . 'Handler';
+$controllerClass = 'App\\Ajax\\' . ucfirst($controller) . 'Handler';
 
 if (!class_exists($controllerClass)) {
 	http_response_code(404);

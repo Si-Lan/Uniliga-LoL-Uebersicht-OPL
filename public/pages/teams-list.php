@@ -1,7 +1,7 @@
 <?php
 /** @var mysqli $dbcn  */
 
-use App\Page\PageMeta;
+use App\UI\Page\PageMeta;
 
 $tournament_url_path = $_GET["tournament"] ?? NULL;
 $tournamentID = $tournament_url_path;
