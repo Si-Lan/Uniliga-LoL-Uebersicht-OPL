@@ -133,4 +133,30 @@ class PlayerInTeamInTournamentRepository extends AbstractRepository {
 	public function findAllByTeamIdAndTournamentId(int $teamId, int $tournamentId): array {
 		return $this->findAllInternal($teamId, $tournamentId);
 	}
+
+
+	/**
+	 * @param Player $player
+	 * @return array<PlayerInTeamInTournament>
+	 */
+	public function findAllByPlayer(Player $player): array {
+		$query = '
+			SELECT *
+			FROM players p
+			    JOIN players_in_teams_in_tournament pitt
+			        ON p.OPL_ID = pitt.OPL_ID_player
+				LEFT JOIN stats_players_teams_tournaments spitt
+				    ON p.OPL_ID = spitt.OPL_ID_player AND spitt.OPL_ID_team = pitt.OPL_ID_team AND spitt.OPL_ID_tournament = pitt.OPL_ID_tournament
+			WHERE p.OPL_ID = ?
+			ORDER BY pitt.OPL_ID_tournament DESC';
+		$result = $this->dbcn->execute_query($query, [$player->id]);
+		$data = $result->fetch_all(MYSQLI_ASSOC);
+
+		$players = [];
+		foreach ($data as $playerData) {
+			$players[] = $this->mapToEntity($playerData, player: $player);
+		}
+
+		return $players;
+	}
 }

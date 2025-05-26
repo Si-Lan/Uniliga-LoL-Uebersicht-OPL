@@ -2658,7 +2658,7 @@ body.player div.main-content {
 	height: 322px;
 }
 .player-card.expanded-pcard[data-details="0"] {
-	height: 268px;
+	height: 254px;
 }
 .player-card-div {
 	display: flex;
