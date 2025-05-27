@@ -115,7 +115,7 @@ function update_team_filter_groups(div_id) {
 	if (div_id === "all") {
 		$("select.groups").empty().append("<option value='all' selected='selected'>Alle Gruppen</option>");
 	} else {
-		fetch(`/ajax/get-data.php`, {
+		fetch(`/api/get-data.php`, {
 			method: "GET",
 			headers: {
 				"type": "groups",
@@ -364,7 +364,7 @@ async function popup_team(teamID, tournamentID = null) {
 	popupbg.css("opacity","1");
 	pagebody.addClass("popup_open");
 
-	fetch(`/ajax/get-data.php`, {
+	fetch(`/api/get-data.php`, {
 		method: "GET",
 		headers: {
 			type: "team-and-players",
@@ -516,7 +516,7 @@ async function popup_match(matchID,teamID=null,tournamentID=null) {
 	url.searchParams.set("match",matchID);
 	window.history.replaceState({}, '', url);
 
-	fetch(`/ajax/get-data.php`, {
+	fetch(`/api/get-data.php`, {
 		method: "GET",
 		headers: {
 			type: "match-games-teams-by-matchid",
@@ -547,7 +547,7 @@ async function popup_match(matchID,teamID=null,tournamentID=null) {
 					user_update_match(this);
 				});
 
-				fetch(`/ajax/get-data.php`, {
+				fetch(`/api/get-data.php`, {
 					method: "GET",
 					headers: {
 						type: "last-update-time",
@@ -1522,7 +1522,7 @@ async function user_update_group(button) {
 
 	let last_update;
 
-	await fetch(`/ajax/get-data.php`, {
+	await fetch(`/api/get-data.php`, {
 		method: "GET",
 		headers: {
 			type: "last-update-time",
@@ -1592,7 +1592,7 @@ async function user_update_group(button) {
 	loading_width = 40;
 	button.style.setProperty("--update-loading-bar-width", `${loading_width}%`);
 
-	await fetch(`/ajax/get-data.php`, {
+	await fetch(`/api/get-data.php`, {
 		method: "GET",
 		headers: {
 			type: "matchups",
@@ -1681,7 +1681,7 @@ async function user_update_team(button) {
 
 	let last_update;
 
-	await fetch(`/ajax/get-data.php`, {
+	await fetch(`/api/get-data.php`, {
 		method: "GET",
 		headers: {
 			type: "last-update-time",
@@ -1735,7 +1735,7 @@ async function user_update_team(button) {
 	loading_width = 10;
 	button.style.setProperty("--update-loading-bar-width", `${loading_width}%`);
 
-	await fetch(`/ajax/get-data.php`, {
+	await fetch(`/api/get-data.php`, {
 		method: "GET",
 		headers: {
 			type: "players",
@@ -1844,7 +1844,7 @@ async function user_update_team(button) {
 	button.style.setProperty("--update-loading-bar-width", `${loading_width}%`);
 
 	for (const groupID1 of groupIDs) {
-		await fetch(`/ajax/get-data.php`, {
+		await fetch(`/api/get-data.php`, {
 			method: "GET",
 			headers: {
 				type: "matchups",
@@ -1881,7 +1881,7 @@ async function user_update_team(button) {
 	loading_width = 90;
 	button.style.setProperty("--update-loading-bar-width", `${loading_width}%`);
 
-	await fetch(`/ajax/get-data.php`, {
+	await fetch(`/api/get-data.php`, {
 		method: "GET",
 		headers: {
 			type: "matchups",
@@ -1942,7 +1942,7 @@ async function user_update_team(button) {
 		})
 		.catch(e => console.error(e));
 
-	fetch(`/ajax/get-data.php`, {
+	fetch(`/api/get-data.php`, {
 		method: "GET",
 		headers: {
 			type: "players",
@@ -2015,7 +2015,7 @@ async function user_update_match(button) {
 	let last_update;
 
 	// check latest Updatetime
-	await fetch(`/ajax/get-data.php`, {
+	await fetch(`/api/get-data.php`, {
 		method: "GET",
 		headers: {
 			type: "last-update-time",

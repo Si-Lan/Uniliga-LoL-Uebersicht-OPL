@@ -100,13 +100,13 @@ function get_puuids(tournID, only_without_puuid = true) {
 		}
 	};
 	if (only_without_puuid) {
-		teams_request.open("GET", "/ajax/get-data.php", true);
+		teams_request.open("GET", "/api/get-data.php", true);
 		teams_request.setRequestHeader("type", "teams");
 		teams_request.setRequestHeader("tournamentID", tournID);
 		teams_request.setRequestHeader("playercount", "true");
 		teams_request.setRequestHeader("nopuuid", "true");
 	} else {
-		teams_request.open("GET", "/ajax/get-data.php", true);
+		teams_request.open("GET", "/api/get-data.php", true);
 		teams_request.setRequestHeader("type", "teams");
 		teams_request.setRequestHeader("tournamentID", tournID);
 		teams_request.setRequestHeader("playercount", "true");
@@ -128,7 +128,7 @@ async function get_riotids_by_puuids(tournamentID) {
 		set_all_buttons_onclick(0,tournamentID);
 	}
 
-	await fetch(`./ajax/get-data.php`, {
+	await fetch(`./api/get-data.php`, {
 		method: "GET",
 		headers: {
 			"type": "players",
@@ -267,7 +267,7 @@ function get_games_for_team(tournID,teamID) {
 			}
 		}
 	};
-	players_request.open("GET","/ajax/get-data.php", true);
+	players_request.open("GET","/api/get-data.php", true);
 	players_request.setRequestHeader("type", "players");
 	players_request.setRequestHeader("teamID", teamID);
 	players_request.setRequestHeader("puuidset", "true");
@@ -364,7 +364,7 @@ function get_games_for_division(tournID,divID) {
 					}
 					console.log("-- slept --");
 				}
-				players_request.open("GET","/ajax/get-data.php", true);
+				players_request.open("GET","/api/get-data.php", true);
 				players_request.setRequestHeader("type", "players");
 				players_request.setRequestHeader("teamID", teams[t]['OPL_ID']);
 				players_request.setRequestHeader("puuidset", "true");
@@ -372,7 +372,7 @@ function get_games_for_division(tournID,divID) {
 			}
 		}
 	};
-	teams_request.open("GET","/ajax/get-data.php", true);
+	teams_request.open("GET","/api/get-data.php", true);
 	teams_request.setRequestHeader("type", "teams");
 	teams_request.setRequestHeader("tournamentID", divID);
 	teams_request.send();
@@ -468,7 +468,7 @@ function get_games_for_group(tournID, groupID) {
 					}
 					console.log("-- slept --");
 				}
-				players_request.open("GET","/ajax/get-data.php", true);
+				players_request.open("GET","/api/get-data.php", true);
 				players_request.setRequestHeader("type", "players");
 				players_request.setRequestHeader("teamID", teams[t]['OPL_ID']);
 				players_request.setRequestHeader("puuidset", "true");
@@ -476,7 +476,7 @@ function get_games_for_group(tournID, groupID) {
 			}
 		}
 	};
-	teams_request.open("GET","/ajax/get-data.php", true);
+	teams_request.open("GET","/api/get-data.php", true);
 	teams_request.setRequestHeader("type", "teams");
 	teams_request.setRequestHeader("tournamentID", groupID);
 	teams_request.send();
@@ -557,7 +557,7 @@ function get_game_data(tournamentID, teamID = 0, all = 0) {
 		}
 	};
 
-	games_request.open("GET","/ajax/get-data.php",true);
+	games_request.open("GET","/api/get-data.php",true);
 	games_request.setRequestHeader("type", "all-games");
 	games_request.setRequestHeader("no-data-only", "true");
 	games_request.send();
@@ -635,12 +635,12 @@ function assign_and_filter_games(tournamentID,teamID = 0, all = 0) {
 		}
 	};
 	if (all === 0) {
-		games_request.open("GET","/ajax/get-data.php",true);
+		games_request.open("GET","/api/get-data.php",true);
 		games_request.setRequestHeader("type", "games-in-tournaments-time");
 		games_request.setRequestHeader("tournamentID", tournamentID);
 		games_request.setRequestHeader("unassigned-only", "true");
 	} else {
-		games_request.open("GET","/ajax/get-data.php",true);
+		games_request.open("GET","/api/get-data.php",true);
 		games_request.setRequestHeader("type", "games-in-tournaments-time");
 		games_request.setRequestHeader("tournamentID", tournamentID);
 	}
@@ -714,7 +714,7 @@ function get_ranks(tournamentID) {
 			}
 		}
 	};
-	players_request.open("GET","/ajax/get-data.php", true);
+	players_request.open("GET","/api/get-data.php", true);
 	players_request.setRequestHeader("type", "players");
 	players_request.setRequestHeader("tournamentID", tournamentID);
 	players_request.setRequestHeader("summonerIDset", "true");
@@ -805,7 +805,7 @@ function get_average_team_ranks(tournament_id) {
 			}
 		}
 	};
-	teams_request.open("GET", "/ajax/get-data.php", true);
+	teams_request.open("GET", "/api/get-data.php", true);
 	teams_request.setRequestHeader("type", "teams");
 	teams_request.setRequestHeader("tournamentID", tournament_id);
 	teams_request.send();
@@ -824,7 +824,7 @@ async function get_stats_for_players(tournament_id) {
 		set_all_buttons_onclick(0,tournament_id);
 	}
 
-	await fetch(`./ajax/get-data.php`, {
+	await fetch(`./api/get-data.php`, {
 		method: "GET",
 		headers: {
 			"type": "teams",
@@ -915,7 +915,7 @@ function get_teamstats(tournament_id) {
 			}
 		}
 	};
-	teams_request.open("GET", "/ajax/get-data.php", true);
+	teams_request.open("GET", "/api/get-data.php", true);
 	teams_request.setRequestHeader("type", "teams");
 	teams_request.setRequestHeader("tournamentID", tournament_id);
 	teams_request.send();

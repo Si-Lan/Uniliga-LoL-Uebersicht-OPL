@@ -247,7 +247,7 @@ function get_players_for_tournament(tournamentID) {
 	let loadingbar_width = 0;
 	button.attr("style",`--loading-bar-width:${loadingbar_width}%`);
 
-	fetch(`/ajax/get-data.php`, {
+	fetch(`/api/get-data.php`, {
 		method: "GET",
 		headers: {
 			"type": "teams",
@@ -287,7 +287,7 @@ function get_summonerNames_for_tournament(tournamentID) {
 	let loadingbar_width = 0;
 	button.attr("style",`--loading-bar-width:${loadingbar_width}%`);
 
-	fetch(`/ajax/get-data.php`, {
+	fetch(`/api/get-data.php`, {
 		method: "GET",
 		headers: {
 			"type": "teams",
@@ -326,7 +326,7 @@ function get_riotids_for_tournament(tournamentID) {
 	let loadingbar_width = 0;
 	button.attr("style",`--loading-bar-width:${loadingbar_width}%`);
 
-	fetch(`/ajax/get-data.php`, {
+	fetch(`/api/get-data.php`, {
 		method: "GET",
 		headers: {
 			"type": "teams",
@@ -395,7 +395,7 @@ function get_results_for_tournament(tournamentID,unplayed_only=false) {
 	}
 	if (unplayed_only) matchup_headers["unplayedonly"] = "true";
 
-	fetch(`/ajax/get-data.php`, {
+	fetch(`/api/get-data.php`, {
 		method: "GET",
 		headers: matchup_headers
 	})
@@ -656,7 +656,7 @@ function regenerate_patch_rows() {
 		.catch(e => console.error(e));
 }
 function update_patchdata_status(patch= "all") {
-	fetch(`/ajax/get-data.php`, {
+	fetch(`/api/get-data.php`, {
 		method: "GET",
 		headers: {
 			type: "local_patch_info",
@@ -748,7 +748,7 @@ async function update_all_teams() {
 
 	let teamlist;
 
-	await fetch(`/ajax/get-data.php`, {
+	await fetch(`/api/get-data.php`, {
 		method: "GET",
 		headers: {
 			"type": "teams",
@@ -836,7 +836,7 @@ async function get_ranks_for_all_players() {
 
 	let playerlist;
 
-	await fetch(`/ajax/get-data.php`, {
+	await fetch(`/api/get-data.php`, {
 		method: "GET",
 		headers: {
 			"type": "players",
