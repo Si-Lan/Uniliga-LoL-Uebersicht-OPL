@@ -549,43 +549,6 @@ function populate_th($maintext,$tooltiptext,$init=false) {
 	return "<span class='tooltip'>$maintext<span class='tooltiptext'>$tooltiptext</span><div class='material-symbol sort-direction'>".$svg_code."</div></span>";
 }
 
-function create_player_search_cards_from_search (mysqli $dbcn, string $search) {
-    $players = $dbcn->execute_query("SELECT OPL_ID FROM players WHERE riotID_name LIKE ? OR name LIKE ?",["%".$search."%","%".$search."%"]);
-    $playerids= array();
-    while ($id = $players->fetch_column()) {
-        $playerids[] = $id;
-    }
-    create_player_search_cards($dbcn,$playerids);
-}
-function create_player_search_cards(mysqli $dbcn, array $playerids, bool $remove_from_recents=false) {
-    if ($playerids == NULL) {
-        return;
-    }
-    $players = array();
-    foreach ($playerids AS $playerid) {
-        $player = $dbcn->execute_query("SELECT * FROM players WHERE OPL_ID = ?",[$playerid])->fetch_assoc();
-        $players[] = $player;
-    }
-    $player_cards = "";
-
-    foreach ($players as $player) {
-        $player_cards .= "<div class='player-ov-card-wrapper'>";
-        $player_cards .= "<button class='player-ov-card' type='button' onclick='popup_player(\"{$player["OPL_ID"]}\",true)'>";
-        $player_cards .= "<span><span class='material-symbol'>".file_get_contents(dirname(__DIR__,2)."/public/icons/material/person.svg")."</span>".$player["name"]."</span>";
-        if ($player["riotID_name"] != null) {
-            $player_cards .= "<div class='divider'></div>";
-            $player_cards .= "<span><span class='league-icon'>".file_get_contents(dirname(__DIR__,2)."/public/icons/LoL_Icon_Flat.svg")."</span>".$player["riotID_name"]."#".$player["riotID_tag"]."</span>";
-        }
-        $player_cards .= "</button>";
-        if ($remove_from_recents) {
-            $player_cards .= "<a class='x-remove-recent-player' href='/spieler' onclick='remove_recent_player(\"".$player["OPL_ID"]."\")'><div class='material-symbol'>".file_get_contents(dirname(__DIR__,2)."/public/icons/material/close.svg")."</div></a>";
-        }
-        $player_cards .= "</div>";
-    }
-
-    echo $player_cards;
-}
-
 function search_all(mysqli $dbcn, string $search_input) {
 	$input_array = str_split($search_input);
 	$input_array = implode("%",$input_array);

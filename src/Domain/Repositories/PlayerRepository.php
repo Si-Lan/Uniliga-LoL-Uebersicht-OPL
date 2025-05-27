@@ -38,6 +38,52 @@ class PlayerRepository extends AbstractRepository {
 		return $data ? $this->mapToEntity($data) : null;
 	}
 
+	/**
+	 * @param array<int> $playerIds
+	 * @return array<Player>
+	 */
+	public function findAllByIds(array $playerIds): array {
+		$placeholders = implode(",", array_fill(0, count($playerIds), "?"));
+		$result = $this->dbcn->execute_query("SELECT * FROM players WHERE OPL_ID IN ($placeholders)", $playerIds);
+		$data = $result->fetch_all(MYSQLI_ASSOC);
+
+		$players = [];
+		foreach ($data as $row) {
+			$players[] = $this->mapToEntity($row);
+		}
+		return $players;
+	}
+
+	/**
+	 * @param string $name
+	 * @return array<Player>
+	 */
+	public function findByNameContains(string $name): array {
+		$result = $this->dbcn->execute_query("SELECT * FROM players WHERE name LIKE ? OR riotID_name LIKE ?", ["%$name%","%$name%"]);
+		$data = $result->fetch_all(MYSQLI_ASSOC);
+
+		$players = [];
+		foreach ($data as $row) {
+			$players[] = $this->mapToEntity($row);
+		}
+		return $players;
+	}
+	/**
+	 * @param string $name
+	 * @return array<Player>
+	 */
+	public function findByNameContainsLetters(string $name): array {
+		$name = implode("%", str_split($name));
+		$result = $this->dbcn->execute_query("SELECT * FROM players WHERE name LIKE ? OR riotID_name LIKE ?", ["%$name%","%$name%"]);
+		$data = $result->fetch_all(MYSQLI_ASSOC);
+
+		$players = [];
+		foreach ($data as $row) {
+			$players[] = $this->mapToEntity($row);
+		}
+		return $players;
+	}
+
 	public function playerExists(int $playerId): bool {
 		$result = $this->dbcn->execute_query("SELECT * FROM players WHERE OPL_ID = ?", [$playerId]);
 		$data = $result->fetch_assoc();

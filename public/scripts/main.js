@@ -1297,12 +1297,9 @@ function search_players() {
 	}
 	searchbar.append("<div class='search-loading-indicator'></div>");
 
-	fetch(`/ajax/player-search-cards.php`, {
+	fetch(`/ajax/fragment/player-search-cards-by-search?search=${input_value}`, {
 		method: "GET",
 		signal: player_search_controller.signal,
-		headers: {
-			search: input_value,
-		}
 	})
 		.then(res => res.text())
 		.then(cards => {
@@ -1326,11 +1323,8 @@ async function reload_recent_players(initial=false) {
 		return;
 	}
 
-	fetch(`/ajax/player-search-cards.php`, {
+	fetch(`/ajax/fragment/player-search-cards-by-recents?playerIds=${localStorage.getItem("searched_players_IDs")}`, {
 		method: "GET",
-		headers: {
-			"players": localStorage.getItem("searched_players_IDs"),
-		},
 	})
 		.then(res => res.text())
 		.then(async player_cards => {

@@ -18,6 +18,7 @@ use App\UI\Components\Matches\MatchButton;
 use App\UI\Components\Matches\MatchButtonList;
 use App\UI\Components\Matches\MatchHistory;
 use App\UI\Components\Player\PlayerOverview;
+use App\UI\Components\Player\PlayerSearchCard;
 use App\UI\Components\Standings\StandingsTable;
 
 class FragmentHandler {
@@ -198,5 +199,36 @@ class FragmentHandler {
 		}
 
 		echo new PlayerOverview($player);
+	}
+
+	public function playerSearchCardsByRecents(array $dataGet): void {
+		$playerIds = $this->decodeJsonOrDefault($dataGet['playerIds'] ?? null);
+
+		if (count($playerIds) == 0) {
+			http_response_code(400);
+			echo 'no playerIds given';
+			return;
+		}
+
+		$playerRepo = new PlayerRepository();
+		$players = $playerRepo->findAllByIds($playerIds);
+		foreach ($players as $player) {
+			echo new PlayerSearchCard($player,true);
+		}
+	}
+	public function playerSearchCardsBySearch(array $dataGet): void {
+		$searchString = $this->stringOrNull($dataGet['search'] ?? null);
+
+		if (is_null($searchString)) {
+			http_response_code(400);
+			echo 'missing Search String';;
+			return;
+		}
+
+		$playerRepo = new PlayerRepository();
+		$players = $playerRepo->findByNameContains($searchString);
+		foreach ($players as $player) {
+			echo new PlayerSearchCard($player);
+		}
 	}
 }
