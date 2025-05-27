@@ -2202,12 +2202,9 @@ function header_search() {
 	}
 	searchbar.append("<div class='search-loading-indicator'></div>");
 
-	fetch(`/ajax/search-all.php`, {
+	fetch(`/api/search/global-search?search=${input_value}`, {
 		method: "GET",
 		signal: header_search_controller.signal,
-		headers: {
-			search: input_value,
-		}
 	})
 		.then(res => res.json())
 		.then(search_results => {
@@ -2220,11 +2217,11 @@ function header_search() {
 				let ac_class = (i===0) ? `class="autocomplete-active"` : "";
 				if (search_results[i]["type"] === "team") {
 					icon = `<span class='material-symbol'>${get_material_icon("groups",true)}</span>`;
-					link = `/team/${search_results[i]["OPL_ID"]}`;
+					link = `/team/${search_results[i]["id"]}`;
 				} else if (search_results[i]["type"] === "player") {
 					icon = `<span class='material-symbol'>${get_material_icon("person",true)}</span>`;
-					link = `/spieler/${search_results[i]["OPL_ID"]}`;
-					additional = (search_results[i]["riotID_name"] !== null) ? `<br>(${search_results[i]["riotID_name"]}#${search_results[i]["riotID_tag"]})` : "";
+					link = `/spieler/${search_results[i]["id"]}`;
+					additional = (search_results[i]["riotIdName"] !== null) ? `<br>(${search_results[i]["riotIdName"]}#${search_results[i]["riotIdTag"]})` : "";
 				}
 				ac.append($(`<a href="${link}" ${ac_class}>${icon}${search_results[i]["name"]}${additional}</a>`));
 			}

@@ -226,7 +226,7 @@ class FragmentHandler {
 		}
 
 		$playerRepo = new PlayerRepository();
-		$players = $playerRepo->findByNameContains($searchString);
+		$players = $playerRepo->findAllByNameContains($searchString);
 		foreach ($players as $player) {
 			echo new PlayerSearchCard($player);
 		}

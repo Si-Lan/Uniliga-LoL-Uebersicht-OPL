@@ -58,7 +58,7 @@ class PlayerRepository extends AbstractRepository {
 	 * @param string $name
 	 * @return array<Player>
 	 */
-	public function findByNameContains(string $name): array {
+	public function findAllByNameContains(string $name): array {
 		$result = $this->dbcn->execute_query("SELECT * FROM players WHERE name LIKE ? OR riotID_name LIKE ?", ["%$name%","%$name%"]);
 		$data = $result->fetch_all(MYSQLI_ASSOC);
 
@@ -72,7 +72,7 @@ class PlayerRepository extends AbstractRepository {
 	 * @param string $name
 	 * @return array<Player>
 	 */
-	public function findByNameContainsLetters(string $name): array {
+	public function findAllByNameContainsLetters(string $name): array {
 		$name = implode("%", str_split($name));
 		$result = $this->dbcn->execute_query("SELECT * FROM players WHERE name LIKE ? OR riotID_name LIKE ?", ["%$name%","%$name%"]);
 		$data = $result->fetch_all(MYSQLI_ASSOC);

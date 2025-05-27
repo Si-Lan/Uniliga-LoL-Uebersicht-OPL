@@ -3,7 +3,9 @@
 namespace App\Domain\Services;
 
 use App\Domain\Entities\Matchup;
+use App\Domain\Entities\Player;
 use App\Domain\Entities\PlayerInTeamInTournament;
+use App\Domain\Entities\Team;
 use App\Domain\Entities\TeamInTournament;
 use App\Domain\Entities\TeamInTournamentStage;
 use App\Domain\Entities\Tournament;
@@ -153,5 +155,52 @@ class EntitySorter {
 			$matchupsGrouped[$match->plannedDate->format('Y-m-d H')][] = $match;
 		}
 		return $matchupsGrouped;
+	}
+
+	/**
+	 * @param array<Player|Team> $entities
+	 * @param string $matchString
+	 * @return array<Player|Team>
+	 */
+	public static function sortByNameMatchingString(array $entities, string $matchString): array {
+		$remaining_entities = $entities;
+
+		$starting_hits = [];
+		foreach ($remaining_entities as $index=>$result) {
+			if (str_starts_with(strtolower($result->name), strtolower($matchString))
+				|| ($result instanceof Player && str_starts_with(strtolower($result->riotIdName??''), strtolower($matchString)))) {
+				$starting_hits[] = $result;
+				unset($remaining_entities[$index]);
+			}
+		}
+
+		$contain_hits = [];
+		foreach ($remaining_entities as $index=>$result) {
+			if (str_contains(strtolower($result->name), strtolower($matchString))
+				|| ($result instanceof Player && str_contains(strtolower($result->riotIdName??''), strtolower($matchString)))){
+				$contain_hits[] = $result;
+				unset($remaining_entities[$index]);
+			}
+		}
+
+		$compare_searchresults = function($a,$b) use ($matchString) {
+			if ($a instanceof Player) {
+				$a_compare = min(levenshtein($matchString,$a->name??''), levenshtein($matchString,$a->riotIdName??''));
+			} else {
+				$a_compare = levenshtein($matchString,$a->name??"");
+			}
+			if ($b instanceof Player) {
+				$b_compare = min(levenshtein($matchString,$b->name??''), levenshtein($matchString,$b->riotIdName??''));
+			} else {
+				$b_compare = levenshtein($matchString,$b->name??'');
+			}
+			return $a_compare <=> $b_compare;
+		};
+
+		usort($starting_hits, $compare_searchresults);
+		usort($contain_hits, $compare_searchresults);
+		usort($remaining_entities, $compare_searchresults);
+
+		return array_merge($starting_hits, $contain_hits, $remaining_entities);
 	}
 }

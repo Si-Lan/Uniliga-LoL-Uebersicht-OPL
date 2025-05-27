@@ -35,6 +35,22 @@ class TeamRepository extends AbstractRepository {
 		return $data ? $this->mapToEntity($data) : null;
 	}
 
+	/**
+	 * @param string $name
+	 * @return array<Team>
+	 */
+	public function findAllByNameContainsLetters(string $name): array {
+		$name = implode("%", str_split($name));
+		$result = $this->dbcn->execute_query("SELECT * FROM teams WHERE name LIKE ? OR shortName LIKE ?", ["%$name%","%$name%"]);
+		$data = $result->fetch_all(MYSQLI_ASSOC);
+
+		$teams = [];
+		foreach ($data as $row) {
+			$teams[] = $this->mapToEntity($row);
+		}
+		return $teams;
+	}
+
 	public function teamExists(int $teamId): bool {
 		$result = $this->dbcn->execute_query("SELECT * FROM teams WHERE OPL_ID = ?", [$teamId]);
 		$data = $result->fetch_assoc();
