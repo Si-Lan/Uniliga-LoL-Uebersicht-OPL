@@ -739,14 +739,14 @@ function switch_elo_view(tournamentID,view) {
 		url.searchParams.delete("view");
 		url.searchParams.set("stage","wildcard");
 		window.history.replaceState({}, '', url);
-		add_elo_team_list(area,tournamentID,"all","wildcard");
+		add_elo_team_list(area,tournamentID,"all-wildcard");
 		color_b.text("Nach Liga einfärben");
 	} else if (view === "div-teams" && stage === "wildcard") {
         div_b.addClass('active');
         url.searchParams.set("view","liga");
         url.searchParams.set("stage","wildcard");
         window.history.replaceState({}, '', url);
-        add_elo_team_list(area,tournamentID,"div","wildcard");
+        add_elo_team_list(area,tournamentID,"wildcard");
         color_b.text("Nach Rang einfärben");
     }
 }
@@ -758,19 +758,14 @@ function jump_to_league_elo(div_num) {
 }
 
 let elo_list_fetch_control = null;
-function add_elo_team_list(area,tournamentID,type,stage="groups") {
+function add_elo_team_list(area,tournamentID,view="all") {
 	if ($('.content-loading-indicator').length === 0) $('body').append("<div class='content-loading-indicator'></div>");
 
 	if (elo_list_fetch_control !== null) elo_list_fetch_control.abort();
 	elo_list_fetch_control = new AbortController();
 
-	fetch(`/ajax/elo-list-ajax.php`, {
+	fetch(`/ajax/fragment/elo-lists?tournamentId=${tournamentID}&view=${view}`, {
 		method: "GET",
-		headers: {
-			"TournamentID": tournamentID,
-			"type": type,
-			"stage": stage,
-		},
 		signal: elo_list_fetch_control.signal,
 	})
 		.then(res => res.text())

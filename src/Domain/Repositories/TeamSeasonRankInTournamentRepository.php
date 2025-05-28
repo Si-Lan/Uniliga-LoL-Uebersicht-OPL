@@ -103,6 +103,7 @@ class TeamSeasonRankInTournamentRepository extends AbstractRepository {
 		return $ranks;
 	}
 
+	private array $rankMapForTournamentCache = [];
 	/**
 	 * Map: [TeamId => [Season-Split => TeamSeasonRankInTournament]]
 	 *
@@ -110,6 +111,9 @@ class TeamSeasonRankInTournamentRepository extends AbstractRepository {
 	 * @return array<int, array<string, TeamSeasonRankInTournament>>
 	 */
 	public function getRankMapForTournamentStage(Tournament $tournamentStage): array {
+		if (isset($this->rankMapForTournamentCache[$tournamentStage->getRootTournament()->id])) {
+			return $this->rankMapForTournamentCache[$tournamentStage->getRootTournament()->id];
+		}
 		$query = 'SELECT * FROM teams_season_rank_in_tournament WHERE OPL_ID_tournament = ?';
 		$result = $this->dbcn->execute_query($query, [$tournamentStage->getRootTournament()->id]);
 		$data = $result->fetch_all(MYSQLI_ASSOC);
@@ -123,6 +127,8 @@ class TeamSeasonRankInTournamentRepository extends AbstractRepository {
 			}
 			$rankMap[$teamId][$seasonSplit] = $this->mapToEntity($rankData, tournament: $tournamentStage->getRootTournament());
 		}
+
+		$this->rankMapForTournamentCache[$tournamentStage->getRootTournament()->id] = $rankMap;
 
 		return $rankMap;
 	}

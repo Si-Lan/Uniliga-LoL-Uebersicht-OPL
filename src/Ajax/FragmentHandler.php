@@ -13,6 +13,7 @@ use App\Domain\Repositories\TeamRepository;
 use App\Domain\Repositories\TournamentRepository;
 use App\Domain\Services\EntitySorter;
 use App\UI\Components\Cards\SummonerCard;
+use App\UI\Components\EloList\EloLists;
 use App\UI\Components\Games\GameDetails;
 use App\UI\Components\Matches\MatchButton;
 use App\UI\Components\Matches\MatchButtonList;
@@ -20,6 +21,7 @@ use App\UI\Components\Matches\MatchHistory;
 use App\UI\Components\Player\PlayerOverview;
 use App\UI\Components\Player\PlayerSearchCard;
 use App\UI\Components\Standings\StandingsTable;
+use App\UI\Enums\EloListView;
 
 class FragmentHandler {
 	use DataParsingHelpers;
@@ -230,5 +232,32 @@ class FragmentHandler {
 		foreach ($players as $player) {
 			echo new PlayerSearchCard($player);
 		}
+	}
+
+	public function eloLists(array $dataGet): void {
+		$tournamentId = $this->intOrNull($dataGet['tournamentId'] ?? null);
+		$view = $this->stringOrNull($dataGet['view'] ?? null);
+
+		$view = EloListView::tryFrom($view);
+
+		if (is_null($tournamentId)) {
+			http_response_code(400);
+			echo 'missing tournamentId';
+			return;
+		}
+		if (is_null($view)) {
+			http_response_code(400);
+			echo 'missing view';
+		}
+
+		$tournamentRepo = new TournamentRepository();
+		$tournament = $tournamentRepo->findById($tournamentId);
+		if (is_null($tournament)) {
+			http_response_code(404);
+			echo 'Tournament not found';
+			return;
+		}
+
+		echo new EloLists($tournament,$view);
 	}
 }

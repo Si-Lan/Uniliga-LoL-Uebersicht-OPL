@@ -16,11 +16,14 @@ class EloList {
 	private array $teamSeasonRankMap;
 	public function __construct(
 		private Tournament $tournament,
-		private EloListView $view
+		private EloListView $view,
+		private ?TeamSeasonRankInTournamentRepository $teamSeasonRankInTournamentRepo = null
 	) {
 		$tournamentRepo = new TournamentRepository();
 		$teamInTournamentStageRepo = new TeamInTournamentStageRepository();
-		$teamSeasonRankInTournamentRepo = new TeamSeasonRankInTournamentRepository();
+		if (is_null($this->teamSeasonRankInTournamentRepo)) {
+			$teamSeasonRankInTournamentRepo = new TeamSeasonRankInTournamentRepository();
+		}
 
 		if ($this->tournament->eventType === EventType::TOURNAMENT && $this->view === EloListView::ALL) {
 			$this->teamsInTournamentStages = $teamInTournamentStageRepo->findAllInGroupStageByRootTournament($this->tournament);

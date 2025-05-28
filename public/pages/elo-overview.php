@@ -2,7 +2,7 @@
 
 use App\Domain\Enums\EventType;
 use App\Domain\Repositories\TournamentRepository;
-use App\UI\Components\EloList\EloList;
+use App\UI\Components\EloList\EloLists;
 use App\UI\Components\Helpers\IconRenderer;
 use App\UI\Components\Navigation\Header;
 use App\UI\Components\Navigation\TournamentNav;
@@ -74,48 +74,26 @@ $filtered = $_REQUEST['view'] ?? NULL;
         <div class='team-popup'></div>
     </div>
     <div class='main-content<?= ($colored) ? " colored-list" : ""?>'>
-        <?php if ($filtered == "liga" && $stage_loaded == "groups"): ?>
 
-            <?php foreach ($leagues as $league): ?>
+        <?php if ($stage_loaded == "groups" && $filtered == "liga"): ?>
 
-                <?= new EloList($league, EloListView::BY_LEAGUES) ?>
+            <?= new EloLists($tournament, EloListView::BY_LEAGUES) ?>
 
-            <?php endforeach; ?>
+        <?php elseif ($stage_loaded == "groups" && $filtered == "gruppe"): ?>
 
-        <?php elseif ($filtered == "gruppe" && $stage_loaded == "groups"): ?>
+			<?= new EloLists($tournament, EloListView::BY_GROUPS) ?>
 
-            <?php foreach ($leagues as $league): ?>
+        <?php elseif ($stage_loaded == "wildcard" && $filtered == "liga"): ?>
 
-                <?php if ($league->isEventWithStanding()): ?>
-                    <?= new EloList($league, EloListView::BY_GROUPS) ?>
-                    <?php continue; ?>
-                <?php endif; ?>
-
-                <?php $groups = $tournamentRepo->findAllByParentTournamentAndType($league, EventType::GROUP) ?>
-
-                <?php foreach ($groups as $group): ?>
-
-                    <?= new EloList($group, EloListView::BY_GROUPS) ?>
-
-                <?php endforeach; ?>
-
-            <?php endforeach; ?>
-
-        <?php elseif ($filtered == "liga" && $stage_loaded == "wildcard"): ?>
-
-            <?php foreach ($wildcards as $wildcard): ?>
-
-                <?= new EloList($wildcard, EloListView::WILDCARD_BY_LEAGUES) ?>
-
-            <?php endforeach; ?>
+			<?= new EloLists($tournament, EloListView::WILDCARD_BY_LEAGUES) ?>
 
         <?php elseif ($stage_loaded == "wildcard"): ?>
 
-            <?= new EloList($tournament, EloListView::WILDCARD_ALL) ?>
+			<?= new EloLists($tournament, EloListView::WILDCARD_ALL) ?>
 
         <?php else: ?>
 
-            <?= new EloList($tournament, EloListView::ALL) ?>
+			<?= new EloLists($tournament, EloListView::ALL) ?>
 
         <?php endif; ?>
 
