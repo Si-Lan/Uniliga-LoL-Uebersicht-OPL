@@ -96,7 +96,7 @@ class PlayerInTeamInTournamentRepository extends AbstractRepository {
 			return $this->teamCache[$cacheKey];
 		}
 		$query = '
-			SELECT *
+			SELECT *, pitt.OPL_ID_team, pitt.OPL_ID_tournament
 			FROM players p
 			    JOIN players_in_teams_in_tournament pitt
 			        ON p.OPL_ID = pitt.OPL_ID_player AND pitt.OPL_ID_tournament = ? AND pitt.OPL_ID_team = ?
