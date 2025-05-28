@@ -151,4 +151,16 @@ class TournamentRepository extends AbstractRepository {
 		}
 		return $tournaments;
 	}
+
+	public function findAllGroupsByRootTournament(Tournament $rootTournament):array {
+		$query = 'SELECT * FROM events_in_groupstage WHERE OPL_ID_top_parent = ? ORDER BY number';
+		$result = $this->dbcn->execute_query($query,[$rootTournament->id]);
+		$data = $result->fetch_all(MYSQLI_ASSOC);
+
+		$tournaments = [];
+		foreach ($data as $tournamentData) {
+			$tournaments[] = $this->mapToEntity($tournamentData, rootTournament: $rootTournament);
+		}
+		return $tournaments;
+	}
 }

@@ -830,7 +830,7 @@ function search_teams_elo() {
 	let teams_list = [];
 	for (const team of teams) {
 		let team_name = $(team).find('.elo-list-item.team span.team-name')[0];
-		teams_list.push([team_name.innerText,team.offsetTop,$(team)[0].classList[2]]);
+		teams_list.push([team_name.innerText,team.offsetTop,$(team)[0].getAttribute("data-teamid")]);
 	}
 	teams_list.sort(function(a,b) {return a[0] > b[0] ? 1 : -1});
 
@@ -847,7 +847,7 @@ function search_teams_elo() {
 				$('body.elo-overview main .searchbar input').val("");
 				$("body.elo-overview main .searchbar button.search-clear").css("display","none");
 				$('.elo-list-team').removeClass('ac-selected-team');
-				$('.elo-list-team.'+teams_list[i][2]).addClass('ac-selected-team');
+				$(`.elo-list-team[data-teamid=${teams_list[i][2]}]`).addClass('ac-selected-team');
 			}));
 		}
 	}

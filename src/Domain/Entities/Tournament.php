@@ -130,6 +130,21 @@ class Tournament {
 			default => "",
 		};
 	}
+	public function getLeadingLeagueNumber(): ?int {
+		return match ($this->eventType) {
+			EventType::LEAGUE, EventType::WILDCARD => $this->number,
+			EventType::GROUP => $this->directParentTournament->number,
+			default => null
+		};
+	}
+	public function getLeagueName(): string {
+		return match ($this->eventType) {
+			EventType::LEAGUE => $this->getShortName(),
+			EventType::GROUP => "Liga ".$this->directParentTournament->getNumberFormatted(),
+			EventType::WILDCARD => "Liga ".$this->getNumberFormatted(),
+			default => ''
+		};
+	}
 	public function getSplitAndSeason():string {
 		return ucfirst($this->split)." ".$this->season;
 	}

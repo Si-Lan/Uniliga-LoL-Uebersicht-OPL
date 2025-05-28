@@ -1,164 +1,124 @@
 <?php
-/** @var mysqli $dbcn  */
 
+use App\Domain\Enums\EventType;
+use App\Domain\Repositories\TournamentRepository;
+use App\UI\Components\EloList\EloList;
+use App\UI\Components\Helpers\IconRenderer;
+use App\UI\Components\Navigation\Header;
+use App\UI\Components\Navigation\TournamentNav;
+use App\UI\Enums\EloListView;
+use App\UI\Enums\HeaderType;
 use App\UI\Page\PageMeta;
 
-$tournament_url_path = $_GET["tournament"] ?? NULL;
-$tournamentID = $tournament_url_path;
-if (preg_match("/^(winter|sommer)([0-9]{2})$/",strtolower($tournamentID),$url_path_matches)) {
-	$split = $url_path_matches[1];
-	$season = $url_path_matches[2];
-	$tournamentID = $dbcn->execute_query("SELECT OPL_ID FROM tournaments WHERE season = ? AND split = ? AND eventType = 'tournament'", [$season, $split])->fetch_column();
-}
+$tournamentRepo = new TournamentRepository();
 
-$tournament = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID = ? AND eventType = 'tournament'", [$tournamentID])->fetch_assoc();
-if ($tournament == NULL) {
-	$_GET["error"] = "404";
-	$_GET["404type"] = "tournament";
-	$_GET["tournamentid"] = $tournamentID;
-	require "error.php";
-	echo "</html>";
-	exit();
-}
+$tournament = $tournamentRepo->findById($_GET["tournament"]);
+$leagues = $tournamentRepo->findAllByRootTournamentAndType($tournament, EventType::LEAGUE);
+$wildcards = $tournamentRepo->findAllByRootTournamentAndType($tournament, EventType::WILDCARD);
 
-$leagues = $dbcn->execute_query("SELECT * FROM tournaments WHERE eventType='league' AND OPL_ID_parent = ? AND deactivated = FALSE ORDER BY number", [$tournamentID])->fetch_all(MYSQLI_ASSOC);
-$wildcards = $dbcn->execute_query("SELECT * FROM tournaments WHERE eventType='wildcard' AND OPL_ID_top_parent = ? AND deactivated = FALSE ORDER BY number", [$tournamentID])->fetch_all(MYSQLI_ASSOC);
-$second_ranked_split = get_second_ranked_split_for_tournament($dbcn, $tournamentID, string:true);
-$current_split = get_current_ranked_split($dbcn,$tournamentID);
-$use_second_split = ($second_ranked_split == $current_split);
+$pageMeta = new PageMeta("Elo-Übersicht - {$tournament->getShortName()}", css: ['elo-rank-colors'], bodyClass: 'elo-overview');
 
-
-$t_name_clean = preg_replace("/LoL\s/i","",$tournament["name"]);
-$pageMeta = new PageMeta("Elo-Übersicht - $t_name_clean",css: ['elo'],bodyClass: 'elo-overview');
-
-echo create_header($dbcn, title: "tournament", tournament_id: $tournamentID);
-
-echo create_tournament_nav_buttons(tournament_id: $tournament_url_path, dbcn: $dbcn, active: "elo");
-
-?>
-<main>
-<?php
-
-echo "<h2 class='pagetitle'>Elo/Rang-Übersicht</h2>";
+$colored = isset($_GET['colored']);
 
 $stage_loaded = $_REQUEST['stage'] ?? null;
 if ($stage_loaded == null) {
-    if (count($leagues)>0) {
-        $stage_loaded = "groups";
-        $groups_active = "active";
-    } else {
-        $groups_active = "";
-    }
-    if (count($wildcards)>0 && count($leagues)==0) {
+	if (count($leagues)>0) {
+		$stage_loaded = "groups";
+	} elseif (count($wildcards)>0) {
         $stage_loaded = "wildcard";
-        $wildcard_active = "active";
-    } else {
-        $wildcard_active = "";
-    }
-
-} else {
-    if ($stage_loaded == "wildcard" && count($wildcards)>0) {
-        $wildcard_active = "active";
-        $groups_active = "";
-    } else {
-        $wildcard_active = "";
-        $groups_active = "active";
     }
 }
-?>
-    <div id="elolist_switch_stage_buttons" <?php if (count($leagues) == 0 || count($wildcards) == 0) echo "style='display:none'" ?>>
-            <button type="button" class="elolist_switch_stage <?php echo $wildcard_active?>" data-stage="wildcard" data-tournament="<?php echo $tournamentID ?>">Wildcard-Turnier</button>
-            <button type="button" class="elolist_switch_stage <?php echo $groups_active?>" data-stage="groups" data-tournament="<?php echo $tournamentID ?>">Gruppenphase</button>
-    </div>
-<?php
 
-echo "<div class='searchbar'>
-                <span class='material-symbol search-icon' title='Suche'>".file_get_contents(__DIR__."/../icons/material/search.svg")."</span>
-                <input class=\"search-teams-elo $tournamentID deletable-search\" oninput='search_teams_elo()' placeholder='Team suchen' type='search'>
-                <button type='button' class='material-symbol search-clear' title='Suche leeren'>". file_get_contents(__DIR__."/../icons/material/close.svg") ."</button>
-              </div>";
+$groups_active = ($stage_loaded == "groups") ? "active" : "";
+$wildcard_active = ($stage_loaded == "wildcard" && count($wildcards)>0) ? "active" : "";
+
 $filtered = $_REQUEST['view'] ?? NULL;
-$active_all = "";
-$active_div = "";
-$active_group = "";
-if ($filtered === "liga") {
-	$active_div = " active";
-	$color_by = "Rang";
-} elseif ($filtered === "gruppe") {
-	$active_group = " active";
-	$color_by = "Rang";
-} else {
-	$active_all = " active";
-	$color_by = "Liga";
-}
 
 ?>
-            <div class='filter-button-wrapper'>
-                <button class='filterb all-teams<?php echo $active_all?>' onclick='switch_elo_view("<?php echo $tournamentID?>","all-teams")'>Alle Ligen</button>
-                <button class='filterb div-teams<?php echo $active_div?>' onclick='switch_elo_view("<?php echo $tournamentID?>","div-teams")'>Pro Liga</button>
-                <button class='filterb group-teams<?php echo $active_group?>' onclick='switch_elo_view("<?php echo $tournamentID?>","group-teams")' <?php if ($stage_loaded != "groups") echo "style='display: none'" ?>>Pro Gruppe</button>
-            </div>
-<?php
-if (isset($_GET['colored'])) {
-	echo "
-            <div class='settings-button-wrapper'>
-                <button onclick='color_elo_list()'><input type='checkbox' name='coloring' checked class='controlled color-checkbox'><span>Nach $color_by einfärben</span></button>
-            </div>";
-	$color = " colored-list";
-} else {
-	echo "
-            <div class='settings-button-wrapper'>
-                <button onclick='color_elo_list()'><input type='checkbox' name='coloring' class='controlled color-checkbox'><span>Nach $color_by einfärben</span></button>
-            </div>";
-	$color = "";
-}
-if (($filtered == "liga" || $filtered == "gruppe") && $stage_loaded == "groups") {
-	$jbutton_hide = "";
-} else {
-	$jbutton_hide = " style=\"display: none;\"";
-}
-echo "
-            <div class='jump-button-wrapper'$jbutton_hide>";
-foreach ($leagues as $league) {
-	$div_num = $league['number'];
-	echo "<button onclick='jump_to_league_elo(\"{$league['number']}\")'>Zu Liga {$league['number']}</button>";
-}
-echo "
-            </div>";
-echo "
-            <div class='team-popup-bg' onclick='close_popup_team(event)'>
-                            <div class='team-popup'></div>
-            </div>";
-echo "
-            <div class='main-content$color'>";
-if ($filtered == "liga" && $stage_loaded == "groups") {
-	foreach ($leagues as $league) {
-		echo generate_elo_list($dbcn,"div",$tournamentID,$league["OPL_ID"],second_ranked_split: $use_second_split);
-	}
-} elseif ($filtered == "gruppe" && $stage_loaded == "groups") {
-	foreach ($leagues as $league) {
-        if ($league["format"] == "swiss") {
-            echo generate_elo_list($dbcn,"group",$tournamentID,$league["OPL_ID"],$league["OPL_ID"],second_ranked_split: $use_second_split);
-            continue;
-        }
-		$groups_of_div = $dbcn->execute_query("SELECT * FROM tournaments WHERE eventType='group' AND OPL_ID_parent = ? ORDER BY Number",[$league['OPL_ID']])->fetch_all(MYSQLI_ASSOC);
-		foreach ($groups_of_div as $group) {
-			echo generate_elo_list($dbcn,"group",$tournamentID,$league["OPL_ID"],$group["OPL_ID"],second_ranked_split: $use_second_split);
-		}
-	}
-} elseif ($filtered == "liga" && $stage_loaded == "wildcard") {
-    foreach ($wildcards as $wildcard) {
-        echo generate_elo_list($dbcn,"wildcard",$tournamentID,$wildcard["OPL_ID"],second_ranked_split: $use_second_split);
-    }
-} elseif ($stage_loaded == "wildcard") {
-    echo generate_elo_list($dbcn,"all-wildcard",$tournamentID,second_ranked_split: $use_second_split);
-} else {
-	echo generate_elo_list($dbcn,"all",$tournamentID,second_ranked_split: $use_second_split);
-}
-echo "
-            </div>"; // main-content
-echo "<a class='button totop' onclick='to_top()' style='opacity: 0; pointer-events: none;'><div class='material-symbol'>". file_get_contents(__DIR__."/../icons/material/expand_less.svg") ."</div></a>";
 
+<?= new Header(HeaderType::TOURNAMENT, $tournament) ?>
 
-?>
+<?= new TournamentNav($tournament, 'elo') ?>
+
+<main>
+    <h2 class='pagetitle'>Elo/Rang-Übersicht</h2>
+
+    <div id="elolist_switch_stage_buttons" <?= (count($leagues) == 0 || count($wildcards) == 0) ? "style='display:none'" : '' ?>>
+            <button type="button" class="elolist_switch_stage <?php echo $wildcard_active?>" data-stage="wildcard" data-tournament="<?= $tournament->id ?>">Wildcard-Turnier</button>
+            <button type="button" class="elolist_switch_stage <?php echo $groups_active?>" data-stage="groups" data-tournament="<?= $tournament->id ?>">Gruppenphase</button>
+    </div>
+
+    <div class='searchbar'>
+        <span class='material-symbol search-icon' title='Suche'><?= IconRenderer::getMaterialIcon('search') ?></span>
+        <input class="search-teams-elo <?=$tournament->id?> deletable-search" oninput='search_teams_elo()' placeholder='Team suchen' type='search'>
+        <button type='button' class='material-symbol search-clear' title='Suche leeren'><?= IconRenderer::getMaterialIcon('close') ?></button>
+    </div>
+
+    <div class='filter-button-wrapper'>
+        <button class='filterb all-teams<?= ($filtered !== 'liga' && $filtered !== 'gruppe') ? ' active' : ''?>' onclick='switch_elo_view("<?= $tournament->id ?>","all-teams")'>Alle Ligen</button>
+        <button class='filterb div-teams<?= ($filtered === 'liga') ? ' active' : ''?>' onclick='switch_elo_view("<?= $tournament->id ?>","div-teams")'>Pro Liga</button>
+        <button class='filterb group-teams<?= ($filtered === 'gruppe') ? ' active' : ''?>' onclick='switch_elo_view("<?= $tournament->id ?>","group-teams")' <?= ($stage_loaded != "groups") ? "style='display: none'" : '' ?>>Pro Gruppe</button>
+    </div>
+
+    <div class='settings-button-wrapper'>
+		<?php $colorByText = ($filtered === 'liga' || $filtered === 'gruppe') ? 'Rang' : 'Liga' ?>
+        <button onclick='color_elo_list()'><input type='checkbox' name='coloring' <?= $colored ? 'checked' : ''?> class='controlled color-checkbox'><span>Nach <?=$colorByText?> einfärben</span></button>
+    </div>
+
+    <div class='jump-button-wrapper'<?= (($filtered == "liga" || $filtered == "gruppe") && $stage_loaded == "groups") ? '' : ' style="display: none;"'?>>
+        <?php foreach ($leagues as $league): ?>
+            <button onclick='jump_to_league_elo(<?=$league->number?>)'>Zu Liga <?=$league->number?></button>
+        <?php endforeach; ?>
+    </div>
+    <div class='team-popup-bg' onclick='close_popup_team(event)'>
+        <div class='team-popup'></div>
+    </div>
+    <div class='main-content<?= ($colored) ? " colored-list" : ""?>'>
+        <?php if ($filtered == "liga" && $stage_loaded == "groups"): ?>
+
+            <?php foreach ($leagues as $league): ?>
+
+                <?= new EloList($league, EloListView::BY_LEAGUES) ?>
+
+            <?php endforeach; ?>
+
+        <?php elseif ($filtered == "gruppe" && $stage_loaded == "groups"): ?>
+
+            <?php foreach ($leagues as $league): ?>
+
+                <?php if ($league->isEventWithStanding()): ?>
+                    <?= new EloList($league, EloListView::BY_GROUPS) ?>
+                    <?php continue; ?>
+                <?php endif; ?>
+
+                <?php $groups = $tournamentRepo->findAllByParentTournamentAndType($league, EventType::GROUP) ?>
+
+                <?php foreach ($groups as $group): ?>
+
+                    <?= new EloList($group, EloListView::BY_GROUPS) ?>
+
+                <?php endforeach; ?>
+
+            <?php endforeach; ?>
+
+        <?php elseif ($filtered == "liga" && $stage_loaded == "wildcard"): ?>
+
+            <?php foreach ($wildcards as $wildcard): ?>
+
+                <?= new EloList($wildcard, EloListView::WILDCARD_BY_LEAGUES) ?>
+
+            <?php endforeach; ?>
+
+        <?php elseif ($stage_loaded == "wildcard"): ?>
+
+            <?= new EloList($tournament, EloListView::WILDCARD_ALL) ?>
+
+        <?php else: ?>
+
+            <?= new EloList($tournament, EloListView::ALL) ?>
+
+        <?php endif; ?>
+
+    </div>
+    <a class='button totop' onclick='to_top()' style='opacity: 0; pointer-events: none;'><?=IconRenderer::getMaterialIconDiv('expand_less')?></a>
 </main>

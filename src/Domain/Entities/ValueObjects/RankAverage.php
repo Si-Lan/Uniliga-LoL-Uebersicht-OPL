@@ -19,4 +19,8 @@ class RankAverage extends Rank {
 		}
 		return $this->getRankTier()." ".$this->rankDiv." (".$roundedNum.")";
 	}
+
+	public function getRankNum(): float {
+		return round($this->rankNum??0, 2);
+	}
 }

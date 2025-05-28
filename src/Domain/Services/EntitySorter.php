@@ -71,6 +71,20 @@ class EntitySorter {
 		});
 		return $teamInTournamentStages;
 	}
+	public static function removeDuplicateTeamsInTournamentStages(array $teamInTournamentStages): array {
+		$teamInTournamentStages = EntitySorter::sortTeamInTournamentStages($teamInTournamentStages);
+
+		$foundTeams = [];
+		foreach ($teamInTournamentStages as $index=>$teamInTournamentStage) {
+			if (isset($foundTeams[$teamInTournamentStage->team->id])) {
+				unset($teamInTournamentStages[$index]);
+			}
+			$foundTeams[$teamInTournamentStage->team->id] = true;
+		}
+
+		return $teamInTournamentStages;
+	}
+
 	/**
 	 * @param array<PlayerInTeamInTournament> $players
 	 * @return array<PlayerInTeamInTournament>

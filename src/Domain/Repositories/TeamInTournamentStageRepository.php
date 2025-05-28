@@ -86,7 +86,7 @@ class TeamInTournamentStageRepository extends AbstractRepository {
 		$query = '
 			SELECT *
 			FROM teams t 
-			LEFT JOIN teams_in_tournament_stages tits ON t.OPL_ID = tits.OPL_ID_team
+			    LEFT JOIN teams_in_tournament_stages tits ON t.OPL_ID = tits.OPL_ID_team
 			WHERE tits.OPL_ID_group = ?
 				AND t.OPL_ID > -1';
 		if ($orderByStandings) {
@@ -98,6 +98,50 @@ class TeamInTournamentStageRepository extends AbstractRepository {
 		$teams = [];
 		foreach ($data as $team) {
 			$teams[] = $this->mapToEntity($team, tournamentStage: $tournamentStage);
+		}
+		return $teams;
+	}
+	/**
+	 * @param Tournament $tournament
+	 * @return array<TeamInTournamentStage>
+	 */
+	public function findAllInGroupStageByRootTournament(Tournament $tournament): array {
+		$query = '
+			SELECT *
+			FROM teams t 
+			    LEFT JOIN teams_in_tournament_stages tits ON t.OPL_ID = tits.OPL_ID_team
+			WHERE tits.OPL_ID_group IN (
+			    SELECT OPL_ID FROM events_in_groupstage WHERE OPL_ID_top_parent = ?
+			)
+				AND t.OPL_ID > -1';
+		$result = $this->dbcn->execute_query($query,[$tournament->id]);
+		$data = $result->fetch_all(MYSQLI_ASSOC);
+
+		$teams = [];
+		foreach ($data as $team) {
+			$teams[] = $this->mapToEntity($team);
+		}
+		return $teams;
+	}
+	/**
+	 * @param Tournament $tournament
+	 * @return array<TeamInTournamentStage>
+	 */
+	public function findAllWildcardsByRootTournament(Tournament $tournament): array {
+		$query = '
+			SELECT *
+			FROM teams t 
+			    LEFT JOIN teams_in_tournament_stages tits ON t.OPL_ID = tits.OPL_ID_team
+			WHERE tits.OPL_ID_group IN (
+			    SELECT OPL_ID FROM events_wildcards WHERE OPL_ID_top_parent = ?
+			)
+				AND t.OPL_ID > -1';
+		$result = $this->dbcn->execute_query($query,[$tournament->id]);
+		$data = $result->fetch_all(MYSQLI_ASSOC);
+
+		$teams = [];
+		foreach ($data as $team) {
+			$teams[] = $this->mapToEntity($team);
 		}
 		return $teams;
 	}
