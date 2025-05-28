@@ -17,6 +17,9 @@ class UserContext {
 	public static function summonerCardCollapsed(): bool {
 		return (isset($_COOKIE['preference_sccollapsed']) && $_COOKIE['preference_sccollapsed'] === '1');
 	}
+	public static function playerTablesExtended(): bool {
+		return (isset($_COOKIE["preference_ptextended"]) && $_COOKIE["preference_ptextended"] === "1");
+	}
 
 	public static function isLoggedIn(): bool {
 		if (isset($_COOKIE['admin-login'])) {

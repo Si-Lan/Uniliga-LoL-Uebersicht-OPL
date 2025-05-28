@@ -40,7 +40,7 @@ class TeamInTournamentRepository extends AbstractRepository {
 			champsBanned: $this->decodeJsonOrNull($data['champs_banned']),
 			champsPlayedAgainst: $this->decodeJsonOrNull($data['champs_played_against']),
 			champsBannedAgainst: $this->decodeJsonOrNull($data['champs_banned_against']),
-			gamesPlayed: $this->intOrNull($data['games_played']),
+			gamesPlayed: $this->intOrZero($data['games_played']),
 			gamesWon: $this->intOrNull($data['games_won']),
 			avgWinTime: $this->intOrNull($data['avg_win_time']),
 			logoHistoryDir: $this->intOrNull($data["dir_key"]),

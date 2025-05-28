@@ -328,47 +328,6 @@ function create_tournament_nav_buttons(string|int $tournament_id, mysqli $dbcn, 
 	return $result;
 }
 
-function create_team_nav_buttons($tournamentID,$groupID,$team,$active,$allGroupIDs=null,$playoffID=null,$updatediff="unbekannt", bool $hide_update = false):string {
-	$result = "";
-	$details_a = $matchhistory_a = $stats_a = "";
-	if ($active == "details") {
-		$details_a = " active";
-	} elseif ($active == "matchhistory") {
-		$matchhistory_a = " active";
-	} elseif ($active == "stats") {
-		$stats_a = " active";
-	}
-	$local_team_img = "/img/team_logos/";
-    $logo_filename = is_light_mode() ? "logo_light.webp" : "logo.webp";
-	$opl_team_url = "https://www.opleague.pro/team/";
-	$team_id = $team['OPL_ID'];
-	$result .= "<div class='team pagetitle'>";
-	if ($team['OPL_ID_logo'] != NULL && file_exists(dirname(__DIR__,2)."/public/$local_team_img{$team['OPL_ID_logo']}/logo.webp")) {
-		$result .= "<img class='color-switch' alt src='$local_team_img{$team['OPL_ID_logo']}/$logo_filename'>";
-	}
-	$result .= "
-			<div>
-				<h2 class='pagetitle'><a class='page-link' href='/team/$team_id'><span class='link-text'>{$team['name']}</span><span class='material-symbol page-link-icon'>".file_get_contents(dirname(__DIR__,2)."/public/icons/material/chevron_right.svg")."</span></a></h2>
-				<a href=\"$opl_team_url$team_id\" class='opl-link' target='_blank'><span class='material-symbol'>". file_get_contents(dirname(__DIR__,2)."/public/icons/material/open_in_new.svg") ."</span></a>
-			</div>";
-	$data_playoff = ($playoffID != null) ? "data-playoff='$playoffID'" : "";
-	if ($active == "details" && !$hide_update) {
-		$result .= "
-				<div class='updatebuttonwrapper'>
-           			<button type='button' class='user_update user_update_team update_data' data-team='$team_id' data-tournament='$tournamentID' data-group='$groupID' data-groups='$allGroupIDs' $data_playoff><div class='material-symbol'>".file_get_contents(dirname(__DIR__,2)."/public/icons/material/sync.svg")."</div></button>
-					<span class='last-update'>letztes Update:<br>$updatediff</span>
-				</div>";
-	}
-	$result .= "</div>";
-	$result .= "
-        <nav class='team-titlebutton-wrapper'>
-           	<a href='/turnier/$tournamentID/team/$team_id' class='$details_a'><div class='material-symbol'>". file_get_contents(dirname(__DIR__,2)."/public/icons/material/info.svg") ."</div>Team-Übersicht</a>
-           	<a href='/turnier/$tournamentID/team/$team_id/matchhistory' class='$matchhistory_a'><div class='material-symbol'>". file_get_contents(dirname(__DIR__,2)."/public/icons/material/manage_search.svg") ."</div>Match-History</a>
-            <a href='/turnier/$tournamentID/team/$team_id/stats' class='$stats_a'><div class='material-symbol'>". file_get_contents(dirname(__DIR__,2)."/public/icons/material/monitoring.svg") ."</div>Statistiken</a>
-        </nav>";
-	return $result;
-}
-
 function create_dropdown(string $type, array $items):string {
 	$first_key = array_key_first($items);
 	$result = "<div class='button-dropdown-wrapper'>";
@@ -381,13 +340,4 @@ function create_dropdown(string $type, array $items):string {
 	$result .= "</div>";
 	$result .=  "</div>"; // button-dropdown-wrapper
 	return $result;
-}
-
-function populate_th($maintext,$tooltiptext,$init=false) {
-	if ($init) {
-		$svg_code = file_get_contents(dirname(__DIR__,2)."/public/icons/material/expand_more.svg");
-	} else {
-		$svg_code = file_get_contents(dirname(__DIR__,2)."/public/icons/material/check_indeterminate_small.svg");
-	}
-	return "<span class='tooltip'>$maintext<span class='tooltiptext'>$tooltiptext</span><div class='material-symbol sort-direction'>".$svg_code."</div></span>";
 }

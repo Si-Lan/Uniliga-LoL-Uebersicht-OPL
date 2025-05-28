@@ -16,14 +16,6 @@ function is_light_mode(bool $return_class_name = FALSE): bool|string {
 	return $return_class_name ? "" : FALSE;
 }
 
-function playertables_extended(): bool {
-	if (isset($_COOKIE["preference_ptextended"]) && $_COOKIE["preference_ptextended"] === "0") {
-		return FALSE;
-	} else {
-		return TRUE;
-	}
-}
-
 function max_time_from_timestamp($timestamp):string {
 	$days = floor($timestamp/86400);
 	if ($days == 0) {

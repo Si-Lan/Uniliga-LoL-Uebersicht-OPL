@@ -1,106 +1,71 @@
 <?php
-/** @var mysqli $dbcn  */
 
+use App\Core\Utilities\UserContext;
+use App\Domain\Repositories\PatchRepository;
+use App\Domain\Repositories\PlayerInTeamInTournamentRepository;
+use App\Domain\Repositories\TeamInTournamentRepository;
+use App\Domain\Repositories\TeamInTournamentStageRepository;
+use App\Domain\Services\EntitySorter;
+use App\UI\Components\Navigation\Header;
+use App\UI\Components\Navigation\TeamHeaderNav;
+use App\UI\Components\Navigation\TournamentNav;
+use App\UI\Enums\HeaderType;
 use App\UI\Page\PageMeta;
 
-$tournament_url_path = $_GET["tournament"] ?? NULL;
-$teamID = $_GET["team"] ?? NULL;
+$teamInTournamentRepo = new TeamInTournamentRepository();
+$teamInTournamentStageRepo = new TeamInTournamentStageRepository();
+$playerInTeamInTournamentRepo = new PlayerInTeamInTournamentRepository();
+$patchRepo = new PatchRepository();
 
-$tournamentID = $tournament_url_path;
-if (preg_match("/^(winter|sommer)([0-9]{2})$/",strtolower($tournamentID),$url_path_matches)) {
-	$split = $url_path_matches[1];
-	$season = $url_path_matches[2];
-	$tournamentID = $dbcn->execute_query("SELECT OPL_ID FROM tournaments WHERE season = ? AND split = ? AND eventType = 'tournament'", [$season, $split])->fetch_column();
-}
-$tournament = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID = ? AND eventType = 'tournament'", [$tournamentID])->fetch_assoc();
-$team_groups = $dbcn->execute_query("SELECT * FROM teams JOIN teams_in_tournaments tit ON teams.OPL_ID = tit.OPL_ID_team WHERE OPL_ID = ? AND OPL_ID_group IN (SELECT OPL_ID FROM tournaments WHERE (eventType='group' OR (eventType = 'league' AND format = 'swiss') OR eventType='wildcard') AND OPL_ID_top_parent = ?) ORDER BY OPL_ID_group", [$teamID, $tournamentID])->fetch_all(MYSQLI_ASSOC);
-$team_solo = $dbcn->execute_query("SELECT * FROM teams WHERE OPL_ID = ?", [$teamID])->fetch_assoc();
+$teamInTournament = $teamInTournamentRepo->findByTeamIdAndTournamentId($_GET["team"], $_GET["tournament"]);
 
-if ($tournament == NULL) {
-	$_GET["error"] = "404";
-	$_GET["404type"] = "tournament";
-	$_GET["tournamentid"] = $tournamentID;
-	require "error.php";
-	echo "</html>";
+// alle Gruppen / Wildcard-Turniere / Playoffs, in denen das Team spielt, holen und sortieren
+$teamInTournamentStages = $teamInTournamentStageRepo->findAllbyTeamInTournament($teamInTournament);
+$teamInTournamentStages = EntitySorter::sortTeamInTournamentStages($teamInTournamentStages);
+
+// Über Routing ist bereits klar, dass Team und Turnier existieren, hier wird noch geprüft, ob das Team auch im Turnier spielt
+if (count($teamInTournamentStages) === 0) {
+	trigger404("team-in-tournament");
 	exit();
 }
-if ($team_groups == NULL && $team_solo != NULL) {
-	echo create_html_head_elements(title: "Team nicht im Turnier | Uniliga LoL - Übersicht");
-	echo "<body class='".is_light_mode(true)."'>";
-	echo create_header(title: "error");
-	echo "<div style='text-align: center'>Dieses Team spielt nicht im angegebenen Turnier!</div><div style='display: flex; flex-direction: column; align-items: center;'><a class='button' href='team/$teamID'>zur Team-Seite</a></div></body>";
-	exit();
-}
-if ($team_solo == NULL) {
-	echo create_html_head_elements(title: "Team nicht gefunden | Uniliga LoL - Übersicht");
-	echo "<body class='".is_light_mode(true)."'>";
-	echo create_header(title: "error");
-	echo "<div style='text-align: center'>Kein Team unter der angegebenen ID gefunden!</div></body>";
-	exit();
-}
+$teamInTournamentStage = end($teamInTournamentStages);
 
-// initial neueste Gruppe/Wildcard auswählen
-$team = end($team_groups);
+$pageMeta = new PageMeta(
+	title: "$teamInTournament->nameInTournament - Statistiken | ".$teamInTournament->tournament->getShortName(),
+	bodyClass: 'statistics'
+);
 
-$group = $dbcn->execute_query("SELECT * FROM tournaments WHERE (eventType='group' OR (eventType = 'league' AND format = 'swiss') OR eventType = 'wildcard') AND OPL_ID = ?", [$team["OPL_ID_group"]])->fetch_assoc();
-$league = $dbcn->execute_query("SELECT * FROM tournaments WHERE eventType='league' AND OPL_ID = ?", [$group["OPL_ID_parent"]])->fetch_assoc();
-if ($group["format"] == "swiss" || $group["eventType"] == "wildcard") $league = $group;
+echo new Header(HeaderType::TOURNAMENT, $teamInTournament->tournament);
+echo new TournamentNav($teamInTournament->tournament);
+echo new TeamHeaderNav($teamInTournamentStage->teamInRootTournament, "stats");
 
-$teams_from_groupDB = $dbcn->execute_query("SELECT * FROM teams JOIN teams_in_tournaments tit on teams.OPL_ID = tit.OPL_ID_team WHERE OPL_ID_group = ?", [$group["OPL_ID"]])->fetch_all(MYSQLI_ASSOC);
-$teams_from_group = [];
-foreach ($teams_from_groupDB as $i=>$team_from_group) {
-	$teams_from_group[$team_from_group['OPL_ID']] = $team_from_group;
-}
+$players = $playerInTeamInTournamentRepo->findAllByTeamInTournament($teamInTournament);
 
-$team_name_now = $dbcn->execute_query("SELECT name FROM team_name_history WHERE OPL_ID_team = ? AND (update_time < ? OR ? IS NULL) ORDER BY update_time DESC", [$teamID,$tournament["dateEnd"],$tournament["dateEnd"]])->fetch_column();
-$team["name"] = $team_name_now;
-
-$t_name_clean = preg_replace("/LoL\s/i","",$tournament["name"]);
-$pageMeta = new PageMeta("$team_name_now - Statistiken | $t_name_clean", bodyClass: 'statistics');
-
-$pageurl = $_SERVER['REQUEST_URI'];
-$opl_tourn_url = "https://www.opleague.pro/event/";
-
-echo create_header($dbcn,"tournament", $tournamentID);
-echo create_tournament_nav_buttons($tournamentID, $dbcn,"",$league['OPL_ID'],$group['OPL_ID']);
-echo create_team_nav_buttons($tournamentID,$group["OPL_ID"],$team,"stats");
-
-$players = $dbcn->execute_query("SELECT * FROM players JOIN players_in_teams_in_tournament pit on players.OPL_ID = pit.OPL_ID_player AND pit.OPL_ID_tournament = ? LEFT JOIN stats_players_teams_tournaments spit ON pit.OPL_ID_player = spit.OPL_ID_player AND spit.OPL_ID_team = pit.OPL_ID_team AND spit.OPL_ID_tournament = ? WHERE pit.OPL_ID_team = ? ", [$tournamentID, $tournamentID, $teamID])->fetch_all(MYSQLI_ASSOC);
-$teamstats = $dbcn->execute_query("SELECT * FROM stats_teams_in_tournaments WHERE OPL_ID_team = ? AND OPL_ID_tournament = ?", [$teamID, $tournamentID])->fetch_assoc();
-
-
-
-$patches = $dbcn->execute_query("SELECT patch FROM local_patches WHERE data IS TRUE AND champion_webp IS TRUE AND item_webp IS TRUE AND runes_webp IS TRUE AND spell_webp IS TRUE")->fetch_all();
-$patches = array_merge(...$patches);
-usort($patches, "version_compare");
-$latest_patch = end($patches);
-
-$games_played = $teamstats['games_played'] ?? 0;
+$latest_patch = $patchRepo->findLatestPatchWithAllData();
 
 
 echo "<main>";
-if ($games_played == 0) {
+if ($teamInTournament->gamesPlayed == 0) {
 	echo "<span>Dieses Team hat noch keine Spiele gespielt</span>";
 } else {
-	echo "<span>Spiele: ".$games_played." | Siege: ".$teamstats['games_won']." (".round($teamstats['games_won']/$games_played*100,2)."%)</span>";
-	echo "<span>durchschn. Zeit zum Sieg: ".date("i:s",$teamstats['avg_win_time'])."</span>";
+	echo "<span>Spiele: ".$teamInTournament->gamesPlayed." | Siege: ".$teamInTournament->gamesWon." (".round($teamInTournament->gamesWon/$teamInTournament->gamesPlayed*100,2)."%)</span>";
+	echo "<span>durchschn. Zeit zum Sieg: ".date("i:s",$teamInTournament->avgWinTime)."</span>";
 
 	$players_by_name = array();
 	$team_roles = array("top"=>array(),"jungle"=>array(),"middle"=>array(),"bottom"=>array(),"utility"=>array());
 	foreach ($players as $player) {
-		$roles = json_decode($player["roles"],true);
-		if ($roles != NULL) {
-			foreach ($roles as $role=>$role_num) {
-				if ($role_num > 0) {
-					$team_roles[$role][$player["name"]] = $role_num;
-				}
+		foreach ($player->stats->roles as $role=>$role_num) {
+			if ($role_num > 0) {
+				$team_roles[$role][$player->player->id] = $role_num;
 			}
 		}
-		$players_by_name[$player["name"]] = $player;
+		$players_by_name[$player->player->id] = $player;
 	}
 	$players_to_show = array();
 	$players_not_to_show = array();
+
 	echo "<div class='teamroles-wrapper'><div class='teamroles'>";
+
 	foreach ($team_roles as $role=>$role_players) {
 		arsort($role_players);
 		echo "<div class='role'>
@@ -126,7 +91,7 @@ if ($games_played == 0) {
 					}
 				}
 			}
-            echo "<button type='button' class='role-playername$selected tooltip' data-name='{$players_by_name[$role_player]["riotID_name"]}#{$players_by_name[$role_player]["riotID_tag"]}'>".$players_by_name[$role_player]["riotID_name"]." ({$role_player_num}x) <span class='tooltiptext riot-id'>{$players_by_name[$role_player]["riotID_name"]}#{$players_by_name[$role_player]["riotID_tag"]}</span></button>";
+            echo "<button type='button' class='role-playername$selected tooltip' data-name='{$players_by_name[$role_player]->player->riotIdName}#{$players_by_name[$role_player]->player->riotIdTag}'>".$players_by_name[$role_player]->player->riotIdName." ({$role_player_num}x) <span class='tooltiptext riot-id'>{$players_by_name[$role_player]->player->riotIdName}#{$players_by_name[$role_player]->player->riotIdTag}</span></button>";
 			$count_role_players++;
 		}
 		echo "</div>";
@@ -134,21 +99,17 @@ if ($games_played == 0) {
 	}
 	echo "</div></div>";
 
-	$champs_played = json_decode($teamstats['champs_played'], true);
-	arsort($champs_played);
-	$champs_banned_against = json_decode($teamstats['champs_banned_against'], true);
-	arsort($champs_banned_against);
-	$champs_played_against = json_decode($teamstats['champs_played_against'],true);
-	arsort($champs_played_against);
-	$champs_banned = json_decode($teamstats['champs_banned'],true);
-	arsort($champs_banned);
+	arsort($teamInTournament->champsPlayed);
+	arsort($teamInTournament->champsBannedAgainst);
+	arsort($teamInTournament->champsPlayedAgainst);
+	arsort($teamInTournament->champsBanned);
 	$champs_presence = array();
 	$champs_presence_only = array();
-	foreach ($champs_played as $champ=>$champ_num) {
+	foreach ($teamInTournament->champsPlayed as $champ=>$champ_num) {
 		$champs_presence[$champ] = array("played"=>$champ_num['games'],"banned_against"=>0,"played_against"=>0,"banned"=>0,"wins"=>$champ_num['wins'],"total"=>$champ_num['games']);
 		$champs_presence_only[$champ] = $champ_num['games'];
 	}
-	foreach ($champs_banned_against as $champ=>$champ_num) {
+	foreach ($teamInTournament->champsBannedAgainst as $champ=>$champ_num) {
 		if (array_key_exists($champ,$champs_presence)) {
 			$champs_presence[$champ]["banned_against"] += $champ_num;
 			$champs_presence[$champ]["total"] += $champ_num;
@@ -158,7 +119,7 @@ if ($games_played == 0) {
 			$champs_presence_only[$champ] = $champ_num;
 		}
 	}
-	foreach ($champs_played_against as $champ=>$champ_num) {
+	foreach ($teamInTournament->champsPlayedAgainst as $champ=>$champ_num) {
 		if (array_key_exists($champ,$champs_presence)) {
 			$champs_presence[$champ]["played_against"] += $champ_num;
 			$champs_presence[$champ]["total"] += $champ_num;
@@ -168,7 +129,7 @@ if ($games_played == 0) {
 			$champs_presence_only[$champ] = $champ_num;
 		}
 	}
-	foreach ($champs_banned as $champ=>$champ_num) {
+	foreach ($teamInTournament->champsBanned as $champ=>$champ_num) {
 		if (array_key_exists($champ,$champs_presence)) {
 			$champs_presence[$champ]["banned"] += $champ_num;
 			$champs_presence[$champ]["total"] += $champ_num;
@@ -180,8 +141,8 @@ if ($games_played == 0) {
 	}
 	arsort($champs_presence_only);
 
-    $hidden_pt_columns = playertables_extended() ? "" : "hidden";
-    $checked_pt_columns = playertables_extended() ? "checked" : "";
+    $hidden_pt_columns = UserContext::playerTablesExtended() ? "" : "hidden";
+    $checked_pt_columns = UserContext::playerTablesExtended() ? "checked" : "";
 
 	echo "<div class='stattables'>";
 	echo "<div class='playertable-header'>
@@ -208,14 +169,13 @@ if ($games_played == 0) {
 				break;
 			}
 		}
-		$player_champs = json_decode($player['champions'],true);
-		if (count($player_champs) === 0) {
+		if (count($player->stats->champions) === 0) {
 			continue;
 		}
 		echo "<div class='playertable$dontshow$roleclass'>";
-		arsort($player_champs);
-		echo "<h4 class='tooltip' data-name='{$player["riotID_name"]}#{$player["riotID_tag"]}'>".$player['riotID_name']."<span class='tooltiptext riot-id'>{$player["riotID_name"]}#{$player["riotID_tag"]}</span></h4>";
-		if (count($player_champs) > 5) {
+		arsort($player->stats->champions);
+		echo "<h4 class='tooltip' data-name='{$player->player->riotIdName}#{$player->player->riotIdTag}'>".$player->player->riotIdName."<span class='tooltiptext riot-id'>{$player->player->riotIdName}#{$player->player->riotIdTag}</span></h4>";
+		if (count($player->stats->champions) > 5) {
 			echo "<table class='collapsed'>";
 		} else {
 			echo "<table>";
@@ -228,7 +188,7 @@ if ($games_played == 0) {
                     <th class='sortable winrate_col'>".populate_th("W%","Winrate")."</th>
                     <th class='sortable kda_col customsort $hidden_pt_columns'>".populate_th("KDA","Kills/Deaths/Assists")."</th>
                 </tr>";
-		foreach ($player_champs as $champ_name => $champ) {
+		foreach ($player->stats->champions as $champ_name => $champ) {
             $divisionsafe_deaths = ($champ["deaths"] == 0) ? 1 : $champ["deaths"];
             $kda_ratio = round(($champ["kills"] + $champ["assists"]) / $divisionsafe_deaths, 2);
             $kills_ratio = round($champ['kills'] / $champ['games'], 1);
@@ -236,14 +196,14 @@ if ($games_played == 0) {
             $assists_ratio = round($champ['assists'] / $champ['games'], 1);
 			echo "
                 <tr>
-                    <td class='champion'><img src='/ddragon/$latest_patch/img/champion/$champ_name.webp' alt='$champ_name'></td>
+                    <td class='champion'><img src='/ddragon/$latest_patch->patchNumber/img/champion/$champ_name.webp' alt='$champ_name'></td>
                     <td class='picks_col'>".$champ['games']."</td>
                     <td class='wins_col'>".$champ['wins']."</td>
                     <td class='winrate_col'>".round(($champ['wins'] / $champ['games']) * 100, 2)."%</td>
                     <td class='kda_col $hidden_pt_columns' data-customsort = '$kda_ratio'>".$kills_ratio." / ".$deaths_ratio." / ".$assists_ratio."</td>
                 </tr>";
 		}
-		if (count($player_champs) > 5) {
+		if (count($player->stats->champions) > 5) {
 			echo "
                 <tr class='expand-table'>
                     <td colspan='5'><div class='material-symbol'>".file_get_contents(__DIR__."/../icons/material/expand_less.svg")."</div></td>
@@ -279,13 +239,13 @@ if ($games_played == 0) {
 		}
 		echo "
             <tr>
-                <td class='champion'><img src='/ddragon/$latest_patch/img/champion/$champ_name.webp' alt='$champ_name'></td>
+                <td class='champion'><img src='/ddragon/$latest_patch->patchNumber/img/champion/$champ_name.webp' alt='$champ_name'></td>
                 <td>".$champ['played']."</td>
                 <td>".$champ['played_against']."</td>
                 <td>".$champ['banned']."</td>
                 <td>".$champ['banned_against']."</td>
                 <td>".$winrate."</td>
-                <td>".round(($champ['total']/$games_played)*100,2)."% (". $champ['total'].")</td>
+                <td>".round(($champ['total']/$teamInTournament->gamesPlayed)*100,2)."% (". $champ['total'].")</td>
             </tr>";
 	}
 	echo "</table></div>";
@@ -301,10 +261,10 @@ if ($games_played == 0) {
                 <th class='sortable sortedby desc'>".populate_th("P","Picks",true)."</th>
                 <th class='sortable'>".populate_th("W%","Winrate")."</th>
             </tr>";
-	foreach ($champs_played as $champ_name => $champ) {
+	foreach ($teamInTournament->champsPlayed as $champ_name => $champ) {
 		echo "
             <tr>
-                <td class='champion'><img src='/ddragon/$latest_patch/img/champion/$champ_name.webp' alt='$champ_name'></td>
+                <td class='champion'><img src='/ddragon/$latest_patch->patchNumber/img/champion/$champ_name.webp' alt='$champ_name'></td>
                 <td>".$champ['games']."</td>
                 <td>".round(($champ['wins']/$champ['games'])*100,2)."% (".$champ['wins'].")</td>
             </tr>";
@@ -318,10 +278,10 @@ if ($games_played == 0) {
                 <th></th>
                 <th class='sortable sortedby desc'>".populate_th("P","Picks",true)."</th>
             </tr>";
-	foreach ($champs_played_against as $champ_name => $champ_num) {
+	foreach ($teamInTournament->champsPlayedAgainst as $champ_name => $champ_num) {
 		echo "
             <tr>
-                <td class='champion'><img src='/ddragon/$latest_patch/img/champion/$champ_name.webp' alt='$champ_name'></td>
+                <td class='champion'><img src='/ddragon/$latest_patch->patchNumber/img/champion/$champ_name.webp' alt='$champ_name'></td>
                 <td>".$champ_num."</td>
             </tr>";
 	}
@@ -334,10 +294,10 @@ if ($games_played == 0) {
                 <th></th>
                 <th class='sortable sortedby desc'>".populate_th("B","Bans",true)."</th>
             </tr>";
-	foreach ($champs_banned_against as $champ_name => $champ_num) {
+	foreach ($teamInTournament->champsBannedAgainst as $champ_name => $champ_num) {
 		echo "
             <tr>
-                <td class='champion'><img src='/ddragon/$latest_patch/img/champion/$champ_name.webp' alt='$champ_name'></td>
+                <td class='champion'><img src='/ddragon/$latest_patch->patchNumber/img/champion/$champ_name.webp' alt='$champ_name'></td>
                 <td>".$champ_num."</td>
             </tr>";
 	}
@@ -350,10 +310,10 @@ if ($games_played == 0) {
                 <th></th>
                 <th class='sortable sortedby desc'>".populate_th("B","Bans",true)."</th>
             </tr>";
-	foreach ($champs_banned as $champ_name => $champ_num) {
+	foreach ($teamInTournament->champsBanned as $champ_name => $champ_num) {
 		echo "
             <tr>
-                <td class='champion'><img src='/ddragon/$latest_patch/img/champion/$champ_name.webp' alt='$champ_name'></td>
+                <td class='champion'><img src='/ddragon/$latest_patch->patchNumber/img/champion/$champ_name.webp' alt='$champ_name'></td>
                 <td>".$champ_num."</td>
             </tr>";
 	}
@@ -370,8 +330,8 @@ if ($games_played == 0) {
 	foreach ($champs_presence_only as $champ_name => $champ_num) {
 		echo "
             <tr>
-                <td class='champion'><img src='/ddragon/$latest_patch/img/champion/$champ_name.webp' alt='$champ_name'></td>
-                <td>".round(($champ_num/$games_played)*100,2)."% (".$champ_num.")</td>
+                <td class='champion'><img src='/ddragon/$latest_patch->patchNumber/img/champion/$champ_name.webp' alt='$champ_name'></td>
+                <td>".round(($champ_num/$teamInTournament->gamesPlayed)*100,2)."% (".$champ_num.")</td>
             </tr>";
 	}
 	echo "</table></div>";
@@ -382,5 +342,12 @@ if ($games_played == 0) {
 }
 echo "</main>";
 
-
+function populate_th($maintext,$tooltiptext,$init=false) {
+	if ($init) {
+		$svg_code = file_get_contents(dirname(__DIR__,2)."/public/icons/material/expand_more.svg");
+	} else {
+		$svg_code = file_get_contents(dirname(__DIR__,2)."/public/icons/material/check_indeterminate_small.svg");
+	}
+	return "<span class='tooltip'>$maintext<span class='tooltiptext'>$tooltiptext</span><div class='material-symbol sort-direction'>".$svg_code."</div></span>";
+}
 ?>

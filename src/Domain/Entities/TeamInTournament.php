@@ -10,7 +10,7 @@ class TeamInTournament {
 	 * @param array<string, int> $champsBanned
 	 * @param array<string, int> $champsPlayedAgainst
 	 * @param array<string, int> $champsBannedAgainst
-	 * @param int|null $gamesPlayed
+	 * @param int $gamesPlayed
 	 * @param int|null $gamesWon
 	 * @param int|null $avgWinTime
 	 * @param int|null $logoHistoryDir
@@ -23,7 +23,7 @@ class TeamInTournament {
 		public ?array $champsBanned,
 		public ?array $champsPlayedAgainst,
 		public ?array $champsBannedAgainst,
-		public ?int $gamesPlayed,
+		public int $gamesPlayed,
 		public ?int $gamesWon,
 		public ?int $avgWinTime,
 		private ?int $logoHistoryDir,

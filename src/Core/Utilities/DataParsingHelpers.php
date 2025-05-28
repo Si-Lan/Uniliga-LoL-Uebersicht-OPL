@@ -14,6 +14,9 @@ trait DataParsingHelpers {
 	protected function intOrNull(mixed $value): ?int {
 		return is_null($value) ? null : (int) $value;
 	}
+	protected function intOrZero(mixed $value): ?int {
+		return is_null($value) ? 0 : (int) $value;
+	}
 
 	protected function floatOrNull(mixed $value): ?float {
 		return is_null($value) ? null : (float) $value;
