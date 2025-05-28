@@ -16,7 +16,7 @@ require_once BASE_PATH."/config/routes.php";
 include_once BASE_PATH."/config/data.php";
 include_once BASE_PATH."/src/old_functions/fe-functions.php";
 
-check_login();
+UserContext::checkLoginParametersAndRedirect();
 
 if (UserContext::isMaintenanceMode() && !UserContext::isLoggedIn()) {
 	http_response_code(503);
