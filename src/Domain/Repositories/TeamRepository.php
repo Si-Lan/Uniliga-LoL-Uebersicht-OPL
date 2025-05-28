@@ -11,6 +11,7 @@ class TeamRepository extends AbstractRepository {
 
 	protected static array $ALL_DATA_KEYS = ["OPL_ID","name","shortName","OPL_ID_logo","last_logo_download","avg_rank_tier","avg_rank_div","avg_rank_num"];
 	protected static array $REQUIRED_DATA_KEYS = ["OPL_ID","name"];
+	private array $cache = [];
 
 	public function mapToEntity(array $data): Team {
 		$data = $this->normalizeData($data);
@@ -29,10 +30,16 @@ class TeamRepository extends AbstractRepository {
 	}
 
 	public function findById(int $teamId): ?Team {
+		if (isset($this->cache[$teamId])) {
+			return $this->cache[$teamId];
+		}
 		$result = $this->dbcn->execute_query("SELECT * FROM teams WHERE OPL_ID = ?", [$teamId]);
 		$data = $result->fetch_assoc();
 
-		return $data ? $this->mapToEntity($data) : null;
+		$team = $data ? $this->mapToEntity($data) : null;
+		$this->cache[$teamId] = $team;
+
+		return $team;
 	}
 
 	/**

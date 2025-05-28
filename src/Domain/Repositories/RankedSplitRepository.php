@@ -12,6 +12,8 @@ class RankedSplitRepository extends AbstractRepository {
 	protected static array $ALL_DATA_KEYS = ["season","split","split_start","split_end"];
 	protected static array $REQUIRED_DATA_KEYS = ["season","split","split_start"];
 
+	private array $cache = [];
+
 	public function mapToEntity(array $data): RankedSplit {
 		$data = $this->normalizeData($data);
 		return new RankedSplit(
@@ -23,11 +25,18 @@ class RankedSplitRepository extends AbstractRepository {
 	}
 
 	public function findBySeasonAndSplit(int $season, ?int $split=null) : ?RankedSplit {
+		$cacheKey = $season."_".$split;
+		if (isset($this->cache[$cacheKey])) {
+			return $this->cache[$cacheKey];
+		}
 		$split = $split ?? 0;
 		$result = $this->dbcn->execute_query("SELECT * FROM lol_ranked_splits WHERE season = ? AND split = ?", [$season, $split]);
 		$data = $result->fetch_assoc();
 
-		return $data ? $this->mapToEntity($data) : null;
+		$rankedSplit = $data ? $this->mapToEntity($data) : null;
+		$this->cache[$cacheKey] = $rankedSplit;
+
+		return $rankedSplit;
 	}
 
 	public function findFirstSplitForTournament(Tournament $tournament) : ?RankedSplit {

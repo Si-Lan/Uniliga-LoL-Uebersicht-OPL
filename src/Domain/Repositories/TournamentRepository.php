@@ -13,6 +13,7 @@ class TournamentRepository extends AbstractRepository {
 
 	protected static array $ALL_DATA_KEYS = ["OPL_ID","OPL_ID_parent","OPL_ID_top_parent","name","split","season","eventType","format","number","numberRangeTo","dateStart","dateEnd","OPL_ID_logo","finished","deactivated","archived","ranked_season","ranked_split"];
 	protected static array $REQUIRED_DATA_KEYS = ["OPL_ID","name"];
+	private array $cache = [];
 
 	public function __construct() {
 		parent::__construct();
@@ -71,17 +72,30 @@ class TournamentRepository extends AbstractRepository {
 	}
 
 	public function findById(int $tournamentId, ?Tournament $directParent=null, ?Tournament $rootParent=null) : ?Tournament {
+		if (isset($this->cache[$tournamentId])) {
+			return $this->cache[$tournamentId];
+		}
 		$result = $this->dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID = ?", [$tournamentId]);
 		$data = $result->fetch_assoc();
 
-		return $data ? $this->mapToEntity($data,$directParent,$rootParent) : null;
+		$tournament = $data ? $this->mapToEntity($data,$directParent,$rootParent) : null;
+		$this->cache[$tournamentId] = $tournament;
+
+		return $tournament;
 	}
 
 	public function findStandingsEventById(int $tournamentId, ?Tournament $directParent=null, ?Tournament $rootParent=null) : ?Tournament {
 		$result = $this->dbcn->execute_query("SELECT * FROM events_with_standings WHERE OPL_ID = ?", [$tournamentId]);
 		$data = $result->fetch_assoc();
 
-		return $data ? $this->mapToEntity($data,$directParent,$rootParent) : null;
+		if ($data && isset($this->cache[$tournamentId])) {
+			return $this->cache[$tournamentId];
+		}
+
+		$tournament = $data ? $this->mapToEntity($data,$directParent,$rootParent) : null;
+		$this->cache[$tournamentId] = $tournament;
+
+		return $tournament;
 	}
 
 	public function tournamentExists(int $tournamentId, EventType $eventType): bool {
