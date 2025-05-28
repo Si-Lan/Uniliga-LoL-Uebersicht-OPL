@@ -49,6 +49,15 @@ class Tournament {
 		public ?int $mostCommonBestOf
 	) {}
 
+	public function getDirectParentTournament(): Tournament {
+		if (is_null($this->directParentTournament)) return $this;
+		return $this->directParentTournament;
+	}
+	public function getRootTournament(): Tournament {
+		if (is_null($this->rootTournament)) return $this;
+		return $this->rootTournament;
+	}
+
 	public function isEventWithStanding():bool {
 		if ($this->eventType === EventType::GROUP) return true;
 		if ($this->eventType === EventType::LEAGUE && $this->format === EventFormat::SWISS) return true;
