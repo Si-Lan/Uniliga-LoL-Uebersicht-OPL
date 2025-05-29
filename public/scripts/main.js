@@ -139,10 +139,9 @@ function filter_teams_list_division(division) {
 	let tags = liste.querySelectorAll('.team-button');
 	let results = tags.length;
 	for (let i = 0; i < tags.length; i++) {
-		let value = tags[i].getAttribute("data-league");
-		let wildcard_values = tags[i].getAttribute("data-wildcards");
-		wildcard_values = wildcard_values.split(" ");
-		if (value === division || division === "all" || wildcard_values.includes(division)) {
+		let values = tags[i].getAttribute("data-league");
+		values = values.split(" ");
+		if (division === "all" || values.includes(division)) {
 			if (tags[i].classList.contains("filterD-off")) {
 				tags[i].classList.remove("filterD-off");
 			}
@@ -165,10 +164,10 @@ function filter_teams_list_division(division) {
 	let group_button = $('div.team-filter-wrap a.b-group');
 
 	let div_selection = $(`select.divisions option[value='${division}']`).eq(0);
-	if(div_selection.hasClass("swiss_league")) {
+	if(div_selection.hasClass("standings_league")) {
 		group_button.addClass('shown')
 		let url = new URL(window.location.href);
-		group_button.attr('href',`turnier/${url.pathname.split("turnier/")[1].split("/")[0]}/gruppe/${division}`);
+		group_button.attr('href',`/turnier/${url.pathname.split("turnier/")[1].split("/")[0]}/gruppe/${division}`);
 	} else {
 		group_button.removeClass('shown')
 	}
@@ -190,8 +189,9 @@ function filter_teams_list_group(group) {
 	let tags = liste.querySelectorAll('.team-button');
 	let results = tags.length;
 	for (let i = 0; i < tags.length; i++) {
-		let value = tags[i].getAttribute("data-group");
-		if (value === group || group === "all") {
+		let values = tags[i].getAttribute("data-group");
+		values = values.split(" ");
+		if (group === "all" || values.includes(group)) {
 			if (tags[i].classList.contains("filterG-off")) {
 				tags[i].classList.remove("filterG-off");
 			}
@@ -215,11 +215,7 @@ function filter_teams_list_group(group) {
 		group_button.removeClass('shown')
 	} else {
 		group_button.addClass('shown');
-		if (url.searchParams.get('tournament') === null) {
-			group_button.attr('href',`turnier/${url.pathname.split("turnier/")[1].split("/")[0]}/gruppe/${group}`);
-		} else {
-			group_button.attr('href',`?page=group&tournament=${url.searchParams.get('tournament')}&group=${group}`);
-		}
+		group_button.attr('href',`/turnier/${url.pathname.split("turnier/")[1].split("/")[0]}/gruppe/${group}`);
 	}
 
 	if (group !== url.searchParams.get('gruppe') || (group === "all" && url.searchParams.get('gruppe') == null)) {

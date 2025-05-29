@@ -52,8 +52,15 @@ function validateIntId(string $param, callable $existsCallback): void {
 	$_GET[$param] = filter_var($_GET[$param], FILTER_VALIDATE_INT);
 
 	if (!$_GET[$param] || !$existsCallback($_GET[$param])) {
+		if ($param === 'group' && checkGroupIdforAlternative($_GET[$param])) {
+			return;
+		}
 		trigger404($param);
 	}
+}
+function checkGroupIdforAlternative($id):bool {
+	global $tournamentRepo;
+	return ($tournamentRepo->tournamentExists($id, EventType::WILDCARD) || $tournamentRepo->tournamentExists($id, EventType::PLAYOFFS));
 }
 
 validateIntId('tournament', fn($id)=>($tournamentRepo->tournamentExists($id, EventType::TOURNAMENT)));
@@ -74,7 +81,6 @@ function trigger404(string $type = ''):void {
 }
 
 function renderPage(string $pageFile): void {
-	$dbcn = DatabaseConnection::getConnection(); // TODO: entfernen (Workaround, solange noch Seitenelemente mit direkten DB-Zugriffen arbeiten)
 	ob_start();
 	require $pageFile;
 	$pageContent = ob_get_clean();

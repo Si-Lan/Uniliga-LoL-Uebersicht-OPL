@@ -101,6 +101,29 @@ class TeamInTournamentStageRepository extends AbstractRepository {
 		}
 		return $teams;
 	}
+
+	/**
+	 * @param Tournament $tournament
+	 * @return array<TeamInTournamentStage>
+	 */
+	public function findAllByRootTournament(Tournament $tournament): array {
+		$query = '
+			SELECT *
+			FROM teams t 
+			    LEFT JOIN teams_in_tournament_stages tits ON t.OPL_ID = tits.OPL_ID_team
+			WHERE tits.OPL_ID_group IN (
+			    SELECT OPL_ID FROM events_with_standings WHERE OPL_ID_top_parent = ?
+			)
+				AND t.OPL_ID > -1';
+		$result = $this->dbcn->execute_query($query,[$tournament->id]);
+		$data = $result->fetch_all(MYSQLI_ASSOC);
+
+		$teams = [];
+		foreach ($data as $team) {
+			$teams[] = $this->mapToEntity($team);
+		}
+		return $teams;
+	}
 	/**
 	 * @param Tournament $tournament
 	 * @return array<TeamInTournamentStage>

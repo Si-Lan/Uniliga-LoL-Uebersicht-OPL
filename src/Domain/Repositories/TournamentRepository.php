@@ -152,6 +152,10 @@ class TournamentRepository extends AbstractRepository {
 		return $tournaments;
 	}
 
+	/**
+	 * @param Tournament $rootTournament
+	 * @return array<Tournament>
+	 */
 	public function findAllGroupsByRootTournament(Tournament $rootTournament):array {
 		$query = 'SELECT * FROM events_in_groupstage WHERE OPL_ID_top_parent = ? ORDER BY number';
 		$result = $this->dbcn->execute_query($query,[$rootTournament->id]);

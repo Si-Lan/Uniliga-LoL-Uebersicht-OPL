@@ -1,5 +1,4 @@
 <?php
-/** @var mysqli $dbcn  */
 
 use App\UI\Components\Helpers\IconRenderer;
 use App\UI\Components\Navigation\Header;
