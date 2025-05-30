@@ -248,62 +248,94 @@ dialog {
 	background-color: var(--bg);
 	border: var(--element-bg-sec) solid 2px;
 	border-radius: 12px;
-}
-dialog[open] {
-	opacity: 1;
-}
-/*noinspection CssInvalidPropertyValue*/
-dialog {
+
 	opacity: 0;
-	transition: all 200ms allow-discrete;
+	bottom: -20px;
+	/*noinspection CssInvalidPropertyValue*/
+	transition: all 200ms ease 1ms allow-discrete, bottom 400ms ease 1ms allow-discrete;
+
+	&[open] {
+		opacity: 1;
+		bottom: 0;
+		box-shadow: rgba(0,0,0,0.5) 12px 12px 12px;
+	}
+	&::backdrop {
+		opacity: 0;
+		background-color: rgba(0, 0, 0, 0.5);
+		/*noinspection CssInvalidPropertyValue*/
+		transition: all 400ms ease 1ms allow-discrete;
+	}
+	&[open]::backdrop {
+		opacity: 1;
+	}
 }
 /*noinspection CssInvalidAtRule*/
 @starting-style {
 	dialog[open] {
 		opacity: 0;
+		bottom: -20px;
+
+		&::backdrop {
+			opacity: 0;
+		}
 	}
 }
-/*noinspection CssInvalidPropertyValue*/
-dialog::backdrop {
-	opacity: 0;
-	background-color: rgba(0, 0, 0, 0.7);
-	transition: all 200ms allow-discrete;
-}
-dialog[open]::backdrop {
-	opacity: 1;
-}
 
-/*noinspection CssInvalidAtRule*/
-@starting-style {
+@-moz-document url-prefix() {
+	/* Firefox kann ::backdrop nicht animieren, deswegen verstecken und stattdessen Box-Shadow verwenden*/
 	dialog[open]::backdrop {
 		opacity: 0;
 	}
+	dialog[open] {
+		box-shadow: rgba(0,0,0,0.5) 12px 12px 12px, rgba(0,0,0,0.5) 0 0 0 100vmax;
+	}
 }
 
-dialog .dialog-content {
-	display: flex;
-	flex-direction: column;
-	padding: 24px;
-	min-width: 150px;
-}
-dialog::backdrop {
-	background: rgba(0,0,0,0.5);
+dialog {
+	& .dialog-content {
+		display: flex;
+		flex-direction: column;
+		padding: 24px;
+		min-width: 150px;
+	}
+	& button.close-popup {
+		align-self: flex-end;
+		border-radius: 6px;
+		padding: 4px 8px;
+		cursor: pointer;
+		margin-bottom: 4px;
+		z-index: 2;
+		svg {
+			height: 24px;
+			width: 24px;
+		}
+	}
+	.popup-loading-indicator {
+		transition: opacity 200ms;
+		position: absolute;
+		left: 0;
+		right: 0;
+		display: flex;
+		justify-content: center;
+
+		&:after {
+			content: " ";
+			display: block;
+			width: 28px;
+			height: 28px;
+			margin: 8px;
+			border-radius: 50%;
+			border: 4px solid;
+			border-color: var(--text) transparent;
+			animation: lds-dual-ring 3s linear infinite;
+			pointer-events: none;
+		}
+	}
 }
 .close-button-space {
 	display: flex;
 	justify-content: center;
 	height: 40px;
-}
-button.close-popup {
-	position: absolute;
-	align-self: flex-end;
-	border-radius: 6px;
-	padding: 4px 8px;
-	cursor: pointer;
-}
-button.close-popup svg {
-	height: 24px;
-	width: 24px;
 }
 .popup-loading-indicator {
 	transition: opacity 200ms;

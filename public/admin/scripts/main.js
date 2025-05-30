@@ -129,11 +129,11 @@ async function open_related_events_popup(tournamentID, relation = "children") {
 	/* reset dialog */
 	if (related_events_fetch_control !== null) related_events_fetch_control.abort();
 	related_events_fetch_control = new AbortController();
-	popup.find(".dialog-content > *:not(.close-popup,.close-button-space)").remove();
+	popup.find(".dialog-content > *:not(.close-popup)").remove();
 
 	popup[0].showModal();
-	popup.find(".close-button-space").append("<div class='popup-loading-indicator'></div>");
 	let popup_content = popup.find(".dialog-content");
+	popup_content.append("<div class='popup-loading-indicator'></div>");
 	let tournament_name = $(`.tournament-write-data.${tournamentID} label.write_tournament_name input`)[0].value;
 	if (get_children) {
 		popup_content.append(`<h2>Kinder von "${tournament_name}"</h2>`);

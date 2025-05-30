@@ -38,7 +38,6 @@ if ($loggedin) {
         <dialog id="related-add" class="clear-on-exit">
             <div class="dialog-content">
                 <button class="close-popup"><span class="material-symbol"><?php echo file_get_contents(__DIR__."/../../icons/material/close.svg") ?></span></button>
-                <div class="close-button-space"></div>
             </div>
         </dialog>
 
@@ -54,7 +53,6 @@ if ($loggedin) {
             <dialog id="ranked-split-popup" class="dismissable-popup">
                 <div class="dialog-content">
                     <button class="close-popup"><span class="material-symbol"><?php echo file_get_contents(__DIR__."/../../icons/material/close.svg") ?></span></button>
-                    <div class="close-button-space"></div>
 					<?php
 					echo create_ranked_split_list($dbcn);
 					?>
