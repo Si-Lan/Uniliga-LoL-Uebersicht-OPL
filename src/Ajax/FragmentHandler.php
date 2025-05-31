@@ -214,8 +214,13 @@ class FragmentHandler {
 
 		$playerRepo = new PlayerRepository();
 		$players = $playerRepo->findAllByIds($playerIds);
+
+		$indexedPlayers = [];
 		foreach ($players as $player) {
-			echo new PlayerSearchCard($player,true);
+			$indexedPlayers[$player->id] = $player;
+		}
+		foreach ($playerIds as $playerId) {
+			echo new PlayerSearchCard($indexedPlayers[$playerId],true);
 		}
 	}
 	public function playerSearchCardsBySearch(array $dataGet): void {
