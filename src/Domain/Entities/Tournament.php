@@ -151,7 +151,7 @@ class Tournament {
 
 	public function getLogoUrl() : string|false {
 		if (is_null($this->logoId)) return false;
-		$baseUrl = "/img/tournament_logos/{$this->logoId}/";
+		$baseUrl = "/assets/img/tournament_logos/{$this->logoId}/";
 		if (!file_exists(BASE_PATH.'/public'.$baseUrl)) return false;
 		if (isset($_COOKIE['lightmode']) && $_COOKIE['lightmode'] === "1") {
 			return $baseUrl."logo_light.webp";

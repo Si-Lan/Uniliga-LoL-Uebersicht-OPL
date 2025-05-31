@@ -389,10 +389,10 @@ async function popup_team(teamID, tournamentID = null) {
 				popup.append("<div class='team-title'></div>");
 				let name_container = $("div.team-title");
 				if (team_data["team"]["OPL_ID_logo"] !== null && team_data["team"]["OPL_ID_logo"] !== "") {
-					fetch(`/img/team_logos/${team_data["team"]["OPL_ID_logo"]}/logo.webp`, {method:"HEAD"})
+					fetch(`/assets/img/team_logos/${team_data["team"]["OPL_ID_logo"]}/logo.webp`, {method:"HEAD"})
 						.then(res => {
 							if (res.ok) {
-								name_container.prepend(`<img class='list-overview-logo' src='/img/team_logos/${team_data["team"]["OPL_ID_logo"]}/logo.webp' alt='Team-Logo'>`)
+								name_container.prepend(`<img class='list-overview-logo' src='/assets/img/team_logos/${team_data["team"]["OPL_ID_logo"]}/logo.webp' alt='Team-Logo'>`)
 							}
 						})
 						.catch(e => console.error(e));

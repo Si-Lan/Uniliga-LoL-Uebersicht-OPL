@@ -194,7 +194,7 @@ function create_header(mysqli $dbcn = NULL, string $title = "home", string|int $
 		$result .= "
 			<div class='settings-menu'>
 				<a class='settings-option toggle-mode' href=''><div class='material-symbol'>". file_get_contents(dirname(__DIR__,2)."/public/assets/icons/material/{$colormode}_mode.svg") ."</div></a>
-				<a class='settings-option github-link' href='https://github.com/Si-Lan/Uniliga-LoL-Uebersicht-OPL' target='_blank'>GitHub<div class='material-symbol'>". file_get_contents(dirname(__DIR__,2)."/public/img/github-mark-white.svg") ."</div></a>
+				<a class='settings-option github-link' href='https://github.com/Si-Lan/Uniliga-LoL-Uebersicht-OPL' target='_blank'>GitHub<div class='material-symbol'>". file_get_contents(dirname(__DIR__, 2) . "/public/assets/img/github-mark-white.svg") ."</div></a>
 				<a class='settings-option' href='https://ko-fi.com/silencelol' target='_blank'>Spenden<div class='material-symbol'>". file_get_contents(dirname(__DIR__,2)."/public/assets/icons/material/payments.svg") ."</div></a>
 				<a class='settings-option feedback' href=''>Feedback<div class='material-symbol'>". file_get_contents(dirname(__DIR__,2)."/public/assets/icons/material/mail.svg") ."</div></a>
 				<a class='settings-option login' href='?login'>Login<div class='material-symbol'>". file_get_contents(dirname(__DIR__,2)."/public/assets/icons/material/login.svg") ."</div></a>

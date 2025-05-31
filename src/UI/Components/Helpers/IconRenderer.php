@@ -5,7 +5,7 @@ namespace App\UI\Components\Helpers;
 class IconRenderer {
 	protected const string ICON_PATH = BASE_PATH.'/public/assets/icons/';
 	protected const string MATERIAL_ICON_PATH = BASE_PATH.'/public/assets/icons/material/';
-	protected const string IMG_PATH = BASE_PATH.'/public/img/';
+	protected const string IMG_PATH = BASE_PATH.'/public/assets/img/';
 	protected const string ROLE_ICON_PATH = BASE_PATH.'/public/assets/ddragon/img/positions/';
 	protected const string RANK_ICON_PATH = BASE_PATH.'/public/assets/ddragon/img/ranks/mini-crests/';
 

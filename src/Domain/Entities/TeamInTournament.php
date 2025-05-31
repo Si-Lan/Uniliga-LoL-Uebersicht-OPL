@@ -39,7 +39,7 @@ class TeamInTournament {
 		if (is_null($this->team->logoId)) return false;
 		if (is_null($this->logoHistoryDir)) return false;
 		if ($this->logoHistoryDir < 0) return $this->team->getLogoUrl($squared);
-		$baseUrl = "/img/team_logos/{$this->team->logoId}/{$this->logoHistoryDir}/";
+		$baseUrl = "/assets/img/team_logos/{$this->team->logoId}/{$this->logoHistoryDir}/";
 		if (!file_exists(BASE_PATH.'/public'.$baseUrl)) return false;
 		if (isset($_COOKIE['lightmode']) && $_COOKIE['lightmode'] === "1") {
 			return $baseUrl."logo_light$squareAddition.webp";

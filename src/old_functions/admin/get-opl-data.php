@@ -171,7 +171,7 @@ function write_tournament(array $data):string {
 
 	}
 
-	$local_img_folder_path = dirname(__DIR__,3)."/public/img/tournament_logos";
+	$local_img_folder_path = dirname(__DIR__, 3) . "/public/assets/img/tournament_logos";
 	if ($data["OPL_logo_url"] != NULL && (!file_exists("$local_img_folder_path/{$data["OPL_ID_logo"]}/logo.webp") || !file_exists("$local_img_folder_path/{$data["OPL_ID_logo"]}/logo_light.webp"))) {
 		download_opl_img($data["OPL_ID"], "tournament_logo", true);
 	}
