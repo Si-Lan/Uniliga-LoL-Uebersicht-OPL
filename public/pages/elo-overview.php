@@ -70,9 +70,6 @@ $filtered = $_REQUEST['view'] ?? NULL;
             <button onclick='jump_to_league_elo(<?=$league->number?>)'>Zu Liga <?=$league->number?></button>
         <?php endforeach; ?>
     </div>
-    <div class='team-popup-bg' onclick='close_popup_team(event)'>
-        <div class='team-popup'></div>
-    </div>
     <div class='main-content<?= ($colored) ? " colored-list" : ""?>'>
 
         <?php if ($stage_loaded == "groups" && $filtered == "liga"): ?>
