@@ -2,7 +2,7 @@
 $day = date("d_m_y");
 ini_set("log_errors", 1);
 ini_set("error_log", "cron_logs/cron_errors/riot_playedgames_$day.log");
-include_once dirname(__DIR__,2)."/src/admin/functions/get-rgapi-data.php";
+include_once dirname(__DIR__,2)."/src/old_functions/admin/get-rgapi-data.php";
 include_once dirname(__DIR__,2).'/config/data.php';
 $dbcn = create_dbcn();
 

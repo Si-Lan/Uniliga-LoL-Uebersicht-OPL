@@ -1,7 +1,7 @@
 <?php
 $root = dirname(__DIR__,3);
 include_once $root."/config/data.php";
-include_once $root."/src/admin/functions/img-download.php";
+include_once $root."/src/old_functions/admin/img-download.php";
 
 function get_tournament($id):array {
 	$returnArr = ["info"=>"", "data"=>[], "button"=>""];

@@ -1,7 +1,7 @@
 <?php
 $root = dirname(__DIR__,3);
 include_once $root . "/config/data.php";
-include_once $root."/src/admin/functions/ddragon-update.php";
+include_once $root."/src/old_functions/admin/ddragon-update.php";
 
 $type = $_SERVER["HTTP_TYPE"] ?? $_REQUEST["type"] ?? NULL;
 if ($type == NULL) exit;
