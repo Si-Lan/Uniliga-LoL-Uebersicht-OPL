@@ -17,10 +17,10 @@ class LayoutRenderer {
 				<?= $meta->title ?>
 			</title>
             <?php foreach($meta->css as $css): ?>
-                <link rel="stylesheet" href="/styles/<?= $css ?>.css">
+                <link rel="stylesheet" href="/assets/css/<?= $css ?>.css">
         	<?php endforeach; ?>
 			<?php foreach($meta->js as $js): ?>
-                <script src="/scripts/<?= $js ?>.js"></script>
+                <script src="/assets/js/<?= $js ?>.js"></script>
 			<?php endforeach; ?>
             <meta property="og:site_name" content="Silence.lol | Uniliga LoL Übersicht">
             <meta property="og:title" content="<?= $meta->shortTitle ?>">

@@ -17,6 +17,9 @@ body.light {
 	border: solid 2px var(--accent);
 	border-radius: 15px;
 	margin: auto;
+	display: flex;
+	align-items: center;
+	justify-content: center;
 
 	@media screen and (max-width: 1185px) {
 		width: 900px;

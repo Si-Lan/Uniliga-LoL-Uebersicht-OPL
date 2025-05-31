@@ -43,7 +43,7 @@ body {
 	font-stretch: normal;
 	font-style: normal;
 	font-weight: 100 900;
-	src: url('/fonts/DMSans-VariableFont.ttf') format('truetype');
+	src: url('/assets/fonts/DMSans-VariableFont.ttf') format('truetype');
 }
 * {
 	color: var(--text);
@@ -1381,7 +1381,7 @@ div.team-list {
 
 .team-button .team-name::after {
 	content: '';
-	background: url("../icons/material/popup-icon.svg") no-repeat;
+	background: url("../../icons/material/popup-icon.svg") no-repeat;
 	height: 20px;
 	width: 20px;
 	display: inline-flex;
@@ -2153,7 +2153,7 @@ div.summoner-card-container {
 }
 .summoner-card-wrapper .open-playerhistory::after {
 	content: '';
-	background: url(../icons/material/popup-icon.svg) no-repeat;
+	background: url(../../icons/material/popup-icon.svg) no-repeat;
 	height: 20px;
 	width: 20px;
 	margin-left: 4px;
@@ -2887,7 +2887,7 @@ div.recent-players-list {
 }
 .player-ov-card>span:first-child::after {
 	content: '';
-	background: url("../icons/material/popup-icon.svg") no-repeat;
+	background: url("../../icons/material/popup-icon.svg") no-repeat;
 	height: 20px;
 	width: 20px;
 	display: inline-flex;
