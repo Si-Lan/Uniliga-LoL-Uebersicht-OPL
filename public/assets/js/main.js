@@ -1088,9 +1088,7 @@ function expand_collapse_summonercard() {
 		document.cookie = `preference_sccollapsed=1; expires=${cookie_expiry}; path=/`;
 	}
 }
-$(document).ready(function () {
-	$('.player-cards .exp_coll_sc').on("click",expand_collapse_summonercard);
-});
+$(document).on("click", "button.exp_coll_sc", expand_collapse_summonercard);
 
 // player page search
 let player_search_controller = null;
