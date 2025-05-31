@@ -15,6 +15,7 @@ use App\UI\Components\Navigation\TeamHeaderNav;
 use App\UI\Components\Navigation\TournamentNav;
 use App\UI\Components\Standings\StandingsTable;
 use App\UI\Components\Team\TeamRankDisplay;
+use App\UI\Components\UI\SummonerCardCollapseButton;
 use App\UI\Enums\HeaderType;
 use App\UI\Page\PageMeta;
 
@@ -62,11 +63,7 @@ $pageMeta = new PageMeta(
 
             <?= new MultiOpggButton($teamInTournament) ?>
 
-            <?php if (UserContext::summonerCardCollapsed()): ?>
-                <button type='button' class='exp_coll_sc'><?= IconRenderer::getMaterialIconDiv('unfold_more')?>Stats ein</button>
-            <?php else: ?>
-                <button type='button' class='exp_coll_sc'><?= IconRenderer::getMaterialIconDiv('unfold_less')?>Stats aus</button>
-            <?php endif; ?>
+            <?= new SummonerCardCollapseButton() ?>
 
             <?= new TeamRankDisplay($teamInTournament,true) ?>
 
