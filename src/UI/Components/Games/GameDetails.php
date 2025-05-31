@@ -17,6 +17,7 @@ use App\Domain\Repositories\PlayerSeasonRankRepository;
 use App\Domain\Repositories\RankedSplitRepository;
 
 class GameDetails {
+	private bool $gameDataLoaded = false;
 	private GameInMatch $gameInMatch;
 	/**
 	 * @var array<string,PlayerInTeamInTournament>
@@ -35,6 +36,11 @@ class GameDetails {
 		private ?PlayerInTeamInTournamentRepository $playerInTeamInTournamentRepo = null,
 		private ?PlayerSeasonRankRepository $playerSeasonRankRepo = null,
 	) {
+		if (is_null($this->game->gameData)) {
+			return;
+		} else {
+			$this->gameDataLoaded = true;
+		}
 		$gameInMatchRepo = new GameInMatchRepository();
 		$patchRepo = new PatchRepository();
 		$rankedSplitRepo = new RankedSplitRepository();
@@ -80,6 +86,9 @@ class GameDetails {
 	}
 
 	public function render(): string {
+		if (!$this->gameDataLoaded) {
+			return '<div class="game-placeholder"><div class="no-game-found">Spieldaten wurden noch nicht geladen</div></div>';
+		}
 		$gameData = $this->game->gameData;
 		$currentTeam = $this->currentTeam;
 		$gameInMatch = $this->gameInMatch;
