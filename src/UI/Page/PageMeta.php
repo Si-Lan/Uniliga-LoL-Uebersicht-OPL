@@ -20,5 +20,6 @@ class PageMeta {
 		$this->css[] = 'design2';
 		$this->js[] = 'jquery-3.7.1.min';
 		$this->js[] = 'main';
+		AssetManager::addJsFile('/assets/js/fragmentLoader.js');
 	}
 }

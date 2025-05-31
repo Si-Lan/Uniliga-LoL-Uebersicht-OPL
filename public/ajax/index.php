@@ -37,11 +37,6 @@ if (!method_exists($handler, $method)) {
 	exit;
 }
 
-if ($controller === "fragment") {
-	header('Content-Type: text/html');
-}
-
-
 try {
 	$handler->$method($_GET);
 } catch (Exception $e) {

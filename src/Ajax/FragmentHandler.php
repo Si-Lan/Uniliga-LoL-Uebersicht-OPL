@@ -22,24 +22,34 @@ use App\UI\Components\Player\PlayerOverview;
 use App\UI\Components\Player\PlayerSearchCard;
 use App\UI\Components\Standings\StandingsTable;
 use App\UI\Enums\EloListView;
+use App\UI\Page\AssetManager;
 
 class FragmentHandler {
 	use DataParsingHelpers;
+	private function sendJsonFragment(string $html): void {
+		echo json_encode([
+			'html' => $html,
+			'js' => AssetManager::getJsFiles(),
+			'css' => AssetManager::getCssFiles()
+		]);
+	}
+	private function sendJsonError(string $message, int $code): void {
+		http_response_code($code);
+		echo json_encode(['error'=>$message]);
+	}
 	public function standingsTable(array $dataGet): void {
 		$tournamentId = $this->IntOrNull($dataGet['tournamentId'] ?? null);
 		$teamId = $this->IntOrNull($dataGet['teamId'] ?? null);
 
 		if (is_null($tournamentId)) {
-			http_response_code(400);
-			echo 'Missing tournamentId';
+			$this->sendJsonError('Missing tournamentId',400);
 			return;
 		}
 
 		$tournamentRepo = new TournamentRepository();
 		$tournament = $tournamentRepo->findStandingsEventById($tournamentId);
 		if (is_null($tournament)) {
-			http_response_code(404);
-			echo 'Tournament not found';
+			$this->sendJsonError('Tournament not found',404);
 			return;
 		}
 
@@ -48,7 +58,7 @@ class FragmentHandler {
 
 		$table = new StandingsTable($tournament,$team);
 
-		echo $table->render();
+		$this->sendJsonFragment($table->render());
 	}
 
 	public function summonerCards(array $dataGet): void {
@@ -56,15 +66,13 @@ class FragmentHandler {
 		$tournamentId = $this->intOrNull($dataGet['tournamentId'] ?? null);
 
 		if (is_null($teamId)) {
-			http_response_code(400);
-			echo 'Missing teamId';
+			$this->sendJsonError('Missing teamId',400);
 			return;
 		}
 		$teamRepo = new TeamRepository();
 		$team = $teamRepo->findById($teamId);
 		if (is_null($team)) {
-			http_response_code(404);
-			echo 'Team not found';
+			$this->sendJsonError('Team not found',404);
 			return;
 		}
 
@@ -85,8 +93,8 @@ class FragmentHandler {
 		foreach ($playersInTeam as $playerInTeam) {
 			$summonerCardHtml .= new SummonerCard($playerInTeam);
 		}
-		echo "<div class='summoner-card-container'>$summonerCardHtml</div>";
 
+		$this->sendJsonFragment("<div class='summoner-card-container'>$summonerCardHtml</div>");
 	}
 
 	public function matchButton(array $dataGet): void {
@@ -94,23 +102,21 @@ class FragmentHandler {
 		$teamId = $this->intOrNull($dataGet['teamId'] ?? null);
 
 		if (is_null($matchupId)) {
-			http_response_code(400);
-			echo 'Missing matchupId';
+			$this->sendJsonError('Missing matchupId',400);
 			return;
 		}
 
 		$matchupRepo = new MatchupRepository();
 		$matchup = $matchupRepo->findById($matchupId);
 		if (is_null($matchup)) {
-			http_response_code(404);
-			echo 'Matchup not found';
+			$this->sendJsonError('Matchup not found',404);
 			return;
 		}
 
 		$teamRepo = new TeamRepository();
 		$team = ($teamId) ? $teamRepo->findById($teamId) : null;
 
-		echo new MatchButton($matchup,$team);
+		$this->sendJsonFragment(new MatchButton($matchup,$team));
 	}
 
 	public function matchButtonList(array $dataGet): void {
@@ -118,23 +124,21 @@ class FragmentHandler {
 		$teamId = $this->intOrNull($dataGet['teamId'] ?? null);
 
 		if (is_null($tournamentId)) {
-			http_response_code(400);
-			echo 'Missing tournamentId';
+			$this->sendJsonError('Missing tournamentId',400);
 			return;
 		}
 
 		$tournamentRepo = new TournamentRepository();
 		$tournamentStage = $tournamentRepo->findById($tournamentId);
 		if (is_null($tournamentStage)) {
-			http_response_code(404);
-			echo 'Tournament not found';
+			$this->sendJsonError('Tournament not found',404);
 			return;
 		}
 
 		$teamInTournamentRepo = new TeamInTournamentRepository();
 		$teamInTournament = ($teamId) ? $teamInTournamentRepo->findByTeamIdAndTournament($teamId, $tournamentStage->rootTournament) : null;
 
-		echo new MatchButtonList($tournamentStage,$teamInTournament);
+		$this->sendJsonFragment(new MatchButtonList($tournamentStage,$teamInTournament));
 	}
 
 	public function gameDetails(array $dataGet): void {
@@ -142,22 +146,20 @@ class FragmentHandler {
 		$teamId = $this->intOrNull($dataGet['teamId'] ?? null);
 
 		if (is_null($gameId)) {
-			http_response_code(400);
-			echo 'missing gameId';
+			$this->sendJsonError('Missing gameId',400);
 			return;
 		}
 		$gameRepo = new GameRepository();
 		$game = $gameRepo->findById($gameId);
 		if (is_null($game)) {
-			http_response_code(404);
-			echo 'Game not found';
+			$this->sendJsonError('Game not found',404);
 			return;
 		}
 
 		$teamRepo = new TeamRepository();
 		$focusTeam = $teamId ? $teamRepo->findById($teamId) : null;
 
-		echo new GameDetails($game, $focusTeam);
+		$this->sendJsonFragment(new GameDetails($game, $focusTeam));
 	}
 
 	public function matchHistory(array $dataGet): void {
@@ -165,13 +167,11 @@ class FragmentHandler {
 		$tournamentStageId = $this->intOrNull($dataGet['tournamentStageId'] ?? null);
 
 		if (is_null($teamId)) {
-			http_response_code(400);
-			echo 'missing teamId';
+			$this->sendJsonError('Missing teamId',400);
 			return;
 		}
 		if (is_null($tournamentStageId)) {
-			http_response_code(400);
-			echo 'missing tournamentStageId';
+			$this->sendJsonError('Missing tournamentStageId',400);
 			return;
 		}
 
@@ -181,34 +181,31 @@ class FragmentHandler {
 		$tournamentStage = $tournamentRepo->findById($tournamentStageId);
 		$teamInTournament = $teamInTournamentRepo->findByTeamIdAndTournament($teamId, $tournamentStage->rootTournament);
 
-		echo new MatchHistory($teamInTournament, $tournamentStage);
+		$this->sendJsonFragment(new MatchHistory($teamInTournament, $tournamentStage));
 	}
 
 	public function playerOverview(array $dataGet): void {
 		$playerId = $this->intOrNull($dataGet['playerId'] ?? null);
 
 		if (is_null($playerId)) {
-			http_response_code(400);
-			echo 'missing playerId';
+			$this->sendJsonError('Missing playerId',400);
 			return;
 		}
 		$playerRepo = new PlayerRepository();
 		$player = $playerRepo->findById($playerId);
 		if (is_null($player)) {
-			http_response_code(404);
-			echo 'Player not found';
+			$this->sendJsonError('Player not found',404);
 			return;
 		}
 
-		echo new PlayerOverview($player);
+		$this->sendJsonFragment(new PlayerOverview($player));
 	}
 
 	public function playerSearchCardsByRecents(array $dataGet): void {
 		$playerIds = $this->decodeJsonOrDefault($dataGet['playerIds'] ?? null);
 
 		if (count($playerIds) == 0) {
-			http_response_code(400);
-			echo 'no playerIds given';
+			$this->sendJsonError('no playerIds given',400);
 			return;
 		}
 
@@ -219,24 +216,29 @@ class FragmentHandler {
 		foreach ($players as $player) {
 			$indexedPlayers[$player->id] = $player;
 		}
+
+		$html = '';
 		foreach ($playerIds as $playerId) {
-			echo new PlayerSearchCard($indexedPlayers[$playerId],true);
+			$html .= new PlayerSearchCard($indexedPlayers[$playerId], true);
 		}
+		$this->sendJsonFragment($html);
 	}
 	public function playerSearchCardsBySearch(array $dataGet): void {
 		$searchString = $this->stringOrNull($dataGet['search'] ?? null);
 
 		if (is_null($searchString)) {
-			http_response_code(400);
-			echo 'missing Search String';;
+			$this->sendJsonError('missing Search String',400);
 			return;
 		}
 
 		$playerRepo = new PlayerRepository();
 		$players = $playerRepo->findAllByNameContains($searchString);
+
+		$html = '';
 		foreach ($players as $player) {
-			echo new PlayerSearchCard($player);
+			$html .= new PlayerSearchCard($player);
 		}
+		$this->sendJsonFragment($html);
 	}
 
 	public function eloLists(array $dataGet): void {
@@ -246,23 +248,21 @@ class FragmentHandler {
 		$view = EloListView::tryFrom($view);
 
 		if (is_null($tournamentId)) {
-			http_response_code(400);
-			echo 'missing tournamentId';
+			$this->sendJsonError('missing tournamentId',400);
 			return;
 		}
 		if (is_null($view)) {
-			http_response_code(400);
-			echo 'missing view';
+			$this->sendJsonError('missing view',400);
+			return;
 		}
 
 		$tournamentRepo = new TournamentRepository();
 		$tournament = $tournamentRepo->findById($tournamentId);
 		if (is_null($tournament)) {
-			http_response_code(404);
-			echo 'Tournament not found';
+			$this->sendJsonError('Tournament not found',404);
 			return;
 		}
 
-		echo new EloLists($tournament,$view);
+		$this->sendJsonFragment(new EloLists($tournament,$view));
 	}
 }

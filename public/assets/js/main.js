@@ -371,7 +371,6 @@ async function popup_team(teamID, tournamentID = null) {
 	})
 		.then(res => res.json())
 		.then(team_data => {
-			console.log(team_data);
 			if (current_team_in_popup === team_data['team']['OPL_ID']) {
 
 				let opgg_amount = 0;
@@ -427,10 +426,7 @@ async function popup_team(teamID, tournamentID = null) {
 					card_container.append(`<div class='summoner-card-wrapper placeholder p${i} ${coll_class}'></div>`);
 				}
 
-				fetch(`/ajax/fragment/summoner-cards?teamId=${teamID}&tournamentId=${tournamentID}`, {
-					method: "GET",
-				})
-					.then(res => res.text())
+				fragmentLoader(`summoner-cards?teamId=${teamID}&tournamentId=${tournamentID}`)
 					.then(async summonercards => {
 						card_container.replaceWith(summonercards);
 						let popup_loader = $('.popup-loading-indicator');
@@ -438,7 +434,6 @@ async function popup_team(teamID, tournamentID = null) {
 						await new Promise(r => setTimeout(r, 210));
 						popup_loader.remove();
 					})
-					.catch(error => console.error(error));
 			}
 		})
 		.catch(error => console.error(error));
@@ -622,15 +617,12 @@ async function popup_match(matchID,teamID=null,tournamentID=null) {
 				if (tournamentID !== null) {
 					fetchheaders.append("tournamentid",tournamentID)
 				}
-				fetch(`/ajax/fragment/game-details?gameId=${gameID}&teamId=${teamID}`, {
-					method: "GET"
-				})
-					.then(res => res.text())
-					.then(async data => {
+				fragmentLoader(`game-details?gameId=${gameID}&teamId=${teamID}`)
+					.then(async content => {
 						let game_wrap = popup.find(`.game${i}`);
 						if (current_match_in_popup === game['OPL_ID_match']) {
 							game_wrap.empty();
-							game_wrap.append(data);
+							game_wrap.append(content);
 							game_counter++;
 							if (game_counter >= games.length) {
 								let popup_loader = $('.popup-loading-indicator');
@@ -641,7 +633,6 @@ async function popup_match(matchID,teamID=null,tournamentID=null) {
 							popup.find(`.game${i} button.expand-game-details`).on("click", expand_collapse_game);
 						}
 					})
-					.catch(error => console.error(error));
 			}
 		})
 		.catch(error => console.log(error));
@@ -760,11 +751,7 @@ function add_elo_team_list(area,tournamentID,view="all") {
 	if (elo_list_fetch_control !== null) elo_list_fetch_control.abort();
 	elo_list_fetch_control = new AbortController();
 
-	fetch(`/ajax/fragment/elo-lists?tournamentId=${tournamentID}&view=${view}`, {
-		method: "GET",
-		signal: elo_list_fetch_control.signal,
-	})
-		.then(res => res.text())
+	fragmentLoader(`elo-lists?tournamentId=${tournamentID}&view=${view}`, elo_list_fetch_control.signal)
 		.then(list => {
 			area.empty();
 			area.append(list);
@@ -772,11 +759,6 @@ function add_elo_team_list(area,tournamentID,view="all") {
 		})
 		.catch(error => {
 			$('.content-loading-indicator').remove();
-			if (error.name === "AbortError") {
-				console.warn(error)
-			} else {
-				console.error(error)
-			}
 		});
 }
 
@@ -1288,23 +1270,12 @@ function search_players() {
 	}
 	searchbar.append("<div class='search-loading-indicator'></div>");
 
-	fetch(`/ajax/fragment/player-search-cards-by-search?search=${input_value}`, {
-		method: "GET",
-		signal: player_search_controller.signal,
-	})
-		.then(res => res.text())
-		.then(cards => {
+	fragmentLoader(`player-search-cards-by-search?search=${input_value}`, player_search_controller.signal)
+		.then(player_cards => {
 			$('.search-loading-indicator').remove();
 			recents_list.css("display","none");
-			player_list.html(cards);
+			player_list.html(player_cards);
 		})
-		.catch(error => {
-			if (error.name === "AbortError") {
-				console.log(error)
-			} else {
-				console.error(error)
-			}
-		});
 }
 async function reload_recent_players(initial=false) {
 	let player_list = $('.recent-players-list');
@@ -1314,11 +1285,8 @@ async function reload_recent_players(initial=false) {
 		return;
 	}
 
-	fetch(`/ajax/fragment/player-search-cards-by-recents?playerIds=${localStorage.getItem("searched_players_IDs")}`, {
-		method: "GET",
-	})
-		.then(res => res.text())
-		.then(async player_cards => {
+	fragmentLoader(`player-search-cards-by-recents?playerIds=${localStorage.getItem("searched_players_IDs")}`)
+		.then(player_cards => {
 			$('.search-loading-indicator').remove();
 			if (initial) {
 				player_list.hide();
@@ -1328,7 +1296,6 @@ async function reload_recent_players(initial=false) {
 				player_list.fadeIn(200);
 			}
 		})
-		.catch(error => console.error(error))
 }
 function remove_recent_player(playerid) {
 	event.preventDefault();
@@ -1538,23 +1505,15 @@ async function user_update_group(button) {
 	loading_width = 0;
 	button.style.setProperty("--update-loading-bar-width", "0");
 
-	fetch(`/ajax/fragment/standings-table?tournamentId=${group_ID}`, {
-		method: "GET",
-	})
-		.then(res => res.text())
-		.then(standings => {
-			$("div.standings").replaceWith(standings);
-		})
-		.catch(error => console.error(error));
+	fragmentLoader(`standings-table?tournamentId=${group_ID}`)
+		.then(content => {
+			$("div.standings").replaceWith(content);
+		});
 
-	fetch(`/ajax/fragment/match-button-list?tournamentId=${group_ID}`, {
-		method: "GET",
-	})
-		.then(res => res.text())
+	fragmentLoader(`match-button-list?tournamentId=${group_ID}`)
 		.then(matchlist => {
 			$("main .matches").replaceWith(matchlist);
 		})
-		.catch(error => console.error(error));
 }
 $(document).ready(function () {
 	$(".user_update_group").on("click", function () {
@@ -1829,14 +1788,10 @@ async function user_update_team(button) {
 	loading_width = 0;
 	button.style.setProperty("--update-loading-bar-width", "0");
 
-	fetch(`/ajax/fragment/summoner-cards?teamId=${team_ID}&tournamentId=${tournamentID}`, {
-		method: "GET",
-	})
-		.then(res => res.text())
+	fragmentLoader(`summoner-cards?teamId=${team_ID}&tournamentId=${tournamentID}`)
 		.then(summonercards => {
 			$("div.summoner-card-container").replaceWith(summonercards);
 		})
-		.catch(e => console.error(e));
 
 	fetch(`/api/get-data.php`, {
 		method: "GET",
@@ -1870,23 +1825,19 @@ async function user_update_team(button) {
 	groupButtons.prop("disabled", true);
 
 	let fetch_array = [];
-	fetch_array.push(fetch(`/ajax/fragment/standings-table?tournamentId=${activeGroupID}&teamId=${team_ID}`, {
-		method: "GET",
-	})
-		.then(res => res.text())
-		.then(standings => {
-			$("div.standings").replaceWith(standings);
-		})
-		.catch(e => console.warn(e)));
+	fetch_array.push(
+		fragmentLoader(`standings-table?tournamentId=${group_ID}`,null,null,true)
+			.then(content => {
+				$("div.standings").replaceWith(content);
+			})
+	);
+	fetch_array.push(
+		fragmentLoader(`match-button-list?tournamentId=${activeGroupID}&teamId=${team_ID}&playoffId=${activePlayoffID}`,null,null,true)
+			.then(matchlist => {
+				$("main .matches").replaceWith(matchlist);
+			})
+	)
 
-	fetch_array.push(fetch(`/ajax/fragment/match-button-list?tournamentId=${activeGroupID}&teamId=${team_ID}&playoffId=${activePlayoffID}`, {
-		method: "GET",
-	})
-		.then(res => res.text())
-		.then(matchlist => {
-			$("main .matches").replaceWith(matchlist);
-		})
-		.catch(error => console.warn(error)));
 	Promise.all(fetch_array).then(() => {
 		groupButtons.prop("disabled", false);
 	});
@@ -2019,20 +1970,16 @@ async function user_update_match(button) {
 		if (team_ID !== null) {
 			fetchheaders.append("teamid", team_ID)
 		}
-		fetch(`/ajax/fragment/game-details?gameId=${gameID}&teamId=${team_ID}`, {
-			method: "GET"
-		})
-			.then(res => res.text())
-			.then(data => {
+		fragmentLoader(`game-details?gameId=${gameID}&teamId=${team_ID}`)
+			.then(content => {
 				let game_wrap = popup.find(`.game${i}`);
 				if (current_match_in_popup === parseInt(match_ID)) {
 					game_wrap.empty();
-					game_wrap.append(data);
+					game_wrap.append(content);
 					game_counter++;
 				}
 				popup.find(`.game${i} button.expand-game-details`).on("click", expand_collapse_game);
 			})
-			.catch(e => console.error(e));
 	}
 
 	const groupButtons = $("button.teampage_switch_group");
@@ -2042,22 +1989,18 @@ async function user_update_match(button) {
 	groupButtons.prop("disabled", true);
 	let fetch_array = [];
 
-	if (activeGroupID === group_ID) fetch_array.push(fetch(`/ajax/fragment/standings-table?tournamentId=${activeGroupID}&teamId=${team_ID}`, {
-		method: "GET",
-	})
-		.then(res => res.text())
-		.then(standings => {
-			$("div.standings").replaceWith(standings);
-		})
-		.catch(e => console.warn(e)));
-	fetch_array.push(fetch(`/ajax/fragment/match-button?matchupId=${match_ID}&teamId=${team_ID}`, {
-		method: "GET",
-	})
-		.then(res => res.text())
-		.then(new_matchbutton => {
-			$(`div.match-button-wrapper[data-matchid='${match_ID}']`).replaceWith(new_matchbutton);
-		})
-		.catch(error => console.warn(error)));
+	if (activeGroupID === group_ID) fetch_array.push(
+		fragmentLoader(`standings-table?tournamentId=${activeGroupID}&teamId=${team_ID}`,null,null,true)
+			.then(standings => {
+				$("div.standings").replaceWith(standings);
+			})
+	);
+	fetch_array.push(
+		fragmentLoader(`match-button?matchupId=${match_ID}&teamId=${team_ID}`,null,null,true)
+			.then(new_matchbutton => {
+				$(`div.match-button-wrapper[data-matchid='${match_ID}']`).replaceWith(new_matchbutton);
+			})
+	);
 
 	Promise.all(fetch_array).then(() => {
 		groupButtons.prop("disabled", false);
@@ -2281,47 +2224,23 @@ function switch_team_event(page, event_id, team_id, playoff_id = null) {
 		if ($('.content-loading-indicator').length === 0) $('body').append("<div class='content-loading-indicator'></div>");
 		let page_updates = [];
 		page_updates.push(
-			fetch(`/ajax/fragment/standings-table?tournamentId=${event_id}&teamId=${team_id}`, {
-				method: "GET",
-				signal: team_event_switch_control.signal,
-			})
-				.then(res => res.text())
-				.then(standings => {
-					$(".inner-content .standings").replaceWith(standings);
+			fragmentLoader(`standings-table?tournamentId=${event_id}&teamId=${team_id}`,team_event_switch_control.signal)
+				.then(content => {
+					$(".inner-content .standings").replaceWith(content);
 				})
-				.catch(error => {
-					if (error.name === "AbortError") {
-						console.warn(error)
-					} else {
-						console.error(error)
-					}
-				}));
+		);
 		page_updates.push(
-			fetch(`/ajax/fragment/match-button-list?tournamentId=${event_id}&teamId=${team_id}&playoffId=${playoff_id}`, {
-				method: "GET",
-				signal: team_event_switch_control.signal,
-			})
-				.then(res => res.text())
+			fragmentLoader(`match-button-list?tournamentId=${event_id}&teamId=${team_id}&playoffId=${playoff_id}`, team_event_switch_control.signal)
 				.then(matchlist => {
 					$(".inner-content .matches").replaceWith(matchlist);
 				})
-				.catch(error => {
-					if (error.name === "AbortError") {
-						console.warn(error)
-					} else {
-						console.error(error)
-					}
-				}));
+		);
 		Promise.all(page_updates).then(()=>{
 			$('.content-loading-indicator').remove();
 		})
 	} else if (page === "matchhistory") {
 		if ($('.content-loading-indicator').length === 0) $('body').append("<div class='content-loading-indicator'></div>");
-		fetch(`/ajax/fragment/match-history?teamId=${team_id}&tournamentStageId=${event_id}`, {
-			method: "GET",
-			signal: team_event_switch_control.signal,
-		})
-			.then(res => res.text())
+		fragmentLoader(`match-history?teamId=${team_id}&tournamentStageId=${event_id}`, team_event_switch_control.signal)
 			.then(matchhistory => {
 				$("div.round-wrapper").remove();
 				$("div.divider.rounds").remove();
@@ -2331,12 +2250,7 @@ function switch_team_event(page, event_id, team_id, playoff_id = null) {
 			})
 			.catch(error => {
 				$('.content-loading-indicator').remove();
-				if (error.name === "AbortError") {
-					console.warn(error)
-				} else {
-					console.error(error)
-				}
-			});
+			})
 	}
 }
 $(()=>{
