@@ -12,6 +12,7 @@ use App\Domain\Entities\RankedSplit;
 use App\Domain\Repositories\PatchRepository;
 use App\Domain\Repositories\PlayerSeasonRankRepository;
 use App\Domain\Repositories\RankedSplitRepository;
+use App\UI\Page\AssetManager;
 
 class SummonerCard {
 	private Player $player;
@@ -45,6 +46,8 @@ class SummonerCard {
 			$this->player = $playerInTeam->player;
 			$this->collapsed = true;
 		}
+
+		AssetManager::addJsFile('/assets/js/components/popups.js');
 	}
 
 	public function render(): string

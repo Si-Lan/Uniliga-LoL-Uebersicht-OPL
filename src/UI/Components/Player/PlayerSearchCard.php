@@ -3,12 +3,15 @@
 namespace App\UI\Components\Player;
 
 use App\Domain\Entities\Player;
+use App\UI\Page\AssetManager;
 
 class PlayerSearchCard {
 	public function __construct(
 		private Player $player,
 		private bool $removeFromRecents = false
-	) {}
+	) {
+		AssetManager::addJsFile('/assets/js/components/popups.js');
+	}
 
 	public function render(): string {
 		$player = $this->player;
