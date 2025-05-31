@@ -147,8 +147,8 @@ if ($teamInTournament->gamesPlayed == 0) {
 	echo "<div class='stattables'>";
 	echo "<div class='playertable-header'>
 		        <h3>Spieler</h3>
-                <button title='Tabellen erweitern' class='pt-expand-all'><div class='material-symbol'>".file_get_contents(__DIR__."/../icons/material/unfold_more.svg")."</div></button>
-                <button title='Tabellen reduzieren' class='pt-collapse-all'><div class='material-symbol'>".file_get_contents(__DIR__."/../icons/material/unfold_less.svg")."</div></button>
+                <button title='Tabellen erweitern' class='pt-expand-all'><div class='material-symbol'>".file_get_contents(__DIR__."/../assets/icons/material/unfold_more.svg")."</div></button>
+                <button title='Tabellen reduzieren' class='pt-collapse-all'><div class='material-symbol'>".file_get_contents(__DIR__."/../assets/icons/material/unfold_less.svg")."</div></button>
                 <button class='button pt-moreinfo'><input type='checkbox' name='moreinfo' $checked_pt_columns class='controlled pt-moreinfo-checkbox'><span>erweiterte Statistiken</span></button>
               </div>";
 	echo "<div class='table playerstable'>";
@@ -206,7 +206,7 @@ if ($teamInTournament->gamesPlayed == 0) {
 		if (count($player->stats->champions) > 5) {
 			echo "
                 <tr class='expand-table'>
-                    <td colspan='5'><div class='material-symbol'>".file_get_contents(__DIR__."/../icons/material/expand_less.svg")."</div></td>
+                    <td colspan='5'><div class='material-symbol'>".file_get_contents(__DIR__."/../assets/icons/material/expand_less.svg")."</div></td>
                 </tr>";
 		}
 		echo "</table>";
@@ -344,9 +344,9 @@ echo "</main>";
 
 function populate_th($maintext,$tooltiptext,$init=false) {
 	if ($init) {
-		$svg_code = file_get_contents(dirname(__DIR__,2)."/public/icons/material/expand_more.svg");
+		$svg_code = file_get_contents(dirname(__DIR__,2)."/public/assets/icons/material/expand_more.svg");
 	} else {
-		$svg_code = file_get_contents(dirname(__DIR__,2)."/public/icons/material/check_indeterminate_small.svg");
+		$svg_code = file_get_contents(dirname(__DIR__,2)."/public/assets/icons/material/check_indeterminate_small.svg");
 	}
 	return "<span class='tooltip'>$maintext<span class='tooltiptext'>$tooltiptext</span><div class='material-symbol sort-direction'>".$svg_code."</div></span>";
 }

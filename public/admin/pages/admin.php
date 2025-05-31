@@ -30,14 +30,14 @@ if ($loggedin) {
 		</div>
 		<dialog id="tournament-add" class="">
 			<div class="dialog-content">
-				<button class="close-popup"><span class="material-symbol"><?php echo file_get_contents(__DIR__."/../../icons/material/close.svg") ?></span></button>
+				<button class="close-popup"><span class="material-symbol"><?php echo file_get_contents(__DIR__."/../../assets/icons/material/close.svg") ?></span></button>
 				<div class="close-button-space"></div>
 
 			</div>
 		</dialog>
         <dialog id="related-add" class="clear-on-exit">
             <div class="dialog-content">
-                <button class="close-popup"><span class="material-symbol"><?php echo file_get_contents(__DIR__."/../../icons/material/close.svg") ?></span></button>
+                <button class="close-popup"><span class="material-symbol"><?php echo file_get_contents(__DIR__."/../../assets/icons/material/close.svg") ?></span></button>
                 <div class="close-button-space"></div>
             </div>
         </dialog>
@@ -53,7 +53,7 @@ if ($loggedin) {
             <button class="open_ranked_split_popup"><span>LoL Ranked Splits</span></button>
             <dialog id="ranked-split-popup" class="dismissable-popup">
                 <div class="dialog-content">
-                    <button class="close-popup"><span class="material-symbol"><?php echo file_get_contents(__DIR__."/../../icons/material/close.svg") ?></span></button>
+                    <button class="close-popup"><span class="material-symbol"><?php echo file_get_contents(__DIR__."/../../assets/icons/material/close.svg") ?></span></button>
                     <div class="close-button-space"></div>
 					<?php
 					echo create_ranked_split_list($dbcn);

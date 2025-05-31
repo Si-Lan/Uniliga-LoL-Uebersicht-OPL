@@ -3,8 +3,8 @@
 namespace App\UI\Components\Helpers;
 
 class IconRenderer {
-	protected const string ICON_PATH = BASE_PATH.'/public/icons/';
-	protected const string MATERIAL_ICON_PATH = BASE_PATH.'/public/icons/material/';
+	protected const string ICON_PATH = BASE_PATH.'/public/assets/icons/';
+	protected const string MATERIAL_ICON_PATH = BASE_PATH.'/public/assets/icons/material/';
 	protected const string IMG_PATH = BASE_PATH.'/public/img/';
 	protected const string ROLE_ICON_PATH = BASE_PATH.'/public/ddragon/img/positions/';
 	protected const string RANK_ICON_PATH = BASE_PATH.'/public/ddragon/img/ranks/mini-crests/';

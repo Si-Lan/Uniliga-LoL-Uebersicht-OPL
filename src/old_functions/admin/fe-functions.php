@@ -14,7 +14,7 @@ function create_tournament_buttons(mysqli $dbcn, array $open_accordeons = []):st
 
 	foreach ($tournaments as $tournament) {
 		$open = in_array($tournament["OPL_ID"],$open_accordeons) ? " open" : "";
-		$result .= "<span class='tsl-heading'><h3>{$tournament["name"]}</h3><button class='toggle-turnierselect-accordeon$open' type='button' data-id='{$tournament["OPL_ID"]}'><div class='material-symbol'>".file_get_contents(dirname(__DIR__,3)."/public/icons/material/expand_more.svg")."</div></button></span>";
+		$result .= "<span class='tsl-heading'><h3>{$tournament["name"]}</h3><button class='toggle-turnierselect-accordeon$open' type='button' data-id='{$tournament["OPL_ID"]}'><div class='material-symbol'>".file_get_contents(dirname(__DIR__,3)."/public/assets/icons/material/expand_more.svg")."</div></button></span>";
 		$result .= "<div class='turnier-sl-accordeon {$tournament["OPL_ID"]}$open'><div class='tsl-acc-content'>";
 		$result .= create_tournament_get_button($tournament);
 
@@ -24,7 +24,7 @@ function create_tournament_buttons(mysqli $dbcn, array $open_accordeons = []):st
 		if ($leagues != null) $result .= "<span class='tsl-heading'><h4>- Ligen</h4></span>";
 		foreach ($leagues as $league) {
 			$open = in_array($league["OPL_ID"],$open_accordeons) ? " open" : "";
-			$result .= "<span class='tsl-heading'><h5>Liga {$league["number"]}</h5><button class='toggle-turnierselect-accordeon$open' type='button' data-id='{$league["OPL_ID"]}'><div class='material-symbol'>".file_get_contents(dirname(__DIR__,3)."/public/icons/material/expand_more.svg")."</div></button></span>";
+			$result .= "<span class='tsl-heading'><h5>Liga {$league["number"]}</h5><button class='toggle-turnierselect-accordeon$open' type='button' data-id='{$league["OPL_ID"]}'><div class='material-symbol'>".file_get_contents(dirname(__DIR__,3)."/public/assets/icons/material/expand_more.svg")."</div></button></span>";
 			$result .= "<div class='turnier-sl-accordeon {$league["OPL_ID"]}$open'><div class='tsl-acc-content'>";
 			$result .= create_tournament_get_button($league);
 			$groups = $dbcn->execute_query("SELECT * FROM tournaments WHERE eventType='group' AND OPL_ID_parent = ? ORDER BY number",[$league["OPL_ID"]])->fetch_all(MYSQLI_ASSOC);
@@ -40,7 +40,7 @@ function create_tournament_buttons(mysqli $dbcn, array $open_accordeons = []):st
 		$events = array_filter($events, function($element) use($playoffs) {return !in_array($element,$playoffs);});
 
 		$open = in_array("playoffs",$open_accordeons) ? " open" : "";
-		if ($playoffs != null) $result .= "<span class='tsl-heading'><h4>-Playoffs</h4><button class='toggle-turnierselect-accordeon$open' type='button' data-id='playoffs'><div class='material-symbol'>".file_get_contents(dirname(__DIR__,3)."/public/icons/material/expand_more.svg")."</div></button></span>";
+		if ($playoffs != null) $result .= "<span class='tsl-heading'><h4>-Playoffs</h4><button class='toggle-turnierselect-accordeon$open' type='button' data-id='playoffs'><div class='material-symbol'>".file_get_contents(dirname(__DIR__,3)."/public/assets/icons/material/expand_more.svg")."</div></button></span>";
 		$result .= "<div class='turnier-sl-accordeon playoffs$open'><div class='tsl-acc-content'>";
 		foreach ($playoffs as $playoff) {
 			$result .= create_tournament_get_button($playoff);
@@ -50,7 +50,7 @@ function create_tournament_buttons(mysqli $dbcn, array $open_accordeons = []):st
         $wildcards = $dbcn->execute_query("SELECT * FROM tournaments WHERE eventType='wildcard' AND OPL_ID_top_parent = ? ORDER BY number, numberRangeTo",[$tournament["OPL_ID"]])->fetch_all(MYSQLI_ASSOC);
         $events = array_filter($events, function ($element) use ($wildcards) {return !in_array($element,$wildcards);});
         $open = in_array("wildcards",$open_accordeons) ? " open" : "";
-        if ($wildcards != null) $result .= "<span class='tsl-heading'><h4>-Wildcards</h4><button class='toggle-turnierselect-accordeon$open' type='button' data-id='wildcards'><div class='material-symbol'>".file_get_contents(dirname(__DIR__,3)."/public/icons/material/expand_more.svg")."</div></button></span>";
+        if ($wildcards != null) $result .= "<span class='tsl-heading'><h4>-Wildcards</h4><button class='toggle-turnierselect-accordeon$open' type='button' data-id='wildcards'><div class='material-symbol'>".file_get_contents(dirname(__DIR__,3)."/public/assets/icons/material/expand_more.svg")."</div></button></span>";
         $result .= "<div class='turnier-sl-accordeon wildcards$open'><div class='tsl-acc-content'>";
         foreach ($wildcards as $wildcard) {
             $result .= create_tournament_get_button($wildcard);
@@ -76,8 +76,8 @@ function create_ranked_split_list(mysqli $dbcn):string {
 	$result .= create_ranked_split_rows($dbcn);
 
 	$result .= "<div class='button-row'>
-					<button type='button' class='add_ranked_split'><div class='material-symbol'>".file_get_contents(dirname(__DIR__,3)."/public/icons/material/add.svg")."</div>Hinzufügen</button>
-					<button type='button' class='save_ranked_split_changes'><div class='material-symbol'>".file_get_contents(dirname(__DIR__,3)."/public/icons/material/save.svg")."</div>Änderungen Speichern</button>
+					<button type='button' class='add_ranked_split'><div class='material-symbol'>".file_get_contents(dirname(__DIR__,3)."/public/assets/icons/material/add.svg")."</div>Hinzufügen</button>
+					<button type='button' class='save_ranked_split_changes'><div class='material-symbol'>".file_get_contents(dirname(__DIR__,3)."/public/assets/icons/material/save.svg")."</div>Änderungen Speichern</button>
 				</div>";
 
 	$result .= "</div>";
@@ -92,8 +92,8 @@ function create_ranked_split_rows(mysqli $dbcn):string {
 						<label class=\"write_ranked_split_split\">Split<input type=\"text\" value=\"{$split["split"]}\" readonly></label>
 						<label class=\"write_ranked_split_startdate\">Start<input type=\"date\" value=\"{$split["split_start"]}\"></label>
 						<label class=\"write_ranked_split_enddate\">Ende<input type=\"date\" value=\"{$split["split_end"]}\"></label>
-						<button class='sec-button reset_inputs' title='Zurücksetzen'><div class='material-symbol'>".file_get_contents(dirname(__DIR__,3)."/public/icons/material/restart.svg")."</div></button>
-						<button class='sec-button delete_ranked_split' title='Löschen'><div class='material-symbol'>".file_get_contents(dirname(__DIR__,3)."/public/icons/material/delete.svg")."</div></button>
+						<button class='sec-button reset_inputs' title='Zurücksetzen'><div class='material-symbol'>".file_get_contents(dirname(__DIR__,3)."/public/assets/icons/material/restart.svg")."</div></button>
+						<button class='sec-button delete_ranked_split' title='Löschen'><div class='material-symbol'>".file_get_contents(dirname(__DIR__,3)."/public/assets/icons/material/delete.svg")."</div></button>
 					</div>";
 	}
 	return $result;
@@ -104,8 +104,8 @@ function create_ranked_split_addition() {
 						<label class=\"write_ranked_split_split\">Split<input type=\"text\"></label>
 						<label class=\"write_ranked_split_startdate\">Start<input type=\"date\"></label>
 						<label class=\"write_ranked_split_enddate\">Ende<input type=\"date\"></label>
-						<button class='sec-button save_ranked_split' title='Zurücksetzen'><div class='material-symbol'>".file_get_contents(dirname(__DIR__,3)."/public/icons/material/save.svg")."</div></button>
-						<button class='sec-button delete_ranked_split' title='Löschen'><div class='material-symbol'>".file_get_contents(dirname(__DIR__,3)."/public/icons/material/close.svg")."</div></button>
+						<button class='sec-button save_ranked_split' title='Zurücksetzen'><div class='material-symbol'>".file_get_contents(dirname(__DIR__,3)."/public/assets/icons/material/save.svg")."</div></button>
+						<button class='sec-button delete_ranked_split' title='Löschen'><div class='material-symbol'>".file_get_contents(dirname(__DIR__,3)."/public/assets/icons/material/close.svg")."</div></button>
 					</div>";
 }
 

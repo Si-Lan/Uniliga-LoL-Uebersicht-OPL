@@ -6,6 +6,7 @@ use App\Domain\Repositories\TeamInTournamentRepository;
 use App\Domain\Repositories\TeamInTournamentStageRepository;
 use App\Domain\Services\EntitySorter;
 use App\UI\Components\Cards\SummonerCardContainer;
+use App\UI\Components\Helpers\IconRenderer;
 use App\UI\Components\Matches\MatchButtonList;
 use App\UI\Components\MultiOpggButton;
 use App\UI\Components\Navigation\Header;
@@ -61,13 +62,11 @@ $pageMeta = new PageMeta(
 
             <?= new MultiOpggButton($teamInTournament) ?>
 
-            <?php
-            if (UserContext::summonerCardCollapsed()) {
-                echo "<button type='button' class='exp_coll_sc'><div class='material-symbol'>".file_get_contents(__DIR__."/../icons/material/unfold_more.svg")."</div>Stats ein</button>";
-            } else {
-                echo "<button type='button' class='exp_coll_sc'><div class='material-symbol'>".file_get_contents(__DIR__."/../icons/material/unfold_less.svg")."</div>Stats aus</button>";
-            }
-            ?>
+            <?php if (UserContext::summonerCardCollapsed()): ?>
+                <button type='button' class='exp_coll_sc'><?= IconRenderer::getMaterialIconDiv('unfold_more')?>Stats ein</button>
+            <?php else: ?>
+                <button type='button' class='exp_coll_sc'><?= IconRenderer::getMaterialIconDiv('unfold_less')?>Stats aus</button>
+            <?php endif; ?>
 
             <?= new TeamRankDisplay($teamInTournament,true) ?>
 

@@ -97,7 +97,7 @@ function create_header(mysqli $dbcn = NULL, string $title = "home", string|int $
 	$result = "";
 
 	$opl_event_url = "https://www.opleague.pro/event";
-	$outlinkicon = file_get_contents(dirname(__DIR__,2)."/public/icons/material/open_in_new.svg");
+	$outlinkicon = file_get_contents(dirname(__DIR__,2)."/public/assets/icons/material/open_in_new.svg");
 	if ($dbcn != NULL && $tournament_id != NULL) {
 		$tournament = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID = ?",[$tournament_id])->fetch_assoc();
 		$t_name_clean = preg_replace("/LoL\s/i","",$tournament["name"]);
@@ -112,7 +112,7 @@ function create_header(mysqli $dbcn = NULL, string $title = "home", string|int $
 	if ($home_button) {
 		$result .= "
 	<a href='/' class='button material-symbol'>
-		".file_get_contents(dirname(__DIR__,2)."/public/icons/material/home.svg")."
+		".file_get_contents(dirname(__DIR__,2)."/public/assets/icons/material/home.svg")."
 	</a>";
 	}
 	$searchbar = "";
@@ -120,11 +120,11 @@ function create_header(mysqli $dbcn = NULL, string $title = "home", string|int $
 		$searchbar = "
 		<div class='searchbar'>
 			<span class='material-symbol search-icon' title='Suche'>
-				".file_get_contents(dirname(__DIR__,2)."/public/icons/material/search.svg")."
+				".file_get_contents(dirname(__DIR__,2)."/public/assets/icons/material/search.svg")."
 			</span>
 			<input class='search-all deletable-search' placeholder='Suche' type='search'>
 			<button class='material-symbol search-clear' title='Suche leeren'>
-				".file_get_contents(dirname(__DIR__,2)."/public/icons/material/close.svg")."
+				".file_get_contents(dirname(__DIR__,2)."/public/assets/icons/material/close.svg")."
 			</button>
 		</div>";
 	}
@@ -179,25 +179,25 @@ function create_header(mysqli $dbcn = NULL, string $title = "home", string|int $
 		$result .= $searchbar.$title_text;
 	}
 
-	$result .= "<button type='button' class='material-symbol settings-button'>". file_get_contents(dirname(__DIR__,2)."/public/icons/material/tune.svg") ."</button>";
+	$result .= "<button type='button' class='material-symbol settings-button'>". file_get_contents(dirname(__DIR__,2)."/public/assets/icons/material/tune.svg") ."</button>";
 	if ($loggedin) {
 		$result .= "
 			<div class='settings-menu'>
-				<a class='settings-option toggle-mode' href=''><div class='material-symbol'>". file_get_contents(dirname(__DIR__,2)."/public/icons/material/{$colormode}_mode.svg") ."</div></a>
-				<a class='settings-option toor-write' href='/admin'>Admin<div class='material-symbol'>". file_get_contents(dirname(__DIR__,2)."/public/icons/material/edit_square.svg") ."</div></a>
-				<a class='settings-option rgapi-write' href='/admin/rgapi'>RGAPI<div class='material-symbol'>". file_get_contents(dirname(__DIR__,2)."/public/icons/material/videogame_asset.svg") ."</div></a>
-				<a class='settings-option ddragon-write' href='/admin/ddragon'>DDragon<div class='material-symbol'>". file_get_contents(dirname(__DIR__,2)."/public/icons/material/photo_library.svg") ."</div></a>
+				<a class='settings-option toggle-mode' href=''><div class='material-symbol'>". file_get_contents(dirname(__DIR__,2)."/public/assets/icons/material/{$colormode}_mode.svg") ."</div></a>
+				<a class='settings-option toor-write' href='/admin'>Admin<div class='material-symbol'>". file_get_contents(dirname(__DIR__,2)."/public/assets/icons/material/edit_square.svg") ."</div></a>
+				<a class='settings-option rgapi-write' href='/admin/rgapi'>RGAPI<div class='material-symbol'>". file_get_contents(dirname(__DIR__,2)."/public/assets/icons/material/videogame_asset.svg") ."</div></a>
+				<a class='settings-option ddragon-write' href='/admin/ddragon'>DDragon<div class='material-symbol'>". file_get_contents(dirname(__DIR__,2)."/public/assets/icons/material/photo_library.svg") ."</div></a>
 				<a class='settings-option update-log' href='/admin/updates'>Update-Logs</a>
-				<a class='settings-option logout' href='?logout'>Logout<div class='material-symbol'>". file_get_contents(dirname(__DIR__,2)."/public/icons/material/logout.svg") ."</div></a>
+				<a class='settings-option logout' href='?logout'>Logout<div class='material-symbol'>". file_get_contents(dirname(__DIR__,2)."/public/assets/icons/material/logout.svg") ."</div></a>
 			</div>";
 	} else {
 		$result .= "
 			<div class='settings-menu'>
-				<a class='settings-option toggle-mode' href=''><div class='material-symbol'>". file_get_contents(dirname(__DIR__,2)."/public/icons/material/{$colormode}_mode.svg") ."</div></a>
+				<a class='settings-option toggle-mode' href=''><div class='material-symbol'>". file_get_contents(dirname(__DIR__,2)."/public/assets/icons/material/{$colormode}_mode.svg") ."</div></a>
 				<a class='settings-option github-link' href='https://github.com/Si-Lan/Uniliga-LoL-Uebersicht-OPL' target='_blank'>GitHub<div class='material-symbol'>". file_get_contents(dirname(__DIR__,2)."/public/img/github-mark-white.svg") ."</div></a>
-				<a class='settings-option' href='https://ko-fi.com/silencelol' target='_blank'>Spenden<div class='material-symbol'>". file_get_contents(dirname(__DIR__,2)."/public/icons/material/payments.svg") ."</div></a>
-				<a class='settings-option feedback' href=''>Feedback<div class='material-symbol'>". file_get_contents(dirname(__DIR__,2)."/public/icons/material/mail.svg") ."</div></a>
-				<a class='settings-option login' href='?login'>Login<div class='material-symbol'>". file_get_contents(dirname(__DIR__,2)."/public/icons/material/login.svg") ."</div></a>
+				<a class='settings-option' href='https://ko-fi.com/silencelol' target='_blank'>Spenden<div class='material-symbol'>". file_get_contents(dirname(__DIR__,2)."/public/assets/icons/material/payments.svg") ."</div></a>
+				<a class='settings-option feedback' href=''>Feedback<div class='material-symbol'>". file_get_contents(dirname(__DIR__,2)."/public/assets/icons/material/mail.svg") ."</div></a>
+				<a class='settings-option login' href='?login'>Login<div class='material-symbol'>". file_get_contents(dirname(__DIR__,2)."/public/assets/icons/material/login.svg") ."</div></a>
 			</div>";
 	}
 	$result .= "</header>";
@@ -205,7 +205,7 @@ function create_header(mysqli $dbcn = NULL, string $title = "home", string|int $
 	$result .= "
 		<dialog id='login-dialog' class='dismissable-popup $loginopen'>
 			<div class='dialog-content'>
-				<button class='close-popup'><span class='material-symbol'>".file_get_contents(dirname(__DIR__,2)."/public/icons/material/close.svg")."</span></button>
+				<button class='close-popup'><span class='material-symbol'>".file_get_contents(dirname(__DIR__,2)."/public/assets/icons/material/close.svg")."</span></button>
 				<div class='close-button-space'></div>
 				<div style='display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 40px'>
 					<form action='".strtok($_SERVER['REQUEST_URI'],'?')."?login' method='post' style='display: flex; flex-direction: column; align-items: center; gap: 1em;'>
@@ -223,7 +223,7 @@ function create_header(mysqli $dbcn = NULL, string $title = "home", string|int $
 function create_dropdown(string $type, array $items):string {
 	$first_key = array_key_first($items);
 	$result = "<div class='button-dropdown-wrapper'>";
-	$result .= "<button type='button' class='button-dropdown' data-dropdowntype='$type'>{$items[$first_key]}<span class='material-symbol'>".file_get_contents(dirname(__DIR__,2)."/public/icons/material/expand_more.svg")."</span></button>";
+	$result .= "<button type='button' class='button-dropdown' data-dropdowntype='$type'>{$items[$first_key]}<span class='material-symbol'>".file_get_contents(dirname(__DIR__,2)."/public/assets/icons/material/expand_more.svg")."</span></button>";
 	$result .= "<div class='dropdown-selection'>";
 	foreach ($items as $data_name=>$name) {
 		$selected = ($data_name == $first_key) ? "selected-item" : "";

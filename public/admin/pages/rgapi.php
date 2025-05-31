@@ -19,7 +19,7 @@ if ($loggedin) {
 	foreach ($tournaments as $tournament) {
 		echo "<option value='".$tournament['OPL_ID']."'>{$tournament["name"]}</option>";
 	}
-	echo "</select><span class='material-symbol'>".file_get_contents(__DIR__."/../../icons/material/arrow_drop_down.svg")."</span></div>";
+	echo "</select><span class='material-symbol'>".file_get_contents(__DIR__."/../../assets/icons/material/arrow_drop_down.svg")."</span></div>";
 	foreach ($tournaments as $index=>$tournament) {
 		if ($index == 0) {
 			$hiddenclass = "";

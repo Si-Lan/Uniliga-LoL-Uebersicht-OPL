@@ -223,7 +223,7 @@ function create_tournament_get_button(array $data, bool $in_write_popup = false)
 								<option $typeselect_playoffs value='playoffs'>Playoffs</option>
 								<option $typeselect_wildcard value='wildcard'>Wildcard</option>
 							</select>
-							<span class='material-symbol'>".file_get_contents(dirname(__DIR__,3)."/public/icons/material/arrow_drop_down.svg")."</span>
+							<span class='material-symbol'>".file_get_contents(dirname(__DIR__,3)."/public/assets/icons/material/arrow_drop_down.svg")."</span>
 						</span>
 					</label>
 					<label class=\"write_tournament_parent\">Parent:<input type=\"text\" value=\"{$data["OPL_ID_parent"]}\"></label>
@@ -237,7 +237,7 @@ function create_tournament_get_button(array $data, bool $in_write_popup = false)
 								<option $splitselect_winter value='winter'>Winter</option>
 								<option $splitselect_sommer value='sommer'>Sommer</option>
 							</select>
-							<span class='material-symbol'>".file_get_contents(dirname(__DIR__,3)."/public/icons/material/arrow_drop_down.svg") ."</span>
+							<span class='material-symbol'>".file_get_contents(dirname(__DIR__,3)."/public/assets/icons/material/arrow_drop_down.svg") ."</span>
 						</span>
 					</label>
 					<label class=\"write_tournament_season\"><input type=\"number\" value=\"{$data["season"]}\" placeholder='##'></label>
@@ -254,7 +254,7 @@ function create_tournament_get_button(array $data, bool $in_write_popup = false)
 								<option $formatselect_double_elim value='double-elimination'>double-elim</option>
 								<option $formatselect_swiss value='swiss'>swiss</option>
 							</select>
-							<span class='material-symbol'>".file_get_contents(dirname(__DIR__,3)."/public/icons/material/arrow_drop_down.svg")."</span>
+							<span class='material-symbol'>".file_get_contents(dirname(__DIR__,3)."/public/assets/icons/material/arrow_drop_down.svg")."</span>
 						</span>
 					</label>
 				</div>
