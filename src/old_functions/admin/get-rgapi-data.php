@@ -841,7 +841,7 @@ function calculate_teamstats($teamID, $tournamentID) {
 	$wins = 0;
 	$win_time = 0;
 
-	$ddragon_dir = new DirectoryIterator(dirname(__DIR__,3)."/public/ddragon");
+	$ddragon_dir = new DirectoryIterator(dirname(__DIR__,3)."/public/assets/ddragon");
 	$patches = [];
 
 	foreach ($ddragon_dir as $patch_dir) {
@@ -851,7 +851,7 @@ function calculate_teamstats($teamID, $tournamentID) {
 	}
 	usort($patches, "version_compare");
 	$latest_patch = end($patches);
-	$champion_data = json_decode(file_get_contents(dirname(__DIR__,3)."/public/ddragon/$latest_patch/data/champion.json"),true)['data'];
+	$champion_data = json_decode(file_get_contents(dirname(__DIR__,3)."/public/assets/ddragon/$latest_patch/data/champion.json"),true)['data'];
 	$champions_by_key = [];
 	foreach ($champion_data as $champ) {
 		$champions_by_key[$champ['key']] = $champ['id'];

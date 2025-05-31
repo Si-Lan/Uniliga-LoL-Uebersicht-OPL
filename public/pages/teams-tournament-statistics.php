@@ -69,7 +69,7 @@ if ($teamInTournament->gamesPlayed == 0) {
 	foreach ($team_roles as $role=>$role_players) {
 		arsort($role_players);
 		echo "<div class='role'>
-                    <div class='svg-wrapper role'>".file_get_contents(__DIR__."/../ddragon/img/positions/position-$role-light.svg")."</div>";
+                    <div class='svg-wrapper role'>".file_get_contents(__DIR__."/../assets/ddragon/img/positions/position-$role-light.svg")."</div>";
 		echo "<div class='roleplayers'>";
 		$count_role_players = 0;
 		foreach ($role_players as $role_player=>$role_player_num) {
@@ -196,7 +196,7 @@ if ($teamInTournament->gamesPlayed == 0) {
             $assists_ratio = round($champ['assists'] / $champ['games'], 1);
 			echo "
                 <tr>
-                    <td class='champion'><img src='/ddragon/$latest_patch->patchNumber/img/champion/$champ_name.webp' alt='$champ_name'></td>
+                    <td class='champion'><img src='/assets/ddragon/$latest_patch->patchNumber/img/champion/$champ_name.webp' alt='$champ_name'></td>
                     <td class='picks_col'>".$champ['games']."</td>
                     <td class='wins_col'>".$champ['wins']."</td>
                     <td class='winrate_col'>".round(($champ['wins'] / $champ['games']) * 100, 2)."%</td>
@@ -239,7 +239,7 @@ if ($teamInTournament->gamesPlayed == 0) {
 		}
 		echo "
             <tr>
-                <td class='champion'><img src='/ddragon/$latest_patch->patchNumber/img/champion/$champ_name.webp' alt='$champ_name'></td>
+                <td class='champion'><img src='/assets/ddragon/$latest_patch->patchNumber/img/champion/$champ_name.webp' alt='$champ_name'></td>
                 <td>".$champ['played']."</td>
                 <td>".$champ['played_against']."</td>
                 <td>".$champ['banned']."</td>
@@ -264,7 +264,7 @@ if ($teamInTournament->gamesPlayed == 0) {
 	foreach ($teamInTournament->champsPlayed as $champ_name => $champ) {
 		echo "
             <tr>
-                <td class='champion'><img src='/ddragon/$latest_patch->patchNumber/img/champion/$champ_name.webp' alt='$champ_name'></td>
+                <td class='champion'><img src='/assets/ddragon/$latest_patch->patchNumber/img/champion/$champ_name.webp' alt='$champ_name'></td>
                 <td>".$champ['games']."</td>
                 <td>".round(($champ['wins']/$champ['games'])*100,2)."% (".$champ['wins'].")</td>
             </tr>";
@@ -281,7 +281,7 @@ if ($teamInTournament->gamesPlayed == 0) {
 	foreach ($teamInTournament->champsPlayedAgainst as $champ_name => $champ_num) {
 		echo "
             <tr>
-                <td class='champion'><img src='/ddragon/$latest_patch->patchNumber/img/champion/$champ_name.webp' alt='$champ_name'></td>
+                <td class='champion'><img src='/assets/ddragon/$latest_patch->patchNumber/img/champion/$champ_name.webp' alt='$champ_name'></td>
                 <td>".$champ_num."</td>
             </tr>";
 	}
@@ -297,7 +297,7 @@ if ($teamInTournament->gamesPlayed == 0) {
 	foreach ($teamInTournament->champsBannedAgainst as $champ_name => $champ_num) {
 		echo "
             <tr>
-                <td class='champion'><img src='/ddragon/$latest_patch->patchNumber/img/champion/$champ_name.webp' alt='$champ_name'></td>
+                <td class='champion'><img src='/assets/ddragon/$latest_patch->patchNumber/img/champion/$champ_name.webp' alt='$champ_name'></td>
                 <td>".$champ_num."</td>
             </tr>";
 	}
@@ -313,7 +313,7 @@ if ($teamInTournament->gamesPlayed == 0) {
 	foreach ($teamInTournament->champsBanned as $champ_name => $champ_num) {
 		echo "
             <tr>
-                <td class='champion'><img src='/ddragon/$latest_patch->patchNumber/img/champion/$champ_name.webp' alt='$champ_name'></td>
+                <td class='champion'><img src='/assets/ddragon/$latest_patch->patchNumber/img/champion/$champ_name.webp' alt='$champ_name'></td>
                 <td>".$champ_num."</td>
             </tr>";
 	}
@@ -330,7 +330,7 @@ if ($teamInTournament->gamesPlayed == 0) {
 	foreach ($champs_presence_only as $champ_name => $champ_num) {
 		echo "
             <tr>
-                <td class='champion'><img src='/ddragon/$latest_patch->patchNumber/img/champion/$champ_name.webp' alt='$champ_name'></td>
+                <td class='champion'><img src='/assets/ddragon/$latest_patch->patchNumber/img/champion/$champ_name.webp' alt='$champ_name'></td>
                 <td>".round(($champ_num/$teamInTournament->gamesPlayed)*100,2)."% (".$champ_num.")</td>
             </tr>";
 	}

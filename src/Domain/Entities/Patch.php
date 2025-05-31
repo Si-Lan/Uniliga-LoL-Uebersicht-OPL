@@ -16,12 +16,12 @@ class Patch {
 		public bool $spellWebp = false,
 		public bool $runesWebp = false
 	) {
-		$this->imgUrl = "/ddragon/$this->patchNumber/img";
+		$this->imgUrl = "/assets/ddragon/$this->patchNumber/img";
 	}
 
 	public function getRuneUrlById(int $runeId): ?string {
 		if ($this->runesData === null) {
-			$this->runesData = json_decode(file_get_contents(BASE_PATH."/public/ddragon/$this->patchNumber/data/runesReforged.json"),true);
+			$this->runesData = json_decode(file_get_contents(BASE_PATH."/public/assets/ddragon/$this->patchNumber/data/runesReforged.json"),true);
 		}
 		foreach ($this->runesData as $runePage) {
 			if ($runePage['id'] == $runeId) {
@@ -37,7 +37,7 @@ class Patch {
 	}
 	public function getRuneNameById(int $runeId): ?string {
 		if ($this->runesData === null) {
-			$this->runesData = json_decode(file_get_contents(BASE_PATH."/public/ddragon/$this->patchNumber/data/runesReforged.json"),true);
+			$this->runesData = json_decode(file_get_contents(BASE_PATH."/public/assets/ddragon/$this->patchNumber/data/runesReforged.json"),true);
 		}
 		foreach ($this->runesData as $runePage) {
 			if ($runePage['id'] == $runeId) {
@@ -54,7 +54,7 @@ class Patch {
 
 	public function getSummonerSpellUrlById(int $summonerSpellId): ?string {
 		if ($this->summonerSpellData === null) {
-			$this->summonerSpellData = json_decode(file_get_contents(BASE_PATH."/public/ddragon/$this->patchNumber/data/summoner.json"),true);
+			$this->summonerSpellData = json_decode(file_get_contents(BASE_PATH."/public/assets/ddragon/$this->patchNumber/data/summoner.json"),true);
 			$this->summonerSpellData = array_column($this->summonerSpellData['data'],'id','key');
 		}
 		return $this->imgUrl.'/spell/'.$this->summonerSpellData[$summonerSpellId].'.webp';
@@ -65,14 +65,14 @@ class Patch {
 	}
 	public function getItemNameById(int $itemId): ?string {
 		if ($this->itemData === null) {
-			$this->itemData = json_decode(file_get_contents(BASE_PATH."/public/ddragon/$this->patchNumber/data/item.json"),true);
+			$this->itemData = json_decode(file_get_contents(BASE_PATH."/public/assets/ddragon/$this->patchNumber/data/item.json"),true);
 			$this->itemData = $this->itemData['data'];
 		}
 		return $this->itemData[$itemId]['name'];
 	}
 	public function getChampionUrlById(int $championId): ?string {
 		if ($this->championData === null) {
-			$this->championData = json_decode(file_get_contents(BASE_PATH."/public/ddragon/$this->patchNumber/data/champion.json"),true);
+			$this->championData = json_decode(file_get_contents(BASE_PATH."/public/assets/ddragon/$this->patchNumber/data/champion.json"),true);
 			$this->championData = array_column($this->championData['data'],'id','key');
 		}
 		return $this->imgUrl.'/champion/'.$this->championData[$championId].'.webp';

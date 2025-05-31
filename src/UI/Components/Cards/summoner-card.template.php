@@ -34,7 +34,7 @@ $playerPopup = new Popup($player->id, "player-popup", dismissable: true);
             if ($playerTT == null && $player->rank->rankTier != null) {
                 ?>
             <div class="card-rank">
-                <img class='rank-emblem-mini' src='/ddragon/img/ranks/mini-crests/<?=$player->rank->getRankTierLowercase()?>.svg' alt='<?=$player->rank->getRankTier()?>'>
+                <img class='rank-emblem-mini' src='/assets/ddragon/img/ranks/mini-crests/<?=$player->rank->getRankTierLowercase()?>.svg' alt='<?=$player->rank->getRankTier()?>'>
     			<?=$player->rank->getRank()?>
             </div>
             <?php
@@ -44,7 +44,7 @@ $playerPopup = new Popup($player->id, "player-popup", dismissable: true);
                     $rank_classes = implode(" ", ["card-rank", "split_rank_element", "ranked-split-{$playerRank->rankedSplit->season}-{$playerRank->rankedSplit->split}"]);
                     $css_style = $currentSplit->equals($playerRank->rankedSplit) ? "" : "display: none";?>
             <div class="<?=$rank_classes?>" style="<?=$css_style?>">
-                <img class='rank-emblem-mini' src='/ddragon/img/ranks/mini-crests/<?=$playerRank->rank->getRankTierLowercase()?>.svg' alt='<?=$playerRank->rank->getRankTier()?>'>
+                <img class='rank-emblem-mini' src='/assets/ddragon/img/ranks/mini-crests/<?=$playerRank->rank->getRankTierLowercase()?>.svg' alt='<?=$playerRank->rank->getRankTier()?>'>
                 <?=$playerRank->rank->getRank()?>
             </div>
             <?php
@@ -70,7 +70,7 @@ $playerPopup = new Popup($player->id, "player-popup", dismissable: true);
 				foreach ($playerTT->stats->getTopChampions(5) as $champion=>$champion_amount) {
                     ?>
                 <div class="champ-single">
-                    <img src='/ddragon/<?=$latestPatch->patchNumber?>/img/champion/<?=$champion?>.webp' alt='<?=$champion?>'>
+                    <img src='/assets/ddragon/<?=$latestPatch->patchNumber?>/img/champion/<?=$champion?>.webp' alt='<?=$champion?>'>
                     <span class="played-amount"><?=$champion_amount['games']?></span>
                 </div>
 				    <?php

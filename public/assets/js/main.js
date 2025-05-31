@@ -412,12 +412,12 @@ async function popup_team(teamID, tournamentID = null) {
 				if (team_data["team"]["avg_rank_tier"] !== null && team_data["team"]["avg_rank_tier"] !== "") {
 					let rank_hide = (team_data["ranked_splits"][1] === team_data["ranked_splits"]["current"]) ? "" : "display:none";
 					team_data["team"]["avg_rank_tier"] = team_data["team"]["avg_rank_tier"][0].toUpperCase() + team_data["team"]["avg_rank_tier"].substring(1).toLowerCase();
-					popup.append(`<div class='team-avg-rank split_rank_element ranked-split-${team_data["ranked_splits"][1]}' style='${rank_hide}'>Teams avg. Rang: <img class='rank-emblem-mini' src='/ddragon/img/ranks/mini-crests/` + team_data["team"]["avg_rank_tier"].toLowerCase() + ".svg' alt=''><span>" + team_data["team"]["avg_rank_tier"] + " " + team_data["team"]["avg_rank_div"] + "</span></div>");
+					popup.append(`<div class='team-avg-rank split_rank_element ranked-split-${team_data["ranked_splits"][1]}' style='${rank_hide}'>Teams avg. Rang: <img class='rank-emblem-mini' src='/assets/ddragon/img/ranks/mini-crests/` + team_data["team"]["avg_rank_tier"].toLowerCase() + ".svg' alt=''><span>" + team_data["team"]["avg_rank_tier"] + " " + team_data["team"]["avg_rank_div"] + "</span></div>");
 				}
 				if (team_data["team"]["avg_rank_tier_2"] !== null && team_data["team"]["avg_rank_tier_2"] !== "") {
 					let rank_hide = (team_data["ranked_splits"][2] === team_data["ranked_splits"]["current"]) ? "" : "display:none";
 					team_data["team"]["avg_rank_tier_2"] = team_data["team"]["avg_rank_tier_2"][0].toUpperCase() + team_data["team"]["avg_rank_tier_2"].substring(1).toLowerCase();
-					popup.append(`<div class='team-avg-rank split_rank_element ranked-split-${team_data["ranked_splits"][2]}' style='${rank_hide}'>Teams avg. Rang: <img class='rank-emblem-mini' src='/ddragon/img/ranks/mini-crests/` + team_data["team"]["avg_rank_tier_2"].toLowerCase() + ".svg' alt=''><span>" + team_data["team"]["avg_rank_tier_2"] + " " + team_data["team"]["avg_rank_div_2"] + "</span></div>");
+					popup.append(`<div class='team-avg-rank split_rank_element ranked-split-${team_data["ranked_splits"][2]}' style='${rank_hide}'>Teams avg. Rang: <img class='rank-emblem-mini' src='/assets/ddragon/img/ranks/mini-crests/` + team_data["team"]["avg_rank_tier_2"].toLowerCase() + ".svg' alt=''><span>" + team_data["team"]["avg_rank_tier_2"] + " " + team_data["team"]["avg_rank_div_2"] + "</span></div>");
 				}
 				popup.append("<div class='summoner-card-container'></div>");
 				let card_container = $('div.summoner-card-container');

@@ -62,7 +62,7 @@ if ($teamFocus && $currentTeam->equals($gameInMatch->getWinningTeam()->team)) {
                 <?php $nameAndTag = $this->findPlayersGameNameAndTag($player); ?>
                     <div class="player">
 
-                        <img loading="lazy" alt="" title="<?=$player->championName?>" src="/ddragon/<?=$patch->patchNumber?>/img/champion/<?=$player->championName?>.webp" class="champ">
+                        <img loading="lazy" alt="" title="<?=$player->championName?>" src="/assets/ddragon/<?=$patch->patchNumber?>/img/champion/<?=$player->championName?>.webp" class="champ">
                         <div class="tooltip">
                             <span class="player-name"><?= $nameAndTag[0] ?></span>
                             <?php if ($nameAndTag[1]): ?>
@@ -121,8 +121,8 @@ if ($teamFocus && $currentTeam->equals($gameInMatch->getWinningTeam()->team)) {
 			<?php /** @var \App\Domain\Entities\LolGame\GameTeamData $team */
 			foreach ([$gameData->blueTeam, $gameData->redTeam] as $index=> $team): ?>
                 <div class='stats-wrapper'>
-                    <span><img src='/ddragon/img/kills.png' class='stats kills' alt=''><?= $team->kills ?> / <?= $team->deaths ?> / <?= $team->assists ?></span>
-                    <span><img src='/ddragon/img/icon_gold.png' class='stats gold' alt=''><?= $team->getGoldEarnedFormatted() ?></span>
+                    <span><img src='/assets/ddragon/img/kills.png' class='stats kills' alt=''><?= $team->kills ?> / <?= $team->deaths ?> / <?= $team->assists ?></span>
+                    <span><img src='/assets/ddragon/img/icon_gold.png' class='stats gold' alt=''><?= $team->getGoldEarnedFormatted() ?></span>
                 </div>
 	    		<?php if ($index == 0): ?><div class='game-row-divider'></div><?php endif; ?>
 		    <?php endforeach; ?>
@@ -132,11 +132,11 @@ if ($teamFocus && $currentTeam->equals($gameInMatch->getWinningTeam()->team)) {
 			<?php /** @var \App\Domain\Entities\LolGame\GameTeamData $team */
 			foreach ([$gameData->blueTeam, $gameData->redTeam] as $index=> $team): ?>
                 <div class='obj-wrapper'>
-                    <span><img src='/ddragon/img/right_icons.png' class='obj obj-tower' alt=''><?=$team->towers?></span>
-                    <span><img src='/ddragon/img/right_icons.png' class='obj obj-inhib' alt=''><?=$team->inhibs?></span>
-                    <span><img src='/ddragon/img/right_icons.png' class='obj obj-herald' alt=''><?=$team->heralds?></span>
-                    <span><img src='/ddragon/img/right_icons.png' class='obj obj-dragon' alt=''><?=$team->dragons?></span>
-                    <span><img src='/ddragon/img/right_icons.png' class='obj obj-baron' alt=''><?=$team->barons?></span>
+                    <span><img src='/assets/ddragon/img/right_icons.png' class='obj obj-tower' alt=''><?=$team->towers?></span>
+                    <span><img src='/assets/ddragon/img/right_icons.png' class='obj obj-inhib' alt=''><?=$team->inhibs?></span>
+                    <span><img src='/assets/ddragon/img/right_icons.png' class='obj obj-herald' alt=''><?=$team->heralds?></span>
+                    <span><img src='/assets/ddragon/img/right_icons.png' class='obj obj-dragon' alt=''><?=$team->dragons?></span>
+                    <span><img src='/assets/ddragon/img/right_icons.png' class='obj obj-baron' alt=''><?=$team->barons?></span>
                 </div>
 				<?php if ($index == 0): ?><div class='game-row-divider'></div><?php endif; ?>
 			<?php endforeach; ?>
@@ -180,7 +180,7 @@ if ($teamFocus && $currentTeam->equals($gameInMatch->getWinningTeam()->team)) {
 									$rank_classes = implode(" ", ["summ-rank", "split_rank_element", "ranked-split-{$playerRank->rankedSplit->season}-{$playerRank->rankedSplit->split}"]);
 									$css_style = $currentSplit->equals($playerRank->rankedSplit) ? "" : "display: none";?>
                                     <div class="<?=$rank_classes?>" style="<?=$css_style?>">
-                                        <img class='rank-emblem-mini' src='/ddragon/img/ranks/mini-crests/<?=$playerRank->rank->getRankTierLowercase()?>.svg' alt='<?=$playerRank->rank->getRankTier()?>'>
+                                        <img class='rank-emblem-mini' src='/assets/ddragon/img/ranks/mini-crests/<?=$playerRank->rank->getRankTierLowercase()?>.svg' alt='<?=$playerRank->rank->getRankTier()?>'>
 										<?=$playerRank->rank->getRank(false)?>
                                     </div>
 									<?php
@@ -192,9 +192,9 @@ if ($teamFocus && $currentTeam->equals($gameInMatch->getWinningTeam()->team)) {
 
                         <div class='player-stats'>
                             <div class='player-stats-wrapper'>
-                                <span class='kills'><img loading='lazy' src='/ddragon/img/kills.png' class='stats kills' alt=''><?=$player->kills?> / <?=$player->deaths?> / <?=$player->assists?></span>
-                                <span class='CS'><img loading='lazy' src='/ddragon/img/icon_minions.png' class='stats cs' alt=''><?=$player->totalMinionsKilled?></span>
-                                <span class='gold'><img loading='lazy' src='/ddragon/img/icon_gold.png' class='stats gold' alt=''><?=$player->getGoldEarnedFormatted()?> Gold</span>
+                                <span class='kills'><img loading='lazy' src='/assets/ddragon/img/kills.png' class='stats kills' alt=''><?=$player->kills?> / <?=$player->deaths?> / <?=$player->assists?></span>
+                                <span class='CS'><img loading='lazy' src='/assets/ddragon/img/icon_minions.png' class='stats cs' alt=''><?=$player->totalMinionsKilled?></span>
+                                <span class='gold'><img loading='lazy' src='/assets/ddragon/img/icon_gold.png' class='stats gold' alt=''><?=$player->getGoldEarnedFormatted()?> Gold</span>
                             </div>
                         </div>
 

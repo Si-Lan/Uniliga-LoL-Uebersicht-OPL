@@ -35,7 +35,7 @@ use App\UI\Components\UI\PageLink;
 		</span>
 	</a>
 	<?php if ($player->rank->rankTier !== null): ?>
-		<div class="player-rank"><img class='rank-emblem-mini' src='/ddragon/img/ranks/mini-crests/<?=$player->rank->getRankTierLowercase()?>.svg' alt='<?=$player->rank->getRankTier()?>'><?=$player->rank->getRank()?></div>
+		<div class="player-rank"><img class='rank-emblem-mini' src='/assets/ddragon/img/ranks/mini-crests/<?=$player->rank->getRankTierLowercase()?>.svg' alt='<?=$player->rank->getRankTier()?>'><?=$player->rank->getRank()?></div>
 	<?php else: ?>
 		<div class="player-rank">kein Rang</div>
 	<?php endif; ?>

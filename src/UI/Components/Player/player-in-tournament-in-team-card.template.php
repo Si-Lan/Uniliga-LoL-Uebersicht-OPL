@@ -52,7 +52,7 @@ $classes = implode(' ', array_filter(['player-card', $tournament->isRunning() ? 
 
     <?php if ($playerSeasonRank !== null): ?>
         <div class="player-card-div player-card-rank">
-            <img class="rank-emblem-mini" src="/ddragon/img/ranks/mini-crests/<?=$playerSeasonRank->rank->getRankTierLowercase()?>.svg" alt="<?=$playerSeasonRank->rank->getRankTier()?>">
+            <img class="rank-emblem-mini" src="/assets/ddragon/img/ranks/mini-crests/<?=$playerSeasonRank->rank->getRankTierLowercase()?>.svg" alt="<?=$playerSeasonRank->rank->getRankTier()?>">
 			<?=$playerSeasonRank->rank->getRank()?>
         </div>
     <?php else: ?>
@@ -75,7 +75,7 @@ $classes = implode(' ', array_filter(['player-card', $tournament->isRunning() ? 
         <div class="player-card-div player-card-champs">
             <?php foreach ($playerInTeamInTournament->stats->getTopChampions(5) as $champion=>$championStats): ?>
             <div class="champ-single">
-                <img src="/ddragon/<?=$latestPatch->patchNumber?>/img/champion/<?=$champion?>.webp" alt="<?=$champion?>">
+                <img src="/assets/ddragon/<?=$latestPatch->patchNumber?>/img/champion/<?=$champion?>.webp" alt="<?=$champion?>">
                 <span class="played-amount"><?=$championStats['games']?></span>
             </div>
 			<?php endforeach; ?>

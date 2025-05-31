@@ -35,7 +35,7 @@ $teamLogoHtml = $teamLogoSrc ? "<img class='color-switch' src='{$teamLogoSrc}' a
 
 		<div class="elo-list-item rank">
             <?php if ($teamSeasonRankInTournament->hasRank()): ?>
-                <img class="rank-emblem-mini" src="/ddragon/img/ranks/mini-crests/<?=$teamSeasonRankInTournament->rank->getRankTierLowercase()?>.svg" alt="<?=$teamSeasonRankInTournament->rank->getRankTier()?>">
+                <img class="rank-emblem-mini" src="/assets/ddragon/img/ranks/mini-crests/<?=$teamSeasonRankInTournament->rank->getRankTierLowercase()?>.svg" alt="<?=$teamSeasonRankInTournament->rank->getRankTier()?>">
                 <span><?=$teamSeasonRankInTournament->rank->getRank()?></span>
             <?php endif; ?>
 		</div>

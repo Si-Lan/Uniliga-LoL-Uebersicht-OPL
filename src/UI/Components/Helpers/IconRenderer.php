@@ -6,8 +6,8 @@ class IconRenderer {
 	protected const string ICON_PATH = BASE_PATH.'/public/assets/icons/';
 	protected const string MATERIAL_ICON_PATH = BASE_PATH.'/public/assets/icons/material/';
 	protected const string IMG_PATH = BASE_PATH.'/public/img/';
-	protected const string ROLE_ICON_PATH = BASE_PATH.'/public/ddragon/img/positions/';
-	protected const string RANK_ICON_PATH = BASE_PATH.'/public/ddragon/img/ranks/mini-crests/';
+	protected const string ROLE_ICON_PATH = BASE_PATH.'/public/assets/ddragon/img/positions/';
+	protected const string RANK_ICON_PATH = BASE_PATH.'/public/assets/ddragon/img/ranks/mini-crests/';
 
 	private static function createMaterialSymbolClasses(array $additionalClasses): string {
 		return implode(' ', array_filter(["material-symbol", ...$additionalClasses]));

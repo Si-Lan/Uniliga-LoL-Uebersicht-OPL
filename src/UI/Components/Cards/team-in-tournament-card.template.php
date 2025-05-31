@@ -41,7 +41,7 @@ $classes = implode(' ', array_filter(['team-card', $teamInTournamentStage->tourn
 
     <?php if ($teamSeasonRankInTournament !== null): ?>
         <div class="team-card-div team-card-rank">
-            <img class="rank-emblem-mini" src="/ddragon/img/ranks/mini-crests/<?=$teamSeasonRankInTournament->rank->getRankTierLowercase() ?>.svg" alt="">
+            <img class="rank-emblem-mini" src="/assets/ddragon/img/ranks/mini-crests/<?=$teamSeasonRankInTournament->rank->getRankTierLowercase() ?>.svg" alt="">
             <?= $teamSeasonRankInTournament->rank->getRank() ?>
         </div>
     <?php endif; ?>
