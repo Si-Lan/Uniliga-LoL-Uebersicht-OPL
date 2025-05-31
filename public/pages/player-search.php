@@ -25,9 +25,6 @@ $pageMeta = new PageMeta('Spielersuche',bodyClass: 'players');
 			<?= IconRenderer::getMaterialIcon('close')?>
         </button>
     </div>
-    <div class='player-popup-bg' onclick='close_popup_player(event)'>
-        <div class='player-popup'></div>
-    </div>
     <div class='recent-players-list'></div>
     <div class='player-list'></div>
 </main>

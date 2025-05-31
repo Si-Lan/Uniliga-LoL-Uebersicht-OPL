@@ -1,13 +1,13 @@
 $(document).ready(() => {
 	$(".settings-option.login").on("click", () => {event.preventDefault(); document.getElementById("login-dialog").showModal(); toggle_settings_menu(false); document.getElementById("keypass").focus();});
-	$('dialog.dismissable-popup').on('click', function (event) {
+	$(document).on('click', 'dialog.dismissable-popup', function (event) {
 		if (event.target === this) {
 			this.close();
 		}
 	});
 	$("dialog.modalopen_auto").get().forEach(element => element.showModal());
-	$("dialog .close-popup").on("click", function() {this.closest("dialog").close()});
-	$("dialog.clear-on-exit").on("close", function() {$(this).find(".dialog-content > *:not(.close-popup,.close-button-space)").remove()})
+	$(document).on("click", "dialog .close-popup", function() {this.closest("dialog").close()});
+	$(document).on("close", "dialog.clear-on-exit", function() {$(this).find(".dialog-content > *:not(.close-popup,.close-button-space)").remove()})
 });
 
 // allgemeine Funktionen der Seite
@@ -1357,100 +1357,81 @@ $(document).ready(function () {
 });
 
 // player history popup
-let current_player_in_popup = null;
-async function popup_player(playerID, add_to_recents = false) {
-	event.preventDefault();
-	let popup = $('.player-popup');
-
-	if (popup.length === 0) {
-		$("header").after(`<div class="player-popup-bg" onclick="close_popup_player(event)"><div class="player-popup"></div></div>`)
-	}
-	popup = $('.player-popup');
-	let popupbg = $('.player-popup-bg');
-
-	let pagebody = $("body");
+let current_player_popups_open = [];
+$(document).on("click", "button.player-ov-card", function () {open_popup_player(this, true)});
+$(document).on("click", ".summoner-card-wrapper button.open-playerhistory", function () {open_popup_player(this)});
+async function open_popup_player(button,add_to_recents=false) {
+	let dialogId = button.dataset.dialogId;
+	let playerId = button.dataset.playerId;
 
 	if (add_to_recents) {
-		let recents = JSON.parse(localStorage.getItem("searched_players_IDs"));
-		if (recents === null) {
-			recents = [playerID];
-		}
-		if (recents.includes(playerID)) {
-			let index = recents.indexOf(playerID);
-			recents.splice(index,1);
-		}
-		recents.unshift(playerID);
-		while (recents.length > 5) {
-			recents = recents.slice(0,5);
-		}
-		localStorage.setItem("searched_players_IDs",JSON.stringify(recents));
-		if ($("body.players").length > 0) {
-			reload_recent_players();
-		}
+		addPlayerToRecents(playerId, ($(button).closest(".recent-players-list").length === 0));
 	}
 
-	if (current_player_in_popup === playerID) {
-		popupbg.css("opacity","0");
-		popupbg.css("display","block");
-		await new Promise(r => setTimeout(r, 10));
-		popupbg.css("opacity","1");
-		pagebody.addClass("popup_open");
+	let dialog = $(`dialog.player-popup#${dialogId}`);
+	if (dialog.length === 0) {
 		return;
 	}
 
-	current_player_in_popup = playerID;
-	popup.empty();
+	if (current_player_popups_open.includes(dialogId)) {
+		dialog[0].showModal();
+		return;
+	}
+	current_player_popups_open.push(dialogId);
 
-	popup.append(`<button class='close-popup' onclick='closex_popup_player()'>${get_material_icon("close")}</button>`);
-	popup.append("<div class='close-button-space'><div class='popup-loading-indicator'></div></div>");
+	let dialogContent = dialog.find('.dialog-content');
+	dialogContent.empty();
 
-	popupbg.css("opacity","0");
-	popupbg.css("display","block");
-	await new Promise(r => setTimeout(r, 10));
-	popupbg.css("opacity","1");
-	pagebody.addClass("popup_open");
+	add_popupLoadingIndicator(dialog);
 
-	fetch(`/ajax/fragment/player-overview?playerId=${playerID}`, {
+	fetch(`/ajax/fragment/player-overview?playerId=${playerId}`, {
 		method: "GET",
 	})
-		.then(res => res.text())
+		.then(res => {
+			if (res.ok) {
+				return res.text()
+			}
+			current_player_popups_open = current_player_popups_open.filter(id => id !== dialogId);
+			return "Fehler beim Laden der Daten";
+		})
 		.then(async content => {
-			if (current_player_in_popup === playerID) {
-				popup.append(content);
-				let popup_loader = $('.popup-loading-indicator');
-				popup_loader.css("opacity","0");
-				await new Promise(r => setTimeout(r, 210));
-				popup_loader.remove();
-			}
+			dialogContent.append(content);
+			remove_popupLoadingIndicator(dialog);
 		})
-		.catch(error => console.error(error));
+		.catch(error => {
+			current_player_popups_open = current_player_popups_open.filter(id => id !== dialogId);
+			console.error(error)
+		});
+
+	dialog[0].showModal();
 }
-async function close_popup_player(event) {
-	let popupbg = $('.player-popup-bg');
-	if (event.target === popupbg[0]) {
-		popupbg.css("opacity","0");
-		await new Promise(r => setTimeout(r, 250));
-		$("body").removeClass("popup_open")
-		popupbg.css("display","none");
+async function remove_popupLoadingIndicator(popup) {
+	let popup_loader = popup.find('.popup-loading-indicator');
+	popup_loader.css("opacity","0");
+	await new Promise(r => setTimeout(r, 210));
+	popup_loader.remove();
+}
+function add_popupLoadingIndicator(popup) {
+	popup.prepend("<div class='popup-loading-indicator'></div>");
+}
+function addPlayerToRecents(playerId, reload_recents=true) {
+	let recents = JSON.parse(localStorage.getItem("searched_players_IDs"));
+	if (recents === null) {
+		recents = [playerId];
+	}
+	if (recents.includes(playerId)) {
+		let index = recents.indexOf(playerId);
+		recents.splice(index,1);
+	}
+	recents.unshift(playerId);
+	while (recents.length > 5) {
+		recents = recents.slice(0,5);
+	}
+	localStorage.setItem("searched_players_IDs",JSON.stringify(recents));
+	if (reload_recents && $("body.players").length) {
+		reload_recent_players();
 	}
 }
-async function closex_popup_player() {
-	let popupbg = $('.player-popup-bg');
-	popupbg.css("opacity","0");
-	await new Promise(r => setTimeout(r, 250));
-	$("body").removeClass("popup_open")
-	popupbg.css("display","none");
-}
-$(document).ready(function () {
-	let body = $('body');
-	if (body.hasClass("players") || body.hasClass("team") || body.hasClass("teamlist")) {
-		window.addEventListener("keydown", (event) => {
-			if (event.key === "Escape") {
-				closex_popup_player();
-			}
-		})
-	}
-});
 
 function expand_playercard(card_button) {
 	event.preventDefault();

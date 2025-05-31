@@ -6,6 +6,10 @@
 /** @var \App\Domain\Entities\Patch $latestPatch */
 /** @var bool $collapsed */
 
+use App\UI\Components\Helpers\IconRenderer;
+use App\UI\Components\Popups\Popup;
+
+$playerPopup = new Popup($player->id, "player-popup", dismissable: true);
 ?>
 
 <div class='summoner-card-wrapper'>
@@ -20,7 +24,7 @@
 		<div class="card-summoner">
 			<?php if ($player->riotIdName != null) { ?>
 			<span class="card-riotid">
-				<span class="league-icon"><?= \App\UI\Components\Helpers\IconRenderer::getLeagueIcon()?></span>
+				<span class="league-icon"><?= IconRenderer::getLeagueIcon()?></span>
 				<span class="riot-id"><?=$player->riotIdName?><span class="riot-id-tag"><?=$player->getRiotIdTagWithPrefix()?></span></span>
 			</span>
 			<?php
@@ -53,7 +57,7 @@
                 foreach ($playerTT->stats->roles as $role=>$role_amount) {
                     if ($role_amount != 0) { ?>
                 <div class="role-single">
-                    <div class="svg-wrapper role"><?= \App\UI\Components\Helpers\IconRenderer::getRoleIcon($role)?></div>
+                    <div class="svg-wrapper role"><?= IconRenderer::getRoleIcon($role)?></div>
                     <span class="played-amount"><?=$role_amount?></span>
                 </div>
                         <?php
@@ -74,7 +78,7 @@
                 if (count($playerTT->stats->champions) > 5) {
                 ?>
                 <div class="champ-single">
-                    <?= \App\UI\Components\Helpers\IconRenderer::getMaterialIconDiv("more_horiz")?>
+                    <?= IconRenderer::getMaterialIconDiv("more_horiz")?>
                 </div>
                 <?php
 				}
@@ -85,6 +89,8 @@
             ?>
 		</div>
 	</div>
-	<a href="javascript:void(0)" class="open-playerhistory" onclick="popup_player('<?=$player->id?>')">Spieler-Details</a>
-	<a href="https://www.op.gg/summoners/euw/<?=$player->getEncodedRiotID()?>" target="_blank" class="op-gg-single"><div class='svg-wrapper op-gg'><?= \App\UI\Components\Helpers\IconRenderer::getOPGGIcon()?></div></a>
+	<button type="button" class="open-playerhistory" data-player-id="<?=$player->id?>" data-dialog-id="<?=$playerPopup->getId()?>">Spieler-Details</button>
+	<a href="https://www.op.gg/summoners/euw/<?=$player->getEncodedRiotID()?>" target="_blank" class="op-gg-single"><div class='svg-wrapper op-gg'><?= IconRenderer::getOPGGIcon()?></div></a>
 </div>
+
+<?= $playerPopup->render() ?>
