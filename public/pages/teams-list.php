@@ -9,6 +9,7 @@ use App\Domain\Services\EntitySorter;
 use App\UI\Components\Helpers\IconRenderer;
 use App\UI\Components\Navigation\Header;
 use App\UI\Components\Navigation\TournamentNav;
+use App\UI\Components\Popups\Popup;
 use App\UI\Components\UI\PageLink;
 use App\UI\Enums\HeaderType;
 use App\UI\Page\PageMeta;
@@ -99,9 +100,6 @@ $filteredGroupIsLeague = array_key_exists($filteredLeagueId??'', $indexedGroups)
         )?>
     </div>
 
-    <div class='team-popup-bg' onclick='close_popup_team(event)'>
-        <div class='team-popup'></div>
-    </div>
     <div class='team-list <?=$tournament->id?>'>
         <div class='no-search-res-text <?=$tournament->id?>' style='display: none'>Kein Team gefunden!</div>
 
@@ -161,10 +159,16 @@ $filteredGroupIsLeague = array_key_exists($filteredLeagueId??'', $indexedGroups)
             // Aktuellstes/höchstes TeamInTournamentStage auswählen
             $teamInTournamentStage = $teamInTournamentStages[0];
 
+            $teamPopup = new Popup(
+                    id: $teamInTournamentStage->team->id,
+                    pagePopupType: 'team-popup',
+                    dismissable: true
+            );
+            \App\UI\Page\AssetManager::addJsFile('/assets/js/components/popups.js');
             ?>
 
             <?php $classes = implode(' ', array_filter(['team-button', ($filteredByLeague && !in_array($filteredLeagueId, $leagueIds)) ? "filterD-off" : "", ($filteredByGroup && !in_array($filteredGroupId, $groupIds)) ? "filterG-off" : ""])); ?>
-            <button class="<?= $classes ?>" data-league='<?= implode(' ', $leagueIds)?>' data-group='<?=implode(' ', $groupIds)?>' onclick='popup_team(<?= $teamInTournamentStage->team->id?>,<?= $tournament->id?>)'>
+            <button class="<?= $classes ?>" data-league='<?= implode(' ', $leagueIds)?>' data-group='<?=implode(' ', $groupIds)?>' data-team-id='<?=$teamInTournamentStage->team->id?>' data-tournament-id='<?=$tournament->id?>' data-dialog-id="<?=$teamPopup->getId()?>">
                 <?php if ($teamInTournamentStage->teamInRootTournament->getLogoUrl()): ?>
                     <img class='color-switch' alt src='<?= $teamInTournamentStage->teamInRootTournament->getLogoUrl() ?>'>
                 <?php endif; ?>
@@ -173,6 +177,8 @@ $filteredGroupIsLeague = array_key_exists($filteredLeagueId??'', $indexedGroups)
                     <span class="team-group"><?= $teamInTournamentStage->tournamentStage->getFullName() ?></span>
                 </span>
             </button>
+
+            <?= $teamPopup->render() ?>
         <?php endforeach; ?>
 
     </div>

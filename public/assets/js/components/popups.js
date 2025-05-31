@@ -5,6 +5,8 @@ $(document).on('click', 'dialog.dismissable-popup', function (event) {
 });
 $("dialog.modalopen_auto").get().forEach(element => element.showModal());
 $(document).on("click", "dialog .close-popup", function() {this.closest("dialog").close()});
+
+
 $(document).on("click", "button.player-ov-card", function () {open_popup_player(this, true)});
 $(document).on("click", ".summoner-card-wrapper button.open-playerhistory", function () {open_popup_player(this)});
 let current_player_popups_open = [];
@@ -68,4 +70,39 @@ function addPlayerToRecents(playerId, reload_recents=true) {
 	if (reload_recents && $("body.players").length) {
 		reload_recent_players();
 	}
+}
+
+$(document).on("click", "button.team-button", function () {open_popup_team(this)});
+$(document).on("click", "button.elo-list-item.team", function () {open_popup_team(this)});
+let current_team_popups_open = [];
+async function open_popup_team(button) {
+	let dialogId = button.dataset.dialogId;
+	let teamId = button.dataset.teamId;
+	let tournamentId = button.dataset.tournamentId;
+
+	let dialog = $(`dialog.team-popup#${dialogId}`);
+	if (dialog.length === 0) {
+		return;
+	}
+
+	if (current_team_popups_open.includes(dialogId)) {
+		dialog[0].showModal();
+		return;
+	}
+	current_team_popups_open.push(dialogId);
+
+	let dialogContent = dialog.find('.dialog-content');
+	dialogContent.empty();
+
+	add_popupLoadingIndicator(dialog);
+
+	fragmentLoader(`team-popup?teamId=${teamId}&tournamentId=${tournamentId}`, null, () => {
+		current_team_popups_open = current_team_popups_open.filter(id => id !== dialogId);
+	})
+		.then(content => {
+			dialogContent.append(content);
+			remove_popupLoadingIndicator(dialog);
+		})
+
+	dialog[0].showModal();
 }

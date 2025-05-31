@@ -297,11 +297,11 @@ dialog {
 	border-radius: 12px;
 
 	&.page-popup {
-		width: 90%;
+		width: 92%;
 		max-width: 1300px;
 		min-height: 80px;
-		margin-top: 8vh;
-		max-height: 84vh;
+		margin-top: 6vh;
+		max-height: 86vh;
 		& .dialog-content {
 			display: flex;
 			flex-direction: column;
@@ -311,6 +311,10 @@ dialog {
 		&.player-popup .dialog-content {
 			gap: 15px;
 			min-height: 464px;
+		}
+		&.team-popup .dialog-content {
+			gap: 12px;
+			min-height: 580px;
 		}
 	}
 
@@ -380,7 +384,6 @@ dialog {
 body.popup_open {
 	overflow: hidden;
 }
-.team-popup-bg,
 .mh-popup-bg {
 	display: none; /* Hidden by default */
 	position: fixed; /* Stay in place */
@@ -394,7 +397,6 @@ body.popup_open {
 	background-color: rgba(0,0,0,0.5); /* Black w/ opacity */
 	transition: opacity 250ms;
 }
-.team-popup,
 .mh-popup {
 	background-color: var(--bg);
 	border: var(--element-bg-sec) solid 2px;
@@ -414,9 +416,6 @@ body.popup_open {
 	max-width: 1240px;
 	gap: 10px;
 	padding: 20px 10px 40px 10px;
-}
-.team-popup {
-	gap: 12px;
 }
 .mh-popup .game {
 	width: 100%;
@@ -455,7 +454,7 @@ h2.round-title .team.loss {
 	}
 }
 @media (max-width: 1280px) {
-	.team-popup, .mh-popup {
+	.mh-popup {
 		overflow-x: auto;
 	}
 	.mh-popup .game {
@@ -494,13 +493,7 @@ h2.round-title .team.loss {
 }
 .team-popup .page-link:has(.page-link-icon) {
 	font-size: 1.2em;
-	padding: 12px;
-}
-.team-popup .page-link:has(.page-link-icon):hover::before {
-	width: calc(100% - 24px);
-}
-.team-popup .page-link:has(.page-link-icon)::before {
-	bottom: 8px;
+	margin: 12px 0;
 }
 .player-ov-titlewrapper {
 	display: flex;
