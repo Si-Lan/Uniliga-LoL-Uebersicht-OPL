@@ -133,7 +133,7 @@ async function open_related_events_popup(tournamentID, relation = "children") {
 
 	popup[0].showModal();
 	let popup_content = popup.find(".dialog-content");
-	popup_content.append("<div class='popup-loading-indicator'></div>");
+	popup.prepend("<div class='popup-loading-indicator'></div>");
 	let tournament_name = $(`.tournament-write-data.${tournamentID} label.write_tournament_name input`)[0].value;
 	if (get_children) {
 		popup_content.append(`<h2>Kinder von "${tournament_name}"</h2>`);
