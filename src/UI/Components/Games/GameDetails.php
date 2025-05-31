@@ -64,10 +64,10 @@ class GameDetails {
 		$playersInTeams = array_merge($playersInTeams, $this->playerInTeamInTournamentRepo->findAllByTeamInTournament($this->gameInMatch->redTeam));
 
 		foreach ($playersInTeams as $playerInTeam) {
-			$this->indexedPlayerSeasonRanksByPuuid[$playerInTeam->player->puuid] = [
-				$this->playerSeasonRankRepo->findPlayerSeasonRank($playerInTeam->player,$rankedSplit1),
-				$this->playerSeasonRankRepo->findPlayerSeasonRank($playerInTeam->player,$rankedSplit2),
-			];
+			$this->indexedPlayerSeasonRanksByPuuid[$playerInTeam->player->puuid] = array_filter([
+				$rankedSplit1 ? $this->playerSeasonRankRepo->findPlayerSeasonRank($playerInTeam->player,$rankedSplit1) : null,
+				$rankedSplit2 ? $this->playerSeasonRankRepo->findPlayerSeasonRank($playerInTeam->player,$rankedSplit2) : null,
+			]);
 			$this->indexedPlayersByPuuid[$playerInTeam->player->puuid] = $playerInTeam;
 		}
 	}
