@@ -12,6 +12,7 @@ $pageMeta = new PageMeta(bodyClass: 'home');
 $tournamentRepo = new TournamentRepository();
 $tournaments = $tournamentRepo->findAllRootTournaments();
 $tournaments = EntitySorter::sortTournamentsByStartDate($tournaments);
+$tournaments = array_values(array_filter($tournaments, function($tournament) {return !$tournament->deactivated;}));
 
 echo new Header(HeaderType::HOME);
 ?>

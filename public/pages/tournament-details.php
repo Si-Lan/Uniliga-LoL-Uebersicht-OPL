@@ -23,10 +23,13 @@ $pageMeta = new PageMeta($tournament->getShortName(),bodyClass: 'tournament');
 
 <?php
 $leagues = $tournamentRepo->findAllByRootTournamentAndType($tournament, EventType::LEAGUE);
+$leagues = array_values(array_filter($leagues, function($league) {return !$league->deactivated;}));
 $groups_active = (count($leagues)>0) ? "active" : "";
 $wildcards = $tournamentRepo->findAllByRootTournamentAndType($tournament, EventType::WILDCARD);
+$wildcards = array_values(array_filter($wildcards, function($wildcard) {return !$wildcard->deactivated;}));
 $wildcard_active = (count($wildcards)>0 && count($leagues)==0) ? "active" : "";
 $playoffs = $tournamentRepo->findAllByParentTournamentAndType($tournament, EventType::PLAYOFFS);
+$playoffs = array_values(array_filter($playoffs, function($playoff) {return !$playoff->deactivated;}));
 $playoffs_active = (count($wildcards)==0 && count($leagues)==0) ? "active" : "";
 ?>
 <main>
@@ -68,7 +71,10 @@ $playoffs_active = (count($wildcards)==0 && count($leagues)==0) ? "active" : "";
                 <?php continue; ?>
                 <?php endif; ?>
 
-                <?php $groups = $tournamentRepo->findAllByParentTournamentAndType($league, EventType::GROUP) ?>
+                <?php
+                $groups = $tournamentRepo->findAllByParentTournamentAndType($league, EventType::GROUP);
+                $groups = array_values(array_filter($groups, function($group) {return !$group->deactivated;}));
+                ?>
                 <div class='division'>
                     <div class='group-title-wrapper'>
                         <h3><?= $league->getShortName() ?></h3>
