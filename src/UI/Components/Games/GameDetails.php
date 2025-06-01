@@ -15,6 +15,7 @@ use App\Domain\Repositories\PatchRepository;
 use App\Domain\Repositories\PlayerInTeamInTournamentRepository;
 use App\Domain\Repositories\PlayerSeasonRankRepository;
 use App\Domain\Repositories\RankedSplitRepository;
+use App\UI\Page\AssetManager;
 
 class GameDetails {
 	private bool $gameDataLoaded = false;
@@ -70,6 +71,8 @@ class GameDetails {
 			]);
 			$this->indexedPlayersByPuuid[$playerInTeam->player->puuid] = $playerInTeam;
 		}
+
+		AssetManager::addCssFile('/assets/css/game.css');;
 	}
 
 	private function findPlayersGameNameAndTag(GamePlayerData $gamePlayer):array {

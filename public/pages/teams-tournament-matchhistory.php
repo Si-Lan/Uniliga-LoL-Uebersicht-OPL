@@ -37,7 +37,6 @@ foreach ($teamInTournamentStages as $teamInTournamentStageInLoop) {
 
 $pageMeta = new PageMeta(
         title: "$teamInTournament->nameInTournament - Matchhistory | {$teamInTournament->tournament->getShortName()}",
-        css: ['game'],
         bodyClass: 'match-history'
 );
 
