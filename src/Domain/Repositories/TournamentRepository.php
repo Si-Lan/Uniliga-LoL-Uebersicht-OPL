@@ -103,6 +103,11 @@ class TournamentRepository extends AbstractRepository {
 		$data = $result->fetch_assoc();
 		return $data !== null;
 	}
+	public function standingEventExists(int $tournamentId): bool {
+		$result = $this->dbcn->execute_query("SELECT * FROM events_with_standings WHERE OPL_ID = ?", [$tournamentId]);
+		$data = $result->fetch_assoc();
+		return $data !== null;
+	}
 
 	/**
 	 * @return array<Tournament>

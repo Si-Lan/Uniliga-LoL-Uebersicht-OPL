@@ -22,6 +22,12 @@ $routes = [
 	'spieler/{player}' => BASE_PATH.'/public/pages/player-details.php',
 ];
 
+
+/**
+ * @param string $path
+ * @param array $routes
+ * @return array{file: string, params: array}|null
+ */
 function matchRoute(string $path, array $routes): ?array {
 	foreach ($routes as $routePattern => $file) {
 		// erstellt aus dem route Pattern eine RegEx
