@@ -9,6 +9,7 @@ use App\Domain\Services\EntitySorter;
 use App\UI\Components\Navigation\Header;
 use App\UI\Components\Navigation\TeamHeaderNav;
 use App\UI\Components\Navigation\TournamentNav;
+use App\UI\Components\UI\DropdownCustom;
 use App\UI\Enums\HeaderType;
 use App\UI\Page\PageMeta;
 
@@ -217,7 +218,7 @@ if ($teamInTournament->gamesPlayed == 0) {
 
 	echo "<div class='table-wrapper'>";
 
-	echo create_dropdown("stat-tables",["all"=>"Gesamt-Tabelle","single"=>"Einzel-Tabellen"]);
+	echo new DropdownCustom('stat-tables',['all'=>'Gesamt-Tabelle','single'=>'Einzel-Tabellen']);
 
 	echo "<div class='champstattables entire'>";
 	echo "<div class='table pickstable'><h3>Championstatistiken</h3><table>";

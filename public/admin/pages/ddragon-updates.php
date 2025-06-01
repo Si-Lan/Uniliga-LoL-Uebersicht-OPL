@@ -2,6 +2,7 @@
 /** @var mysqli $dbcn  */
 
 use App\UI\Components\Navigation\Header;
+use App\UI\Components\UI\DropdownCustom;
 use App\UI\Enums\HeaderType;
 use App\UI\Page\AssetManager;
 use App\UI\Page\PageMeta;
@@ -22,7 +23,7 @@ echo new Header(HeaderType::ADMIN_DDRAGON);
             <button type="button" class="sync_patches"><span>Patches synchronisieren</span></button>
             <dialog class="add-patch-popup dismissable-popup">
                 <div class="dialog-content">
-                    <?= create_dropdown("get-patches",["new"=>"neue Patches","missing"=>"fehlende Patches","old"=>"alte Patches"]) ?>
+                    <?= new DropdownCustom("get-patches",["new"=>"neue Patches","missing"=>"fehlende Patches","old"=>"alte Patches"]) ?>
                     <div class='popup-loading-indicator' style="display: none"></div>
                     <div class='add-patches-display'>
                         <?= create_add_patch_view($dbcn, "new")?>
