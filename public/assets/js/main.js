@@ -313,214 +313,11 @@ function player_to_opgg_link(player_id, player_name) {
 	opgg_button_num.text(`(${player_amount} Spieler)`);
 }
 
-// open match popup
-let current_match_in_popup = null;
-$(document).ready(function() {
-	let url = new URL(window.location.href);
-	current_match_in_popup = url.searchParams.get('match');
-});
-async function popup_match(matchID,teamID=null,tournamentID=null) {
-	event.preventDefault();
-	let popup = $('.mh-popup');
-	let popupbg = $('.mh-popup-bg');
-	let pagebody = $("body");
-
-	matchID = parseInt(matchID);
-	if (current_match_in_popup === matchID) {
-		popupbg.css("opacity","0");
-		popupbg.css("display","block");
-		await new Promise(r => setTimeout(r, 10));
-		popupbg.css("opacity","1");
-		pagebody.addClass("popup_open");
-		let url = new URL(window.location.href);
-		url.searchParams.set("match",matchID);
-		window.history.replaceState({}, '', url);
-		return;
-	}
-
-	current_match_in_popup = parseInt(matchID);
-	popup.empty();
-
-	popup.append(`<button class='close-popup' onclick='closex_popup_match()'>${get_material_icon("close")}</button>`);
-	popup.append(`<div class='close-button-space'><div class='popup-loading-indicator'></div></div>`);
-
-	popupbg.css("opacity","0");
-	popupbg.css("display","block");
-	await new Promise(r => setTimeout(r, 10));
-	popupbg.css("opacity","1");
-	pagebody.addClass("popup_open");
-	let url = new URL(window.location.href);
-	url.searchParams.set("match",matchID);
-	window.history.replaceState({}, '', url);
-
-	fetch(`/api/get-data.php`, {
-		method: "GET",
-		headers: {
-			type: "match-games-teams-by-matchid",
-			matchid: matchID,
-		}
-	})
-		.then(res => res.json())
-		.then(async data => {
-			let games = data['games'];
-			const played = data['match']['played'];
-			const defwin = (data['team1']['OPL_ID'] < 0 || data['team2']['OPL_ID'] < 0);
-
-			const tournament_url_part = (tournamentID != null) ? `/turnier/${tournamentID}/` : "";
-			let buttonwrapper = `<div class='mh-popup-buttons'>`;
-			if (teamID != null && played) {
-				buttonwrapper += `<a class='icon-link page-link' href='${tournament_url_part}team/${teamID}/matchhistory#${matchID}'> ${get_material_icon("manage_search",false,"icon-link-icon")} <span class="link-text">In Matchhistory ansehen</span> ${get_material_icon("chevron_right",false,"page-link-icon")}</a>`;
-			}
-			let teamid_data = "";
-			if (teamID !== null) teamid_data = `data-team='${teamID}'`;
-			if (!data["tournament"]["archived"]) {
-				buttonwrapper += `<div class='updatebuttonwrapper'><button type='button' class='user_update user_update_match update_data' data-match='${matchID}' data-group='${data["match"]["OPL_ID_tournament"]}' data-tournament='${tournamentID}' ${teamid_data}>${get_material_icon('sync')}</button><span class="last-update">letztes Update:<br>&nbsp;</span></div>`;
-			}
-			buttonwrapper += "</div>";
-			popup.append(buttonwrapper);
-
-			if (!data["tournament"]["archived"]) {
-				$(".user_update_match").on("click", function () {
-					user_update_match(this);
-				});
-
-				fetch(`/api/get-data.php`, {
-					method: "GET",
-					headers: {
-						type: "last-update-time",
-						itemid: matchID,
-						updatetype: "match",
-						relativetime: "true",
-					}
-				})
-					.then(res => res.text())
-					.then(time => {
-						$(".mh-popup .updatebuttonwrapper span.last-update").html(`letztes Update:<br>${time}`);
-					})
-					.catch(error => console.error(error));
-			}
-
-			let plannedDate = new Date(data['match']['plannedDate']);
-			let plannedDateString = plannedDate.toLocaleDateString("de-DE", {day:"2-digit", month:"2-digit", year:"numeric", hour:"2-digit", minute:"2-digit"});
-			popup.append(`<span>Spieldatum: ${plannedDateString}</span>`)
-
-			let team1score;
-			let team2score;
-			if (data['match']['winner'] === data["team1"]["OPL_ID"]) {
-				team1score = "win";
-				team2score = "loss";
-			} else if (data['match']['winner'] === data["team2"]["OPL_ID"]) {
-				team1score = "loss";
-				team2score = "win";
-			} else {
-				team1score = "draw";
-				team2score = "draw";
-			}
-			let team1wins = data['match']['team1Score'];
-			let team2wins = data['match']['team2Score'];
-			if (team1wins === -1 || team2wins === -1) {
-				team1wins = (team1wins === -1) ? "L" : "W";
-				team2wins = (team2wins === -1) ? "L" : "W";
-			}
-			if (current_match_in_popup === data['match']['OPL_ID']) {
-				popup.append(`<h2 class='round-title'>
-                                <span class='round'>Runde ${data['match']['playday']}: &nbsp</span>
-                                <a href='${tournament_url_part}team/${data['team1']['OPL_ID']}' class='team ${team1score} page-link'>
-									${data['team1']['name']}
-								</a>
-                                <span class='score'><span class='${team1score}'>${team1wins}</span>:<span class='${team2score}'>${team2wins}</span></span>
-                                <a href='${tournament_url_part}team/${data['team2']['OPL_ID']}' class='team ${team2score} page-link'>
-									${data['team2']['name']}
-                                </a>
-                              </h2>`);
-			}
-			if (games.length === 0) {
-				if (played && !defwin) {
-					popup.append("<div class='no-game-found'>Noch keine Spieldaten gefunden</div>");
-				} else if (!played) {
-					popup.append("<div class='no-game-found'>Spiel wurde noch nicht gespielt</div>");
-				} else if (defwin) {
-					popup.append("<div class='no-game-found'>Keine Spieldaten vorhanden (Default Win)</div>");
-				}
-				let popup_loader = $('.popup-loading-indicator');
-				popup_loader.css("opacity", "0");
-				await new Promise(r => setTimeout(r, 210));
-				popup_loader.remove();
-			}
-			let game_counter = 0;
-			for (const [i, game] of games.entries()) {
-				if (current_match_in_popup === game['OPL_ID_match']) {
-					popup.append(`<div class='game game${i}'><div class="game-placeholder"></div></div>`);
-				}
-				let gameID = game['RIOT_matchID'];
-
-				let fetchheaders = new Headers({
-					gameid: gameID
-				});
-				if (teamID !== null) {
-					fetchheaders.append("teamid",teamID)
-				}
-				if (tournamentID !== null) {
-					fetchheaders.append("tournamentid",tournamentID)
-				}
-				fragmentLoader(`game-details?gameId=${gameID}&teamId=${teamID}`)
-					.then(async content => {
-						let game_wrap = popup.find(`.game${i}`);
-						if (current_match_in_popup === game['OPL_ID_match']) {
-							game_wrap.empty();
-							game_wrap.append(content);
-							game_counter++;
-							if (game_counter >= games.length) {
-								let popup_loader = $('.popup-loading-indicator');
-								popup_loader.css("opacity", "0");
-								await new Promise(r => setTimeout(r, 210));
-								popup_loader.remove();
-							}
-							popup.find(`.game${i} button.expand-game-details`).on("click", expand_collapse_game);
-						}
-					})
-			}
-		})
-		.catch(error => console.log(error));
-}
-async function close_popup_match(event) {
-	let popupbg = $('.mh-popup-bg');
-	if (event.target === popupbg[0]) {
-		popupbg.css("opacity","0");
-		let url = new URL(window.location.href);
-		url.searchParams.delete("match");
-		window.history.replaceState({}, '', url);
-		await new Promise(r => setTimeout(r, 250));
-		$("body").removeClass("popup_open");
-		popupbg.css("display","none");
-	}
-}
-async function closex_popup_match() {
-	let popupbg = $('.mh-popup-bg');
-	popupbg.css("opacity","0");
-	let url = new URL(window.location.href);
-	url.searchParams.delete("match");
-	window.history.replaceState({}, '', url);
-	await new Promise(r => setTimeout(r, 250));
-	$("body").removeClass("popup_open");
-	popupbg.css("display","none");
-}
-$(document).ready(function () {
-	let body = $('body');
-	if (body.hasClass("team") || body.hasClass("group")) {
-		window.addEventListener("keydown", (event) => {
-			if (event.key === "Escape") {
-				closex_popup_match();
-			}
-		})
-	}
-});
-
 function expand_collapse_game() {
 	$(this).parent().parent().toggleClass("collapsed");
 }
 $(document).ready(function () {
-	$('button.expand-game-details').on("click", expand_collapse_game);
+	$(document).on("click", 'button.expand-game-details', expand_collapse_game);
 });
 
 // Elo Overview Swap Views
@@ -1822,7 +1619,6 @@ async function user_update_match(button) {
 					game_wrap.append(content);
 					game_counter++;
 				}
-				popup.find(`.game${i} button.expand-game-details`).on("click", expand_collapse_game);
 			})
 	}
 
@@ -2089,7 +1885,6 @@ function switch_team_event(page, event_id, team_id, playoff_id = null) {
 				$("div.round-wrapper").remove();
 				$("div.divider.rounds").remove();
 				$("#teampage_switch_group_buttons").after(matchhistory);
-				$('button.expand-game-details').on("click", expand_collapse_game);
 				$('.content-loading-indicator').remove();
 			})
 			.catch(error => {

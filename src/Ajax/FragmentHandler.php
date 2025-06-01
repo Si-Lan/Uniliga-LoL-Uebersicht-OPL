@@ -20,6 +20,7 @@ use App\UI\Components\Matches\MatchButtonList;
 use App\UI\Components\Matches\MatchHistory;
 use App\UI\Components\Player\PlayerOverview;
 use App\UI\Components\Player\PlayerSearchCard;
+use App\UI\Components\Popups\MatchPopupContent;
 use App\UI\Components\Popups\TeamPopupContent;
 use App\UI\Components\Standings\StandingsTable;
 use App\UI\Enums\EloListView;
@@ -287,5 +288,28 @@ class FragmentHandler {
 		}
 
 		$this->sendJsonFragment(new TeamPopupContent($teamInTournament));
+	}
+	public function matchPopup(array $dataGet): void {
+		$matchId = $this->intOrNull($dataGet['matchId'] ?? null);
+		$teamId = $this->intOrNull($dataGet['teamId'] ?? null);
+		if (is_null($matchId)) {
+			$this->sendJsonError('missing matchId',400);
+			return;
+		}
+		if (is_null($teamId)) {
+			$this->sendJsonError('missing teamId',400);
+			return;
+		}
+
+		$matchupRepo = new MatchupRepository();
+		$matchup = $matchupRepo->findById($matchId);
+		if (is_null($matchup)) {
+			$this->sendJsonError('Match not found',404);
+			return;
+		}
+		$teamRepo = new TeamRepository();
+		$team = $teamRepo->findById($teamId);
+
+		$this->sendJsonFragment(new MatchPopupContent($matchup, $team));
 	}
 }

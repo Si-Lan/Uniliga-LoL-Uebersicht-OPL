@@ -10,9 +10,6 @@ use App\UI\Components\Matches\MatchButton;
 
 <div class="matches">
     <div class="title"><h3>Spiele</h3></div>
-    <div class="mh-popup-bg" onclick="close_popup_match(event)">
-        <div class="mh-popup"></div>
-    </div>
     <div class="match-content content">
         <?php
         $roundCounter = 1;

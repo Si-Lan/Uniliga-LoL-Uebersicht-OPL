@@ -4,10 +4,11 @@ use App\UI\Components\Helpers\IconRenderer;
 /** @var string $id */
 /** @var string $pagePopupType */
 /** @var bool $dismissable */
+/** @var bool $autoOpen */
 /** @var string $content */
 /** @var array $additionalClasses */
 
-$classes = implode(' ', array_filter([$dismissable ? 'dismissable-popup' : '', $pagePopupType, $pagePopupType ? 'page-popup' : '', ...$additionalClasses]));
+$classes = implode(' ', array_filter([$dismissable ? 'dismissable-popup' : '', $pagePopupType, $pagePopupType ? 'page-popup' : '', $autoOpen?'modalopen_auto':'', ...$additionalClasses]));
 ?>
 
 <dialog id="<?=$id?>" class="<?=$classes?>">

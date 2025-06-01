@@ -3,6 +3,8 @@
 
 use App\UI\Components\UI\PageLink;
 
+$team1Name = (is_null($matchup->team1)) ? "TBD" : $matchup->team1->nameInTournament;
+$team2Name = (is_null($matchup->team2)) ? "TBD" : $matchup->team2->nameInTournament;
 ?>
 
 <h2 class="round-title">
@@ -10,8 +12,8 @@ use App\UI\Components\UI\PageLink;
     	<span class="round">Runde <?=$matchup->playday?>: &nbsp;</span>
     <?php endif; ?>
     <?= new PageLink(
-            href: "/turnier/{$matchup->tournamentStage->rootTournament->id}/team/{$matchup->team1->team->id}",
-            text: $matchup->team1->nameInTournament,
+            href: "/turnier/{$matchup->tournamentStage->rootTournament->id}/team/{$matchup->team1?->team->id}",
+            text: $team1Name,
             additionalClasses: ["team", $matchup->getTeam1Result()],
             linkIcon: false
     )?>
@@ -23,8 +25,8 @@ use App\UI\Components\UI\PageLink;
         <span class="score">vs.</span>
     <?php endif; ?>
 	<?= new PageLink(
-		href: "/turnier/{$matchup->tournamentStage->rootTournament->id}/team/{$matchup->team2->team->id}",
-		text: $matchup->team2->nameInTournament,
+		href: "/turnier/{$matchup->tournamentStage->rootTournament->id}/team/{$matchup->team2?->team->id}",
+		text: $team2Name,
 		additionalClasses: ["team", $matchup->getTeam2Result()],
 		linkIcon: false
 	)?>

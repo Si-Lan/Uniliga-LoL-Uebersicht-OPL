@@ -3,7 +3,10 @@ $(document).on('click', 'dialog.dismissable-popup', function (event) {
 		this.close();
 	}
 });
-$("dialog.modalopen_auto").get().forEach(element => element.showModal());
+$(document).ready(() => {
+	$("dialog.modalopen_auto").get().forEach(element => element.showModal());
+	$("dialog.match-popup.modalopen_auto").get().forEach(element => current_matchpopups_loaded.push(element.id));
+});
 $(document).on("click", "dialog .close-popup", function() {this.closest("dialog").close()});
 
 
@@ -18,7 +21,7 @@ async function open_popup_player(button,add_to_recents=false) {
 		addPlayerToRecents(playerId, ($(button).closest(".recent-players-list").length === 0));
 	}
 
-	let dialog = $(`dialog.player-popup#${dialogId}`);
+	let dialog = $(`dialog#${dialogId}`);
 	if (dialog.length === 0) {
 		return;
 	}
@@ -80,7 +83,7 @@ async function open_popup_team(button) {
 	let teamId = button.dataset.teamId;
 	let tournamentId = button.dataset.tournamentId;
 
-	let dialog = $(`dialog.team-popup#${dialogId}`);
+	let dialog = $(`dialog#${dialogId}`);
 	if (dialog.length === 0) {
 		return;
 	}
@@ -106,3 +109,71 @@ async function open_popup_team(button) {
 
 	dialog[0].showModal();
 }
+
+$(document).on("click", "a.button.match", function () {open_popup_match(this, event)});
+let current_matchpopups_loaded = []
+async function open_popup_match(button, event) {
+	event.preventDefault();
+	let dialogId = button.dataset.dialogId;
+	let matchId = button.dataset.matchId;
+	let teamId = button.dataset.teamId;
+
+	let dialog = $(`dialog#${dialogId}`);
+	if (dialog.length === 0) {
+		return;
+	}
+
+	if (current_matchpopups_loaded.includes(dialogId)) {
+		dialog[0].showModal();
+		setParamAndUpdateUrl("match",matchId);
+		return;
+	}
+	current_matchpopups_loaded.push(dialogId);
+
+	let dialogContent = dialog.find('.dialog-content');
+	dialogContent.empty();
+
+	add_popupLoadingIndicator(dialog);
+
+	fragmentLoader(`match-popup?matchId=${matchId}&teamId=${teamId}`, null, () => {
+		current_matchpopups_loaded = current_matchpopups_loaded.filter(id => id !== dialogId);
+	})
+		.then(content => {
+			dialogContent.append(content);
+			remove_popupLoadingIndicator(dialog);
+		})
+
+	dialog[0].showModal();
+	setParamAndUpdateUrl("match",matchId);
+}
+
+function setParamAndUpdateUrl(param, value) {
+	let url = new URL(window.location.href);
+	url.searchParams.set(param,value);
+	window.history.replaceState({}, '', url);
+}
+function bindDialogCloseHandler(dialog) {
+	if (!dialog.hasAttribute('data-close-bound')) {
+		dialog.addEventListener('close', () => {
+			let url = new URL(window.location.href);
+			url.searchParams.delete('match');
+			window.history.replaceState({}, '', url);
+		});
+		dialog.setAttribute('data-close-bound', 'true');
+	}
+}
+
+const closeMatchObserver = new MutationObserver(mutations => {
+	for (const mutation of mutations) {
+		$(mutation.addedNodes).each(function () {
+			$(this).find('dialog.match-popup:not([data-close-bound])').each(function () {
+				bindDialogCloseHandler(this);
+			})
+
+		});
+	}
+});
+$(document).ready(() => {
+	$('dialog.match-popup').each(function () {bindDialogCloseHandler(this)});
+	closeMatchObserver.observe(document.body, {childList: true, subtree: true});
+})
