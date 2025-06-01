@@ -38,10 +38,21 @@ class Router {
 		$requestPath = trim(parse_url($_SERVER['REQUEST_URI'],PHP_URL_PATH),'/');
 
 		/** @var array<string,string> $routes */
+		/** @var array<string,string> $adminRoutes */
 		require_once BASE_PATH."/config/routes.php";
 
 		$routeMatch = matchRoute($requestPath, $routes);
-		if (!$routeMatch) self::trigger404();
+		$adminRouteMatch = matchRoute($requestPath, $adminRoutes);
+		if (!$routeMatch && !$adminRouteMatch) self::trigger404();
+
+		if ($adminRouteMatch) {
+			if (!UserContext::isLoggedIn()) {
+				self::renderPage(BASE_PATH.'/public/admin/pages/admin-empty.php');
+			} else {
+				self::renderPage($adminRouteMatch['file']);
+			}
+			return;
+		}
 
 		$_GET = array_merge($_GET, $routeMatch['params']);
 
@@ -116,6 +127,7 @@ class Router {
 	}
 
 	private static function renderPage(string $pageFile): void {
+		$dbcn = DatabaseConnection::getConnection(); //TODO: temporär, solange pages noch selbst Datenbank Anfragen machen
 		ob_start();
 		require $pageFile;
 		$pageContent = ob_get_clean();

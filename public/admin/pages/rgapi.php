@@ -1,25 +1,33 @@
 <?php
 /** @var mysqli $dbcn  */
 
-$loggedin = is_logged_in();
-$lightmode = is_light_mode(true);
+use App\UI\Components\Helpers\IconRenderer;
+use App\UI\Components\Navigation\Header;
+use App\UI\Enums\HeaderType;
+use App\UI\Page\AssetManager;
+use App\UI\Page\PageMeta;
 
-echo create_html_head_elements(css: ["rgapi2"], js: ["rgapi"], title: "Riot-API-Daten | Uniliga LoL - Übersicht" ,loggedin: $loggedin);
+$pageMeta = new PageMeta('Riot-API-Daten', bodyClass: 'admin');
+AssetManager::addJsFile('/admin/scripts/rgapi.js');
 
+echo new Header(HeaderType::ADMIN_RGAPI);
+
+$tournaments = $dbcn->query("SELECT * FROM tournaments WHERE eventType = 'tournament' ORDER BY OPL_ID DESC")->fetch_all(MYSQLI_ASSOC);
 ?>
-<body class="admin <?php echo $lightmode?>">
-<?php
 
-echo create_header($dbcn, title: "rgapi", open_login: !$loggedin);
+<main>
+    <div class='slct'>
+        <select onchange='change_tournament(this.value)'>
+            <?php
+            foreach ($tournaments as $tournament) {
+                echo "<option value='".$tournament['OPL_ID']."'>{$tournament["name"]}</option>";
+            }
+            ?>
+        </select>
+        <?= IconRenderer::getMaterialIconSpan('arrow_drop_down')?>
+    </div>
 
-if ($loggedin) {
-	$tournaments = $dbcn->query("SELECT * FROM tournaments WHERE eventType = 'tournament' ORDER BY OPL_ID DESC")->fetch_all(MYSQLI_ASSOC);
-	echo "<main>";
-	echo "<div class='slct'><select onchange='change_tournament(this.value)'>";
-	foreach ($tournaments as $tournament) {
-		echo "<option value='".$tournament['OPL_ID']."'>{$tournament["name"]}</option>";
-	}
-	echo "</select><span class='material-symbol'>".file_get_contents(__DIR__."/../../assets/icons/material/arrow_drop_down.svg")."</span></div>";
+    <?php
 	foreach ($tournaments as $index=>$tournament) {
 		if ($index == 0) {
 			$hiddenclass = "";
@@ -48,7 +56,5 @@ if ($loggedin) {
                       </div>";
 		echo "</div>";
 	}
-	echo "</main>";
-}
-?>
-</body>
+    ?>
+</main>

@@ -1,16 +1,15 @@
 <?php
 /** @var mysqli $dbcn  */
 
-$loggedin = is_logged_in();
-$lightmode = is_light_mode(true);
+use App\UI\Components\Navigation\Header;
+use App\UI\Enums\HeaderType;
+use App\UI\Page\AssetManager;
+use App\UI\Page\PageMeta;
 
-echo create_html_head_elements(css: [""], js: ["admin"], title: "Update Log | Uniliga LoL - Übersicht" ,loggedin: $loggedin);
+$pageMeta = new PageMeta('Update Log', bodyClass: 'admin admin-logs');
+AssetManager::addJsFile('/admin/scripts/main.js');
 
-?>
-<body class="admin admin-logs <?php echo $lightmode?>">
-<?php
-
-echo create_header($dbcn, title: "admin_update_log", open_login: !$loggedin);
+echo new Header(HeaderType::ADMIN_LOG);
 
 $logdate_regex = "/(\d{2})_(\d{2})_(\d{2}).log/";
 $comp_log_file_date = function($a,$b) use ($logdate_regex):int {
@@ -29,54 +28,61 @@ $comp_log_file_date = function($a,$b) use ($logdate_regex):int {
     return 0;
 };
 
-if ($loggedin) {
-	$dir = new DirectoryIterator(__DIR__."/../../cron-jobs/cron_logs");
-	$logs = [];
-	foreach ($dir as $file) {
-		if ($file->isDot() || $file->isDir() || $file->getFilename() == ".gitignore" || $file->getFilename() == ".htaccess") {
-			continue;
-		}
-		$logs[] = $file->getFilename();
-	}
-	$dir = new DirectoryIterator(__DIR__."/../../cron-jobs/cron_logs/cron_errors");
-	$errors = [];
-	foreach ($dir as $file) {
-		if ($file->isDot() || $file->isDir() || $file->getFilename() == ".gitignore") {
-			continue;
-		}
-		$errors[] = $file->getFilename();
-	}
+$dir = new DirectoryIterator(__DIR__."/../../cron-jobs/cron_logs");
+$logs = [];
+foreach ($dir as $file) {
+    if ($file->isDot() || $file->isDir() || $file->getFilename() == ".gitignore" || $file->getFilename() == ".htaccess") {
+        continue;
+    }
+    $logs[] = $file->getFilename();
+}
+$dir = new DirectoryIterator(__DIR__."/../../cron-jobs/cron_logs/cron_errors");
+$errors = [];
+foreach ($dir as $file) {
+    if ($file->isDot() || $file->isDir() || $file->getFilename() == ".gitignore") {
+        continue;
+    }
+    $errors[] = $file->getFilename();
+}
 
-    usort($logs, $comp_log_file_date);
-    usort($errors, $comp_log_file_date);
-    $logs = array_reverse($logs);
-    $errors = array_reverse($errors);
+usort($logs, $comp_log_file_date);
+usort($errors, $comp_log_file_date);
+$logs = array_reverse($logs);
+$errors = array_reverse($errors);
 
-    $split_errors = [];
-    foreach ($errors as $error) {
-		preg_match($logdate_regex, $error, $matches);
-		$split_errors[$matches[3]][$matches[2]][$matches[1]][] = $error;
-	}
-
-	echo "<h2 style='text-align: start'>Logs:</h2>";
-	$error_pointer = 0;
-	foreach ($logs as $log) {
-		echo "<a href='/cron-jobs/cron_logs/".$log."'>".$log."</a><br>";
-		preg_match($logdate_regex, $log, $matches);
-        if (array_key_exists($matches[3],$split_errors) && array_key_exists($matches[2],$split_errors[$matches[3]]) && array_key_exists($matches[1],$split_errors[$matches[3]][$matches[2]])) {
-            foreach ($split_errors[$matches[3]][$matches[2]][$matches[1]] as $error) {
-				echo "<a href='/cron-jobs/cron_logs/cron_errors/".$error."'>----- ".$error."</a><br>";
-                unset($errors[array_search($error,$errors)]);
-			}
-		}
-	}
-
-    if (count($errors) > 0) {
-		echo "<h2 style='text-align: start'>weitere Errors:</h2>";
-		foreach ($errors as $error) {
-			echo "<a href='/cron-jobs/cron_logs/cron_errors/".$error."'>".$error."</a><br>";
-		}
-	}
+$split_errors = [];
+foreach ($errors as $error) {
+    preg_match($logdate_regex, $error, $matches);
+    $split_errors[$matches[3]][$matches[2]][$matches[1]][] = $error;
 }
 ?>
-</body>
+
+<h2 style='text-align: start'>Logs:</h2>
+
+<?php
+$error_pointer = 0;
+foreach ($logs as $log) {
+    ?>
+    <a href='/cron-jobs/cron_logs/<?=$log?>'><?=$log?></a><br>
+    <?php
+    preg_match($logdate_regex, $log, $matches);
+    if (array_key_exists($matches[3],$split_errors) && array_key_exists($matches[2],$split_errors[$matches[3]]) && array_key_exists($matches[1],$split_errors[$matches[3]][$matches[2]])) {
+        foreach ($split_errors[$matches[3]][$matches[2]][$matches[1]] as $error) {
+            ?>
+            <a href='/cron-jobs/cron_logs/cron_errors/<?=$error?>'>----- <?=$error?></a><br>
+            <?php
+            unset($errors[array_search($error,$errors)]);
+        }
+    }
+}
+
+if (count($errors) > 0) {
+    ?>
+    <h2 style='text-align: start'>weitere Errors:</h2>
+    <?php
+    foreach ($errors as $error) {
+        ?>
+        <a href='/cron-jobs/cron_logs/cron_errors/<?=$error?>'><?=$error?></a><br>
+        <?php
+    }
+}

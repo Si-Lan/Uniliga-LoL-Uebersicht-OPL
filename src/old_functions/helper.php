@@ -9,12 +9,6 @@ function is_logged_in(): bool {
 	}
 	return FALSE;
 }
-function is_light_mode(bool $return_class_name = FALSE): bool|string {
-	if (isset($_COOKIE['lightmode']) && $_COOKIE['lightmode'] === "1") {
-		return $return_class_name ? "light" : TRUE;
-	}
-	return $return_class_name ? "" : FALSE;
-}
 
 function max_time_from_timestamp($timestamp):string {
 	$days = floor($timestamp/86400);
