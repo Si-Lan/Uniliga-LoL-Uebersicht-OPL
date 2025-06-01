@@ -30,7 +30,7 @@ $teamInTournamentStages = EntitySorter::sortTeamInTournamentStages($teamInTourna
 
 // Über Routing ist bereits klar, dass Team und Turnier existieren, hier wird noch geprüft, ob das Team auch im Turnier spielt
 if (count($teamInTournamentStages) === 0) {
-	trigger404("team-in-tournament");
+	\App\Core\Router::trigger404("team-in-tournament");
     exit();
 }
 

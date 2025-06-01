@@ -136,7 +136,7 @@ class Router {
 		}
 		LayoutRenderer::render($pageMeta, $pageContent);
 	}
-	private static function trigger404(string $type = ''):void {
+	public static function trigger404(string $type = ''):void {
 		$_GET["error"] = "404";
 		$_GET["404type"] = $type;
 		self::renderPage(BASE_PATH.'/public/pages/error.php');
