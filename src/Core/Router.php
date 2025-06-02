@@ -71,6 +71,7 @@ class Router {
 		if (str_starts_with($basePath, 'admin') && !UserContext::isLoggedIn()) {
 			http_response_code(403);
 			echo json_encode(['error' => 'Invalid permissions']);
+			return;
 		}
 
 		$requestPath = trim(parse_url($_SERVER['REQUEST_URI']??'',PHP_URL_PATH),'/');
