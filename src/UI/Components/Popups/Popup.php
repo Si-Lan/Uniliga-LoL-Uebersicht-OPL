@@ -9,6 +9,7 @@ class Popup {
 		private ?string $id = null,
 		private ?string $pagePopupType = null,
 		private bool $dismissable = true,
+		private bool $noCloseButton = false,
 		private bool $autoOpen = false,
 		private string $content = '',
 		private array $additionalClasses = [],
@@ -27,6 +28,7 @@ class Popup {
 		$id = $this->id;
 		$pagePopupType = $this->pagePopupType;
 		$dismissable = $this->dismissable;
+		$noCloseButton = $this->noCloseButton;
 		$autoOpen = $this->autoOpen;
 		$content = $this->content;
 		$additionalClasses = $this->additionalClasses;
