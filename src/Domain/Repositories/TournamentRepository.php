@@ -241,4 +241,89 @@ class TournamentRepository extends AbstractRepository {
 			return SaveResult::FAILED;
 		}
 	}
+
+	public function createFromOplData(array $oplData): Tournament {
+		$entityData = [
+			'OPL_ID' => $oplData['ID'],
+			'name' => $oplData['name'],
+			'dateStart' => $this->DateTimeImmutableOrNull($oplData['start_on']['date']??null)?->format('Y-m-d'),
+			'dateEnd' => $this->DateTimeImmutableOrNull($oplData['end_on']['date']??null)?->format('Y-m-d'),
+		];
+		$logo_url = $oplData["logo_array"]["background"] ?? null;
+		$logo_id = ($logo_url != null) ? explode("/", $logo_url, -1) : null;
+		$logo_id = ($logo_id != null) ? end($logo_id) : null;
+		$entityData['OPL_ID_logo'] = $logo_id;
+
+		$name_lower = strtolower($oplData['name']);
+
+		$entityData['split'] = null;
+		$possible_splits = ["winter", "sommer"];
+		foreach ($possible_splits as $possible_split) {
+			if (str_contains($name_lower, $possible_split)) {
+				$entityData['split'] = $possible_split;
+			}
+		}
+
+		$entityData['season'] = null;
+		if (preg_match("/(?:winter|sommer)(?:season|saison)? *[0-9]*([0-9]{2})/",$name_lower,$season_match)) {
+			$entityData['season'] = $season_match[1];
+		}
+
+		$entityData['eventType'] = EventType::fromName($name_lower)->value;;
+
+
+		$entityData['number'] = null;
+		$entityData['numberRangeTo'] = null;
+		switch ($entityData['eventType']) {
+			case EventType::LEAGUE->value:
+			case EventType::WILDCARD->value:
+			case EventType::PLAYOFFS->value:
+				// Matcht: "Liga 1", "Liga 2-5", "Liga 1./2."
+				if (preg_match('/\bliga\s*(\d)(?:\D+(\d))?/', $name_lower, $matches)) {
+					$entityData['number'] = (int) $matches[1];
+					$entityData['numberRangeTo'] = isset($matches[2]) ? (int) $matches[2] : null;
+				}
+				// Matcht: "1. Liga", "1./2. Liga"
+				if (preg_match('/\b(\d+)(?:\D+(\d+))?\s*liga\b/', $name_lower, $matches)) {
+					$entityData['number'] = (int) $matches[1];
+					$entityData['numberRangeTo'] = isset($matches[2]) ? (int) $matches[2] : null;
+				}
+				break;
+
+			case EventType::GROUP:
+				// Matcht "Gruppe A" oder "Group A"
+				if (preg_match('/\b(?:gruppe|group)\s*([a-z])/', $name_lower, $matches)) {
+					$entityData['number'] = strtoupper($matches[1]);
+				}
+				break;
+		}
+
+		$entityData['OPL_ID_parent'] = null;
+		$entityData['OPL_ID_top_parent'] = null;
+		if (count($oplData['ancestors'])>0) {
+			switch ($entityData['eventType']) {
+				case EventType::LEAGUE->value:
+				case EventType::WILDCARD->value:
+				case EventType::PLAYOFFS->value:
+					$rootId = min($oplData['ancestors']);
+					if ($this->tournamentExists($rootId, EventType::TOURNAMENT)) {
+						$entityData['OPL_ID_top_parent'] = $rootId;
+						$entityData['OPL_ID_parent'] = $rootId;
+					}
+					break;
+				case EventType::GROUP->value:
+					foreach ($oplData['ancestors'] as $ancestorId) {
+						if ($this->tournamentExists($ancestorId, EventType::TOURNAMENT)) {
+							$entityData['OPL_ID_top_parent'] = $ancestorId;
+						}
+						if ($this->tournamentExists($ancestorId, EventType::LEAGUE)) {
+							$entityData['OPL_ID_parent'] = $ancestorId;
+						}
+					}
+					break;
+			}
+		}
+
+		return $this->mapToEntity($entityData, newEntity: true);
+	}
 }
