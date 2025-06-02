@@ -2,6 +2,8 @@
 
 namespace App\UI\Components\Popups;
 
+use App\UI\Page\AssetManager;
+
 class Popup {
 	public function __construct(
 		private ?string $id = null,
@@ -14,6 +16,7 @@ class Popup {
 		if ($this->pagePopupType !== null) {
 			$this->id = uniqid(str_replace('-','_', $this->pagePopupType)."_".$this->id);
 		}
+		AssetManager::addJsFile('/assets/js/components/popupDialogs.js');
 	}
 
 	public function getId(): string {

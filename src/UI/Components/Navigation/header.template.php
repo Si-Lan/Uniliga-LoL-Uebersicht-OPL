@@ -4,6 +4,7 @@
 
 use App\Core\Utilities\UserContext;
 use App\UI\Components\Helpers\IconRenderer;
+use App\UI\Components\Popups\Popup;
 
 ?>
 
@@ -54,17 +55,13 @@ use App\UI\Components\Helpers\IconRenderer;
     </div>
 </header>
 
-<?php $classes = implode(' ', array_filter(['dismissable-popup' , $type->autoOpenLogin() ? "modalopen_auto" : ""])); ?>
-<dialog id='login-dialog' class='<?= $classes ?>'>
-    <div class='dialog-content'>
-        <button class='close-popup'><span class='material-symbol'><?= IconRenderer::getMaterialIconDiv('close')?></span></button>
-        <div class='close-button-space'></div>
-        <div style='display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 40px'>
-            <form action='<?= strtok($_SERVER['REQUEST_URI'],'?')?>?login' method='post' style='display: flex; flex-direction: column; align-items: center; gap: 1em;'>
-            <label class='password-label'><input type='password' name='keypass' id='keypass' placeholder='Password' /></label>
-            <?= $type->passwordText() ?>
-            <input type='submit' id='submit' value='Login' />
-            </form>
-        </div>
-    </div>
-</dialog>
+<?php ob_start();?>
+<div style='display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 40px'>
+    <form action='<?= strtok($_SERVER['REQUEST_URI'],'?')?>?login' method='post' style='display: flex; flex-direction: column; align-items: center; gap: 1em;'>
+        <label class='password-label'><input type='password' name='keypass' id='keypass' placeholder='Password' /></label>
+		<?= $type->passwordText() ?>
+        <input type='submit' id='submit' value='Login' />
+    </form>
+</div>
+<?php $dialogContent = ob_get_clean();?>
+<?= new Popup('login-dialog', dismissable: true, content: $dialogContent, additionalClasses: [$type->autoOpenLogin() ? "modalopen_auto" : ""])?>

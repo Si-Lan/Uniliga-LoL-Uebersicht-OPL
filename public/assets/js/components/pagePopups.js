@@ -1,14 +1,7 @@
-$(document).on('click', 'dialog.dismissable-popup', function (event) {
-	if (event.target === this) {
-		this.close();
-	}
-});
 $(document).ready(() => {
 	$("dialog.modalopen_auto").get().forEach(element => element.showModal());
 	$("dialog.match-popup.modalopen_auto").get().forEach(element => current_matchpopups_loaded.push(element.id));
 });
-$(document).on("click", "dialog .close-popup", function() {this.closest("dialog").close()});
-
 
 $(document).on("click", "button.player-ov-card", function () {open_popup_player(this, true)});
 $(document).on("click", ".summoner-card-wrapper button.open-playerhistory", function () {open_popup_player(this)});

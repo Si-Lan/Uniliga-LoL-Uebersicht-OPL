@@ -1,13 +1,5 @@
 $(document).ready(() => {
 	$(".settings-option.login").on("click", () => {event.preventDefault(); document.getElementById("login-dialog").showModal(); toggle_settings_menu(false); document.getElementById("keypass").focus();});
-	$(document).on('click', 'dialog.dismissable-popup', function (event) {
-		if (event.target === this) {
-			this.close();
-		}
-	});
-	$("dialog.modalopen_auto").get().forEach(element => element.showModal());
-	$(document).on("click", "dialog .close-popup", function() {this.closest("dialog").close()});
-	$(document).on("close", "dialog.clear-on-exit", function() {$(this).find(".dialog-content > *:not(.close-popup,.close-button-space)").remove()})
 });
 
 // allgemeine Funktionen der Seite

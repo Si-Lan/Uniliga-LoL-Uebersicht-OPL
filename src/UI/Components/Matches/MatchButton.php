@@ -18,7 +18,7 @@ class MatchButton {
 			$this->teamInTournamentRepo = new TeamInTournamentRepository();
 		}
 		$this->popupOpened = isset($_GET['match']) && $_GET['match'] == $matchup->id;
-		AssetManager::addJsFile('/assets/js/components/popups.js');
+		AssetManager::addJsFile('/assets/js/components/pagePopups.js');
 	}
 
 	public function render(): string {

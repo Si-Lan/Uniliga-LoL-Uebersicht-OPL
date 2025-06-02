@@ -164,7 +164,7 @@ $filteredGroupIsLeague = array_key_exists($filteredLeagueId??'', $indexedGroups)
                     pagePopupType: 'team-popup',
                     dismissable: true
             );
-            \App\UI\Page\AssetManager::addJsFile('/assets/js/components/popups.js');
+            \App\UI\Page\AssetManager::addJsFile('/assets/js/components/pagePopups.js');
             ?>
 
             <?php $classes = implode(' ', array_filter(['team-button', ($filteredByLeague && !in_array($filteredLeagueId, $leagueIds)) ? "filterD-off" : "", ($filteredByGroup && !in_array($filteredGroupId, $groupIds)) ? "filterG-off" : ""])); ?>
