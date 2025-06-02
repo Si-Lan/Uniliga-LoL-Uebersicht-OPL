@@ -2,3 +2,4 @@
 /.vscode/
 /config/data.php
 /.env
+/logs/
