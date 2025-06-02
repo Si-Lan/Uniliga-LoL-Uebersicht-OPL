@@ -15,7 +15,11 @@ class Router {
 		match ($context) {
 			'pages' => self::handlePages(),
 			'api' => self::handleApiAjax('api', 'App\\API'),
+			'apiAdmin' => self::handleApiAjax('admin/api', 'App\\API\\Admin'),
+			'oplImport' => self::handleApiAjax('admin/api/import/opl', 'App\\API\\Admin\\ImportOpl'),
+			'rgapiImport' => self::handleApiAjax('admin/api/import/rgapi', 'App\\API\\Admin\\ImportRgapi'),
 			'ajax' => self::handleApiAjax('ajax', 'App\\Ajax'),
+			'ajaxAdmin' => self::handleApiAjax('admin/ajax', 'App\\Ajax\\Admin'),
 			default => self::trigger404()
 		};
 	}
@@ -63,6 +67,12 @@ class Router {
 
 	private static function handleApiAjax(string $basePath, string $namespace) {
 		header('Content-Type: application/json');
+
+		if (str_starts_with($basePath, 'admin') && !UserContext::isLoggedIn()) {
+			http_response_code(403);
+			echo json_encode(['error' => 'Invalid permissions']);
+		}
+
 		$requestPath = trim(parse_url($_SERVER['REQUEST_URI']??'',PHP_URL_PATH),'/');
 		$requestPath = preg_replace("#^$basePath#", '', $requestPath);
 		$requestPath = trim($requestPath, '/');
