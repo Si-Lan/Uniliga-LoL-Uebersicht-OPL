@@ -2,10 +2,12 @@
 
 namespace App\Domain\Repositories;
 
+use App\Core\Logger;
 use App\Core\Utilities\DataParsingHelpers;
 use App\Domain\Entities\RankedSplit;
 use App\Domain\Entities\Tournament;
 use App\Domain\Enums\EventType;
+use App\Domain\Enums\SaveResult;
 
 class TournamentRepository extends AbstractRepository {
 	use DataParsingHelpers;
@@ -20,7 +22,7 @@ class TournamentRepository extends AbstractRepository {
 		$this->rankedSplitRepo = new RankedSplitRepository();
 	}
 
-	public function mapToEntity(array $data, ?Tournament $directParentTournament=null, ?Tournament $rootTournament=null, ?RankedSplit $rankedSplit=null): Tournament {
+	public function mapToEntity(array $data, ?Tournament $directParentTournament=null, ?Tournament $rootTournament=null, ?RankedSplit $rankedSplit=null, bool $newEntity = false): Tournament {
 		$data = $this->normalizeData($data);
 		if (is_null($rootTournament)) {
 			if (!is_null($data["OPL_ID_top_parent"]) && $data["eventType"] !== EventType::TOURNAMENT->value) {
@@ -61,6 +63,9 @@ class TournamentRepository extends AbstractRepository {
 			userSelectedRankedSplit: null,
 			mostCommonBestOf: null
 		);
+
+		if ($newEntity) return $tournament;
+
 		if ($data["eventType"] !== EventType::TOURNAMENT->value && $rootTournament !== null) {
 			$tournament->userSelectedRankedSplit = $rootTournament->userSelectedRankedSplit;
 		} elseif ($data["eventType"] === EventType::TOURNAMENT->value) {
@@ -98,8 +103,12 @@ class TournamentRepository extends AbstractRepository {
 		return $tournament;
 	}
 
-	public function tournamentExists(int $tournamentId, EventType $eventType): bool {
-		$result = $this->dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID = ? AND eventType = ?", [$tournamentId, $eventType->value]);
+	public function tournamentExists(int $tournamentId, ?EventType $eventType=null): bool {
+		if (is_null($eventType)) {
+			$result = $this->dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID = ?", [$tournamentId]);
+		} else {
+			$result = $this->dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID = ? AND eventType = ?", [$tournamentId, $eventType->value]);
+		}
 		$data = $result->fetch_assoc();
 		return $data !== null;
 	}
@@ -171,5 +180,65 @@ class TournamentRepository extends AbstractRepository {
 			$tournaments[] = $this->mapToEntity($tournamentData, rootTournament: $rootTournament);
 		}
 		return $tournaments;
+	}
+
+
+	public function mapEntityToData(Tournament $tournament): array {
+		return [
+			'OPL_ID' => $tournament->id,
+			'OPL_ID_parent' => $tournament->directParentTournament?->id,
+			'OPL_ID_top_parent' => $tournament->rootTournament?->id,
+			'name' => $tournament->name,
+			'split' => $tournament->split,
+			'season' => $tournament->season,
+			'eventType' => $tournament->eventType?->value,
+			'format' => $tournament->format?->value,
+			'number' => $tournament->number,
+			'numberRangeTo' => $tournament->numberRangeTo,
+			'dateStart' => $tournament->dateStart?->format('Y-m-d'),
+			'dateEnd' => $tournament->dateEnd?->format('Y-m-d'),
+			'OPL_ID_logo' => $tournament->logoId,
+			'finished' => $tournament->finished,
+			'deactivated' => $tournament->deactivated,
+			'archived' => $tournament->archived,
+			'ranked_season' => $tournament->rankedSplit?->season ?? null,
+			'ranked_split' => $tournament->rankedSplit?->split ?? null
+		];
+	}
+	private function insert(Tournament $tournament):void {
+		$data = $this->mapEntityToData($tournament);
+		$columns = implode(", ", array_keys($data));
+		$placeholders = implode(", ", array_fill(0, count($data), "?"));
+		$values = array_values($data);
+
+		/** @noinspection SqlInsertValues */
+		$query = "INSERT INTO tournaments ($columns) VALUES ($placeholders)";
+		$this->dbcn->execute_query($query, $values);
+
+		unset($this->cache[$tournament->id]);
+	}
+	private function update(Tournament $tournament):void {
+		$data = $this->mapEntityToData($tournament);
+		$assignments = implode(", ", array_map(fn($key) => "$key = ?", array_keys($data)));
+		$values = array_values($data);
+
+		$query = "UPDATE tournaments SET $assignments WHERE OPL_ID = ?";
+		$this->dbcn->execute_query($query, [...$values, $tournament->id]);
+
+		unset($this->cache[$tournament->id]);
+	}
+	public function save(Tournament $tournament):SaveResult {
+		try {
+			if ($this->tournamentExists($tournament->id)) {
+				$this->update($tournament);
+				return SaveResult::UPDATED;
+			} else {
+				$this->insert($tournament);
+				return SaveResult::INSERTED;
+			}
+		} catch (\Throwable $e) {
+			Logger::log('db', "Fehler beim Speichern von Turnier $tournament->id: " . $e->getMessage() . $e->getTraceAsString());
+			return SaveResult::FAILED;
+		}
 	}
 }
