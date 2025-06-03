@@ -6,4 +6,5 @@ enum SaveResult {
 	case INSERTED;
 	case UPDATED;
 	case FAILED;
+	case NOT_CHANGED;
 }

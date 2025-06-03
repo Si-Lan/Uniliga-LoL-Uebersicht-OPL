@@ -159,4 +159,26 @@ class Tournament {
 			return $baseUrl."logo.webp";
 		}
 	}
+
+	public function getDataDifference(Tournament $tournament):array {
+		$diff = [];
+		if ($this->id !== $tournament->id) $diff['id'] = $this->id;
+		if ($this->directParentTournament?->id !== $tournament->directParentTournament?->id) $diff['directParentTournamentId'] = $this->directParentTournament?->id;
+		if ($this->rootTournament?->id !== $tournament->rootTournament?->id) $diff['rootTournamentId'] = $this->rootTournament?->id;
+		if ($this->name !== $tournament->name) $diff['name'] = $this->name;
+		if ($this->split !== $tournament->split) $diff['split'] = $this->split;
+		if ($this->season !== $tournament->season) $diff['season'] = $this->season;
+		if ($this->eventType !== $tournament->eventType) $diff['eventType'] = $this->eventType;
+		if ($this->format !== $tournament->format) $diff['format'] = $this->format;
+		if ($this->number !== $tournament->number) $diff['number'] = $this->number;
+		if ($this->numberRangeTo !== $tournament->numberRangeTo) $diff['numberRangeTo'] = $this->numberRangeTo;
+		if ($this->dateStart?->format('Y-m-d') !== $tournament->dateStart?->format('Y-m-d')) $diff['dateStart'] = $this->dateStart?->format('Y-m-d');
+		if ($this->dateEnd?->format('Y-m-d') !== $tournament->dateEnd?->format('Y-m-d')) $diff['dateEnd'] = $this->dateEnd?->format('Y-m-d');
+		if ($this->logoId !== $tournament->logoId) $diff['logoId'] = $this->logoId;
+		if ($this->finished !== $tournament->finished) $diff['finished'] = $this->finished;
+		if ($this->deactivated !== $tournament->deactivated) $diff['deactivated'] = $this->deactivated;
+		if ($this->archived !== $tournament->archived) $diff['archived'] = $this->archived;
+		if ($this->eventType === EventType::TOURNAMENT && $this->rankedSplit?->equals($tournament->rankedSplit)) $diff['rankedSplit'] = $this->rankedSplit?->getName();
+		return $diff;
+	}
 }

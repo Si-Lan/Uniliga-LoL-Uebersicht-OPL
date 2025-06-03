@@ -235,18 +235,27 @@ class TournamentRepository extends AbstractRepository {
 
 		unset($this->cache[$tournament->id]);
 	}
-	public function save(Tournament $tournament):SaveResult {
+	/**
+	 * @param \App\Domain\Entities\Tournament $tournament
+	 * @return array{'result': SaveResult, 'changes': array<string, mixed>}
+	 */
+	public function save(Tournament $tournament):array {
 		try {
-			if ($this->tournamentExists($tournament->id)) {
+			$existingTournament = $this->findById($tournament->id);
+			if ($existingTournament) {
+				$changedData = $tournament->getDataDifference($existingTournament);
+				if (count($changedData)===0) {
+					return ['result'=>SaveResult::NOT_CHANGED];
+				}
 				$this->update($tournament);
-				return SaveResult::UPDATED;
+				return ['result'=>SaveResult::UPDATED, 'changes'=>$changedData];
 			} else {
 				$this->insert($tournament);
-				return SaveResult::INSERTED;
+				return ['result'=>SaveResult::INSERTED];
 			}
 		} catch (\Throwable $e) {
 			Logger::log('db', "Fehler beim Speichern von Turnier $tournament->id: " . $e->getMessage() . $e->getTraceAsString());
-			return SaveResult::FAILED;
+			return ['result'=>SaveResult::FAILED];
 		}
 	}
 
