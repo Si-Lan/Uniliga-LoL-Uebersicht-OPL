@@ -24,24 +24,32 @@ class TournamentRepository extends AbstractRepository {
 
 	public function mapToEntity(array $data, ?Tournament $directParentTournament=null, ?Tournament $rootTournament=null, ?RankedSplit $rankedSplit=null, bool $newEntity = false): Tournament {
 		$data = $this->normalizeData($data);
+
+		$dataRootId = $this->intOrNull($data['OPL_ID_top_parent']);
 		if (is_null($rootTournament)) {
-			if (!is_null($data["OPL_ID_top_parent"]) && $data["eventType"] !== EventType::TOURNAMENT->value) {
-				$rootTournament = $this->findById($data["OPL_ID_top_parent"]);
+			if (!is_null($dataRootId) && $data["eventType"] !== EventType::TOURNAMENT->value) {
+				$rootTournament = $this->findById($dataRootId);
 			}
 		}
+
 		$rankedSplit = !is_null($rootTournament) ? $rootTournament->rankedSplit : $rankedSplit;
-		if (is_null($rankedSplit) && !is_null($data["ranked_season"])) {
-			$rankedSplit = $this->rankedSplitRepo->findBySeasonAndSplit($data["ranked_season"], $data["ranked_split"]);
+		$dataRankedSeason = $this->stringOrNull($data['ranked_season']);
+		if (is_null($rankedSplit) && !is_null($dataRankedSeason)) {
+			$dataRankedSplit = $this->stringOrNull($data['ranked_split']);
+			$rankedSplit = $this->rankedSplitRepo->findBySeasonAndSplit($dataRankedSeason, $dataRankedSplit);
 		}
+
+		$dataDirectParentId = $this->intOrNull($data['OPL_ID_parent']);
 		if (is_null($directParentTournament)) {
-			if (!is_null($data["OPL_ID_parent"]) && $data["eventType"] !== EventType::TOURNAMENT->value) {
-				if (!is_null($rootTournament) && $data["OPL_ID_parent"] === $rootTournament->id) {
+			if (!is_null($dataDirectParentId) && $data["eventType"] !== EventType::TOURNAMENT->value) {
+				if (!is_null($rootTournament) && $dataDirectParentId === $rootTournament->id) {
 					$directParentTournament = $rootTournament;
 				} else {
-					$directParentTournament = $this->findById($data["OPL_ID_parent"], rootParent: $rootTournament);
+					$directParentTournament = $this->findById($dataDirectParentId, rootParent: $rootTournament);
 				}
 			}
 		}
+
 		$tournament = new Tournament(
 			id: (int) $data['OPL_ID'],
 			directParentTournament: $directParentTournament,
@@ -198,9 +206,9 @@ class TournamentRepository extends AbstractRepository {
 			'dateStart' => $tournament->dateStart?->format('Y-m-d'),
 			'dateEnd' => $tournament->dateEnd?->format('Y-m-d'),
 			'OPL_ID_logo' => $tournament->logoId,
-			'finished' => $tournament->finished,
-			'deactivated' => $tournament->deactivated,
-			'archived' => $tournament->archived,
+			'finished' => $tournament->finished ? 1 : 0,
+			'deactivated' => $tournament->deactivated ? 1 : 0,
+			'archived' => $tournament->archived ? 1 : 0,
 			'ranked_season' => $tournament->rankedSplit?->season ?? null,
 			'ranked_split' => $tournament->rankedSplit?->split ?? null
 		];
@@ -290,9 +298,9 @@ class TournamentRepository extends AbstractRepository {
 				}
 				break;
 
-			case EventType::GROUP:
+			case EventType::GROUP->value:
 				// Matcht "Gruppe A" oder "Group A"
-				if (preg_match('/\b(?:gruppe|group)\s*([a-z])/', $name_lower, $matches)) {
+				if (preg_match('/\b(?:gruppe|group)\s+([a-z])/', $name_lower, $matches)) {
 					$entityData['number'] = strtoupper($matches[1]);
 				}
 				break;
