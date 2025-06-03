@@ -7,6 +7,7 @@ function getTournamentAndShowForm() {
 	const tournamentId = $("#input-tournament-id").val();
 	if (tournamentId === "") {return}
 	add_popupLoadingIndicator(dialog);
+	dialogContent.empty();
 	dialog[0].showModal();
 	fetch(`/admin/api/import/opl/tournaments/getData?tournamentId=${tournamentId}`)
 		.then(res => {
@@ -30,19 +31,18 @@ function getTournamentAndShowForm() {
 					if (res.ok) {
 						return res.json()
 					} else {
-						dialogContent.empty();
 						dialogContent.append("Fehler beim Erstellen des Turnierformulars");
 						return "Fehler beim Erstellen des Turnierformulars";
 					}
 				})
 				.then(fragment => {
-					dialogContent.empty();
 					dialogContent.append(fragment.html);
 					remove_popupLoadingIndicator(dialog);
 				})
 		})
 }
 function writeTournament(button) {
+	let tournamentId = $(button).data("id");
 	let wrapper = $(button).closest('.tournament-write-data-wrapper');
 
 	let data = {};
@@ -66,6 +66,62 @@ function writeTournament(button) {
 	data.ranked_season = wrapper.find(`input[name=ranked_season]`).val();
 	data.ranked_split = wrapper.find(`input[name=ranked_split]`).val();
 
-	console.log(data);
+	fetch(`/admin/api/import/opl/tournaments/save-from-form`, {
+		method: 'POST',
+		headers: {'Content-Type': 'application/json'},
+		body: JSON.stringify(data)
+	})
+		.then(res => {
+			if (res.ok) {
+				return res.json();
+			} else {
+				return {"error": "Fehler beim Speichern des Turniers"};
+			}
+		})
+		.then(res => {
+			if (res.error) {
+				show_results_dialog_with_result(tournamentId, res.error);
+				return;
+			}
+			switch (res.result) {
+				case "INSERTED":
+					show_results_dialog_with_result(tournamentId, "Turnier erfolgreich erstellt");
+					break;
+				case "UPDATED":
+					clear_results_dialog(tournamentId);
+					add_to_results_dialog(tournamentId, "Turnier erfolgreich aktualisiert");
+					for (let key in res.changes) {
+						add_to_results_dialog(tournamentId, `- [${key}] auf '${res.changes[key]}' gesetzt`);
+					}
+					show_results_dialog(tournamentId);
+					break;
+				case "NOT_CHANGED":
+					show_results_dialog_with_result(tournamentId, "Turnier unverändert");
+					break;
+				default:
+				case "FAILED":
+					show_results_dialog_with_result(tournamentId, "Fehler beim Speichern des Turniers");
+					break;
+			}
+		})
+		.catch(error => {
+			show_results_dialog_with_result(tournamentId, "Fehler beim Speichern des Turniers");
+			console.error(error);
+		})
 
+}
+
+function clear_results_dialog(tournamentId) {
+	$(`dialog#result-popup-${tournamentId}`).empty();
+}
+function add_to_results_dialog(tournamentId, html) {
+	$(`dialog#result-popup-${tournamentId}`).append(html+"<br>");
+}
+function show_results_dialog(tournamentId) {
+	$(`dialog#result-popup-${tournamentId}`)[0].showModal();
+}
+function show_results_dialog_with_result(tournamentId, html) {
+	clear_results_dialog(tournamentId);
+	add_to_results_dialog(tournamentId, html);
+	show_results_dialog(tournamentId);
 }

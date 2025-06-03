@@ -57,4 +57,26 @@ class TournamentsHandler {
 
 		echo json_encode($tournamentRepo->mapEntityToData($tournament));
 	}
+
+	public function saveFromForm(array $dataGet): void {
+		if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+			http_response_code(400);
+			echo json_encode(['error' => 'Invalid request method']);
+			exit;
+		}
+		$tournamentData = json_decode(file_get_contents('php://input'), true);
+
+		if (json_last_error() !== JSON_ERROR_NONE || !$tournamentData) {
+			http_response_code(400);
+			echo json_encode(['error' => 'Missing Data or invalid JSON received']);
+			exit;
+		}
+
+		$tournamentRepo = new TournamentRepository();
+		$tournament = $tournamentRepo->mapToEntity($tournamentData, newEntity: true);
+
+		$saveResult = $tournamentRepo->save($tournament);
+		$saveResult["result"] = $saveResult["result"]->name;
+		echo json_encode($saveResult);
+	}
 }
