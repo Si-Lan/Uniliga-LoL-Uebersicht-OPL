@@ -18,11 +18,11 @@ $(document).on("click", "[data-dialog-id]", function() {
 });
 
 async function remove_popupLoadingIndicator(popup) {
-	let popup_loader = popup.find('.popup-loading-indicator');
+	let popup_loader = $(popup).find('.popup-loading-indicator');
 	popup_loader.css("opacity","0");
 	await new Promise(r => setTimeout(r, 210));
 	popup_loader.remove();
 }
 function add_popupLoadingIndicator(popup) {
-	popup.prepend("<div class='popup-loading-indicator'></div>");
+	$(popup).prepend("<div class='popup-loading-indicator'></div>");
 }

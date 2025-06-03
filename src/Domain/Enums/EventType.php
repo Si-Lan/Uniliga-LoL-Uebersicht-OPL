@@ -9,6 +9,15 @@ enum EventType: string {
 	case WILDCARD = 'wildcard';
 	case PLAYOFFS = 'playoffs';
 
+	public function getPrettyName(): string {
+		return match ($this) {
+			self::TOURNAMENT => "Turnier",
+			self::LEAGUE => "Liga",
+			self::GROUP => "Gruppe",
+			self::WILDCARD => "Wildcard",
+			self::PLAYOFFS => "Playoffs",
+		};
+	}
 	public static function fromName(string $name): ?EventType {
 		$name = mb_strtolower($name);
 		if (str_contains($name, "wildcard")) {
