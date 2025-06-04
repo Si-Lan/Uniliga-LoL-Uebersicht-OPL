@@ -26,3 +26,23 @@ async function remove_popupLoadingIndicator(popup) {
 function add_popupLoadingIndicator(popup) {
 	$(popup).prepend("<div class='popup-loading-indicator'></div>");
 }
+
+function setDialogProgressBar(dialog, percentValue) {
+	if (!dialog.hasClass("has-dialog-loading-bar")) dialog.addClass("has-dialog-loading-bar");
+	dialog.attr("style",`--loading-bar-width:${percentValue}%`);
+}
+function addToDialogProgressBar(dialog, percentValue) {
+	if (!dialog.hasClass("has-dialog-loading-bar")) dialog.addClass("has-dialog-loading-bar");
+
+	let progressStr = getComputedStyle(dialog[0]).getPropertyValue("--loading-bar-width").trim();
+	let progressVal = parseFloat(progressStr);
+	dialog.attr("style",`--loading-bar-width:${progressVal + percentValue}%`);
+}
+async function resetDialogProgressBar(dialog) {
+	await new Promise(r => setTimeout(r, 200));
+	dialog.addClass("hidden-loading-bar");
+	await new Promise(r => setTimeout(r, 200));
+	dialog.attr("style",`--loading-bar-width:0`);
+	await new Promise(r => setTimeout(r, 200));
+	dialog.removeClass("hidden-loading-bar");
+}
