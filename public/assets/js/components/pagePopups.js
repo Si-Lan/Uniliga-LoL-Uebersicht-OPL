@@ -145,27 +145,7 @@ function setParamAndUpdateUrl(param, value) {
 	url.searchParams.set(param,value);
 	window.history.replaceState({}, '', url);
 }
-function bindDialogCloseHandler(dialog) {
-	if (!dialog.hasAttribute('data-close-bound')) {
-		dialog.addEventListener('close', () => {
-			let url = new URL(window.location.href);
-			url.searchParams.delete('match');
-			window.history.replaceState({}, '', url);
-		});
-		dialog.setAttribute('data-close-bound', 'true');
-	}
-}
 
-const closeMatchObserver = new MutationObserver(mutations => {
-	for (const mutation of mutations) {
-		$(mutation.addedNodes).each(function () {
-			$(this).find('dialog.match-popup:not([data-close-bound])').each(function () {
-				bindDialogCloseHandler(this);
-			})
-
-		});
-	}
-});
 $(document).ready(() => {
 	$('dialog.match-popup').each(function () {bindDialogCloseHandler(this)});
 	closeMatchObserver.observe(document.body, {childList: true, subtree: true});

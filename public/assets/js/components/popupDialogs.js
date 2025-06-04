@@ -46,3 +46,57 @@ async function resetDialogProgressBar(dialog) {
 	await new Promise(r => setTimeout(r, 200));
 	dialog.removeClass("hidden-loading-bar");
 }
+
+
+function bindDialogCloseHandler(dialog) {
+	if (dialog.hasAttribute('data-close-bound')) {
+		return;
+	}
+
+	let bound = false;
+
+	if (dialog.classList.contains('clear-on-exit')) {
+		bound = true;
+		dialog.addEventListener('close', async () => {
+			await new Promise(r => setTimeout(r, 200)); // Schließen Animation abwarten
+			$(dialog).find(".dialog-content").empty();
+		});
+	}
+
+	if (dialog.classList.contains('match-popup')) {
+		bound = true;
+		dialog.addEventListener('close', () => {
+			let url = new URL(window.location.href);
+			url.searchParams.delete('match');
+			window.history.replaceState({}, '', url);
+		});
+	}
+
+	if (dialog.classList.contains('related-events-dialog')) {
+		bound = true;
+		dialog.addEventListener('close', () => {
+			if (typeof related_events_fetch_control !== 'undefined') {
+				resetDialogProgressBar($(dialog));
+				related_events_fetch_control.abort();
+			}
+		});
+	}
+
+
+	if (bound) dialog.setAttribute('data-close-bound', 'true');
+}
+
+const dialogAddedObserver = new MutationObserver(mutations => {
+	for (const mutation of mutations) {
+		$(mutation.addedNodes).each(function () {
+			$(this).find('dialog:not([data-close-bound])').each(function () {
+				bindDialogCloseHandler(this);
+			})
+		})
+	}
+})
+
+$(() => {
+	$('dialog').each(function () {bindDialogCloseHandler(this)});
+	dialogAddedObserver.observe(document.body, {childList: true, subtree: true});
+})
