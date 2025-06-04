@@ -8,14 +8,17 @@ class Popup {
 	public function __construct(
 		private ?string $id = null,
 		private ?string $pagePopupType = null,
+		private bool $uniqueId = false,
 		private bool $dismissable = true,
 		private bool $noCloseButton = false,
 		private bool $autoOpen = false,
-		private string $content = '',
+		public string $content = '',
 		private array $additionalClasses = [],
 	) {
 		if ($this->pagePopupType !== null) {
 			$this->id = uniqid(str_replace('-','_', $this->pagePopupType)."_".$this->id);
+		} elseif ($this->uniqueId) {
+			$this->id = uniqid($this->id);
 		}
 		AssetManager::addJsFile('/assets/js/components/popupDialogs.js');
 	}
