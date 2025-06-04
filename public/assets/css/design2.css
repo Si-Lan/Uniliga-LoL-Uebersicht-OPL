@@ -291,6 +291,7 @@ dialog {
 		display: flex;
 	}
 	flex-direction: column;
+	gap: 4px;
 	padding: 24px;
 	background-color: var(--bg);
 	border: var(--element-bg-sec) solid 2px;
@@ -355,7 +356,6 @@ dialog {
 			display: block;
 			width: 28px;
 			height: 28px;
-			margin: 8px;
 			border-radius: 50%;
 			border: 4px solid;
 			border-color: var(--text) transparent;
@@ -738,7 +738,7 @@ header .settings-menu svg {
 }
 .github-link .material-symbol svg path {
 	transform: scale(0.22);
-	fill: var(--text-color);
+	fill: var(--text);
 }
 
 /* Header - Searchbar*/
@@ -840,7 +840,7 @@ header .searchbar .autocomplete-items>a {
 	background-color: var(--element-bg) !important;
 }
 .autocomplete-items div strong {
-	color: var(--autocomplete-highlight-matching);
+	color: var(--accent);
 }
 
 
@@ -3585,11 +3585,11 @@ input[type=date] {
 	align-items: stretch;
 	gap: 4px;
 }
-.related-event-button-list>button.in-db {
+button.related-tournament-button.in-db {
 	background-color: #213c4f;
 	border: #284a62 solid 2px;
 }
-.related-event-button-list>button.in-db:hover {
+button.related-tournament-button.in-db:hover {
 	background-color: #284a62;
 }
 
