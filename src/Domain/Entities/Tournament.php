@@ -178,7 +178,7 @@ class Tournament {
 		if ($this->finished !== $tournament->finished) $diff['finished'] = $this->finished;
 		if ($this->deactivated !== $tournament->deactivated) $diff['deactivated'] = $this->deactivated;
 		if ($this->archived !== $tournament->archived) $diff['archived'] = $this->archived;
-		if ($this->eventType === EventType::TOURNAMENT && $this->rankedSplit?->equals($tournament->rankedSplit)) $diff['rankedSplit'] = $this->rankedSplit?->getName();
+		if ($this->eventType === EventType::TOURNAMENT && !$this->rankedSplit?->equals($tournament->rankedSplit)) $diff['rankedSplit'] = $this->rankedSplit?->getName();
 		return $diff;
 	}
 }

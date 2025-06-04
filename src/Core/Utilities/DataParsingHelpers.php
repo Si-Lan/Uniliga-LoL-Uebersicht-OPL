@@ -8,7 +8,7 @@ use App\Domain\Enums\EventType;
 trait DataParsingHelpers {
 
 	protected function stringOrNull(mixed $value): ?string {
-		return is_null($value) ? null : (string) $value;
+		return (is_null($value) || $value === '') ? null : (string) $value;
 	}
 
 	protected function intOrNull(mixed $value): ?int {
