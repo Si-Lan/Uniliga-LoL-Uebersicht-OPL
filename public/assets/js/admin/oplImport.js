@@ -1,5 +1,6 @@
 $(document).on("click", "button#turnier-button-get", getTournamentAndShowForm);
-$(document).on("click", "button.write_tournament", function () {writeTournament(this)});
+$(document).on("click", "button.write_tournament", function () {writeTournamentFromForm(this)});
+$(document).on("click", "button.get_related_events", function () {openRelatedEventsPopup(this)});
 
 function getTournamentAndShowForm() {
 	const dialog = $('dialog#tournament-add');
@@ -9,7 +10,7 @@ function getTournamentAndShowForm() {
 	add_popupLoadingIndicator(dialog);
 	dialogContent.empty();
 	dialog[0].showModal();
-	fetch(`/admin/api/import/opl/tournaments/getData?tournamentId=${tournamentId}`)
+	fetch(`/admin/api/import/opl/tournaments/get-data?tournamentId=${tournamentId}`)
 		.then(res => {
 			if (res.ok) {
 				return res.json()
@@ -39,9 +40,14 @@ function getTournamentAndShowForm() {
 					dialogContent.append(fragment.html);
 					remove_popupLoadingIndicator(dialog);
 				})
+				.catch(() => {
+					dialogContent.append("Fehler beim Erstellen des Turnierformulars");
+					remove_popupLoadingIndicator(dialog);
+					return "Fehler beim Erstellen des Turnierformulars";
+				})
 		})
 }
-function writeTournament(button) {
+function writeTournamentFromForm(button) {
 	let tournamentId = $(button).data("id");
 	let wrapper = $(button).closest('.tournament-write-data-wrapper');
 
@@ -109,6 +115,75 @@ function writeTournament(button) {
 			console.error(error);
 		})
 
+}
+
+let related_events_fetch_control = null;
+async function openRelatedEventsPopup(button) {
+	if (related_events_fetch_control !== null) related_events_fetch_control.abort();
+	related_events_fetch_control = new AbortController();
+
+	const tournamentId = button.dataset.id;
+	const dialogId = button.dataset.dialogId;
+	const relation = button.dataset.relation;
+	const dialog = $(`dialog#${dialogId}`);
+	if (dialog.length === 0 || tournamentId === '') return;
+
+	add_popupLoadingIndicator(dialog);
+	dialog[0].showModal();
+
+	let tournamentIds = [];
+	const buttons = dialog.find(`>.dialog-content>.related-event-button-list>button`);
+	buttons.each(function () {
+		tournamentIds.push(this.dataset.tournamentId)
+	})
+
+
+	let tournamentData = [];
+
+	for (const tournamentId of tournamentIds) {
+		await fetch(`/admin/api/import/opl/tournaments/getData?tournamentId=${tournamentId}`, {
+			method: 'GET',
+			signal: related_events_fetch_control.signal
+		})
+			.then(res => {
+				addToDialogProgressBar(dialog,100/tournamentIds.length)
+				if (res.ok) {
+					return res.json()
+				} else {
+					buttons.find(`[data-tournament-id=${tournamentId}]`).html("Fehler beim Laden des Turniers");
+					return {"error": "Fehler beim Laden des Turniers"};
+				}
+			})
+			.then(data => {
+				if (data.error) return;
+
+				tournamentData.push(data);
+			})
+	}
+
+	fetch(`/admin/ajax/fragment/related-tournament-list`, {
+		method: 'POST',
+		headers: {'Content-Type': 'application/json'},
+		body: JSON.stringify(tournamentData),
+		signal: related_events_fetch_control.signal
+	})
+		.then(res => {
+			if (res.ok) {
+				return res.json()
+			} else {
+				dialog.find('.dialog-content').prepend("Fehler beim Erstellen der Turnierformulare");
+				return {"error": "Fehler beim Erstellen der Turnierformulare"};
+			}
+		})
+		.then(fragment => {
+			dialog.find('.related-event-button-list').replaceWith(fragment.html);
+
+		})
+
+	console.log(tournamentData);
+
+	remove_popupLoadingIndicator(dialog);
+	resetDialogProgressBar(dialog);
 }
 
 function clear_results_dialog(tournamentId) {

@@ -3,6 +3,7 @@
 namespace App\Ajax\Admin;
 
 use App\Domain\Repositories\TournamentRepository;
+use App\UI\Components\Admin\RelatedTournamentButtonList;
 use App\UI\Components\Admin\TournamentEditForm;
 
 class FragmentHandler {
@@ -29,5 +30,24 @@ class FragmentHandler {
 		$tournamentForm = new TournamentEditForm($tournament,$newTournament, $parentIds, $childrenIds);
 
 		echo json_encode(["html"=>$tournamentForm->render()]);
+	}
+
+	public function RelatedTournamentList(array $dataGet):void {
+		if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+			$tournamentData = json_decode(file_get_contents('php://input'), true);
+			if (json_last_error() !== JSON_ERROR_NONE || !$tournamentData) {
+				http_response_code(400);
+				echo json_encode(['error' => 'Missing Data or invalid JSON received']);
+				exit;
+			}
+		} else {
+			http_response_code(400);
+			echo '{"error": "TournamentData missing"}';
+			exit();
+		}
+
+		$tournamentButtonList = new RelatedTournamentButtonList($tournamentData);
+
+		echo json_encode(["html"=>$tournamentButtonList->render()]);
 	}
 }
