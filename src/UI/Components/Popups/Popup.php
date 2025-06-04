@@ -21,6 +21,7 @@ class Popup {
 			$this->id = uniqid($this->id);
 		}
 		AssetManager::addJsFile('/assets/js/components/popupDialogs.js');
+		AssetManager::addCssFile('/assets/css/components/popupDialogs.css');
 	}
 
 	public function getId(): string {
