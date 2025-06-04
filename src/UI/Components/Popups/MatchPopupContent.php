@@ -5,6 +5,7 @@ namespace App\UI\Components\Popups;
 use App\Domain\Entities\Matchup;
 use App\Domain\Entities\Team;
 use App\Domain\Repositories\GameInMatchRepository;
+use App\UI\Page\AssetManager;
 
 class MatchPopupContent {
 	private array $gamesInMatch = [];
@@ -15,6 +16,7 @@ class MatchPopupContent {
 		$gameInMatchRepo = new GameInMatchRepository();
 		$gamesInMatch = $gameInMatchRepo->findAllByMatchup($matchup);
 		$this->gamesInMatch = $gamesInMatch;
+		AssetManager::addCssFile('assets/css/game.css');
 	}
 	public function render(): string {
 		$matchup = $this->matchup;
