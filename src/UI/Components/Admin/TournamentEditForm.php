@@ -12,7 +12,7 @@ class TournamentEditForm {
 		private array $parentIds = [],
 		private array $childrenIds = []
 	) {
-		AssetManager::addJsFile('assets/js/admin/oplImport.js');
+		AssetManager::addJsFile('/assets/js/admin/oplImport.js');
 	}
 
 	public function render(): string {
