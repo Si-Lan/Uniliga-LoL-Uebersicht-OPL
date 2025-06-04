@@ -54,8 +54,12 @@ class TournamentsHandler {
 		$tournamentRepo = new TournamentRepository();
 
 		$tournament = $tournamentRepo->createFromOplData($data['data']);
+		sort($data['data']['leafes']);
+		sort($data['data']['ancestors']);
 
-		echo json_encode($tournamentRepo->mapEntityToData($tournament));
+		$relatedEvents  = ["children"=>$data['data']['leafes'], "parents"=>$data['data']['ancestors']];
+
+		echo json_encode(["entityData" => $tournamentRepo->mapEntityToData($tournament), "relatedTournaments" => $relatedEvents]);
 	}
 
 	public function saveFromForm(array $dataGet): void {

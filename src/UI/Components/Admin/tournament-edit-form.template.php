@@ -1,9 +1,12 @@
 <?php
 /** @var \App\Domain\Entities\Tournament $tournament */
 /** @var bool $isNew */
+/** @var array $parentIds */
+/** @var array $childrenIds */
 
 use App\Domain\Enums\EventFormat;
 use App\Domain\Enums\EventType;
+use App\UI\Components\Admin\RelatedTournamentButtonList;
 use App\UI\Components\Helpers\IconRenderer;
 use App\UI\Components\Popups\Popup;
 
@@ -66,11 +69,15 @@ $nonRootDisableAttribute = $tournament->eventType === EventType::TOURNAMENT ? ''
 			<label class="write_tournament_ranked_split">Rank-Split:<input type="text" name="ranked_split" value="<?=$tournament->rankedSplit?->split?>" placeholder="#" <?=$nonRootDisableAttribute?>></label>
 		</div>
 	</div>
+    <?php
+    $childrenPopup = new Popup("children-add-{$tournament->id}", uniqueId: true, content: "<h2>Kinder</h2>" . new RelatedTournamentButtonList($childrenIds), additionalClasses: ['related-events-dialog']);
+    $parentsPopup = new Popup("parents-add-{$tournament->id}", uniqueId: true, content: "<h2>Eltern</h2>" . new RelatedTournamentButtonList($parentIds), additionalClasses: ['related-events-dialog']);
+    ?>
     <?php if (!$isNew): ?>
 	<div class="tournament-write-button-wrapper">
 		<button class="update_tournament" type="button" data-id="<?=$tournament->id?>">Aktualisieren</button>
-		<button class="get_event_children" type="button" data-id="<?=$tournament->id?>">Kinder holen</button>
-		<button class="get_event_parents" type="button" data-id="<?=$tournament->id?>">Eltern holen</button>
+        <button class="get_related_events" type="button" data-relation="parents" data-id="<?=$tournament->id?>" data-dialog-id="<?=$parentsPopup->getId()?>">Eltern holen</button>
+        <button class="get_related_events" type="button" data-relation="children" data-id="<?=$tournament->id?>" data-dialog-id="<?=$childrenPopup->getId()?>">Kinder holen</button>
 		<button class="open-tournament-data-popup" type="button" data-id="<?=$tournament->id?>" data-dialog-id="tournament-data-popup-<?=$tournament->id?>">weitere Daten holen</button>
 	</div>
 	<?= new Popup("tournament-data-popup-{$tournament->id}", noCloseButton: true, content: <<<HTML
@@ -89,12 +96,13 @@ HTML,
     <?php else: ?>
     <div class="tournament-write-button-wrapper">
         <button class="write_tournament" type="button" data-id="<?=$tournament->id?>">Eintragen</button>
-        <button class="get_event_children" type="button" data-id="<?=$tournament->id?>">Kinder holen</button>
-        <button class="get_event_parents" type="button" data-id="<?=$tournament->id?>">Eltern holen</button>
+        <button class="get_related_events" type="button" data-relation="parents" data-id="<?=$tournament->id?>" data-dialog-id="<?=$parentsPopup->getId()?>">Eltern holen</button>
+        <button class="get_related_events" type="button" data-relation="children" data-id="<?=$tournament->id?>" data-dialog-id="<?=$childrenPopup->getId()?>">Kinder holen</button>
     </div>
     <?php endif; ?>
 
-    <?= new Popup("related-add-{$tournament->id}", dismissable: false, additionalClasses: ['clear-on-exit'])?>
+	<?= $parentsPopup->render() ?>
+    <?= $childrenPopup->render() ?>
 
     <?= new Popup("result-popup-{$tournament->id}", noCloseButton: true, additionalClasses: ['write-result-popup'])?>
 </div>
