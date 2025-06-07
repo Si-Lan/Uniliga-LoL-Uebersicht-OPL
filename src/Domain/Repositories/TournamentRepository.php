@@ -129,6 +129,20 @@ class TournamentRepository extends AbstractRepository {
 	/**
 	 * @return array<Tournament>
 	 */
+	public function findAllTournaments(): array {
+		$result = $this->dbcn->execute_query("SELECT * FROM tournaments");
+		$data = $result->fetch_all(MYSQLI_ASSOC);
+
+		$tournaments = [];
+		foreach ($data as $tournamentData) {
+			$tournaments[] = $this->mapToEntity($tournamentData);
+		}
+		return $tournaments;
+	}
+
+	/**
+	 * @return array<Tournament>
+	 */
 	public function findAllRootTournaments(): array {
 		$query = "SELECT * FROM tournaments WHERE eventType = ?";
 		$result = $this->dbcn->execute_query($query,[EventType::TOURNAMENT->value]);
@@ -162,9 +176,14 @@ class TournamentRepository extends AbstractRepository {
 	 * @param EventType $type
 	 * @return array<Tournament>
 	 */
-	public function findAllByParentTournamentAndType(Tournament $parentTournament, EventType $type):array {
-		$query = 'SELECT * FROM tournaments WHERE OPL_ID_parent = ? AND eventType = ? ORDER BY number';
-		$result = $this->dbcn->execute_query($query,[$parentTournament->id,$type->value]);
+	public function findAllByParentTournamentAndType(Tournament $parentTournament, ?EventType $type = null):array {
+		if (is_null($type)) {
+			$query = 'SELECT * FROM tournaments WHERE OPL_ID_parent = ? ORDER BY number';
+			$result = $this->dbcn->execute_query($query,[$parentTournament->id]);
+		} else {
+			$query = 'SELECT * FROM tournaments WHERE OPL_ID_parent = ? AND eventType = ? ORDER BY number';
+			$result = $this->dbcn->execute_query($query,[$parentTournament->id,$type->value]);
+		}
 		$data = $result->fetch_all(MYSQLI_ASSOC);
 
 		$tournaments = [];
@@ -186,6 +205,17 @@ class TournamentRepository extends AbstractRepository {
 		$tournaments = [];
 		foreach ($data as $tournamentData) {
 			$tournaments[] = $this->mapToEntity($tournamentData, rootTournament: $rootTournament);
+		}
+		return $tournaments;
+	}
+
+	public function findAllUnassignedTournaments():array {
+		$query = 'SELECT * FROM tournaments WHERE (OPL_ID_parent IS NULL OR OPL_ID_top_parent IS NULL) AND eventType != ?';
+		$result = $this->dbcn->execute_query($query,[EventType::TOURNAMENT->value]);
+		$data = $result->fetch_all(MYSQLI_ASSOC);
+		$tournaments = [];
+		foreach ($data as $tournamentData) {
+			$tournaments[] = $this->mapToEntity($tournamentData);
 		}
 		return $tournaments;
 	}

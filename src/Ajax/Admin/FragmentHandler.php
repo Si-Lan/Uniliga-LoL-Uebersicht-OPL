@@ -4,9 +4,23 @@ namespace App\Ajax\Admin;
 
 use App\Domain\Repositories\TournamentRepository;
 use App\UI\Components\Admin\RelatedTournamentButtonList;
-use App\UI\Components\Admin\TournamentEditForm;
+use App\UI\Components\Admin\TournamentEdit\TournamentEditForm;
+use App\UI\Components\Admin\TournamentEdit\TournamentEditList;
 
 class FragmentHandler {
+	public function TournamentEditList(array $dataGet):void {
+		$openAccordeons = [];
+		if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+			$openAccordeons = json_decode(file_get_contents('php://input'), true);
+			if (json_last_error() !== JSON_ERROR_NONE || !$openAccordeons) {
+				http_response_code(400);
+				echo json_encode(['error' => 'Missing Data on POST or invalid JSON received']);
+				exit;
+			}
+		}
+		$tournamentEditList = new TournamentEditList($openAccordeons);
+		echo json_encode(["html"=>$tournamentEditList->render()]);
+	}
 	public function TournamentEditForm(array $dataGet):void {
 		$tournamentRepo = new TournamentRepository();
 

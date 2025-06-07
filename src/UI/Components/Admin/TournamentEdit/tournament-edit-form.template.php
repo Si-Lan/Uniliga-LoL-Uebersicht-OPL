@@ -46,8 +46,8 @@ $nonRootDisableAttribute = $tournament->eventType === EventType::TOURNAMENT ? ''
 			<label class="write_tournament_season"><input type="number" name="season" value="<?=$tournament->season?>" placeholder="##"></label>
 			<label class="write_tournament_number">Nummer:<input type="text" name="number" value="<?=$tournament->number?>" placeholder="#"></label>
 			<label class="write_tournament_number2"><input type="text" name="numberRangeTo" value="<?=$tournament->numberRangeTo?>" placeholder="#"></label>
-			<label class="write_tournament_startdate">Zeitraum<input type="date" name="dateStart" value="<?=$tournament->dateStart->format('Y-m-d')?>"></label>
-			<label class="write_tournament_enddate"><input type="date" name="dateEnd" value="<?=$tournament->dateEnd->format('Y-m-d')?>"></label>
+			<label class="write_tournament_startdate">Zeitraum<input type="date" name="dateStart" value="<?=$tournament->dateStart?->format('Y-m-d')?>"></label>
+			<label class="write_tournament_enddate"><input type="date" name="dateEnd" value="<?=$tournament->dateEnd?->format('Y-m-d')?>"></label>
 			<label class="write_tournament_format">
 				<span class="slct">
 					<select name="format">

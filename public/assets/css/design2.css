@@ -3134,7 +3134,13 @@ body.admin h3 {
 	margin: 0;
 }
 body.admin h4 {
+	font-size: 1.5em;
+	margin: 0.8em 0;
+}
+body.admin h5 {
 	font-size: 1.25em;
+	margin: 0.25em 0 0.5em 1em;
+	text-align: left;
 }
 #maintenance-mode {
 	border: none;
@@ -3359,18 +3365,26 @@ button.toggle-turnierselect-accordeon .material-symbol {
 button.toggle-turnierselect-accordeon.open .material-symbol {
 	transform: rotateX(180deg);
 }
-.turnier-sl-accordeon {
+.turnierselect-accordeon {
 	display: grid;
 	grid-template-rows: 0fr;
 	pointer-events: none;
 	gap: 8px;
 	transition: grid-template-rows 400ms ease-out;
+
+	& .turnierselect-accordeon {
+		margin-left: 28px;
+
+		& .turnierselect-accordeon {
+			margin-left: 56px;
+		}
+	}
 }
-.turnier-sl-accordeon.open {
+.turnierselect-accordeon.open {
 	grid-template-rows: 1fr;
 	pointer-events: initial;
 }
-.turnier-sl-accordeon .tsl-acc-content {
+.turnierselect-accordeon .turnierselect-accordeon-content {
 	display: flex;
 	flex-direction: column;
 	gap: 8px;

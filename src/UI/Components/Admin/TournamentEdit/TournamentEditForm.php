@@ -1,6 +1,6 @@
 <?php
 
-namespace App\UI\Components\Admin;
+namespace App\UI\Components\Admin\TournamentEdit;
 
 use App\Domain\Entities\Tournament;
 use App\UI\Page\AssetManager;

@@ -2,6 +2,7 @@
 /** @var mysqli $dbcn  */
 
 use App\Core\Utilities\UserContext;
+use App\UI\Components\Admin\TournamentEdit\TournamentEditList;
 use App\UI\Components\Navigation\Header;
 use App\UI\Components\Popups\Popup;
 use App\UI\Enums\HeaderType;
@@ -40,7 +41,7 @@ echo new Header(HeaderType::ADMIN);
 
     <h2>Turniere in Datenbank:</h2>
     <div class="turnier-select">
-        <?= create_tournament_buttons($dbcn) ?>
+        <?= new TournamentEditList() ?>
     </div>
 </main>
 <div style="height: 200px"></div>

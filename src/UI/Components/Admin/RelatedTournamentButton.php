@@ -4,6 +4,7 @@ namespace App\UI\Components\Admin;
 
 use App\Domain\Entities\Tournament;
 use App\Domain\Repositories\TournamentRepository;
+use App\UI\Components\Admin\TournamentEdit\TournamentEditForm;
 use App\UI\Components\Popups\Popup;
 
 class RelatedTournamentButton {

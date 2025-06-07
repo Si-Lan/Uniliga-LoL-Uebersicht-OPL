@@ -18,6 +18,20 @@ enum EventType: string {
 			self::PLAYOFFS => "Playoffs",
 		};
 	}
+	public function getPrettyNamePlural(): string {
+		return match ($this) {
+			self::TOURNAMENT => "Turniere",
+			self::LEAGUE => "Ligen",
+			self::GROUP => "Gruppen",
+			self::WILDCARD => "Wildcards",
+			self::PLAYOFFS => "Playoffs",
+		};
+	}
+
+	public function hasChildren(): string {
+		return ($this === self::LEAGUE || $this === self::TOURNAMENT);
+	}
+
 	public static function fromName(string $name): ?EventType {
 		$name = mb_strtolower($name);
 		if (str_contains($name, "wildcard")) {
