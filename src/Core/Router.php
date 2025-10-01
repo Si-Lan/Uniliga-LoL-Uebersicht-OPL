@@ -16,8 +16,8 @@ class Router {
 			'pages' => self::handlePages(),
 			'api' => self::handleApiAjax('api', 'App\\API'),
 			'apiAdmin' => self::handleApiAjax('admin/api', 'App\\API\\Admin'),
-			'oplImport' => self::handleApiAjax('admin/api/import/opl', 'App\\API\\Admin\\ImportOpl'),
-			'rgapiImport' => self::handleApiAjax('admin/api/import/rgapi', 'App\\API\\Admin\\ImportRgapi'),
+			'apiOpl' => self::handleApiAjax('admin/api/opl', 'App\\API\\Admin\\ImportOpl'),
+			'apiRgapi' => self::handleApiAjax('admin/api/rgapi', 'App\\API\\Admin\\ImportRgapi'),
 			'ajax' => self::handleApiAjax('ajax', 'App\\Ajax'),
 			'ajaxAdmin' => self::handleApiAjax('admin/ajax', 'App\\Ajax\\Admin'),
 			default => self::trigger404()
