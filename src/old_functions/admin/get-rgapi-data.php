@@ -446,7 +446,7 @@ function get_Rank_by_SummonerId($playerID) {
 
 	$options = ["http" => ["header" => "X-Riot-Token: $RGAPI_Key"]];
 	$context = stream_context_create($options);
-	$content = file_get_contents("https://euw1.api.riotgames.com/lol/league/v4/entries/by-summoner/{$player['summonerID']}", false,$context);
+	$content = file_get_contents("https://euw1.api.riotgames.com/lol/league/v4/entries/by-puuid/{$player['PUUID']}", false,$context);
 
 	if ($content === FALSE) {
 		$returnArr["echo"] .= "<span style='color: orangered'>--could not get Rank, request failed: {$http_response_header[0]}<br></span>";
