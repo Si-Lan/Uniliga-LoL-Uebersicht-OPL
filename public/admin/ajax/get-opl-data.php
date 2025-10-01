@@ -6,35 +6,6 @@ include_once $root . "/config/data.php";
 $type = $_SERVER["HTTP_TYPE"] ?? NULL;
 if ($type == NULL) exit;
 
-// gets the given tournament from OPL (1 Call to OPL-API)
-if ($type == "get_tournament") {
-	$id = $_SERVER["HTTP_ID"] ?? NULL;
-	if (strlen($id) == 0) {
-		echo "{}";
-		exit;
-	}
-	$result = get_tournament($id);
-	echo json_encode($result);
-}
-
-// adds the given tournament to DB
-if ($type == "write_tournament") {
-	$data = $_SERVER["HTTP_DATA"] ?? NULL;
-	$data = json_decode($data,true);
-	$result = write_tournament($data);
-	echo $result;
-}
-
-if ($type == "get_event_children") {
-	$id = $_SERVER["HTTP_ID"];
-	$result = get_related_events($id);
-	echo json_encode($result);
-}
-if ($type == "get_event_parents") {
-	$id = $_SERVER["HTTP_ID"];
-	$result = get_related_events($id, "parents");
-	echo json_encode($result);
-}
 
 // adds teams for the given tournament to DB (x Calls to OPL-API) (1 for groups / more for tournaments and leagues)
 if ($type == "get_teams_for_tournament") {

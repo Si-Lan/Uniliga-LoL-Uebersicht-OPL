@@ -1,7 +1,4 @@
 function set_button_listeners() {
-	$(".update_tournament").on("click", function () {write_tournament(this.getAttribute("data-id"))});
-	$(".get_event_children").on("click", function () {open_related_events_popup(this.getAttribute("data-id"),"children")});
-	$(".get_event_parents").on("click", function () {open_related_events_popup(this.getAttribute("data-id"),"parents")});
 	$(".get-teams").on("click", function () {get_teams_for_tournament(this.getAttribute("data-id"))});
 	$(".get-teams-delete").on("click", function () {get_teams_for_tournament(this.getAttribute("data-id"),true)});
 	$(".get-players").on("click", function () {get_players_for_tournament(this.getAttribute("data-id"))});
