@@ -11,7 +11,7 @@ function getTournamentAndShowForm() {
 	add_popupLoadingIndicator(dialog);
 	dialogContent.empty();
 	dialog[0].showModal();
-	fetch(`/admin/api/opl/tournaments/get-data?tournamentId=${tournamentId}`)
+	fetch(`/admin/api/opl/tournaments/${tournamentId}`)
 		.then(res => {
 			if (res.ok) {
 				return res.json()
@@ -73,7 +73,7 @@ function writeTournamentFromForm(button) {
 	data.ranked_season = wrapper.find(`input[name=ranked_season]`).val();
 	data.ranked_split = wrapper.find(`input[name=ranked_split]`).val();
 
-	fetch(`/admin/api/opl/tournaments/save-from-form`, {
+	fetch(`/admin/api/opl/tournaments`, {
 		method: 'POST',
 		headers: {'Content-Type': 'application/json'},
 		body: JSON.stringify(data)
@@ -165,7 +165,7 @@ async function openRelatedEventsPopup(button) {
 	})
 
 	if (tournamentIds.length === 0) {
-		await fetch(`/admin/api/opl/tournaments/get-data?tournamentId=${tournamentId}`)
+		await fetch(`/admin/api/opl/tournaments/${tournamentId}`)
 			.then(res => {
 				if (res.ok) {
 					return res.json()
@@ -189,7 +189,7 @@ async function openRelatedEventsPopup(button) {
 	let tournamentData = [];
 
 	for (const tournamentId of tournamentIds) {
-		await fetch(`/admin/api/opl/tournaments/get-data?tournamentId=${tournamentId}`, {
+		await fetch(`/admin/api/opl/tournaments/${tournamentId}`, {
 			method: 'GET',
 			signal: related_events_fetch_control.signal
 		})

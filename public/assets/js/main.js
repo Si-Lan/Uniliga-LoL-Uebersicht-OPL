@@ -1673,7 +1673,7 @@ function header_search() {
 	}
 	searchbar.append("<div class='search-loading-indicator'></div>");
 
-	fetch(`/api/search/global-search?search=${input_value}`, {
+	fetch(`/api/search/global?search=${input_value}`, {
 		method: "GET",
 		signal: header_search_controller.signal,
 	})

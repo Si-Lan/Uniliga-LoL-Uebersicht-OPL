@@ -11,8 +11,8 @@ use App\Domain\Services\EntitySorter;
 
 class SearchHandler {
 	use DataParsingHelpers;
-	public function globalSearch(array $dataGet): void {
-		$searchString = $this->stringOrNull($dataGet['search'] ?? null);
+	public function getSearchGlobalAll(): void {
+		$searchString = $this->stringOrNull($_GET['search'] ?? null);
 
 		if (is_null($searchString)) {
 			http_response_code(400);

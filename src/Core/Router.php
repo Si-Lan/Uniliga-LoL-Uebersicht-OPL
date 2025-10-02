@@ -14,12 +14,12 @@ class Router {
 	public static function handle(string $context): void {
 		match ($context) {
 			'pages' => self::handlePages(),
-			'api' => self::handleApiAjax('api', 'App\\API'),
-			'apiAdmin' => self::handleApiAjax('admin/api', 'App\\API\\Admin'),
-			'apiOpl' => self::handleApiAjax('admin/api/opl', 'App\\API\\Admin\\ImportOpl'),
-			'apiRgapi' => self::handleApiAjax('admin/api/rgapi', 'App\\API\\Admin\\ImportRgapi'),
-			'ajax' => self::handleApiAjax('ajax', 'App\\Ajax'),
-			'ajaxAdmin' => self::handleApiAjax('admin/ajax', 'App\\Ajax\\Admin'),
+			'api' => self::handleApi('api', 'App\\API'),
+			'apiAdmin' => self::handleApi('admin/api', 'App\\API\\Admin'),
+			'apiOpl' => self::handleApi('admin/api/opl', 'App\\API\\Admin\\ImportOpl'),
+			'apiRgapi' => self::handleApi('admin/api/rgapi', 'App\\API\\Admin\\ImportRgapi'),
+			'ajax' => self::handleAjax('ajax', 'App\\Ajax'),
+			'ajaxAdmin' => self::handleAjax('admin/ajax', 'App\\Ajax\\Admin'),
 			default => self::trigger404()
 		};
 	}
@@ -65,18 +65,12 @@ class Router {
 		self::renderPage($routeMatch['file']);
 	}
 
-	private static function handleApiAjax(string $basePath, string $namespace) {
+	private static function handleAjax(string $basePath, string $namespace):void {
 		header('Content-Type: application/json');
 
-		if (str_starts_with($basePath, 'admin') && !UserContext::isLoggedIn()) {
-			http_response_code(403);
-			echo json_encode(['error' => 'Invalid permissions']);
-			return;
-		}
+		if (!self::authorizeAjaxApiRequest($basePath)) return;
 
-		$requestPath = trim(parse_url($_SERVER['REQUEST_URI']??'',PHP_URL_PATH),'/');
-		$requestPath = preg_replace("#^$basePath#", '', $requestPath);
-		$requestPath = trim($requestPath, '/');
+		$requestPath = self::getRequestPath($basePath);
 
 		$segments = explode('/', $requestPath);
 		$controller = $segments[0] ?? null;
@@ -110,6 +104,88 @@ class Router {
 			http_response_code(500);
 			echo json_encode(['error' => $e->getMessage()]);
 		}
+	}
+
+	private static function handleApi(string $basePath, string $namespace):void {
+		header('Content-Type: application/json');
+
+		if (!self::authorizeAjaxApiRequest($basePath)) return;
+
+		$requestPath = self::getRequestPath($basePath);
+
+		$segments = explode('/', $requestPath);
+		$httpMethod = $_SERVER['REQUEST_METHOD'] ?? 'GET';
+
+		if (empty($segments[0])) {
+			http_response_code(400);
+			echo json_encode(['error' => 'Invalid route']);
+			exit;
+		}
+
+		$resource = array_shift($segments);
+		$resourceClass = "$namespace\\" . ucfirst($resource) . 'Handler';
+
+		if(!class_exists($resourceClass)) {
+			http_response_code(404);
+			echo json_encode(['error' => 'Resource not found']);
+			exit;
+		}
+
+		$handler = new $resourceClass();
+
+		$method = strtolower($httpMethod) . ucfirst($resource);
+		$methodParameters = [];
+		$hasId = false;
+
+		foreach ($segments as $segment) {
+			if (is_numeric($segment)) {
+				$methodParameters[] = (int) $segment;
+				$hasId = true;
+			} else {
+				$method .= ucfirst($segment);
+			}
+		}
+		if ($httpMethod === 'GET' && !$hasId) {
+			$method .= 'All';
+		}
+
+		if (!method_exists($handler, $method)) {
+			http_response_code(404);
+			echo json_encode(['error' => "Method $method not found"]);
+			exit;
+		}
+
+		$reflection = new \ReflectionMethod($handler, $method);
+		$requiredParams = $reflection->getNumberOfRequiredParameters();
+		$totalParams = $reflection->getNumberOfParameters();
+		$givenParams = count($methodParameters);
+
+		$expectedParameterString = ($requiredParams === $totalParams) ? $requiredParams : $requiredParams . '-' . $totalParams;
+
+		if ($givenParams < $requiredParams || $givenParams > $totalParams) {
+			http_response_code(400);
+			echo json_encode([
+				'error' => 'Invalid number of arguments',
+				'expected' => "$expectedParameterString",
+				'given' => $givenParams
+			]);
+			exit;
+		}
+
+		try {
+			$handler->$method(...$methodParameters);
+		} catch (\Throwable $e) {
+			http_response_code(500);
+			echo json_encode(['error' => $e->getMessage()]);
+		}
+
+		/* Mapping:
+		 * GET /resources/{id} => getResources($id)
+		 * GET /resources/{id}/subresource => getResourcesSubresourcesAll($id)
+		 * GET /resources/{id}/subresource/{id} => getResourcesSubresources($id,$id)
+		 * GET /resources => getResourcesAll()
+		 * POST /resources => postResources()
+		 */
 	}
 
 	private static function validateRoutingParams(array &$params): array {
@@ -152,5 +228,21 @@ class Router {
 		$_GET["404type"] = $type;
 		self::renderPage(BASE_PATH.'/public/pages/error.php');
 		exit();
+	}
+
+	private static function authorizeAjaxApiRequest(string $basePath): bool {
+		if (str_starts_with($basePath, 'admin') && !UserContext::isLoggedIn()) {
+			http_response_code(403);
+			echo json_encode(['error' => 'Invalid permissions']);
+			return false;
+		} else {
+			return true;
+		}
+	}
+
+	private static function getRequestPath($basePath): string {
+		$requestPath = trim(parse_url($_SERVER['REQUEST_URI']??'',PHP_URL_PATH),'/');
+		$requestPath = preg_replace("#^$basePath#", '', $requestPath);
+		return trim($requestPath, '/');
 	}
 }

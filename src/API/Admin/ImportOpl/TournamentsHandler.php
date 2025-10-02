@@ -4,65 +4,45 @@ namespace App\API\Admin\ImportOpl;
 
 use App\Core\Utilities\DataParsingHelpers;
 use App\Domain\Repositories\TournamentRepository;
+use App\Service\OplApiService;
 
 class TournamentsHandler {
 	use DataParsingHelpers;
-	public function getData(array $dataGet): void {
-		$tournamentId = $this->intOrNull($dataGet['tournamentId'] ?? null);
 
-		if (!$tournamentId) {
+	/**
+	 * Returns entityData and relatedTournaments without saving to Database
+	 */
+	public function getTournaments(int $id): void {
+		if (!$id) {
 			http_response_code(400);
 			echo json_encode(['error' => 'Missing tournament ID']);
 			exit;
 		}
 
-		$apiUrl = "https://www.opleague.pro/api/v4/tournament/$tournamentId";
-		$options = ["http" => [
-			"header" => [
-				"Authorization: Bearer {$_ENV['OPL_BEARER_TOKEN']}",
-				"User-Agent: {$_ENV['USER_AGENT']}",
-			]
-		]];
-		$context = stream_context_create($options);
-		$response = @file_get_contents($apiUrl, context: $context);
-
-		if (!isset($http_response_header)) {
+		$oplApi = new OplApiService();
+		try {
+			$tournamentData = $oplApi->fetchFromEndpoint("tournament/$id");
+		} catch (\Exception $e) {
 			http_response_code(500);
-			echo json_encode(['error' => 'No response from OPL API']);
-			exit;
-		}
-
-		$httpStatus = $http_response_header[0] ?? '';
-		if ($response === false || !str_contains($httpStatus, '200')) {
-			http_response_code(500);
-			echo json_encode(['error' => "Failed to get data from OPL API: $httpStatus"]);
-			exit;
-		}
-
-		$data = json_decode($response, true);
-		if (json_last_error() !== JSON_ERROR_NONE) {
-			http_response_code(500);
-			echo json_encode(['error' => 'Invalid JSON received from OPL API']);
-			exit;
-		}
-		if (isset($data['error'])) {
-			http_response_code(500);
-			echo json_encode(['error' => 'API error: ' . $data['error']]);
+			echo json_encode(['error' => 'Failed to fetch data from OPL API: ' . $e->getMessage()]);
 			exit;
 		}
 
 		$tournamentRepo = new TournamentRepository();
 
-		$tournament = $tournamentRepo->createFromOplData($data['data']);
-		sort($data['data']['leafes']);
-		sort($data['data']['ancestors']);
+		$tournament = $tournamentRepo->createFromOplData($tournamentData);
+		sort($tournamentData['leafes']);
+		sort($tournamentData['ancestors']);
 
-		$relatedEvents  = ["children"=>$data['data']['leafes'], "parents"=>$data['data']['ancestors']];
+		$relatedEvents  = ["children"=>$tournamentData['leafes'], "parents"=>$tournamentData['ancestors']];
 
 		echo json_encode(["entityData" => $tournamentRepo->mapEntityToData($tournament), "relatedTournaments" => $relatedEvents]);
 	}
 
-	public function saveFromForm(array $dataGet): void {
+	/**
+	 * Takes Tournaments in correct entityData and saves to Database
+	 */
+	public function postTournaments(): void {
 		if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 			http_response_code(400);
 			echo json_encode(['error' => 'Invalid request method']);
