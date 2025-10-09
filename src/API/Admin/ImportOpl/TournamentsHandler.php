@@ -5,6 +5,7 @@ namespace App\API\Admin\ImportOpl;
 use App\Core\Utilities\DataParsingHelpers;
 use App\Domain\Repositories\TournamentRepository;
 use App\Service\OplApiService;
+use App\Service\OplLogoService;
 
 class TournamentsHandler {
 	use DataParsingHelpers;
@@ -62,5 +63,19 @@ class TournamentsHandler {
 		$saveResult = $tournamentRepo->save($tournament);
 		$saveResult["result"] = $saveResult["result"]->name;
 		echo json_encode($saveResult);
+	}
+
+	public function postTournamentsLogos($id): void {
+		if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+			http_response_code(400);
+			echo json_encode(['error' => 'Invalid request method']);
+			exit;
+		}
+
+		$oplLogoService = new OplLogoService();
+
+		$logoDownload = $oplLogoService->downloadTournamentLogo($id);
+
+		echo json_encode($logoDownload);
 	}
 }
