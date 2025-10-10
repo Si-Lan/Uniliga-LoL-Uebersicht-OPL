@@ -209,6 +209,38 @@ class TournamentRepository extends AbstractRepository {
 		return $tournaments;
 	}
 
+	/**
+	 * @param Tournament $rootTournament
+	 * @return array<Tournament>
+	 */
+	public function findAllStandingEventsByRootTournament(Tournament $rootTournament):array {
+		$query = 'SELECT * FROM events_with_standings WHERE OPL_ID_top_parent = ?';
+		$result = $this->dbcn->execute_query($query,[$rootTournament->id]);
+		$data = $result->fetch_all(MYSQLI_ASSOC);
+
+		$tournaments = [];
+		foreach ($data as $tournamentData) {
+			$tournaments[] = $this->mapToEntity($tournamentData, rootTournament: $rootTournament);
+		}
+		return $tournaments;
+	}
+
+	/**
+	 * @param Tournament $parentTournament
+	 * @return array<Tournament>
+	 */
+	public function findAllStandingEventsByParentTournament(Tournament $parentTournament):array {
+		$query = 'SELECT * FROM events_with_standings WHERE OPL_ID_parent = ?';
+		$result = $this->dbcn->execute_query($query,[$parentTournament->id]);
+		$data = $result->fetch_all(MYSQLI_ASSOC);
+
+		$tournaments = [];
+		foreach ($data as $tournamentData) {
+			$tournaments[] = $this->mapToEntity($tournamentData, directParentTournament: $parentTournament);
+		}
+		return $tournaments;
+	}
+
 	public function findAllUnassignedTournaments():array {
 		$query = 'SELECT * FROM tournaments WHERE (OPL_ID_parent IS NULL OR OPL_ID_top_parent IS NULL) AND eventType != ?';
 		$result = $this->dbcn->execute_query($query,[EventType::TOURNAMENT->value]);
