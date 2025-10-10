@@ -81,7 +81,7 @@ $nonRootDisableAttribute = $tournament->eventType === EventType::TOURNAMENT ? ''
 		<button class="open-tournament-data-popup" type="button" data-id="<?=$tournament->id?>" data-dialog-id="tournament-data-popup-<?=$tournament->id?>">weitere Daten holen</button>
 	</div>
 	<?= new Popup("tournament-data-popup-{$tournament->id}", noCloseButton: true, content: <<<HTML
-        <h2>Uniliga LoL Sommer 2025 (tournament)</h2>
+        <h2>{$tournament->getSplitAndSeason()} | {$tournament->getFullName()} ({$tournament->eventType->getPrettyName()})</h2>
         <button class="get-teams" data-id="$tournament->id"><span>Teams im Turnier updaten (Gruppenweise)</span></button>
 		<button class="get-teams-delete" data-id="$tournament->id"><span>Teams im Turnier updaten + entfernen (Gruppenweise))</span></button>
 		<button class="get-players" data-id="$tournament->id"><span>Spieler im Turnier updaten (pro Team)</span></button>
