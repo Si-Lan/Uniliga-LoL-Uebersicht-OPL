@@ -170,7 +170,8 @@ class OplLogoService {
 	 * @param string|\GdImage $imageOrPathB
 	 * @return array{result: bool, rating: float}
 	 */
-	private function isNewLogo(string|\GdImage $imageOrPathA, string|\GdImage $imageOrPathB): array {
+	private function isNewLogo(string|\GdImage|null $imageOrPathA, string|\GdImage $imageOrPathB): array {
+		if ($imageOrPathA === null) return ["result" => false, "rating" => 0];
 		$comparision = @$this->compareImages($imageOrPathA, $imageOrPathB, 20);
 		if ($comparision < 35) {
 			return ["result" => true, "rating" => $comparision];
