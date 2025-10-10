@@ -86,9 +86,12 @@ class TeamRepository extends AbstractRepository {
 			return false;
 		}
 
-		$this->dbcn->execute_query("UPDATE teams SET last_logo_download = ? WHERE OPL_ID = ?", [date("Y-m-d H:i:s"), $teamId]);
+		$this->setLogoDownloadTimeForTeam($teamId);
 		$this->dbcn->execute_query("INSERT INTO team_logo_history (OPL_ID_team, dir_key, update_time, diff_to_prev) VALUES (?, -1, ?, ?)", [$teamId, date("Y-m-d"), $diff]);
 
 		return true;
+	}
+	public function setLogoDownloadTimeForTeam(int $teamId): void {
+		$this->dbcn->execute_query("UPDATE teams SET last_logo_download = ? WHERE OPL_ID = ?", [date("Y-m-d H:i:s"), $teamId]);
 	}
 }

@@ -43,6 +43,10 @@ class OplLogoService {
 		$logoLight = $this->downloadLogo($oplLogoUrlLightmode);
 		$logoLightSquared = $this->squareLogo($logoLight);
 
+		if ($logoDark === null && $logoLight === null) {
+			return $result;
+		}
+
 		$result["LogoReceived"] = $logoDark !== null || $logoLight !== null;
 
 		if ($localLogoExists) {
@@ -54,6 +58,8 @@ class OplLogoService {
 				$this->copyOldTeamLogos($team->id, $newDirKey);
 				$this->saveLogos($logoDark, $logoLight, $localTeamLogoDir);
 				$teamRepo->setNewLogoForTeam($team->id, max($isNewDarkmodeLogo["rating"], $isNewLightmodeLogo["rating"]));
+			} else {
+				$teamRepo->setLogoDownloadTimeForTeam($team->id);
 			}
 		} else {
 			$this->saveLogos($logoDark, $logoLight, $localTeamLogoDir);
