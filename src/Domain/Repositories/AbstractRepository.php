@@ -17,6 +17,12 @@ abstract class AbstractRepository {
 	 */
 	protected static array $REQUIRED_DATA_KEYS = [];
 
+	/**
+	 * Alle Spalten, die bei Updates via OPL-API aktualisiert werden sollen
+	 * @var array<string>
+	 */
+	protected static array $OPL_DATA_KEYS = [];
+
 	public function __construct() {
 		$this->dbcn = DatabaseConnection::getConnection();
 	}
@@ -31,6 +37,10 @@ abstract class AbstractRepository {
 			}
 		}
 		return $normalized;
+	}
+
+	protected function filterKeysFromOpl(array $data): array {
+		return array_filter($data, fn($key) => in_array($key, static::$OPL_DATA_KEYS), ARRAY_FILTER_USE_KEY);
 	}
 
 	public function dataHasRequiredFields(array $data): bool {
