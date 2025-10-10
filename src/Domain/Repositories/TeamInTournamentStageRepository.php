@@ -218,19 +218,21 @@ class TeamInTournamentStageRepository extends AbstractRepository {
 		return $result->num_rows > 0;
 	}
 
-	public function addTeamToTournamentStage(int $teamId, int $tournamentId): void {
+	public function addTeamToTournamentStage(int $teamId, int $tournamentId): bool {
 		if ($this->isTeaminTournamentStage($teamId, $tournamentId)) {
-			return;
+			return false;
 		}
 		$query = 'INSERT INTO teams_in_tournament_stages (OPL_ID_team, OPL_ID_group) VALUES (?, ?)';
 		$this->dbcn->execute_query($query, [$teamId, $tournamentId]);
+		return true;
 	}
 
-	public function removeTeamFromTournamentStage(int $teamId, int $tournamentId): void {
+	public function removeTeamFromTournamentStage(int $teamId, int $tournamentId): bool {
 		if (!$this->isTeaminTournamentStage($teamId, $tournamentId)) {
-			return;
+			return false;
 		}
 		$query = 'DELETE FROM teams_in_tournament_stages WHERE OPL_ID_team = ? AND OPL_ID_group = ?';
 		$this->dbcn->execute_query($query, [$teamId, $tournamentId]);
+		return true;
 	}
 }
