@@ -83,7 +83,6 @@ $nonRootDisableAttribute = $tournament->eventType === EventType::TOURNAMENT ? ''
 	<?= new Popup("tournament-data-popup-{$tournament->id}", noCloseButton: true, content: <<<HTML
         <h2>{$tournament->getSplitAndSeason()} | {$tournament->getFullName()} ({$tournament->eventType->getPrettyName()})</h2>
         <button class="get-teams" data-id="$tournament->id"><span>Teams im Turnier updaten (Gruppenweise)</span></button>
-		<button class="get-teams-delete" data-id="$tournament->id"><span>Teams im Turnier updaten + entfernen (Gruppenweise))</span></button>
 		<button class="get-players" data-id="$tournament->id"><span>Spieler im Turnier updaten (pro Team)</span></button>
 		<button class="get-riotids" data-id="$tournament->id"><span>Spieler-Accounts im Turnier updaten (pro Team -> pro Spieler)</span></button>
 		<button class="get-matchups" data-id="$tournament->id"><span>Matches im Turnier updaten (Gruppenweise)</span></button>

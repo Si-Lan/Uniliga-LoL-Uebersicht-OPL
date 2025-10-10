@@ -260,3 +260,70 @@ function toggle_turnier_select_accordeon(tournamentID) {
 	open_accordeons.each(function() {open_accordeon_ids.push(this.getAttribute("data-id"))})
 	sessionStorage.setItem("open_admin_accordeons",JSON.stringify(open_accordeon_ids));
 }
+
+function setButtonUpdating(button) {
+	button.addClass("button-updating");
+	button.prop("disabled",true);
+}
+function unsetButtonUpdating(button) {
+	button.removeClass("button-updating");
+	button.prop("disabled",false);
+}
+
+$(document).on("click", "button.get-teams", async function () {
+	const tournamentId = this.dataset.id;
+	setButtonUpdating($(this));
+	await updateTeamsInTournament(tournamentId);
+	unsetButtonUpdating($(this));
+});
+async function updateTeamsInTournament(tournamentId) {
+	await fetch(`/admin/api/opl/tournaments/${tournamentId}/teams`, {method: 'POST'})
+		.then(res => {
+			if (res.ok) {
+				return res.json()
+			} else {
+				return {"error": "Fehler beim Aktualisieren der Teams"};
+			}
+		})
+		.then(data => {
+			if (data.error) {
+				show_results_dialog_with_result(tournamentId, data.error);
+				return;
+			}
+			let teamCount = data.teams.length;
+			let unchangedTeams = [];
+			let addedTeams = [];
+			let updatedTeams = [];
+			let removedTeams = [];
+			for (const team of data.teams) {
+				switch (team.result) {
+					case "INSERTED":
+						addedTeams.push(team.team.name);
+						break;
+					case "UPDATED":
+						updatedTeams.push(team.team.name);
+						break;
+					case "NOT_CHANGED":
+						unchangedTeams.push(team.team.name);
+						break;
+				}
+			}
+			for (const removedTeam of data.removedTeams) {
+				removedTeams.push(removedTeam.name);
+			}
+			for (const addedTeam of data.addedTeams) {
+				addedTeams.push(addedTeam.name);
+			}
+			show_results_dialog_with_result(tournamentId,
+				`${teamCount} Teams im Event<br>
+						- ${unchangedTeams.length} allgemein unverändert<br>
+						- ${addedTeams.length} allgemein neu<br>
+						- ${updatedTeams.length} allgemein aktualisiert<br>
+						${addedTeams.length} Teams zu Turnier hinzugefügt<br>
+						${removedTeams.length} Teams aus Turnier entfernt`)
+		})
+		.catch(error => {
+			show_results_dialog_with_result(tournamentId, "Fehler beim Aktualisieren der Teams");
+			console.error(error);
+		})
+}
