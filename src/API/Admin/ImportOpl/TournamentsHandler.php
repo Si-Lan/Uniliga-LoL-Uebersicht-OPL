@@ -119,6 +119,7 @@ class TournamentsHandler {
 		$oplLogoService = new OplLogoService();
 
 		$saveResults = [];
+		$addedTeams = [];
 		foreach ($oplTeams as $oplTeam) {
 			$teamEntity = $teamRepo->createFromOplData($oplTeam);
 			$saveResult = $teamRepo->save($teamEntity, fromOplData: true);
@@ -134,7 +135,10 @@ class TournamentsHandler {
 			$saveResult["result"] = $saveResult["result"]->name;
 			$saveResults[] = $saveResult;
 
-			$teamInTournamentStageRepo->addTeamToTournamentStage($teamEntity->id, $tournament->id);
+			$addedToTournament = $teamInTournamentStageRepo->addTeamToTournamentStage($teamEntity->id, $tournament->id);
+			if ($addedToTournament) {
+				$addedTeams[] = $saveResult["team"];
+			}
 		}
 
 		$teamsCurrentlyInTournament = $teamInTournamentStageRepo->findAllByTournamentStage($tournament);
@@ -146,6 +150,6 @@ class TournamentsHandler {
 			}
 		}
 
-		echo json_encode(['teams'=>$saveResults,'removedTeams'=>$removedTeams]);
+		echo json_encode(['teams'=>$saveResults,'removedTeams'=>$removedTeams,'addedTeams'=>$addedTeams]);
 	}
 }
