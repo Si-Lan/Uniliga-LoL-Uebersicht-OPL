@@ -36,7 +36,7 @@ class TournamentsHandler {
 
 		echo json_encode($tournament);
 	}
-	public function getTournamentsChildrenWithStandings(int $id): void {
+	public function getTournamentsLeafes(int $id): void {
 		$tournament = $this->validateAndGetTournament($id);
 
 		if ($tournament->eventType === EventType::TOURNAMENT) {

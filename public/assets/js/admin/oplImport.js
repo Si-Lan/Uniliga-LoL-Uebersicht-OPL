@@ -262,22 +262,49 @@ function toggle_turnier_select_accordeon(tournamentID) {
 }
 
 function setButtonUpdating(button) {
+	setButtonLoadingBarWidth(button, 0);
 	button.addClass("button-updating");
 	button.prop("disabled",true);
 }
 function unsetButtonUpdating(button) {
 	button.removeClass("button-updating");
 	button.prop("disabled",false);
+	setButtonLoadingBarWidth(button, 0);
+}
+function setButtonLoadingBarWidth(button, widthPercentage) {
+	button.attr("style", `--loading-bar-width: ${widthPercentage}%`);
 }
 
 $(document).on("click", "button.get-teams", async function () {
 	const tournamentId = this.dataset.id;
 	setButtonUpdating($(this));
-	await updateTeamsInTournament(tournamentId);
+	const childrenTournaments = await getStandingEventsInTournament(tournamentId);
+	if (childrenTournaments.error) {
+		show_results_dialog_with_result(tournamentId, "Fehler beim Prüfen des Turniers");
+		unsetButtonUpdating($(this));
+		return;
+	}
+	let result = "";
+	if (childrenTournaments.length === 0) {
+		result = await updateTeamsInTournament(tournamentId);
+	} else {
+		const total = childrenTournaments.length;
+		let donePercentage = 0;
+		for (const childTournament of childrenTournaments) {
+			const partialResult = await updateTeamsInTournament(childTournament.id);
+			result += `<br>(${childTournament.id}) ${childTournament.name}:<br> ${partialResult}<br>`;
+			donePercentage += 100/total;
+			setButtonLoadingBarWidth($(this), donePercentage);
+			if (donePercentage < 100) {
+				await new Promise(r => setTimeout(r, 1000));
+			}
+		}
+	}
+	show_results_dialog_with_result(tournamentId, result);
 	unsetButtonUpdating($(this));
 });
 async function updateTeamsInTournament(tournamentId) {
-	await fetch(`/admin/api/opl/tournaments/${tournamentId}/teams`, {method: 'POST'})
+	return await fetch(`/admin/api/opl/tournaments/${tournamentId}/teams`, {method: 'POST'})
 		.then(res => {
 			if (res.ok) {
 				return res.json()
@@ -287,8 +314,7 @@ async function updateTeamsInTournament(tournamentId) {
 		})
 		.then(data => {
 			if (data.error) {
-				show_results_dialog_with_result(tournamentId, data.error);
-				return;
+				return data.error;
 			}
 			let teamCount = data.teams.length;
 			let unchangedTeams = [];
@@ -314,16 +340,32 @@ async function updateTeamsInTournament(tournamentId) {
 			for (const addedTeam of data.addedTeams) {
 				addedTeams.push(addedTeam.name);
 			}
-			show_results_dialog_with_result(tournamentId,
-				`${teamCount} Teams im Event<br>
+			return `${teamCount} Teams im Event<br>
 						- ${unchangedTeams.length} allgemein unverändert<br>
 						- ${addedTeams.length} allgemein neu<br>
 						- ${updatedTeams.length} allgemein aktualisiert<br>
 						${addedTeams.length} Teams zu Turnier hinzugefügt<br>
-						${removedTeams.length} Teams aus Turnier entfernt`)
+						${removedTeams.length} Teams aus Turnier entfernt`;
 		})
 		.catch(error => {
-			show_results_dialog_with_result(tournamentId, "Fehler beim Aktualisieren der Teams");
 			console.error(error);
+			return "Fehler beim Aktualisieren der Teams";
 		})
+}
+
+async function getStandingEventsInTournament(tournamentId) {
+	return await fetch(`/api/tournaments/${tournamentId}/leafes`, {method: 'GET'})
+		.then(res => {
+			if (res.ok) {
+				return res.json()
+			} else {
+				return {"error": "Fehler"};
+			}
+		})
+		.then(data => {
+			if (data.error) {
+				return {"error": data.error};
+			}
+			return data;
+		});
 }
