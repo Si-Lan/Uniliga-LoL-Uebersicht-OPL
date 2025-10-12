@@ -65,6 +65,9 @@ class Tournament {
 		if ($this->eventType === EventType::PLAYOFFS) return true;
 		return false;
 	}
+	public function isStage():bool {
+		return $this->isEventWithStanding();
+	}
 
 	public function isEventWithRounds():bool {
 		if ($this->format === EventFormat::ROUND_ROBIN) return true;
