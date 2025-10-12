@@ -30,7 +30,7 @@ $wildcards = array_values(array_filter($wildcards, function($wildcard) {return !
 $wildcard_active = (count($wildcards)>0 && count($leagues)==0) ? "active" : "";
 $playoffs = $tournamentRepo->findAllByParentTournamentAndType($tournament, EventType::PLAYOFFS);
 $playoffs = array_values(array_filter($playoffs, function($playoff) {return !$playoff->deactivated;}));
-$playoffs_active = (count($wildcards)==0 && count($leagues)==0) ? "active" : "";
+$playoffs_active = (count($wildcards)==0 && count($leagues)==0 && count($playoffs)>0) ? "active" : "";
 ?>
 <main>
     <h2 class='pagetitle'>Turnier-Details</h2>
