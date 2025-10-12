@@ -138,4 +138,99 @@ class TeamInTournamentRepository extends AbstractRepository {
 		}
 		return $teamInTournaments;
 	}
+
+	/**
+	 * @param Tournament $tournament
+	 * @return array<TeamInTournament>
+	 */
+	public function findAllByRootTournament(Tournament $tournament): array {
+		$query = '
+			SELECT
+			ltnt.name,
+			ltlt.dir_key,
+			t.OPL_ID as OPL_ID_team,
+			tr.OPL_ID as OPL_ID_tournament,
+		    stit.champs_played,
+   			stit.champs_banned,
+		    stit.champs_played_against,
+		    stit.champs_banned_against,
+		    stit.games_played,
+		    stit.games_won,
+		    stit.avg_win_time
+			FROM teams t
+			    JOIN tournaments tr
+			        ON tr.OPL_ID = ? AND tr.OPL_ID IN (SELECT OPL_ID_top_parent FROM teams_in_tournaments JOIN tournaments ON teams_in_tournaments.OPL_ID_group = tournaments.OPL_ID WHERE OPL_ID_team = t.OPL_ID)
+			    LEFT JOIN stats_teams_in_tournaments stit ON t.OPL_ID = stit.OPL_ID_team AND tr.OPL_ID = stit.OPL_ID_tournament
+			    LEFT JOIN latest_team_name_in_tournament ltnt ON t.OPL_ID = ltnt.OPL_ID_team AND tr.OPL_ID = ltnt.OPL_ID_tournament
+			    LEFT JOIN latest_team_logo_in_tournament ltlt ON t.OPL_ID = ltlt.OPL_ID_team AND tr.OPL_ID = ltlt.OPL_ID_tournament
+			WHERE t.OPL_ID > -1';
+		$result = $this->dbcn->execute_query($query, [$tournament->id]);
+		$data = $result->fetch_all(MYSQLI_ASSOC);
+
+		$teamInTournaments = [];
+		foreach ($data as $teamInTournamentData) {
+			$teamInTournaments[] = $this->mapToEntity($teamInTournamentData, tournament: $tournament);
+		}
+		return $teamInTournaments;
+	}
+	public function findAllByStage(Tournament $tournamentStage): array {
+		$query = '
+			SELECT
+			ltnt.name,
+			ltlt.dir_key,
+			t.OPL_ID as OPL_ID_team,
+			tr.OPL_ID as OPL_ID_tournament,
+		    stit.champs_played,
+   			stit.champs_banned,
+		    stit.champs_played_against,
+		    stit.champs_banned_against,
+		    stit.games_played,
+		    stit.games_won,
+		    stit.avg_win_time
+			FROM teams t
+			    JOIN tournaments tr
+			        ON tr.OPL_ID IN (SELECT OPL_ID_top_parent FROM teams_in_tournaments JOIN tournaments ON teams_in_tournaments.OPL_ID_group = tournaments.OPL_ID AND tournaments.OPL_ID = ? WHERE OPL_ID_team = t.OPL_ID)
+			    LEFT JOIN stats_teams_in_tournaments stit ON t.OPL_ID = stit.OPL_ID_team AND tr.OPL_ID = stit.OPL_ID_tournament
+			    LEFT JOIN latest_team_name_in_tournament ltnt ON t.OPL_ID = ltnt.OPL_ID_team AND tr.OPL_ID = ltnt.OPL_ID_tournament
+			    LEFT JOIN latest_team_logo_in_tournament ltlt ON t.OPL_ID = ltlt.OPL_ID_team AND tr.OPL_ID = ltlt.OPL_ID_tournament
+			WHERE t.OPL_ID > -1';
+		$result = $this->dbcn->execute_query($query, [$tournamentStage->id]);
+		$data = $result->fetch_all(MYSQLI_ASSOC);
+
+		$teamInTournaments = [];
+		foreach ($data as $teamInTournamentData) {
+			$teamInTournaments[] = $this->mapToEntity($teamInTournamentData, tournament: $tournamentStage->getRootTournament());
+		}
+		return $teamInTournaments;
+	}
+	public function findAllByParentTournament(Tournament $tournament): array {
+		$query = '
+			SELECT
+			ltnt.name,
+			ltlt.dir_key,
+			t.OPL_ID as OPL_ID_team,
+			tr.OPL_ID as OPL_ID_tournament,
+		    stit.champs_played,
+   			stit.champs_banned,
+		    stit.champs_played_against,
+		    stit.champs_banned_against,
+		    stit.games_played,
+		    stit.games_won,
+		    stit.avg_win_time
+			FROM teams t
+			    JOIN tournaments tr
+			        ON tr.OPL_ID IN (SELECT OPL_ID_top_parent FROM teams_in_tournaments JOIN tournaments ON teams_in_tournaments.OPL_ID_group = tournaments.OPL_ID AND tournaments.OPL_ID_parent = ? WHERE OPL_ID_team = t.OPL_ID)
+			    LEFT JOIN stats_teams_in_tournaments stit ON t.OPL_ID = stit.OPL_ID_team AND tr.OPL_ID = stit.OPL_ID_tournament
+			    LEFT JOIN latest_team_name_in_tournament ltnt ON t.OPL_ID = ltnt.OPL_ID_team AND tr.OPL_ID = ltnt.OPL_ID_tournament
+			    LEFT JOIN latest_team_logo_in_tournament ltlt ON t.OPL_ID = ltlt.OPL_ID_team AND tr.OPL_ID = ltlt.OPL_ID_tournament
+			WHERE t.OPL_ID > -1';
+		$result = $this->dbcn->execute_query($query, [$tournament->id]);
+		$data = $result->fetch_all(MYSQLI_ASSOC);
+
+		$teamInTournaments = [];
+		foreach ($data as $teamInTournamentData) {
+			$teamInTournaments[] = $this->mapToEntity($teamInTournamentData, tournament: $tournament);
+		}
+		return $teamInTournaments;
+	}
 }
