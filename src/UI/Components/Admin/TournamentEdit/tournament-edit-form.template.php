@@ -80,7 +80,8 @@ $nonRootDisableAttribute = $tournament->eventType === EventType::TOURNAMENT ? ''
         <button class="get_related_events" type="button" data-relation="children" data-id="<?=$tournament->id?>" data-dialog-id="<?=$childrenPopup->getId()?>">Kinder holen</button>
 		<button class="open-tournament-data-popup" type="button" data-id="<?=$tournament->id?>" data-dialog-id="tournament-data-popup-<?=$tournament->id?>">weitere Daten holen</button>
 	</div>
-	<?= new Popup("tournament-data-popup-{$tournament->id}", noCloseButton: true, content: <<<HTML
+    <?php
+        $popupContent = <<<HTML
         <h2>{$tournament->getSplitAndSeason()} | {$tournament->getFullName()} ({$tournament->eventType->getPrettyName()})</h2>
         <button class="get-teams" data-id="$tournament->id"><span>Teams im Turnier updaten (Gruppenweise)</span></button>
 		<button class="get-players" data-id="$tournament->id"><span>Spieler im Turnier updaten (pro Team)</span></button>
@@ -90,8 +91,15 @@ $nonRootDisableAttribute = $tournament->eventType === EventType::TOURNAMENT ? ''
 		<button class="get-results" data-id="$tournament->id"><span>Match-Ergebnisse im Turnier updaten + Spiele (pro Match)</span></button>
 		<button class="get-results-unplayed" data-id="$tournament->id"><span>ungespielte Match-Ergebnisse im Turnier updaten + Spiele (pro Match)</span></button>
 		<button class="calculate-standings" data-id="$tournament->id"><span>Tabelle des Turniers aktualisieren (Berechnung pro Gruppe)</span></button>
-HTML,
-		additionalClasses: ['tournament-data-popup']) ?>
+HTML;
+        if ($tournament->eventType === EventType::TOURNAMENT) {
+            $popupContent .= <<<HTML
+        <div class="divider" style="margin: 8px 0"></div>
+        <button class="get-tournament-logo" data-id="$tournament->id"><span>Logo herunterladen</span></button>
+HTML;
+        }
+    ?>
+	<?= new Popup("tournament-data-popup-{$tournament->id}", noCloseButton: true, content: $popupContent, additionalClasses: ['tournament-data-popup']) ?>
     <?php else: ?>
     <div class="tournament-write-button-wrapper">
         <button class="write_tournament" type="button" data-id="<?=$tournament->id?>">Eintragen</button>

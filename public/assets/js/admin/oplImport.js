@@ -118,6 +118,37 @@ function writeTournamentFromForm(button) {
 
 }
 
+$(document).on("click", "button.get-tournament-logo", async function () {
+	const tournamentId = this.dataset.id;
+	setButtonUpdating($(this));
+
+	const logoResult = await downloadTournamentLogos(tournamentId);
+
+	let resultText = "Logo herunterladen:<br>";
+	if (logoResult.error) {
+		resultText += "Fehler beim Herunterladen: "+logoResult.error;
+	} else {
+		resultText += "Logo heruntergeladen: "+logoResult.LogoReceived +"<br>";
+		resultText += "Logo gespeichert: "+logoResult.LogoUpdated;
+	}
+
+	show_results_dialog_with_result(tournamentId, resultText);
+	unsetButtonUpdating($(this));
+})
+async function downloadTournamentLogos(tournamentId) {
+	return await fetch(`/admin/api/opl/tournaments/${tournamentId}/logos`, {method: 'POST'})
+		.then(res => {
+			if (res.ok) {
+				return res.json();
+			} else {
+				return {"error": "Fehler beim Laden des Logos"};
+			}
+		})
+		.then(data => {
+			return data;
+		})
+}
+
 $(document).on("click", "button.refresh-button.refresh-tournaments", function () {refresh_tournament_edit_list(this)});
 function refresh_tournament_edit_list(button) {
 	button.innerHTML = "Refreshing...";
