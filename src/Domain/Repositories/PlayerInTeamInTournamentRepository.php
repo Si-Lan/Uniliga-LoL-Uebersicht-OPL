@@ -90,7 +90,7 @@ class PlayerInTeamInTournamentRepository extends AbstractRepository {
 		return $this->findInternal($player->id, $teamInTournament->team->id, $teamInTournament->tournament->id, $player, $teamInTournament);
 	}
 
-	public function findAllInternal(int $teamId, int $tournamentId, TeamInTournament $teamInTournament = null, Team $team = null, Tournament $tournament = null): array {
+	public function findAllInternal(int $teamId, int $tournamentId, ?TeamInTournament $teamInTournament = null, ?Team $team = null, ?Tournament $tournament = null): array {
 		$cacheKey = $teamId."_".$tournamentId;
 		if (isset($this->teamCache[$cacheKey])) {
 			return $this->teamCache[$cacheKey];
