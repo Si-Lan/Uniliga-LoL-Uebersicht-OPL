@@ -134,6 +134,13 @@ class PlayerInTeamInTournamentRepository extends AbstractRepository {
 		return $this->findAllInternal($teamId, $tournamentId);
 	}
 
+	/**
+	 * @return array<PlayerInTeamInTournament>
+	 */
+	public function findAllByTeamAndTournamentAndActiveStatus(Team $team, Tournament $tournament, bool $active): array {
+		$allPlayers = $this->findAllByTeamAndTournament($team, $tournament);
+		return array_filter($allPlayers, fn(PlayerInTeamInTournament $player) => $player->removed === !$active);
+	}
 
 	/**
 	 * @param Player $player
@@ -158,5 +165,29 @@ class PlayerInTeamInTournamentRepository extends AbstractRepository {
 		}
 
 		return $players;
+	}
+
+	public function isPlayerInTeamInTournament(int $playerId, int $teamId, int $tournamentId, bool $activeOnly = false): bool {
+		$activeQuery = $activeOnly ? 'AND removed = 0' : '';
+		$result = $this->dbcn->execute_query('SELECT * FROM players_in_teams_in_tournament WHERE OPL_ID_player = ? AND OPL_ID_team = ? AND OPL_ID_tournament = ? '.$activeQuery, [$playerId, $teamId, $tournamentId]);
+		return $result->num_rows > 0;
+	}
+	public function addPlayerToTeamInTournament(int $playerId, int $teamId, int $tournamentId):bool {
+		if ($this->isPlayerInTeamInTournament($playerId, $teamId, $tournamentId, activeOnly: true)) {
+			return false;
+		}
+		if ($this->isPlayerInTeamInTournament($playerId, $teamId, $tournamentId)) {
+			$query = 'UPDATE players_in_teams_in_tournament SET removed = 0 WHERE OPL_ID_player = ? AND OPL_ID_team = ? AND OPL_ID_tournament = ?';
+		} else {
+			$query = 'INSERT INTO players_in_teams_in_tournament (OPL_ID_player, OPL_ID_team, OPL_ID_tournament) VALUES (?, ?, ?)';
+		}
+		return $this->dbcn->execute_query($query, [$playerId, $teamId, $tournamentId]);
+	}
+	public function removePlayerFromTeamInTournament(int $playerId, int $teamId, int $tournamentId):bool {
+		if (!$this->isPlayerInTeamInTournament($playerId, $teamId, $tournamentId, activeOnly: true)) {
+			return false;
+		}
+		$query = 'UPDATE players_in_teams_in_tournament SET removed = 1 WHERE OPL_ID_player = ? AND OPL_ID_team = ? AND OPL_ID_tournament = ?';
+		return $this->dbcn->execute_query($query, [$playerId, $teamId, $tournamentId]);
 	}
 }

@@ -306,6 +306,7 @@ function setButtonLoadingBarWidth(button, widthPercentage) {
 	button.attr("style", `--loading-bar-width: ${widthPercentage}%`);
 }
 
+// Teams aktualisieren
 $(document).on("click", "button.get-teams", async function () {
 	const tournamentId = this.dataset.id;
 	setButtonUpdating($(this));
@@ -368,14 +369,15 @@ async function updateTeamsInTournament(tournamentId) {
 			for (const removedTeam of data.removedTeams) {
 				removedTeams.push(removedTeam.name);
 			}
+			let addedTeamsToTournament = [];
 			for (const addedTeam of data.addedTeams) {
-				addedTeams.push(addedTeam.name);
+				addedTeamsToTournament.push(addedTeam.name);
 			}
 			return `${teamCount} Teams im Event<br>
 						- ${unchangedTeams.length} allgemein unverändert<br>
 						- ${addedTeams.length} allgemein neu<br>
 						- ${updatedTeams.length} allgemein aktualisiert<br>
-						${addedTeams.length} Teams zu Turnier hinzugefügt<br>
+						${addedTeamsToTournament.length} Teams zu Turnier hinzugefügt<br>
 						${removedTeams.length} Teams aus Turnier entfernt`;
 		})
 		.catch(error => {
@@ -384,6 +386,109 @@ async function updateTeamsInTournament(tournamentId) {
 		})
 }
 
+// Spieler aktualisieren
+$(document).on("click", "button.get-players", async function () {
+	const tournamentId = this.dataset.id;
+	setButtonUpdating($(this));
+	const teamsInTournaments = await getTeamsInTournament(tournamentId);
+	if (teamsInTournaments.error) {
+		show_results_dialog_with_result(tournamentId, "Fehler beim Holen der Teams");
+		unsetButtonUpdating($(this));
+		return;
+	}
+	if (teamsInTournaments.length === 0) {
+		show_results_dialog_with_result(tournamentId, "Keine Teams im Turnier");
+		unsetButtonUpdating($(this));
+		return;
+	}
+	let result = "";
+	const total = teamsInTournaments.length;
+	let donePercentage = 0;
+	for (const teamInTournament of teamsInTournaments) {
+		const partialResult = await updatePlayersInTeam(teamInTournament.team.id);
+		result += `<br>(${teamInTournament.team.id}) ${teamInTournament.team.name}:<br> ${partialResult}<br>`;
+		donePercentage += 100/total;
+		setButtonLoadingBarWidth($(this), donePercentage);
+		if (donePercentage < 100) {
+			await new Promise(r => setTimeout(r, 1000));
+		}
+	}
+	show_results_dialog_with_result(tournamentId, result);
+	unsetButtonUpdating($(this));
+})
+async function updatePlayersInTeam(teamId) {
+	return await fetch(`/admin/api/opl/teams/${teamId}/players`, {method: 'POST'})
+		.then(res => {
+			if (res.ok) {
+				return res.json()
+			} else {
+				return {"error": "Fehler beim Aktualisieren der Spieler"};
+			}
+		})
+		.then(data => {
+			if (data.error) {
+				return data.error;
+			}
+			let playerCount = data.players.length;
+			let unchangedPlayers = [];
+			let addedPlayers = [];
+			let updatedPlayers = [];
+			for (const player of data.players) {
+				switch (player.result) {
+					case "INSERTED":
+						addedPlayers.push(player.player?.name);
+						break;
+					case "UPDATED":
+						updatedPlayers.push(player.player?.name);
+						break;
+					case "NOT_CHANGED":
+						unchangedPlayers.push(player.player?.name);
+						break;
+				}
+			}
+			let removedPlayersFromTeam = [];
+			for (const removedPlayer of data.removedPlayers) {
+				removedPlayersFromTeam.push(removedPlayer?.name);
+			}
+			let addedPlayersToTeam = [];
+			for (const addedPlayer of data.addedPlayers) {
+				addedPlayersToTeam.push(addedPlayer?.name);
+			}
+			
+			let tournamentResults = "";
+			for (const tournamentChange of data.tournamentChanges) {
+				let removedPlayersFromTeamInTournament = [];
+				for (const removedPlayer of tournamentChange.removedPlayers) {
+					removedPlayersFromTeamInTournament.push(removedPlayer?.name);
+				}
+				let addedPlayersToTeamInTournament = [];
+				for (const addedPlayer of tournamentChange.addedPlayers) {
+					addedPlayersToTeamInTournament.push(addedPlayer?.name);
+				}
+				tournamentResults += `<br>In Turnier (${tournamentChange.tournament.id}) ${tournamentChange.tournament.name}:<br>
+										- ${addedPlayersToTeamInTournament.length} Spieler zum Team hinzugefügt<br>
+										- ${removedPlayersFromTeamInTournament.length} Spieler aus Team entfernt`;
+			}
+
+			return `${playerCount} Spieler im Team<br>
+						- ${unchangedPlayers.length} allgemein unverändert<br>
+						- ${addedPlayers.length} allgemein neu<br>
+						- ${updatedPlayers.length} allgemein aktualisiert<br>
+						${addedPlayersToTeam.length} Spieler zum Team hinzugefügt<br>
+						${removedPlayersFromTeam.length} Spieler aus Team entfernt
+						${tournamentResults}`;
+		})
+		.catch(error => {
+			console.error(error);
+			return "Fehler beim Aktualisieren der Spieler";
+		})
+}
+
+
+// Allgemeine API-Abfragen
+/**
+ * interne API Anfrage liefert Liste an untergeordneten Stage-Events unter einem Event
+ */
 async function getStandingEventsInTournament(tournamentId) {
 	return await fetch(`/api/tournaments/${tournamentId}/leafes`, {method: 'GET'})
 		.then(res => {
@@ -399,4 +504,45 @@ async function getStandingEventsInTournament(tournamentId) {
 			}
 			return data;
 		});
+}
+
+/**
+ * interne API-Anfrage liefert alle Teams in untergeordneten Stage-Events unter einem Event
+ */
+async function getTeamsInTournament(tournamentId) {
+	const event = await fetch(`/api/tournaments/${tournamentId}`, {method: 'GET'})
+		.then(res => {
+			if (res.ok) {
+				return res.json()
+			} else {
+				return {"error": "Fehler beim Abrufen des Turniers"};
+			}
+		})
+		.then(data => {
+			if (data.error) {
+				return {"error": data.error};
+			}
+			return data;
+		})
+
+	let queryParameter = "";
+	if (event.eventType !== "tournament") {
+		tournamentId = event.rootTournament.id;
+		queryParameter = `?filterBySubEvent=${event.id}`
+	}
+
+	return await fetch(`/api/tournaments/${tournamentId}/teams${queryParameter}`, {method: 'GET'})
+		.then(res => {
+			if (res.ok) {
+				return res.json()
+			} else {
+				return {"error": "Fehler beim Abrufen der Teams"};
+			}
+		})
+		.then(data => {
+			if (data.error) {
+				return {"error": data.error};
+			}
+			return data;
+		})
 }

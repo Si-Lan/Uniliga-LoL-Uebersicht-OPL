@@ -78,4 +78,36 @@ class PlayerInTeamRepository extends AbstractRepository {
 	public function findAllByTeamId(int $teamId): array {
 		return $this->findAllInternal($teamId);
 	}
+
+	/**
+	 * @return array<PlayerInTeam>
+	 */
+	public function findAllByTeamAndActiveStatus(Team $team, bool $active): array {
+		$allPlayers = $this->findAllByTeam($team);
+		return array_filter($allPlayers, fn(PlayerInTeam $player) => $player->removed === !$active);
+	}
+
+	public function isPlayerInTeam(int $playerId, int $teamId, bool $onlyActive = false): bool {
+		$activeQuery = $onlyActive ? 'AND removed = 0' : '';
+		$result = $this->dbcn->execute_query('SELECT * FROM players_in_teams WHERE OPL_ID_player = ? AND OPL_ID_team = ? '.$activeQuery, [$playerId, $teamId]);
+		return $result->num_rows > 0;
+	}
+	public function addPlayerToTeam(int $playerId, int $teamId): bool {
+		if ($this->isPlayerInTeam($playerId, $teamId, onlyActive: true)) {
+			return false;
+		}
+		if ($this->isPlayerInTeam($playerId, $teamId)) {
+			$query = 'UPDATE players_in_teams SET removed = 0 WHERE OPL_ID_player = ? AND OPL_ID_team = ?';
+		} else {
+			$query = 'INSERT INTO players_in_teams (OPL_ID_player, OPL_ID_team) VALUES (?, ?)';
+		}
+		return $this->dbcn->execute_query($query, [$playerId, $teamId]);
+	}
+	public function removePlayerFromTeam(int $playerId, int $teamId): bool {
+		if (!$this->isPlayerInTeam($playerId, $teamId, onlyActive: true)) {
+			return false;
+		}
+		$query = 'UPDATE players_in_teams SET removed = 1 WHERE OPL_ID_player = ? AND OPL_ID_team = ?';
+		return $this->dbcn->execute_query($query, [$playerId, $teamId]);
+	}
 }

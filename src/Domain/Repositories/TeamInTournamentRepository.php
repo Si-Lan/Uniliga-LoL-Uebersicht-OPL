@@ -233,4 +233,17 @@ class TeamInTournamentRepository extends AbstractRepository {
 		}
 		return $teamInTournaments;
 	}
+
+	public function isTeamInRootTournament(int $teamId, int $tournamentId): bool {
+		$query = '
+			SELECT 
+			    t.OPL_ID as OPL_ID_team,
+			    tr.OPL_ID as OPL_ID_tournament
+			FROM teams t
+			    JOIN tournaments tr
+			    	ON tr.OPL_ID = ? AND tr.OPL_ID IN (SELECT OPL_ID_top_parent FROM teams_in_tournaments JOIN tournaments ON teams_in_tournaments.OPL_ID_group = tournaments.OPL_ID WHERE OPL_ID_team = t.OPL_ID)
+			WHERE t.OPL_ID = ?';
+		$result = $this->dbcn->execute_query($query, [$tournamentId,$teamId]);
+		return $result->num_rows > 0;
+	}
 }
