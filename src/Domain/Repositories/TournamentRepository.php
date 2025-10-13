@@ -252,6 +252,14 @@ class TournamentRepository extends AbstractRepository {
 		return $tournaments;
 	}
 
+	/**
+	 * @return array<Tournament>
+	 */
+	public function findAllRunningRootTournaments():array {
+		$tournaments = $this->findAllRootTournaments();
+		return array_values(array_filter($tournaments, fn(Tournament $tournament) => $tournament->isRunning()));
+	}
+
 
 	public function mapEntityToData(Tournament $tournament): array {
 		return [
