@@ -83,14 +83,13 @@ $nonRootDisableAttribute = $tournament->eventType === EventType::TOURNAMENT ? ''
     <?php
         $popupContent = <<<HTML
         <h2>{$tournament->getSplitAndSeason()} | {$tournament->getFullName()} ({$tournament->eventType->getPrettyName()})</h2>
-        <button class="get-teams" data-id="$tournament->id"><span>Teams im Turnier updaten (Gruppenweise)</span></button>
-		<button class="get-players" data-id="$tournament->id"><span>Spieler im Turnier updaten (pro Team)</span></button>
-		<button class="get-riotids" data-id="$tournament->id"><span>Spieler-Accounts im Turnier updaten (pro Team -> pro Spieler)</span></button>
-		<button class="get-matchups" data-id="$tournament->id"><span>Matches im Turnier updaten (Gruppenweise)</span></button>
-		<button class="get-matchups-delete" data-id="$tournament->id"><span>Matches im Turnier updaten + entfernen (Gruppenweise)</span></button>
-		<button class="get-results" data-id="$tournament->id"><span>Match-Ergebnisse im Turnier updaten + Spiele (pro Match)</span></button>
-		<button class="get-results-unplayed" data-id="$tournament->id"><span>ungespielte Match-Ergebnisse im Turnier updaten + Spiele (pro Match)</span></button>
-		<button class="calculate-standings" data-id="$tournament->id"><span>Tabelle des Turniers aktualisieren (Berechnung pro Gruppe)</span></button>
+        <button class="get-teams" data-id="$tournament->id"><span>Teams updaten (pro Gruppe)</span></button>
+		<button class="get-players" data-id="$tournament->id"><span>Spieler updaten (pro Team)</span></button>
+		<button class="get-riotids" data-id="$tournament->id"><span>Spieler-Accounts updaten (pro Team -> pro Spieler)</span></button>
+		<button class="get-matchups" data-id="$tournament->id"><span>Matches updaten (pro Gruppe)</span></button>
+		<button class="get-results" data-id="$tournament->id"><span>Match-Ergebnisse und LoL-Spiele updaten (pro Match)</span></button>
+		<button class="get-results-unplayed" data-id="$tournament->id"><span>Match-Ergebnisse und LoL-Spiele updaten (pro ungespieltem Match)</span></button>
+		<button class="calculate-standings" data-id="$tournament->id"><span>Tabelle aktualisieren (pro Gruppe) (Berechnung)</span></button>
 HTML;
         if ($tournament->eventType === EventType::TOURNAMENT) {
             $popupContent .= <<<HTML
