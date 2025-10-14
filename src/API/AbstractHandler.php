@@ -6,7 +6,7 @@ use JetBrains\PhpStorm\NoReturn;
 
 abstract class AbstractHandler {
 	#[NoReturn] protected function sendErrorResponse(int $statusCode, string $message): void {
-		http_response_code($statusCode);
+		http_response_code($statusCode ?: 500);
 		echo json_encode(['error' => $message]);
 		exit;
 	}

@@ -11,6 +11,7 @@ use App\Domain\Repositories\TeamInTournamentRepository;
 use App\Domain\Repositories\TeamRepository;
 use App\Domain\Repositories\TournamentRepository;
 use App\Service\OplApiService;
+use App\Service\Updater\PlayerUpdater;
 
 class TeamsHandler extends AbstractHandler {
 	use DataParsingHelpers;
@@ -99,5 +100,19 @@ class TeamsHandler extends AbstractHandler {
 		$tournamentAdditions = array_values($tournamentAdditions);
 
 		echo json_encode(['players' => $saveResults, 'addedPlayers' => $addedPlayers, 'removedPlayers' => $removedPlayers, 'tournamentChanges' => $tournamentAdditions]);
+	}
+
+	public function postTeamsPlayersAccounts(int $teamId): void {
+		$this->checkRequestMethod('POST');
+
+		$playerUpdater = new PlayerUpdater();
+
+		try {
+			$saveResult = $playerUpdater->updatePlayerAccountsForTeam($teamId);
+		} catch (\Exception $e) {
+			$this->sendErrorResponse($e->getCode(), $e->getMessage());
+		}
+
+		echo json_encode($saveResult);
 	}
 }

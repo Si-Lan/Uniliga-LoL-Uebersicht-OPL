@@ -29,4 +29,11 @@ class Player {
 	public function getRiotIdTagWithPrefix(): string {
 		return (($this->riotIdTag??"") != "") ? "#".$this->riotIdTag : "";
 	}
+
+	public function setRiotIdFromString(string $riotId): void {
+		$riotId = trim($riotId);
+		$riotId = explode("#", $riotId);
+		$this->riotIdName = $riotId[0];
+		$this->riotIdTag = $riotId[1] ?? null;
+	}
 }

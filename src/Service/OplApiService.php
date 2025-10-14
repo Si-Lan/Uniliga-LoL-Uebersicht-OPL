@@ -3,7 +3,10 @@
 namespace App\Service;
 
 class OplApiService {
-    public function fetchFromEndpoint(string $endpoint): array {
+	/**
+	 * @throws \Exception
+	 */
+	public function fetchFromEndpoint(string $endpoint): array {
         if (empty($_ENV['OPL_BEARER_TOKEN']) || empty($_ENV['USER_AGENT'])) {
             throw new \Exception('Missing API credentials');
         }

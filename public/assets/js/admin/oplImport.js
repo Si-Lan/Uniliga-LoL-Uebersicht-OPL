@@ -484,6 +484,68 @@ async function updatePlayersInTeam(teamId) {
 		})
 }
 
+// RiotIds aktualisieren
+$(document).on('click', 'button.get-riotids', async function () {
+	const tournamentId = this.dataset.id;
+	setButtonUpdating($(this));
+	const teamsInTournaments = await getTeamsInTournament(tournamentId);
+	if (teamsInTournaments.error) {
+		show_results_dialog_with_result(tournamentId, "Fehler beim Holen der Teams");
+		unsetButtonUpdating($(this));
+		return;
+	}
+	if (teamsInTournaments.length === 0) {
+		show_results_dialog_with_result(tournamentId, "Keine Teams im Turnier");
+		unsetButtonUpdating($(this));
+	}
+	let result = "";
+	const totalTeams = teamsInTournaments.length;
+	let donePercentage = 0;
+	for (const teamInTournament of teamsInTournaments) {
+		const partialResult = await updatePlayerAccountsInTeam(teamInTournament.team.id);
+		result += `<br>(${teamInTournament.team.id}) ${teamInTournament.team.name}:<br> ${partialResult}<br>`;
+		donePercentage += 100/totalTeams;
+		setButtonLoadingBarWidth($(this), donePercentage);
+		if (donePercentage < 100) {
+			await new Promise(r => setTimeout(r, 1000));
+		}
+	}
+	show_results_dialog_with_result(tournamentId, result);
+	unsetButtonUpdating($(this));
+})
+async function updatePlayerAccountsInTeam(teamId) {
+	return await fetch(`/admin/api/opl/teams/${teamId}/players/accounts`, {method: 'POST'})
+		.then(res => {
+			if (res.ok) {
+				return res.json()
+			} else {
+				return {"error": "Fehler beim Aktualisieren der RiotIds"};
+			}
+		})
+		.then(data => {
+			if (data.error) {
+				return data.error;
+			}
+			let playerCount = data.players.length + data.errors.length;
+			let playersUpdated = [];
+			let playersUnchanged = [];
+			for (const player of data.players) {
+				switch (player.result) {
+					case "UPDATED":
+						playersUpdated.push(player.player?.name);
+						break;
+					case "NOT_CHANGED":
+						playersUnchanged.push(player.player?.name);
+						break;
+				}
+			}
+			return `${playerCount} Spieler im Team<br>
+						- ${playersUpdated.length} RiotIds aktualisiert<br>
+						- ${playersUnchanged.length} Spieler unverändert<br>
+						- ${data.errors.length} Fehler beim Aktualisieren`;
+		})
+}
+
 
 // Allgemeine API-Abfragen
 /**
