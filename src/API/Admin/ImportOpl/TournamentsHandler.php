@@ -2,6 +2,7 @@
 
 namespace App\API\Admin\ImportOpl;
 
+use App\API\AbstractHandler;
 use App\Core\Utilities\DataParsingHelpers;
 use App\Domain\Entities\Team;
 use App\Domain\Repositories\TeamInTournamentStageRepository;
@@ -9,9 +10,15 @@ use App\Domain\Repositories\TeamRepository;
 use App\Domain\Repositories\TournamentRepository;
 use App\Service\OplApiService;
 use App\Service\OplLogoService;
+use App\Service\Updater\TournamentUpdater;
 
-class TournamentsHandler {
+class TournamentsHandler extends AbstractHandler{
 	use DataParsingHelpers;
+
+	private TournamentUpdater $tournamentUpdater;
+	public function __construct() {
+		$this->tournamentUpdater = new TournamentUpdater();
+	}
 
 	/**
 	 * Returns entityData and relatedTournaments without saving to Database
@@ -151,5 +158,17 @@ class TournamentsHandler {
 		}
 
 		echo json_encode(['teams'=>$saveResults,'removedTeams'=>$removedTeams,'addedTeams'=>$addedTeams]);
+	}
+
+	public function postTournamentsMatchups($tournamentId): void {
+		$this->checkRequestMethod('POST');
+
+		try {
+			$saveResult = $this->tournamentUpdater->updateMatchups($tournamentId);
+		} catch (\Exception $e) {
+			$this->sendErrorResponse($e->getCode(), $e->getMessage());
+		}
+
+		echo json_encode($saveResult);
 	}
 }

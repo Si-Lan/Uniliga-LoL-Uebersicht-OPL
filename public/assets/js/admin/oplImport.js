@@ -546,6 +546,81 @@ async function updatePlayerAccountsInTeam(teamId) {
 		})
 }
 
+// Matchups aktualisieren
+$(document).on('click', 'button.get-matchups', async function () {
+	const tournamentId = this.dataset.id;
+	setButtonUpdating($(this));
+	const childrenTournaments = await getStandingEventsInTournament(tournamentId);
+	if (childrenTournaments.error) {
+		show_results_dialog_with_result(tournamentId, "Fehler beim Prüfen des Turniers");
+		unsetButtonUpdating($(this));
+		return;
+	}
+	let result = "";
+	if (childrenTournaments.length === 0) {
+		result = await updateMatchupsInTournament(tournamentId);
+	} else {
+		const total = childrenTournaments.length;
+		let donePercentage = 0;
+		for (const childTournament of childrenTournaments) {
+			const partialResult = await updateMatchupsInTournament(childTournament.id);
+			result += `<br>(${childTournament.id}) ${childTournament.name}:<br> ${partialResult}<br>`;
+			donePercentage += 100/total;
+			setButtonLoadingBarWidth($(this), donePercentage);
+			if (donePercentage < 100) {
+				await new Promise(r => setTimeout(r, 1000));
+			}
+		}
+	}
+	show_results_dialog_with_result(tournamentId, result);
+	unsetButtonUpdating($(this));
+});
+async function updateMatchupsInTournament(tournamentId) {
+	return await fetch(`/admin/api/opl/tournaments/${tournamentId}/matchups`, {method: 'POST'})
+		.then(res => {
+			if (res.ok) {
+				return res.json()
+			} else {
+				return {"error": "Fehler beim Aktualisieren der Matchups"};
+			}
+		})
+		.then(data => {
+			if (data.error) {
+				return data.error;
+			}
+			let matchupCount = data.matchups.length;
+			let unchangedMatchups = [];
+			let addedMatchups = [];
+			let updatedMatchups = [];
+			let removedMatchups = [];
+			for (const matchup of data.matchups) {
+				switch (matchup.result) {
+					case "INSERTED":
+						addedMatchups.push(matchup.matchup?.id);
+						break;
+					case "UPDATED":
+						updatedMatchups.push(matchup.matchup?.id);
+						break;
+					case "NOT_CHANGED":
+						unchangedMatchups.push(matchup.matchup?.id);
+						break;
+				}
+			}
+			for (const removedMatchup of data.removedMatchups) {
+				removedMatchups.push(removedMatchup?.id);
+			}
+			return `${matchupCount} Matchups im Event<br>
+					- ${unchangedMatchups.length} unverändert<br>
+					- ${addedMatchups.length} neu<br>
+					- ${updatedMatchups.length} aktualisiert<br>
+					- ${removedMatchups.length} entfernt`;
+		})
+		.catch(error => {
+			console.error(error);
+			return "Fehler beim Aktualisieren der Matchups";
+		})
+}
+
 
 // Allgemeine API-Abfragen
 /**
