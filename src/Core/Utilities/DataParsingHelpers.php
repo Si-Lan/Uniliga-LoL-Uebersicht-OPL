@@ -23,6 +23,9 @@ trait DataParsingHelpers {
 	}
 
 	protected function DateTimeImmutableOrNull(mixed $value): ?\DateTimeImmutable {
+		if (is_array($value) && array_key_exists('date', $value) && array_key_exists('timezone', $value)) {
+			return new \DateTimeImmutable($value['date'], new \DateTimeZone($value['timezone']));
+		}
 		return is_null($value) ? null : new \DateTimeImmutable($value);
 	}
 
