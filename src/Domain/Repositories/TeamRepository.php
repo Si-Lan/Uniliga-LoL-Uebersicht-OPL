@@ -32,15 +32,15 @@ class TeamRepository extends AbstractRepository {
 		);
 	}
 
-	public function findById(int $teamId): ?Team {
-		if (isset($this->cache[$teamId])) {
+	public function findById(int $teamId, bool $ignoreCache = false): ?Team {
+		if (isset($this->cache[$teamId]) && !$ignoreCache) {
 			return $this->cache[$teamId];
 		}
 		$result = $this->dbcn->execute_query("SELECT * FROM teams WHERE OPL_ID = ?", [$teamId]);
 		$data = $result->fetch_assoc();
 
 		$team = $data ? $this->mapToEntity($data) : null;
-		$this->cache[$teamId] = $team;
+		if (!$ignoreCache) $this->cache[$teamId] = $team;
 
 		return $team;
 	}
@@ -108,7 +108,7 @@ class TeamRepository extends AbstractRepository {
 	 * @return array{'result': SaveResult, 'changes': array<string, mixed>}
 	 */
 	private function update(Team $team, bool $fromOplData = false):array {
-		$existingTeam = $this->findById($team->id);
+		$existingTeam = $this->findById($team->id, ignoreCache: true);
 		$dataNew = $this->mapEntityToData($team);
 		$dataOld = $this->mapEntityToData($existingTeam);
 		if ($fromOplData) {

@@ -35,15 +35,15 @@ class PlayerRepository extends AbstractRepository {
 		);
 	}
 
-	public function findById(int $playerId): ?Player {
-		if (isset($this->cache[$playerId])) {
+	public function findById(int $playerId, bool $ignoreCache = false): ?Player {
+		if (isset($this->cache[$playerId]) && !$ignoreCache) {
 			return $this->cache[$playerId];
 		}
 		$result = $this->dbcn->execute_query("SELECT * FROM players WHERE OPL_ID = ?", [$playerId]);
 		$data = $result->fetch_assoc();
 
 		$player = $data ? $this->mapToEntity($data) : null;
-		$this->cache[$playerId] = $player;
+		if (!$ignoreCache) $this->cache[$playerId] = $player;
 
 		return $player;
 	}
@@ -112,7 +112,7 @@ class PlayerRepository extends AbstractRepository {
 			"rank_tier" => $player->rank?->rankTier,
 			"rank_div" => $player->rank?->rankDiv,
 			"rank_LP" => $player->rank?->rankLp,
-			"matchesGotten" => $player->matchesGotten,
+			"matchesGotten" => json_encode($player->matchesGotten),
 		];
 	}
 
@@ -138,7 +138,7 @@ class PlayerRepository extends AbstractRepository {
 	 * @return array{'result': SaveResult, 'changes': array<string, mixed>}
 	 */
 	public function update(Player $player, bool $fromOplData = false): array {
-		$existingPlayer = $this->findById($player->id);
+		$existingPlayer = $this->findById($player->id, ignoreCache: true);
 		$dataNew = $this->mapEntityToData($player);
 		$dataOld = $this->mapEntityToData($existingPlayer);
 		if ($fromOplData) {
