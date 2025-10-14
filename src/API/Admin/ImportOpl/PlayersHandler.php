@@ -16,7 +16,6 @@ class PlayersHandler extends AbstractHandler {
 
 		try {
 			$saveResult = $this->playerUpdater->updatePlayerAccount($playerId);
-			$saveResult["result"] = $saveResult["result"]->name;
 		} catch (\Exception $e) {
 			$this->sendErrorResponse($e->getCode(), $e->getMessage());
 		}

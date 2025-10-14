@@ -42,7 +42,6 @@ class TournamentUpdater {
 		foreach ($oplMatchups as $oplMatchup) {
 			$matchupEntity = $matchupRepo->createFromOplData($oplMatchup);
 			$saveResult = $matchupRepo->save($matchupEntity, fromOplData: true);
-			$saveResult['result'] = $saveResult['result']->name;
 			$saveResults[] = $saveResult;
 		}
 

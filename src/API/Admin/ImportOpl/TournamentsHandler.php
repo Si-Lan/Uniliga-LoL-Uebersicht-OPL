@@ -71,7 +71,6 @@ class TournamentsHandler extends AbstractHandler{
 		$tournament = $tournamentRepo->mapToEntity($tournamentData, newEntity: true);
 
 		$saveResult = $tournamentRepo->save($tournament);
-		$saveResult["result"] = $saveResult["result"]->name;
 		echo json_encode($saveResult);
 	}
 
@@ -139,7 +138,6 @@ class TournamentsHandler extends AbstractHandler{
 				}
 			}
 			if (!array_key_exists("logoDownload", $saveResult)) $saveResult["logoDownload"] = null;
-			$saveResult["result"] = $saveResult["result"]->name;
 			$saveResults[] = $saveResult;
 
 			$addedToTournament = $teamInTournamentStageRepo->addTeamToTournamentStage($teamEntity->id, $tournament->id);

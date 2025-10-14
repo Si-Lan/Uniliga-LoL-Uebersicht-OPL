@@ -91,10 +91,10 @@ function writeTournamentFromForm(button) {
 				return;
 			}
 			switch (res.result) {
-				case "INSERTED":
+				case "inserted":
 					show_results_dialog_with_result(tournamentId, "Turnier erfolgreich erstellt");
 					break;
-				case "UPDATED":
+				case "updated":
 					clear_results_dialog(tournamentId);
 					add_to_results_dialog(tournamentId, "Turnier erfolgreich aktualisiert");
 					for (let key in res.changes) {
@@ -102,11 +102,11 @@ function writeTournamentFromForm(button) {
 					}
 					show_results_dialog(tournamentId);
 					break;
-				case "NOT_CHANGED":
+				case "not-changed":
 					show_results_dialog_with_result(tournamentId, "Turnier unverändert");
 					break;
 				default:
-				case "FAILED":
+				case "failed":
 					show_results_dialog_with_result(tournamentId, "Fehler beim Speichern des Turniers");
 					break;
 			}
@@ -355,13 +355,13 @@ async function updateTeamsInTournament(tournamentId) {
 			let removedTeams = [];
 			for (const team of data.teams) {
 				switch (team.result) {
-					case "INSERTED":
+					case "inserted":
 						addedTeams.push(team.team.name);
 						break;
-					case "UPDATED":
+					case "updated":
 						updatedTeams.push(team.team.name);
 						break;
-					case "NOT_CHANGED":
+					case "not-changed":
 						unchangedTeams.push(team.team.name);
 						break;
 				}
@@ -435,13 +435,13 @@ async function updatePlayersInTeam(teamId) {
 			let updatedPlayers = [];
 			for (const player of data.players) {
 				switch (player.result) {
-					case "INSERTED":
+					case "inserted":
 						addedPlayers.push(player.player?.name);
 						break;
-					case "UPDATED":
+					case "updated":
 						updatedPlayers.push(player.player?.name);
 						break;
-					case "NOT_CHANGED":
+					case "not-changed":
 						unchangedPlayers.push(player.player?.name);
 						break;
 				}
@@ -531,10 +531,10 @@ async function updatePlayerAccountsInTeam(teamId) {
 			let playersUnchanged = [];
 			for (const player of data.players) {
 				switch (player.result) {
-					case "UPDATED":
+					case "updated":
 						playersUpdated.push(player.player?.name);
 						break;
-					case "NOT_CHANGED":
+					case "not-changed":
 						playersUnchanged.push(player.player?.name);
 						break;
 				}
@@ -595,13 +595,13 @@ async function updateMatchupsInTournament(tournamentId) {
 			let removedMatchups = [];
 			for (const matchup of data.matchups) {
 				switch (matchup.result) {
-					case "INSERTED":
+					case "inserted":
 						addedMatchups.push(matchup.matchup?.id);
 						break;
-					case "UPDATED":
+					case "updated":
 						updatedMatchups.push(matchup.matchup?.id);
 						break;
-					case "NOT_CHANGED":
+					case "not-changed":
 						unchangedMatchups.push(matchup.matchup?.id);
 						break;
 				}

@@ -63,7 +63,6 @@ class PlayerUpdater {
 		foreach ($playersInTeam as $playerInTeam) {
 			try {
 				$saveResult = $this->updatePlayerAccount($playerInTeam->player->id);
-				$saveResult['result'] = $saveResult['result']->name;
 				$saveResults[] = $saveResult;
 			} catch (\Exception $e) {
 				$errors[] = ['player'=>$playerInTeam->player, 'error'=>$e->getMessage()];

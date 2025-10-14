@@ -59,7 +59,6 @@ class TeamsHandler extends AbstractHandler {
 			// Spieler speichern
 			$playerEntity = $playerRepo->createFromOplData($oplPlayer);
 			$saveResult = $playerRepo->save($playerEntity, fromOplData: true);
-			$saveResult["result"] = $saveResult["result"]->name;
 			$saveResults[] = $saveResult;
 
 			// Spieler in Team eintragen
