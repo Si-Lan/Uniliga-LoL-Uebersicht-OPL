@@ -5,6 +5,7 @@ namespace App\API;
 use App\Core\Utilities\DataParsingHelpers;
 use App\Domain\Entities\Tournament;
 use App\Domain\Enums\EventType;
+use App\Domain\Repositories\MatchupRepository;
 use App\Domain\Repositories\TeamInTournamentRepository;
 use App\Domain\Repositories\TournamentRepository;
 use JetBrains\PhpStorm\NoReturn;
@@ -91,5 +92,40 @@ class TournamentsHandler {
 		}
 
 		echo json_encode($teams);
+	}
+
+	public function getTournamentsMatchups(int $id): void {
+		$tournament = $this->validateAndGetTournament($id);
+		if ($tournament->eventType !== EventType::TOURNAMENT) {
+			$this->sendErrorResponse(400, 'Event is not a tournament');
+		}
+
+		$matchupRepo = new MatchupRepository();
+		if (!isset($_GET["filterBySubEvent"])) {
+			$matchups = $matchupRepo->findAllByRootTournament($tournament);
+			echo json_encode($matchups);
+			exit;
+		}
+
+		$subEventId = $this->IntOrNull($_GET["filterBySubEvent"]);
+		if ($subEventId === null) {
+			$this->sendErrorResponse(400, 'filterBySubEvent is no valid id');
+		}
+
+		$subEvent = $this->tournamentRepo->findById($subEventId);
+		if ($subEvent === null) {
+			$this->sendErrorResponse(404, 'SubEvent not found');
+		}
+		if ($subEvent->getRootTournament()->id !== $tournament->id || $subEvent->id === $tournament->id) {
+			$this->sendErrorResponse(400, 'SubEvent is not a child of tournament');
+		}
+
+		if ($subEvent->isStage()) {
+			$matchups = $matchupRepo->findAllByTournamentStage($subEvent);
+		} else {
+			$matchups = $matchupRepo->findAllByParentTournament($subEvent);
+		}
+
+		echo json_encode($matchups);
 	}
 }

@@ -138,6 +138,17 @@ class MatchupRepository extends AbstractRepository {
 		return $this->findAllInternalByQuery($query, $queryParams);
 	}
 
+	public function findAllByParentTournament(Tournament $parentTournament): array {
+		$query = '
+			SELECT m.*
+			FROM matchups m
+			    LEFT JOIN tournaments t
+			        ON m.OPL_ID_tournament = t.OPL_ID
+			WHERE t.OPL_ID_parent = ?';
+		$queryParams = [$parentTournament->id];
+		return $this->findAllInternalByQuery($query, $queryParams);
+	}
+
 	public function matchupExists(int $matchupId): bool {
 		$query = "SELECT * FROM matchups WHERE OPL_ID = ?";
 		$result = $this->dbcn->execute_query($query,[$matchupId]);
