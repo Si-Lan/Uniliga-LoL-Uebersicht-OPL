@@ -693,13 +693,13 @@ async function updateMatchresult(matchId) {
 			for (const gameInMatchup of data.gamesInMatchup) {
 				switch (gameInMatchup.result) {
 					case "inserted":
-						addedGames.push(gameInMatchup.gameInMatch?.id);
+						addedGamesInMatchup.push(gameInMatchup.gameInMatch?.id);
 						break;
 					case "updated":
-						updatedGames.push(gameInMatchup.gameInMatch?.id);
+						updatedGamesInMatchup.push(gameInMatchup.gameInMatch?.id);
 						break;
 					case "not-changed":
-						unchangedGames.push(gameInMatchup.gameInMatch?.id);
+						unchangedGamesInMatchup.push(gameInMatchup.gameInMatch?.id);
 						break;
 				}
 			}
