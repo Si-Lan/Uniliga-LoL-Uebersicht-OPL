@@ -48,8 +48,8 @@ class GameInMatchRepository extends AbstractRepository {
 	}
 
 	public function createFromEntities(Game $game, Matchup $matchup, TeamInTournamentStage|Team|null $blueTeam, TeamInTournamentStage|Team|null $redTeam, bool $oplConfirmed = false): GameInMatch {
-		$blueTeam = !($blueTeam instanceof Team) ?: $this->teamInTournamentRepo->findByTeamAndTournament($blueTeam, $matchup->tournamentStage->rootTournament);
-		$redTeam = !($redTeam instanceof Team) ?: $this->teamInTournamentRepo->findByTeamAndTournament($redTeam, $matchup->tournamentStage->rootTournament);
+		$blueTeam = !($blueTeam instanceof Team) ? $blueTeam : $this->teamInTournamentRepo->findByTeamAndTournament($blueTeam, $matchup->tournamentStage->rootTournament);
+		$redTeam = !($redTeam instanceof Team) ? $redTeam : $this->teamInTournamentRepo->findByTeamAndTournament($redTeam, $matchup->tournamentStage->rootTournament);
 		return new GameInMatch(
 			game: $game,
 			matchup: $matchup,
