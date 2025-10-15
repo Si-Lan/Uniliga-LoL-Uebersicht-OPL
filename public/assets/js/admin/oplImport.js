@@ -621,6 +621,104 @@ async function updateMatchupsInTournament(tournamentId) {
 		})
 }
 
+// Matchresults aktualisieren und Spiel-Ids holen
+$(document).on('click', 'button.get-results', async function () {
+	const tournamentId = this.dataset.id;
+	setButtonUpdating($(this));
+	const matchupsInTournament = await getMatchupsInTournament(tournamentId);
+	if (matchupsInTournament.error) {
+		show_results_dialog_with_result(tournamentId, "Fehler beim Holen der Matchups");
+		unsetButtonUpdating($(this));
+		return;
+	}
+	if (matchupsInTournament.length === 0) {
+		show_results_dialog_with_result(tournamentId, "Keine Matchups im Turnier");
+		unsetButtonUpdating($(this));
+		return;
+	}
+	let result = "";
+	const total = matchupsInTournament.length;
+	let donePercentage = 0;
+	for (const matchup of matchupsInTournament) {
+		const partialResult = await updateMatchresult(matchup.id);
+		result += `<br>(${matchup.id}):<br> ${partialResult}<br>`;
+		donePercentage += 100/total;
+		setButtonLoadingBarWidth($(this), donePercentage);
+		if (donePercentage < 100) {
+			await new Promise(r => setTimeout(r, 1000));
+		}
+	}
+	show_results_dialog_with_result(tournamentId, result);
+	unsetButtonUpdating($(this));
+});
+async function updateMatchresult(matchId) {
+	return await fetch(`/admin/api/opl/matchups/${matchId}/results`, {method: 'POST'})
+		.then(res => {
+			if (res.ok) {
+				return res.json()
+			} else {
+				return {"error": "Fehler beim Aktualisieren der Matchresults"};
+			}
+		})
+		.then(data => {
+			if (data.error) {
+				return data.error;
+			}
+			let scoreUpdated = data.matchup?.changes && ("team1Score" in data.matchup.changes || "team2Score" in data.matchup.changes);
+			let addedGames = [];
+			let updatedGames = [];
+			let unchangedGames = [];
+			for (const game of data.games) {
+				switch (game.result) {
+					case "inserted":
+						addedGames.push(game.game?.id);
+						break;
+					case "updated":
+						updatedGames.push(game.game?.id);
+						break;
+					case "not-changed":
+						unchangedGames.push(game.game?.id);
+						break;
+				}
+			}
+			let addedGamesInMatchup = [];
+			let updatedGamesInMatchup = [];
+			let unchangedGamesInMatchup = [];
+			for (const gameInMatchup of data.gamesInMatchup) {
+				switch (gameInMatchup.result) {
+					case "inserted":
+						addedGames.push(gameInMatchup.gameInMatch?.id);
+						break;
+					case "updated":
+						updatedGames.push(gameInMatchup.gameInMatch?.id);
+						break;
+					case "not-changed":
+						unchangedGames.push(gameInMatchup.gameInMatch?.id);
+						break;
+				}
+			}
+
+			let result = `Matchup ${data.matchup.result}<br>
+					${scoreUpdated ? "Score aktualisiert<br>" : ""}`;
+			if (data.games.length > 0) {
+				result += `
+					- ${unchangedGames.length} Spiele unverändert<br>
+					- ${addedGames.length} Spiele hinzugefügt<br>
+					- ${updatedGames.length} Spiele aktualisiert<br>`;
+			}
+			if (data.gamesInMatchup.length > 0) {
+				result += `
+					-- ${unchangedGamesInMatchup.length} Spiele für Match unverändert<br>
+					-- ${addedGamesInMatchup.length} Spiele für Match eingetragen<br>
+					-- ${updatedGamesInMatchup.length} Spiele für Match aktualisiert<br>`;
+			}
+			return result;
+		})
+		.catch(error => {
+			console.error(error);
+			return "Fehler beim Darstellen der aktualisierten Matchresults";
+		})
+}
 
 // Allgemeine API-Abfragen
 /**
@@ -674,6 +772,47 @@ async function getTeamsInTournament(tournamentId) {
 				return res.json()
 			} else {
 				return {"error": "Fehler beim Abrufen der Teams"};
+			}
+		})
+		.then(data => {
+			if (data.error) {
+				return {"error": data.error};
+			}
+			return data;
+		})
+}
+
+/**
+ * interne API-Anfrage liefert alle Matchups in untergeordneten Stage-Events unter einem Event
+ */
+async function getMatchupsInTournament(tournamentId) {
+	const event = await fetch(`/api/tournaments/${tournamentId}`, {method: 'GET'})
+		.then(res => {
+			if (res.ok) {
+				return res.json()
+			} else {
+				return {"error": "Fehler beim Abrufen des Turniers"};
+			}
+		})
+		.then(data => {
+			if (data.error) {
+				return {"error": data.error};
+			}
+			return data;
+		})
+
+	let queryParameter = "";
+	if (event.eventType !== "tournament") {
+		tournamentId = event.rootTournament.id
+		queryParameter = `?filterBySubEvent=${event.id}`
+	}
+
+	return await fetch(`/api/tournaments/${tournamentId}/matchups${queryParameter}`, {method: 'GET'})
+		.then(res => {
+			if (res.ok) {
+				return res.json()
+			} else {
+				return {"error": "Fehler beim Abrufen der Matchups"};
 			}
 		})
 		.then(data => {
