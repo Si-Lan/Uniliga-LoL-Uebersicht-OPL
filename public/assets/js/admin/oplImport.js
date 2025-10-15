@@ -623,17 +623,23 @@ async function updateMatchupsInTournament(tournamentId) {
 
 // Matchresults aktualisieren und Spiel-Ids holen
 $(document).on('click', 'button.get-results', async function () {
-	const tournamentId = this.dataset.id;
-	setButtonUpdating($(this));
-	const matchupsInTournament = await getMatchupsInTournament(tournamentId);
+	await buttonGetResultsClick(this);
+});
+$(document).on('click', 'button.get-results-unplayed', async function () {
+	await buttonGetResultsClick(this, true);
+});
+async function buttonGetResultsClick(button, unplayedOnly = false) {
+	const tournamentId = button.dataset.id;
+	setButtonUpdating($(button));
+	const matchupsInTournament = await getMatchupsInTournament(tournamentId, unplayedOnly);
 	if (matchupsInTournament.error) {
 		show_results_dialog_with_result(tournamentId, "Fehler beim Holen der Matchups");
-		unsetButtonUpdating($(this));
+		unsetButtonUpdating($(button));
 		return;
 	}
 	if (matchupsInTournament.length === 0) {
 		show_results_dialog_with_result(tournamentId, "Keine Matchups im Turnier");
-		unsetButtonUpdating($(this));
+		unsetButtonUpdating($(button));
 		return;
 	}
 	let result = "";
@@ -643,14 +649,14 @@ $(document).on('click', 'button.get-results', async function () {
 		const partialResult = await updateMatchresult(matchup.id);
 		result += `<br>(${matchup.id}):<br> ${partialResult}<br>`;
 		donePercentage += 100/total;
-		setButtonLoadingBarWidth($(this), donePercentage);
+		setButtonLoadingBarWidth($(button), donePercentage);
 		if (donePercentage < 100) {
 			await new Promise(r => setTimeout(r, 1000));
 		}
 	}
 	show_results_dialog_with_result(tournamentId, result);
-	unsetButtonUpdating($(this));
-});
+	unsetButtonUpdating($(button));
+}
 async function updateMatchresult(matchId) {
 	return await fetch(`/admin/api/opl/matchups/${matchId}/results`, {method: 'POST'})
 		.then(res => {
@@ -785,7 +791,7 @@ async function getTeamsInTournament(tournamentId) {
 /**
  * interne API-Anfrage liefert alle Matchups in untergeordneten Stage-Events unter einem Event
  */
-async function getMatchupsInTournament(tournamentId) {
+async function getMatchupsInTournament(tournamentId, onlyUnplayed = false) {
 	const event = await fetch(`/api/tournaments/${tournamentId}`, {method: 'GET'})
 		.then(res => {
 			if (res.ok) {
@@ -805,6 +811,10 @@ async function getMatchupsInTournament(tournamentId) {
 	if (event.eventType !== "tournament") {
 		tournamentId = event.rootTournament.id
 		queryParameter = `?filterBySubEvent=${event.id}`
+	}
+	if (onlyUnplayed) {
+		queryParameter += (queryParameter.length > 0 ? "&" : "?")
+		queryParameter += "unplayed=true";
 	}
 
 	return await fetch(`/api/tournaments/${tournamentId}/matchups${queryParameter}`, {method: 'GET'})

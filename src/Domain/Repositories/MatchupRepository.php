@@ -104,8 +104,9 @@ class MatchupRepository extends AbstractRepository {
 	/**
 	 * @return array<Matchup>
 	 */
-	public function findAllByTournamentStage(Tournament $tournamentStage): array {
-		$query = 'SELECT * FROM matchups WHERE OPL_ID_tournament = ?';
+	public function findAllByTournamentStage(Tournament $tournamentStage, bool $unplayedOnly = false): array {
+		$whereAdditional = $unplayedOnly ? 'AND played = 0' : '';
+		$query = 'SELECT * FROM matchups WHERE OPL_ID_tournament = ? '.$whereAdditional;
 		$queryParams = [$tournamentStage->id];
 		return $this->findAllInternalByQuery($query, $queryParams, $tournamentStage);
 	}
@@ -127,24 +128,28 @@ class MatchupRepository extends AbstractRepository {
 	/**
 	 * @return array<Matchup>
 	 */
-	public function findAllByRootTournament(Tournament $rootTournament): array {
+	public function findAllByRootTournament(Tournament $rootTournament, bool $unplayedOnly = false): array {
+		$whereAdditional = $unplayedOnly ? 'AND m.played = 0' : '';
 		$query = '
 			SELECT m.*
 			FROM matchups m
 			    LEFT JOIN tournaments t
 			        ON m.OPL_ID_tournament = t.OPL_ID
-			WHERE t.OPL_ID_top_parent = ?';
+			WHERE t.OPL_ID_top_parent = ? '
+			.$whereAdditional;
 		$queryParams = [$rootTournament->id];
 		return $this->findAllInternalByQuery($query, $queryParams);
 	}
 
-	public function findAllByParentTournament(Tournament $parentTournament): array {
+	public function findAllByParentTournament(Tournament $parentTournament, bool $unplayedOnly = false): array {
+		$whereAdditional = $unplayedOnly ? 'AND m.played = 0' : '';
 		$query = '
 			SELECT m.*
 			FROM matchups m
 			    LEFT JOIN tournaments t
 			        ON m.OPL_ID_tournament = t.OPL_ID
-			WHERE t.OPL_ID_parent = ?';
+			WHERE t.OPL_ID_parent = ? '
+			.$whereAdditional;
 		$queryParams = [$parentTournament->id];
 		return $this->findAllInternalByQuery($query, $queryParams);
 	}

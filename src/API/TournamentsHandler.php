@@ -100,9 +100,11 @@ class TournamentsHandler {
 			$this->sendErrorResponse(400, 'Event is not a tournament');
 		}
 
+		$unplayedOnly = isset($_GET["unplayed"]) && $_GET["unplayed"] === "true";
+
 		$matchupRepo = new MatchupRepository();
 		if (!isset($_GET["filterBySubEvent"])) {
-			$matchups = $matchupRepo->findAllByRootTournament($tournament);
+			$matchups = $matchupRepo->findAllByRootTournament($tournament, unplayedOnly: $unplayedOnly);
 			echo json_encode($matchups);
 			exit;
 		}
@@ -121,9 +123,9 @@ class TournamentsHandler {
 		}
 
 		if ($subEvent->isStage()) {
-			$matchups = $matchupRepo->findAllByTournamentStage($subEvent);
+			$matchups = $matchupRepo->findAllByTournamentStage($subEvent, unplayedOnly: $unplayedOnly);
 		} else {
-			$matchups = $matchupRepo->findAllByParentTournament($subEvent);
+			$matchups = $matchupRepo->findAllByParentTournament($subEvent, unplayedOnly: $unplayedOnly);
 		}
 
 		echo json_encode($matchups);
