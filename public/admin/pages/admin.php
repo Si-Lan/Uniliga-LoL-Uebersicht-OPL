@@ -2,6 +2,7 @@
 /** @var mysqli $dbcn  */
 
 use App\Core\Utilities\UserContext;
+use App\UI\Components\Admin\RankedSplit\RankedSplitList;
 use App\UI\Components\Admin\TournamentEdit\TournamentEditList;
 use App\UI\Components\Navigation\Header;
 use App\UI\Components\Popups\Popup;
@@ -12,6 +13,7 @@ use App\UI\Page\PageMeta;
 $pageMeta = new PageMeta('Admin-Panel', bodyClass: 'admin');
 //AssetManager::addJsFile('/admin/scripts/main.js');
 AssetManager::addJsFile('/assets/js/admin/oplImport.js');
+AssetManager::addJsFile('/assets/js/admin/rankedSplits.js');
 
 echo new Header(HeaderType::ADMIN);
 
@@ -36,7 +38,7 @@ echo new Header(HeaderType::ADMIN);
             <div class="result-content"></div>
         </div>
         <button class="open_ranked_split_popup" data-dialog-id="ranked-split-popup"><span>LoL Ranked Splits</span></button>
-        <?=new Popup("ranked-split-popup", content: create_ranked_split_list($dbcn))?>
+        <?=new Popup("ranked-split-popup", content: new RankedSplitList())?>
     </div>
 
     <h2>Turniere in Datenbank:</h2>

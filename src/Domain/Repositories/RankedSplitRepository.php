@@ -2,9 +2,11 @@
 
 namespace App\Domain\Repositories;
 
+use App\Core\Logger;
 use App\Core\Utilities\DataParsingHelpers;
 use App\Domain\Entities\RankedSplit;
 use App\Domain\Entities\Tournament;
+use App\Domain\Enums\SaveResult;
 
 class RankedSplitRepository extends AbstractRepository {
 	use DataParsingHelpers;
@@ -24,9 +26,9 @@ class RankedSplitRepository extends AbstractRepository {
 		);
 	}
 
-	public function findBySeasonAndSplit(int $season, ?int $split=null) : ?RankedSplit {
+	public function findBySeasonAndSplit(int $season, ?int $split=null, bool $ignoreCache = false) : ?RankedSplit {
 		$cacheKey = $season."_".$split;
-		if (isset($this->cache[$cacheKey])) {
+		if (isset($this->cache[$cacheKey]) && !$ignoreCache) {
 			return $this->cache[$cacheKey];
 		}
 		$split = $split ?? 0;
@@ -34,9 +36,21 @@ class RankedSplitRepository extends AbstractRepository {
 		$data = $result->fetch_assoc();
 
 		$rankedSplit = $data ? $this->mapToEntity($data) : null;
-		$this->cache[$cacheKey] = $rankedSplit;
+		if (!$ignoreCache) $this->cache[$cacheKey] = $rankedSplit;
 
 		return $rankedSplit;
+	}
+
+	public function findAll(): array {
+		$query = "SELECT * FROM lol_ranked_splits";
+		$result = $this->dbcn->execute_query($query);
+		$data = $result->fetch_all(MYSQLI_ASSOC);
+
+		$rankedSplits = [];
+		foreach ($data as $rankedSplitData) {
+			$rankedSplits[] = $this->mapToEntity($rankedSplitData);
+		}
+		return $rankedSplits;
 	}
 
 	public function findFirstSplitForTournament(Tournament $tournament) : ?RankedSplit {
@@ -76,5 +90,77 @@ class RankedSplitRepository extends AbstractRepository {
 		}
 
 		return $current_split;
+	}
+
+	public function rankedSplitExists(int $season, int $split) : bool {
+		$result = $this->dbcn->execute_query("SELECT * FROM lol_ranked_splits WHERE season = ? AND split = ?", [$season, $split]);
+		return $result->num_rows > 0;
+	}
+
+	public function mapEntityToData(RankedSplit $rankedSplit): array {
+		return [
+			"season" => $rankedSplit->season,
+			"split" => $rankedSplit->split,
+			"split_start" => $rankedSplit->dateStart->format("Y-m-d"),
+			"split_end" => $rankedSplit->dateEnd?->format("Y-m-d") ?? null,
+		];
+	}
+
+	private function insert(RankedSplit $rankedSplit): void {
+		$data = $this->mapEntityToData($rankedSplit);
+		$columns = implode(",", array_keys($data));
+		$placeholders = implode(",", array_fill(0, count($data), "?"));
+		$values = array_values($data);
+
+		/** @noinspection SqlInsertValues */
+		$query = "INSERT INTO lol_ranked_splits ($columns) VALUES ($placeholders)";
+		$this->dbcn->execute_query($query, $values);
+		$cacheKey = $rankedSplit->season."_".$rankedSplit->split;
+		unset($this->cache[$cacheKey]);
+	}
+	private function update(RankedSplit $rankedSplit): array {
+		$existingRankedSplit = $this->findBySeasonAndSplit($rankedSplit->season, $rankedSplit->split, ignoreCache: true);
+
+		$dataNew = $this->mapEntityToData($rankedSplit);
+		$dataOld = $this->mapEntityToData($existingRankedSplit);
+		$dataChanged = array_diff_assoc($dataNew, $dataOld);
+		$dataPrevious = array_diff_assoc($dataOld, $dataNew);
+
+		if (count($dataChanged) == 0) {
+			return ['result' => SaveResult::NOT_CHANGED];
+		}
+
+		$set = implode(",", array_map(fn($key) => "$key = ?", array_keys($dataChanged)));
+		$values = array_values($dataChanged);
+
+		$query = "UPDATE lol_ranked_splits SET $set WHERE season = ? AND split = ?";
+		$this->dbcn->execute_query($query, [...$values, $rankedSplit->season, $rankedSplit->split]);
+
+		$cacheKey = $rankedSplit->season."_".$rankedSplit->split;
+		unset($this->cache[$cacheKey]);
+
+		return ['result' => SaveResult::UPDATED, 'changes' => $dataChanged, 'previous' => $dataPrevious];
+	}
+	public function save(RankedSplit $rankedSplit): array {
+		try {
+			if ($this->rankedSplitExists($rankedSplit->season, $rankedSplit->split)) {
+				$saveResult = $this->update($rankedSplit);
+			} else {
+				$this->insert($rankedSplit);
+				$saveResult = ['result'=>SaveResult::INSERTED];
+			}
+		} catch (\Throwable $e) {
+			Logger::log('db', "Fehler beim Speichern von RankedSplits: " . $e->getMessage() . "\n" . $e->getTraceAsString());
+			$saveResult = ['result'=>SaveResult::FAILED];
+		}
+		$saveResult['rankedSplit'] = $this->findBySeasonAndSplit($rankedSplit->season, $rankedSplit->split);
+		return $saveResult;
+	}
+	public function delete(RankedSplit $rankedSplit): bool {
+		if (!$this->rankedSplitExists($rankedSplit->season, $rankedSplit->split)) {
+			return false;
+		}
+		$query = "DELETE FROM lol_ranked_splits WHERE season = ? AND split = ?";
+		return $this->dbcn->execute_query($query, [$rankedSplit->season, $rankedSplit->split]);
 	}
 }

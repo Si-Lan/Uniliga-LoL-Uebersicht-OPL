@@ -2,12 +2,16 @@
 
 namespace App\Ajax\Admin;
 
+use App\Core\Utilities\DataParsingHelpers;
+use App\Domain\Repositories\RankedSplitRepository;
 use App\Domain\Repositories\TournamentRepository;
+use App\UI\Components\Admin\RankedSplit\RankedSplitRow;
 use App\UI\Components\Admin\RelatedTournamentButtonList;
 use App\UI\Components\Admin\TournamentEdit\TournamentEditForm;
 use App\UI\Components\Admin\TournamentEdit\TournamentEditList;
 
 class FragmentHandler {
+	use DataParsingHelpers;
 	public function TournamentEditList(array $dataGet):void {
 		$openAccordeons = [];
 		if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -63,5 +67,30 @@ class FragmentHandler {
 		$tournamentButtonList = new RelatedTournamentButtonList($tournamentData);
 
 		echo json_encode(["html"=>$tournamentButtonList->render()]);
+	}
+
+	public function RankedSplitRows(): void {
+		$rankedSplitRepo = new RankedSplitRepository();
+		$rankedSplits = $rankedSplitRepo->findAll();
+		$rankedSplitRows = "";
+		foreach ($rankedSplits as $rankedSplit) {
+			$rankedSplitRows .= new RankedSplitRow($rankedSplit);
+		}
+		echo json_encode(["html"=>$rankedSplitRows]);
+	}
+
+	public function RankedSplitRow(array $dataGet): void {
+		$season = $this->intOrNull($dataGet['season']??null);
+		$split = $this->intOrNull($dataGet['split']??null);
+		if ($season === null || $split === null) {
+			$rankedSplitRow = new RankedSplitRow();
+			echo json_encode(["html" => $rankedSplitRow->render()]);
+			return;
+		}
+
+		$rankedSplitRepo = new RankedSplitRepository();
+		$rankedSplit = $rankedSplitRepo->findBySeasonAndSplit($season, $split);
+		$rankedSplitRow = new RankedSplitRow($rankedSplit);
+		echo json_encode(["html" => $rankedSplitRow->render()]);
 	}
 }

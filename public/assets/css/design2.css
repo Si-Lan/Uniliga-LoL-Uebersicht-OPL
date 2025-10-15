@@ -488,7 +488,9 @@ input[type=password] {
 }
 input[type=text]:focus,
 input[type=number]:focus,
-input[type=password]:focus  {
+input[type=password]:focus,
+input[type=date]:focus,
+input[type=date]:focus-within {
 	outline: var(--accent) solid 1px;
 	background-color: var(--element-bg-sec);
 }
@@ -3263,12 +3265,22 @@ a.button.write.loading-data:hover {
 	background-color: var(--element-bg);
 	border: transparent solid 2px;
 	text-align: center;
+	&[type=date] {
+		border: transparent solid 2px;
+		width: 144px;
+		&:focus-visible {
+			outline: none;
+		}
+	}
 }
-.ranked-split-edit input:focus {
+.ranked-split-edit input:focus,
+.ranked-split-edit input:focus-within {
 	border: var(--accent) solid 2px;
+	outline: none;
 }
 .ranked-split-edit label.write_ranked_split_season input {
-	width: 52px;
+	width: 64px;
+	padding: 0 8px;
 }
 .ranked-split-edit label.write_ranked_split_split input {
 	width: 40px;
