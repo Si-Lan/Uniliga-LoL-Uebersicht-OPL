@@ -124,7 +124,7 @@ class TeamInTournamentRepository extends AbstractRepository {
 		    stit.avg_win_time
 			FROM teams t
 			    JOIN tournaments tr
-			        ON tr.OPL_ID IN (SELECT OPL_ID_top_parent FROM teams_in_tournaments JOIN tournaments ON teams_in_tournaments.OPL_ID_group = tournaments.OPL_ID WHERE OPL_ID_team = t.OPL_ID)
+			        ON tr.OPL_ID IN (SELECT OPL_ID_top_parent FROM teams_in_tournament_stages JOIN tournaments ON teams_in_tournament_stages.OPL_ID_group = tournaments.OPL_ID WHERE OPL_ID_team = t.OPL_ID)
 			    LEFT JOIN stats_teams_in_tournaments stit ON t.OPL_ID = stit.OPL_ID_team AND tr.OPL_ID = stit.OPL_ID_tournament
 			    LEFT JOIN latest_team_name_in_tournament ltnt ON t.OPL_ID = ltnt.OPL_ID_team AND tr.OPL_ID = ltnt.OPL_ID_tournament
 			    LEFT JOIN latest_team_logo_in_tournament ltlt ON t.OPL_ID = ltlt.OPL_ID_team AND tr.OPL_ID = ltlt.OPL_ID_tournament
@@ -159,7 +159,7 @@ class TeamInTournamentRepository extends AbstractRepository {
 		    stit.avg_win_time
 			FROM teams t
 			    JOIN tournaments tr
-			        ON tr.OPL_ID = ? AND tr.OPL_ID IN (SELECT OPL_ID_top_parent FROM teams_in_tournaments JOIN tournaments ON teams_in_tournaments.OPL_ID_group = tournaments.OPL_ID WHERE OPL_ID_team = t.OPL_ID)
+			        ON tr.OPL_ID = ? AND tr.OPL_ID IN (SELECT OPL_ID_top_parent FROM teams_in_tournament_stages JOIN tournaments ON teams_in_tournament_stages.OPL_ID_group = tournaments.OPL_ID WHERE OPL_ID_team = t.OPL_ID)
 			    LEFT JOIN stats_teams_in_tournaments stit ON t.OPL_ID = stit.OPL_ID_team AND tr.OPL_ID = stit.OPL_ID_tournament
 			    LEFT JOIN latest_team_name_in_tournament ltnt ON t.OPL_ID = ltnt.OPL_ID_team AND tr.OPL_ID = ltnt.OPL_ID_tournament
 			    LEFT JOIN latest_team_logo_in_tournament ltlt ON t.OPL_ID = ltlt.OPL_ID_team AND tr.OPL_ID = ltlt.OPL_ID_tournament
@@ -189,7 +189,7 @@ class TeamInTournamentRepository extends AbstractRepository {
 		    stit.avg_win_time
 			FROM teams t
 			    JOIN tournaments tr
-			        ON tr.OPL_ID IN (SELECT OPL_ID_top_parent FROM teams_in_tournaments JOIN tournaments ON teams_in_tournaments.OPL_ID_group = tournaments.OPL_ID AND tournaments.OPL_ID = ? WHERE OPL_ID_team = t.OPL_ID)
+			        ON tr.OPL_ID IN (SELECT OPL_ID_top_parent FROM teams_in_tournament_stages JOIN tournaments ON teams_in_tournament_stages.OPL_ID_group = tournaments.OPL_ID AND tournaments.OPL_ID = ? WHERE OPL_ID_team = t.OPL_ID)
 			    LEFT JOIN stats_teams_in_tournaments stit ON t.OPL_ID = stit.OPL_ID_team AND tr.OPL_ID = stit.OPL_ID_tournament
 			    LEFT JOIN latest_team_name_in_tournament ltnt ON t.OPL_ID = ltnt.OPL_ID_team AND tr.OPL_ID = ltnt.OPL_ID_tournament
 			    LEFT JOIN latest_team_logo_in_tournament ltlt ON t.OPL_ID = ltlt.OPL_ID_team AND tr.OPL_ID = ltlt.OPL_ID_tournament
@@ -219,7 +219,7 @@ class TeamInTournamentRepository extends AbstractRepository {
 		    stit.avg_win_time
 			FROM teams t
 			    JOIN tournaments tr
-			        ON tr.OPL_ID IN (SELECT OPL_ID_top_parent FROM teams_in_tournaments JOIN tournaments ON teams_in_tournaments.OPL_ID_group = tournaments.OPL_ID AND tournaments.OPL_ID_parent = ? WHERE OPL_ID_team = t.OPL_ID)
+			        ON tr.OPL_ID IN (SELECT OPL_ID_top_parent FROM teams_in_tournament_stages JOIN tournaments ON teams_in_tournament_stages.OPL_ID_group = tournaments.OPL_ID AND tournaments.OPL_ID_parent = ? WHERE OPL_ID_team = t.OPL_ID)
 			    LEFT JOIN stats_teams_in_tournaments stit ON t.OPL_ID = stit.OPL_ID_team AND tr.OPL_ID = stit.OPL_ID_tournament
 			    LEFT JOIN latest_team_name_in_tournament ltnt ON t.OPL_ID = ltnt.OPL_ID_team AND tr.OPL_ID = ltnt.OPL_ID_tournament
 			    LEFT JOIN latest_team_logo_in_tournament ltlt ON t.OPL_ID = ltlt.OPL_ID_team AND tr.OPL_ID = ltlt.OPL_ID_tournament
@@ -241,7 +241,7 @@ class TeamInTournamentRepository extends AbstractRepository {
 			    tr.OPL_ID as OPL_ID_tournament
 			FROM teams t
 			    JOIN tournaments tr
-			    	ON tr.OPL_ID = ? AND tr.OPL_ID IN (SELECT OPL_ID_top_parent FROM teams_in_tournaments JOIN tournaments ON teams_in_tournaments.OPL_ID_group = tournaments.OPL_ID WHERE OPL_ID_team = t.OPL_ID)
+			    	ON tr.OPL_ID = ? AND tr.OPL_ID IN (SELECT OPL_ID_top_parent FROM teams_in_tournament_stages JOIN tournaments ON teams_in_tournament_stages.OPL_ID_group = tournaments.OPL_ID WHERE OPL_ID_team = t.OPL_ID)
 			WHERE t.OPL_ID = ?';
 		$result = $this->dbcn->execute_query($query, [$tournamentId,$teamId]);
 		return $result->num_rows > 0;

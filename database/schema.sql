@@ -129,7 +129,7 @@ CREATE TABLE `teams` (
   `avg_rank_num` float DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
-CREATE TABLE `teams_in_tournaments` (
+CREATE TABLE `teams_in_tournament_stages` (
   `OPL_ID_team` int(11) NOT NULL,
   `OPL_ID_group` int(11) NOT NULL,
   `standing` int(2) DEFAULT NULL,
@@ -279,7 +279,7 @@ ALTER TABLE `stats_teams_in_tournaments`
 ALTER TABLE `teams`
   ADD PRIMARY KEY (`OPL_ID`);
 
-ALTER TABLE `teams_in_tournaments`
+ALTER TABLE `teams_in_tournament_stages`
   ADD PRIMARY KEY (`OPL_ID_team`,`OPL_ID_group`),
   ADD KEY `teamID` (`OPL_ID_team`),
   ADD KEY `tournamentID` (`OPL_ID_group`);
@@ -532,20 +532,6 @@ CREATE ALGORITHM=UNDEFINED SQL SECURITY DEFINER VIEW `latest_team_name_in_tourna
           AND (`tnh2`.`update_time` < `tr`.`dateEnd` OR `tr`.`dateEnd` is null)
         );
 
-DROP VIEW IF EXISTS `teams_in_tournament_stages`;
-CREATE ALGORITHM=UNDEFINED SQL SECURITY DEFINER VIEW `teams_in_tournament_stages` AS
-    SELECT `teams_in_tournaments`.`OPL_ID_team` AS `OPL_ID_team`,
-           `teams_in_tournaments`.`OPL_ID_group` AS `OPL_ID_group`,
-           `teams_in_tournaments`.`standing` AS `standing`,
-           `teams_in_tournaments`.`played` AS `played`,
-           `teams_in_tournaments`.`wins` AS `wins`,
-           `teams_in_tournaments`.`draws` AS `draws`,
-           `teams_in_tournaments`.`losses` AS `losses`,
-           `teams_in_tournaments`.`points` AS `points`,
-           `teams_in_tournaments`.`single_wins` AS `single_wins`,
-           `teams_in_tournaments`.`single_losses` AS `single_losses`
-    FROM `teams_in_tournaments` ;
-
 DROP VIEW IF EXISTS `teams_season_rank_in_tournament`;
 CREATE ALGORITHM=UNDEFINED SQL SECURITY DEFINER VIEW `teams_season_rank_in_tournament` AS
     SELECT `ttr`.`OPL_ID_team` AS `OPL_ID_team`,
@@ -629,9 +615,9 @@ ALTER TABLE `stats_teams_in_tournaments`
   ADD CONSTRAINT `stats_teams_in_tournaments_ibfk_1` FOREIGN KEY (`OPL_ID_team`) REFERENCES `teams` (`OPL_ID`) ON DELETE CASCADE ON UPDATE CASCADE,
   ADD CONSTRAINT `stats_teams_in_tournaments_ibfk_2` FOREIGN KEY (`OPL_ID_tournament`) REFERENCES `tournaments` (`OPL_ID`) ON DELETE CASCADE ON UPDATE CASCADE;
 
-ALTER TABLE `teams_in_tournaments`
-  ADD CONSTRAINT `teams_in_tournaments_ibfk_1` FOREIGN KEY (`OPL_ID_group`) REFERENCES `tournaments` (`OPL_ID`) ON DELETE CASCADE ON UPDATE CASCADE,
-  ADD CONSTRAINT `teams_in_tournaments_ibfk_2` FOREIGN KEY (`OPL_ID_team`) REFERENCES `teams` (`OPL_ID`) ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE `teams_in_tournament_stages`
+  ADD CONSTRAINT `teams_in_tournament_stages_ibfk_1` FOREIGN KEY (`OPL_ID_group`) REFERENCES `tournaments` (`OPL_ID`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `teams_in_tournament_stages_ibfk_2` FOREIGN KEY (`OPL_ID_team`) REFERENCES `teams` (`OPL_ID`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 ALTER TABLE `teams_tournament_rank`
   ADD CONSTRAINT `teams_tournament_rank_ibfk_1` FOREIGN KEY (`OPL_ID_tournament`) REFERENCES `tournaments` (`OPL_ID`) ON DELETE CASCADE ON UPDATE CASCADE;
