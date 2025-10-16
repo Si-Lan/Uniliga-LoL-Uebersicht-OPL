@@ -27,7 +27,7 @@ class TournamentsHandler extends AbstractHandler{
 		try {
 			$tournamentData = $oplApi->fetchFromEndpoint("tournament/$id");
 		} catch (\Exception $e) {
-			$this->sendErrorResponse(500, 'Failed to fetch data from OPL API: ' . $e->getMessage());;
+			$this->sendErrorResponse(500, 'Failed to fetch data from OPL API: ' . $e->getMessage());
 		}
 
 		$tournamentRepo = new TournamentRepository();
