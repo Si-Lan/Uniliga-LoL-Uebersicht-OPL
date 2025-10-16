@@ -92,4 +92,16 @@ class TournamentsHandler extends AbstractHandler{
 
 		echo json_encode($saveResult);
 	}
+
+	public function postTournamentsStandings($tournamentId): void {
+		$this->checkRequestMethod('POST');
+
+		try {
+			$standingResult = $this->tournamentUpdater->calculateStandings($tournamentId);
+		} catch (\Exception $e) {
+			$this->sendErrorResponse($e->getCode(), $e->getMessage());
+		}
+
+		echo json_encode($standingResult);
+	}
 }

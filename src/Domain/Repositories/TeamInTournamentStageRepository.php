@@ -2,11 +2,13 @@
 
 namespace App\Domain\Repositories;
 
+use App\Core\Logger;
 use App\Core\Utilities\DataParsingHelpers;
 use App\Domain\Entities\Team;
 use App\Domain\Entities\TeamInTournament;
 use App\Domain\Entities\TeamInTournamentStage;
 use App\Domain\Entities\Tournament;
+use App\Domain\Enums\SaveResult;
 
 class TeamInTournamentStageRepository extends AbstractRepository {
 	use DataParsingHelpers;
@@ -58,9 +60,9 @@ class TeamInTournamentStageRepository extends AbstractRepository {
 		);
 	}
 
-	public function findByTeamIdAndTournamentStageId(int $teamId, int $tournamentId): ?TeamInTournamentStage {
+	public function findByTeamIdAndTournamentStageId(int $teamId, int $tournamentId, bool $ignoreCache = false): ?TeamInTournamentStage {
 		$cacheKey = $teamId."_".$tournamentId;
-		if (isset($this->cache[$cacheKey])) {
+		if (isset($this->cache[$cacheKey]) && !$ignoreCache) {
 			return $this->cache[$cacheKey];
 		}
 		$query = '
@@ -72,7 +74,7 @@ class TeamInTournamentStageRepository extends AbstractRepository {
 		$data = $result->fetch_assoc();
 
 		$teamInTournamentStage = $data ? $this->mapToEntity($data) : null;
-		$this->cache[$cacheKey] = $teamInTournamentStage;
+		if (!$ignoreCache) $this->cache[$cacheKey] = $teamInTournamentStage;
 
 		return $teamInTournamentStage;
 	}
@@ -233,6 +235,60 @@ class TeamInTournamentStageRepository extends AbstractRepository {
 		}
 		$query = 'DELETE FROM teams_in_tournament_stages WHERE OPL_ID_team = ? AND OPL_ID_group = ?';
 		$this->dbcn->execute_query($query, [$teamId, $tournamentId]);
+		unset($this->cache[$teamId."_".$tournamentId]);
 		return true;
+	}
+
+	public function mapEntityToData(TeamInTournamentStage $teamInTournamentStage): array {
+		return [
+			"OPL_ID_team" => $teamInTournamentStage->team->id,
+			"OPL_ID_group" => $teamInTournamentStage->tournamentStage->id,
+			"standing" => $teamInTournamentStage->standing,
+			"played" => $teamInTournamentStage->played,
+			"wins" => $teamInTournamentStage->wins,
+			"draws" => $teamInTournamentStage->draws,
+			"losses" => $teamInTournamentStage->losses,
+			"points" => $teamInTournamentStage->points,
+			"single_wins" => $teamInTournamentStage->singleWins,
+			"single_losses" => $teamInTournamentStage->singleLosses
+		];
+	}
+
+	private function update(TeamInTournamentStage $teamInTournamentStage): array {
+		$existingTeamInTournamentStage = $this->findByTeamIdAndTournamentStageId($teamInTournamentStage->team->id, $teamInTournamentStage->tournamentStage->id);
+
+		$dataNew = $this->mapEntityToData($teamInTournamentStage);
+		$dataOld = $this->mapEntityToData($existingTeamInTournamentStage);
+		$dataChanged = array_diff_assoc($dataNew, $dataOld);
+		$dataPrevious = array_diff_assoc($dataOld, $dataNew);
+
+		if (count($dataChanged) == 0) {
+			return ['result' => SaveResult::NOT_CHANGED];
+		}
+
+		$set = implode(",", array_map(fn($key) => "$key = ?", array_keys($dataChanged)));
+		$values = array_values($dataChanged);
+
+		$query = "UPDATE teams_in_tournament_stages SET $set WHERE OPL_ID_team = ? AND OPL_ID_group = ?";
+		$updated = $this->dbcn->execute_query($query, array_merge([...$values, $teamInTournamentStage->team->id, $teamInTournamentStage->tournamentStage->id]));
+		unset($this->cache[$teamInTournamentStage->team->id."_".$teamInTournamentStage->tournamentStage->id]);
+
+		$result = $updated ? SaveResult::UPDATED : SaveResult::FAILED;
+		return ['result' => $result, 'changes' => $dataChanged, 'previous' => $dataPrevious];
+	}
+
+	public function save(TeamInTournamentStage $teamInTournamentStage): array {
+		try {
+			if ($this->isTeaminTournamentStage($teamInTournamentStage->team->id, $teamInTournamentStage->tournamentStage->id)) {
+				$saveResult = $this->update($teamInTournamentStage);
+			} else {
+				throw new \Exception("Team is not in tournament");
+			}
+		} catch (\Throwable $e) {
+			Logger::log('db', "Fehler beim Speichern von TeamInTournamentStage: ".$e->getMessage()."\n".$e->getTraceAsString());
+			$saveResult = ['result' => SaveResult::FAILED];
+		}
+		$saveResult['gameInMatch'] = $this->findByTeamIdAndTournamentStageId($teamInTournamentStage->team->id, $teamInTournamentStage->tournamentStage->id);
+		return $saveResult;
 	}
 }

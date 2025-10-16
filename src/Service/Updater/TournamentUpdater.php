@@ -119,4 +119,74 @@ class TournamentUpdater {
 
 		return ['matchups'=>$saveResults, 'removedMatchups'=>$removedMatchups];
 	}
+
+	/**
+	 * @throws \Exception
+	 */
+	public function calculateStandings(int $tournamentId): array {
+		$tournament = $this->tournamentRepo->findById($tournamentId);
+		if ($tournament === null) {
+			throw new \Exception("Tournament not found", 404);
+		}
+
+		if (!$tournament->isStage()) {
+			throw new \Exception("Tournament is not a stage with Standings", 400);
+		}
+
+		$teamInTournamentStageRepo = new TeamInTournamentStageRepository();
+		$teamsInTournamentStage = $teamInTournamentStageRepo->findAllByTournamentStage($tournament);
+
+		$matchupRepo = new MatchupRepository();
+		$matchupsInTournamentStage = $matchupRepo->findAllByTournamentStage($tournament);
+
+		foreach ($teamsInTournamentStage as $teamInTournamentStage) {
+			$teamInTournamentStage->resetStandings();
+			$matchupsToBeConsidered = array_filter($matchupsInTournamentStage, fn($matchup) => (
+				$matchup->team1?->team->id === $teamInTournamentStage->team->id || $matchup->team2?->team->id === $teamInTournamentStage->team->id
+			));
+			foreach ($matchupsToBeConsidered as $matchup) {
+				$teamInTournamentStage->addMatchupResultToStanding($matchup);
+			}
+		}
+
+		usort($teamsInTournamentStage, function($a, $b) {
+			if ($a->points === $b->points) {
+				return 0;
+			}
+			return ($a->points > $b->points) ? -1 : 1;
+		});
+
+		$standingCounter = 1;
+		$prevTeam = null;
+		$prevStanding = null;
+		foreach ($teamsInTournamentStage as $teamInTournamentStage) {
+			if ($teamInTournamentStage->played === 0) {
+				continue;
+			}
+
+			if ($standingCounter === 1) {
+				// Erstes Team als Platz 1 eintragen
+				$teamInTournamentStage->standing = 1;
+				$prevStanding = 1;
+			} elseif ($teamInTournamentStage->points === $prevTeam->points) {
+				// Team mit gleicher Punktzahl zu vorigem Team bekommt den gleichen Platz
+				$teamInTournamentStage->standing = $prevStanding;
+			} else {
+				// nächstes Team bekommt nächsten Platz
+				$teamInTournamentStage->standing = $standingCounter;
+				$prevStanding = $standingCounter;
+			}
+
+			$standingCounter++;
+			$prevTeam = $teamInTournamentStage;
+		}
+
+		$saveResults = [];
+		foreach ($teamsInTournamentStage as $teamInTournamentStage) {
+			$saveResult = $teamInTournamentStageRepo->save($teamInTournamentStage);
+			$saveResults[] = $saveResult;
+		}
+
+		return $saveResults;
+	}
 }
