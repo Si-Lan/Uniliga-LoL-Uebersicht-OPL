@@ -288,7 +288,7 @@ class TeamInTournamentStageRepository extends AbstractRepository {
 			Logger::log('db', "Fehler beim Speichern von TeamInTournamentStage: ".$e->getMessage()."\n".$e->getTraceAsString());
 			$saveResult = ['result' => SaveResult::FAILED];
 		}
-		$saveResult['gameInMatch'] = $this->findByTeamIdAndTournamentStageId($teamInTournamentStage->team->id, $teamInTournamentStage->tournamentStage->id);
+		$saveResult['teamInTournamentStage'] = $this->findByTeamIdAndTournamentStageId($teamInTournamentStage->team->id, $teamInTournamentStage->tournamentStage->id);
 		return $saveResult;
 	}
 }

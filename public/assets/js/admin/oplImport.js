@@ -726,6 +726,70 @@ async function updateMatchresult(matchId) {
 		})
 }
 
+$(document).on('click', 'button.calculate-standings', async function () {
+	const tournamentId = this.dataset.id;
+	setButtonUpdating($(this));
+	const childrenTournaments = await getStandingEventsInTournament(tournamentId);
+	if (childrenTournaments.error) {
+		show_results_dialog_with_result(tournamentId, "Fehler beim Prüfen des Turniers");
+		unsetButtonUpdating($(this));
+		return;
+	}
+	let result = "";
+	if (childrenTournaments.length === 0) {
+		result = await updateStandingsInTournament(tournamentId);
+	} else {
+		const total = childrenTournaments.length;
+		let donePercentage = 0;
+		for (const childTournament of childrenTournaments) {
+			const partialResult = await updateStandingsInTournament(childTournament.id);
+			result += `<br>(${childTournament.id}) ${childTournament.name}:<br> ${partialResult}<br>`;
+			donePercentage += 100/total;
+			setButtonLoadingBarWidth($(this), donePercentage);
+			if (donePercentage < 100) {
+				await new Promise(r => setTimeout(r, 1000));
+			}
+		}
+	}
+	show_results_dialog_with_result(tournamentId, result);
+	unsetButtonUpdating($(this));
+})
+async function updateStandingsInTournament(tournamentId) {
+	return await fetch(`/admin/api/opl/tournaments/${tournamentId}/standings`, {method: 'POST'})
+		.then(res => {
+			if (res.ok) {
+				return res.json()
+			} else {
+				return {"error": "Fehler beim Aktualisieren der Standings"};
+			}
+		})
+		.then(data => {
+			if (data.error) {
+				return data.error;
+			}
+			let unchangedTeams = [];
+			let updatedTeams = [];
+			for (const team of data) {
+				switch (team.result) {
+					case "updated":
+						updatedTeams.push(team.teamInTournamentStage?.team.name);
+						break;
+					case "not-changed":
+						unchangedTeams.push(team.teamInTournamentStage?.team.name);
+						break;
+				}
+			}
+			return `${data.length} Teams im Turnier<br>
+					- Standings für ${unchangedTeams.length} Teams unverändert<br>
+					- Standings für ${updatedTeams.length} Teams aktualisiert`;
+		})
+		.catch(error => {
+			console.error(error);
+			return "Fehler beim Aktualisieren der Standings";
+		})
+}
+
+
 // Allgemeine API-Abfragen
 /**
  * interne API Anfrage liefert Liste an untergeordneten Stage-Events unter einem Event
