@@ -1,7 +1,3 @@
-CREATE DATABASE IF NOT EXISTS `uniliga_opl` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
-USE `uniliga_opl`;
-
-
 CREATE TABLE `games` (
   `RIOT_matchID` varchar(20) NOT NULL,
   `matchdata` longtext DEFAULT NULL CHECK (json_valid(`matchdata`)),
