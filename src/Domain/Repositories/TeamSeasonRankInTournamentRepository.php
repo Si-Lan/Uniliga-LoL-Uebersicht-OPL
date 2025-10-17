@@ -103,33 +103,32 @@ class TeamSeasonRankInTournamentRepository extends AbstractRepository {
 		return $ranks;
 	}
 
-	private array $rankMapForTournamentCache = [];
 	/**
-	 * Map: [TeamId => [Season-Split => TeamSeasonRankInTournament]]
-	 *
-	 * @param Tournament $tournamentStage
-	 * @return array<int, array<string, TeamSeasonRankInTournament>>
+	 * @param Tournament $tournament
+	 * @param array<Team> $teams
+	 * @return array<int, TeamSeasonRankInTournament>
 	 */
-	public function getRankMapForTournamentStage(Tournament $tournamentStage): array {
-		if (isset($this->rankMapForTournamentCache[$tournamentStage->getRootTournament()->id])) {
-			return $this->rankMapForTournamentCache[$tournamentStage->getRootTournament()->id];
-		}
-		$query = 'SELECT * FROM teams_season_rank_in_tournament WHERE OPL_ID_tournament = ?';
-		$result = $this->dbcn->execute_query($query, [$tournamentStage->getRootTournament()->id]);
+	public function getIndexedSeasonRanksForTournamentByTeams(Tournament $tournament, array $teams): array {
+		$query = '
+				SELECT *
+				FROM teams_season_rank_in_tournament
+				WHERE OPL_ID_tournament = ?
+				  AND OPL_ID_team IN ('.implode(',', array_map(fn($team) => $team->id, $teams)).')
+				  AND season = ?
+				  AND split = ?';
+		$result = $this->dbcn->execute_query($query, [$tournament->id, $tournament->userSelectedRankedSplit?->season, $tournament->userSelectedRankedSplit?->split]);
 		$data = $result->fetch_all(MYSQLI_ASSOC);
 
-		$rankMap = [];
+		$indexedRanks = [];
 		foreach ($data as $rankData) {
 			$teamId = $rankData['OPL_ID_team'];
-			$seasonSplit = $rankData['season']."-".$rankData['split'];
-			if (!isset($rankMap[$teamId])) {
-				$rankMap[$teamId] = [];
-			}
-			$rankMap[$teamId][$seasonSplit] = $this->mapToEntity($rankData, tournament: $tournamentStage->getRootTournament());
+			$indexedRanks[$teamId] = $this->mapToEntity($rankData, tournament: $tournament);
 		}
-
-		$this->rankMapForTournamentCache[$tournamentStage->getRootTournament()->id] = $rankMap;
-
-		return $rankMap;
+		foreach ($teams as $team) {
+			if (!isset($indexedRanks[$team->id])) {
+				$indexedRanks[$team->id] = new TeamSeasonRankInTournament(team: $team, tournament: $tournament, rankedSplit: $tournament->userSelectedRankedSplit, rank: new RankAverage(null,null,null));
+			}
+		}
+		return $indexedRanks;
 	}
 }

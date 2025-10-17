@@ -9,7 +9,7 @@ use App\UI\Enums\EloListView;
 /** @var Tournament $tournament */
 /** @var EloListView $view */
 /** @var array<TeamInTournamentStage> $teamsInTournamentStages */
-/** @var array<int, array<string, TeamSeasonRankInTournament>> $teamSeasonRankMap */
+/** @var array<int, TeamSeasonRankInTournament> $indexedTeamRanks */
 ?>
 
 <?php $classes = implode(' ', array_filter(['teams-elo-list', $view->getClassName()])); ?>
@@ -28,6 +28,6 @@ use App\UI\Enums\EloListView;
         <?php if ($index != 0): ?>
             <div class="divider-light"></div>
         <?php endif; ?>
-        <?= new EloListRow($teamInTournamentStage, $teamSeasonRankMap[$teamInTournamentStage->team->id][$teamInTournamentStage->teamInRootTournament->tournament->userSelectedRankedSplit->getName()], $view) ?>
+        <?= new EloListRow($teamInTournamentStage, $indexedTeamRanks[$teamInTournamentStage->team->id], $view) ?>
     <?php endforeach; ?>
 </div>

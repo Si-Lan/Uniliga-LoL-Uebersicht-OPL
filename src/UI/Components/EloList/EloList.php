@@ -13,7 +13,7 @@ use App\UI\Enums\EloListView;
 
 class EloList {
 	private array $teamsInTournamentStages = [];
-	private array $teamSeasonRankMap;
+	private array $indexedTeamRanks;
 	public function __construct(
 		private Tournament $tournament,
 		private EloListView $view,
@@ -22,7 +22,7 @@ class EloList {
 		$tournamentRepo = new TournamentRepository();
 		$teamInTournamentStageRepo = new TeamInTournamentStageRepository();
 		if (is_null($this->teamSeasonRankInTournamentRepo)) {
-			$teamSeasonRankInTournamentRepo = new TeamSeasonRankInTournamentRepository();
+			$this->teamSeasonRankInTournamentRepo = new TeamSeasonRankInTournamentRepository();
 		}
 
 		if ($this->tournament->eventType === EventType::TOURNAMENT && $this->view === EloListView::ALL) {
@@ -41,12 +41,13 @@ class EloList {
 
 		$this->teamsInTournamentStages = EntitySorter::removeDuplicateTeamsInTournamentStages($this->teamsInTournamentStages);
 
-		$this->teamSeasonRankMap = $teamSeasonRankInTournamentRepo->getRankMapForTournamentStage($this->tournament);
+		$teams = array_map(fn($teamInTournamentStage) => $teamInTournamentStage->teamInRootTournament->team, $this->teamsInTournamentStages);
+
+		$this->indexedTeamRanks = $this->teamSeasonRankInTournamentRepo->getIndexedSeasonRanksForTournamentByTeams($this->tournament->getRootTournament(), $teams);
 
 		usort($this->teamsInTournamentStages, function(TeamInTournamentStage $a, TeamInTournamentStage $b) {
-			$splitKey = $a->teamInRootTournament->tournament->userSelectedRankedSplit->getName();
-			$aRank = $this->teamSeasonRankMap[$a->team->id][$splitKey];
-			$bRank = $this->teamSeasonRankMap[$b->team->id][$splitKey];
+			$aRank = $this->indexedTeamRanks[$a->team->id];
+			$bRank = $this->indexedTeamRanks[$b->team->id];
 			if ($aRank->rank->getRankNum() == $bRank->rank->getRankNum()) {
 				$aComparer = ($a->tournamentStage->eventType == EventType::GROUP) ? $a->tournamentStage->getDirectParentTournament()->number : $a->tournamentStage->number;
 				$bComparer = ($b->tournamentStage->eventType == EventType::GROUP) ? $b->tournamentStage->getDirectParentTournament()->number : $b->tournamentStage->number;
@@ -63,7 +64,7 @@ class EloList {
 		$view = $this->view;
 		$tournament = $this->tournament;
 		$teamsInTournamentStages = $this->teamsInTournamentStages;
-		$teamSeasonRankMap = $this->teamSeasonRankMap;
+		$indexedTeamRanks = $this->indexedTeamRanks;
 		ob_start();
 		include __DIR__.'/elo-list.template.php';
 		return ob_get_clean();
