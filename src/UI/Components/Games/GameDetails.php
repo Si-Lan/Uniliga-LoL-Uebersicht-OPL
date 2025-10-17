@@ -56,7 +56,7 @@ class GameDetails {
 
 		$this->patch = $patchRepo->findLatestPatchByPatchString($game->gameData->gameVersion);
 
-		$rankedSplit1 = $this->gameInMatch->matchup->tournamentStage->rootTournament->rankedSplit;
+		$rankedSplit1 = $this->gameInMatch->matchup->tournamentStage->rootTournament->rankedSplits[0] ?? null;
 		$rankedSplit2 = $rankedSplitRepo->findNextSplitForTournament($this->gameInMatch->matchup->tournamentStage->rootTournament);
 		$this->currentSplit = $this->gameInMatch->matchup->tournamentStage->rootTournament->userSelectedRankedSplit;
 

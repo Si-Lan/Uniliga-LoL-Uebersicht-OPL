@@ -38,7 +38,7 @@ class TeamInTournamentCard {
 		$this->playersInTeamInTournament = $playerInTeamInTournamentRepo->findAllByTeamInTournament($teamInTournament);
 		$this->playersInTeamInTournament = EntitySorter::sortPlayersByMostPlayedRoles($this->playersInTeamInTournament);
 
-		$this->teamSeasonRankInTournament = $teamSeasonRankRepo->findTeamSeasonRankInTournament($teamInTournament->team, $teamInTournament->tournament, $teamInTournament->tournament->rankedSplit);
+		$this->teamSeasonRankInTournament = $teamSeasonRankRepo->findTeamSeasonRankInTournament($teamInTournament->team, $teamInTournament->tournament, $teamInTournament->tournament->userSelectedRankedSplit);
 	}
 
 	public function render(): string {

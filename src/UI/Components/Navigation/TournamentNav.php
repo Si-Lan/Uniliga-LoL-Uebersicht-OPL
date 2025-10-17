@@ -7,7 +7,7 @@ use App\Domain\Entities\Tournament;
 use App\Domain\Repositories\RankedSplitRepository;
 
 class TournamentNav {
-	private ?RankedSplit $nextSplit;
+
 	/**
 	 * @param Tournament $tournament
 	 * @param 'overview'|'teamlist'|'elo'|'' $activeTab
@@ -15,14 +15,10 @@ class TournamentNav {
 	public function __construct(
 		private Tournament $tournament,
 		private string $activeTab = ''
-	) {
-		$rankedSplitRepo = new RankedSplitRepository();
-		$this->nextSplit = $rankedSplitRepo->findNextSplitForTournament($tournament);
-	}
+	) {}
 
 	public function render(): string {
 		$tournament = $this->tournament;
-		$nextSplit = $this->nextSplit;
 		$activeTab = $this->activeTab;
 		ob_start();
 		include __DIR__.'/tournament-nav.template.php';

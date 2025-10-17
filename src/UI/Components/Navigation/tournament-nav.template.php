@@ -1,6 +1,5 @@
 <?php
 /** @var \App\Domain\Entities\Tournament $tournament */
-/** @var \App\Domain\Entities\RankedSplit|null $nextSplit */
 /** @var string $activeTab */
 
 use App\UI\Components\Helpers\IconRenderer;
@@ -33,16 +32,12 @@ use App\UI\Components\Helpers\IconRenderer;
 		</button>
 		<div class='ranked-settings-popover'>
 			<span>Angezeigter Rang</span>
+            <?php foreach ($tournament->rankedSplits as $i=>$rankedSplit):?>
 			<div>
-				<input type='radio' id='ranked-split-radio-1' value='<?=$tournament->rankedSplit?->getName()?>' name='ranked-split' data-tournament='<?= $tournament->id?>' <?= $tournament->userSelectedRankedSplit?->equals($tournament->rankedSplit)?'checked':'' ?>>
-				<label for='ranked-split-radio-1'><?=$tournament->rankedSplit?->getPrettyName()?></label>
+				<input type='radio' id='ranked-split-radio-<?=$i?>' value='<?=$rankedSplit->getName()?>' name='ranked-split' data-tournament='<?= $tournament->id?>' <?= $tournament->userSelectedRankedSplit?->equals($rankedSplit)?'checked':'' ?>>
+				<label for='ranked-split-radio-<?=$i?>'><?=$rankedSplit->getPrettyName()?></label>
 			</div>
-            <?php if ($nextSplit):?>
-			<div>
-				<input type='radio' id='ranked-split-radio-2' value='<?=$nextSplit->getName()?>' name='ranked-split' data-tournament='<?= $tournament->id?>' <?= $tournament->userSelectedRankedSplit?->equals($nextSplit)?'checked':'' ?>>
-				<label for='ranked-split-radio-2'><?=$nextSplit->getPrettyName()?></label>
-			</div>
-            <?php endif;?>
+            <?php endforeach; ?>
 		</div>
 	</div>
 </nav>
