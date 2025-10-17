@@ -78,9 +78,9 @@ function migrateSimpleTable($dbcn, $dbOld, $dbNew, $table): void {
 		$columns = array_keys($row);
 		$values = array_map(function($v) use ($dbcn) {
 			if ($v === null) return 'null';
-			return $dbcn->real_escape_string($v);
+			return "'". $dbcn->real_escape_string($v) ."'";
 		}, array_values($row));
-		$dbcn->query("INSERT IGNORE INTO `$table` (`" . implode('`,`', $columns) . "`) VALUES ('" . implode("','", $values) . "')");
+		$dbcn->query("INSERT IGNORE INTO `$table` (`" . implode('`,`', $columns) . "`) VALUES (" . implode(",", $values) . ")");
 		$count++;
 		$progress = $count / $total;
 		$progressBar = floor($progress * $barLength);
@@ -107,9 +107,9 @@ function migrateTournaments($dbcn, $dbOld, $dbNew): void {
 		$columns = array_keys($row);
 		$values = array_map(function($v) use ($dbcn) {
 			if ($v === null) return 'null';
-			return $dbcn->real_escape_string($v);
+			return "'". $dbcn->real_escape_string($v) ."'";
 		}, array_values($row));
-		$dbcn->query("INSERT IGNORE INTO `tournaments` (`" . implode('`,`', $columns) . "`) VALUES ('" . implode("','", $values) . "')");
+		$dbcn->query("INSERT IGNORE INTO `tournaments` (`" . implode('`,`', $columns) . "`) VALUES (" . implode(",", $values) . ")");
 		$count++;
 		$progress = $count / $total;
 		$progressBar = floor($progress * $barLength);
