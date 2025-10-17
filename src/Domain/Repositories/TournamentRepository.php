@@ -13,7 +13,7 @@ class TournamentRepository extends AbstractRepository {
 	use DataParsingHelpers;
 	private RankedSplitRepository $rankedSplitRepo;
 
-	protected static array $ALL_DATA_KEYS = ["OPL_ID","OPL_ID_parent","OPL_ID_top_parent","name","split","season","eventType","format","number","numberRangeTo","dateStart","dateEnd","OPL_ID_logo","finished","deactivated","archived","ranked_season","ranked_split"];
+	protected static array $ALL_DATA_KEYS = ["OPL_ID","OPL_ID_parent","OPL_ID_top_parent","name","split","season","eventType","format","number","numberRangeTo","dateStart","dateEnd","OPL_ID_logo","finished","deactivated","archived"];
 	protected static array $REQUIRED_DATA_KEYS = ["OPL_ID","name"];
 	private array $cache = [];
 
@@ -22,7 +22,7 @@ class TournamentRepository extends AbstractRepository {
 		$this->rankedSplitRepo = new RankedSplitRepository();
 	}
 
-	public function mapToEntity(array $data, ?Tournament $directParentTournament=null, ?Tournament $rootTournament=null, ?RankedSplit $rankedSplit=null, bool $newEntity = false): Tournament {
+	public function mapToEntity(array $data, ?Tournament $directParentTournament=null, ?Tournament $rootTournament=null, array $rankedSplits=[], bool $newEntity = false): Tournament {
 		$data = $this->normalizeData($data);
 
 		$dataRootId = $this->intOrNull($data['OPL_ID_top_parent']);
@@ -32,11 +32,9 @@ class TournamentRepository extends AbstractRepository {
 			}
 		}
 
-		$rankedSplit = !is_null($rootTournament) ? $rootTournament->rankedSplit : $rankedSplit;
-		$dataRankedSeason = $this->stringOrNull($data['ranked_season']);
-		if (is_null($rankedSplit) && !is_null($dataRankedSeason)) {
-			$dataRankedSplit = $this->stringOrNull($data['ranked_split']);
-			$rankedSplit = $this->rankedSplitRepo->findBySeasonAndSplit($dataRankedSeason, $dataRankedSplit);
+		$rankedSplits = !is_null($rootTournament) ? $rootTournament->rankedSplits : $rankedSplits;
+		if (is_null($rankedSplits) || count($rankedSplits) === 0) {
+			$rankedSplits = $this->rankedSplitRepo->findAllByTournamentId($data["OPL_ID"]);
 		}
 
 		$dataDirectParentId = $this->intOrNull($data['OPL_ID_parent']);
@@ -67,7 +65,7 @@ class TournamentRepository extends AbstractRepository {
 			finished: (bool) $data['finished']??false,
 			deactivated: (bool) $data['deactivated']??false,
 			archived: (bool) $data['archived']??false,
-			rankedSplit: $rankedSplit,
+			rankedSplits: $rankedSplits,
 			userSelectedRankedSplit: null,
 			mostCommonBestOf: null
 		);
@@ -278,9 +276,7 @@ class TournamentRepository extends AbstractRepository {
 			'OPL_ID_logo' => $tournament->logoId,
 			'finished' => $tournament->finished ? 1 : 0,
 			'deactivated' => $tournament->deactivated ? 1 : 0,
-			'archived' => $tournament->archived ? 1 : 0,
-			'ranked_season' => $tournament->rankedSplit?->season ?? null,
-			'ranked_split' => $tournament->rankedSplit?->split ?? null
+			'archived' => $tournament->archived ? 1 : 0
 		];
 	}
 	private function insert(Tournament $tournament):void {

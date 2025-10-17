@@ -23,7 +23,7 @@ class Tournament {
 	 * @param bool $finished
 	 * @param bool $deactivated
 	 * @param bool $archived
-	 * @param RankedSplit|null $rankedSplit
+	 * @param array<RankedSplit> $rankedSplits
 	 * @param RankedSplit|null $userSelectedRankedSplit
 	 * @param int|null $mostCommonBestOf
 	 */
@@ -44,7 +44,7 @@ class Tournament {
 		public bool $finished,
 		public bool $deactivated,
 		public bool $archived,
-		public ?RankedSplit $rankedSplit,
+		public array $rankedSplits,
 		public ?RankedSplit $userSelectedRankedSplit,
 		public ?int $mostCommonBestOf
 	) {}
@@ -181,7 +181,6 @@ class Tournament {
 		if ($this->finished !== $tournament->finished) $diff['finished'] = $this->finished;
 		if ($this->deactivated !== $tournament->deactivated) $diff['deactivated'] = $this->deactivated;
 		if ($this->archived !== $tournament->archived) $diff['archived'] = $this->archived;
-		if ($this->eventType === EventType::TOURNAMENT && !$this->rankedSplit?->equals($tournament->rankedSplit)) $diff['rankedSplit'] = $this->rankedSplit?->getName();
 		return $diff;
 	}
 }

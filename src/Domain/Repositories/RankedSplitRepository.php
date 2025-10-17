@@ -53,8 +53,20 @@ class RankedSplitRepository extends AbstractRepository {
 		return $rankedSplits;
 	}
 
+	public function findAllByTournamentId(int $tournamentId) : array {
+		$query = "SELECT lrs.* FROM tournaments_in_ranked_splits tirs LEFT JOIN lol_ranked_splits lrs ON tirs.season = lrs.season AND tirs.split = lrs.split WHERE tirs.OPL_ID_tournament = ? ORDER BY lrs.season, lrs.split";
+		$result = $this->dbcn->execute_query($query, [$tournamentId]);
+		$data = $result->fetch_all(MYSQLI_ASSOC);
+
+		$rankedSplits = [];
+		foreach ($data as $rankedSplitData) {
+			$rankedSplits[] = $this->mapToEntity($rankedSplitData);
+		}
+		return $rankedSplits;
+	}
+
 	public function findFirstSplitForTournament(Tournament $tournament) : ?RankedSplit {
-		return $this->findBySeasonAndSplit($tournament->rankedSplit->season, $tournament->rankedSplit->split);
+		return count($tournament->rankedSplits) > 0 ? $this->findBySeasonAndSplit($tournament->rankedSplits[0]->season, $tournament->rankedSplits[0]->split) : null;
 	}
 
 	public function findNextSplit(RankedSplit $rankedSplit) : ?RankedSplit {
