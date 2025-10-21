@@ -181,6 +181,20 @@ class Tournament {
 		if ($this->finished !== $tournament->finished) $diff['finished'] = $this->finished;
 		if ($this->deactivated !== $tournament->deactivated) $diff['deactivated'] = $this->deactivated;
 		if ($this->archived !== $tournament->archived) $diff['archived'] = $this->archived;
+		if ($this->eventType === EventType::TOURNAMENT) {
+			$oldRankedSplits = array_map(fn($rankedSplit) => $rankedSplit->getName(), $this->rankedSplits);
+			$newRankedSplits = array_map(fn($rankedSplit) => $rankedSplit->getName(), $tournament->rankedSplits);
+			foreach ($oldRankedSplits as $key => $oldRankedSplit) {
+				if (!in_array($oldRankedSplit, $newRankedSplits)) {
+					$diff['rankedSplits'][$key] = $oldRankedSplit;
+				}
+			}
+			foreach ($newRankedSplits as $key => $newRankedSplit) {
+				if (!in_array($newRankedSplit, $oldRankedSplits)) {
+					$diff['rankedSplits'][$key] = $newRankedSplit;
+				}
+			}
+		}
 		return $diff;
 	}
 }

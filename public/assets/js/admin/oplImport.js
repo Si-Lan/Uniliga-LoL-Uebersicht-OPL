@@ -70,8 +70,12 @@ function writeTournamentFromForm(button) {
 	data.finished = wrapper.find(`input[name=finished]`).prop("checked") ? 1 : 0;
 	data.deactivated = wrapper.find(`input[name=deactivated]`).prop("checked") ? 0 : 1;
 	data.archived = wrapper.find(`input[name=archived]`).prop("checked") ? 1 : 0;
-	data.ranked_season = wrapper.find(`input[name=ranked_season]`).val();
-	data.ranked_split = wrapper.find(`input[name=ranked_split]`).val();
+	data.ranked_splits = [];
+
+	const selectedSplitElements = wrapper.find(`label.write_tournament_ranked_splits .multi-select-options label>input:checked`);
+	selectedSplitElements.each(function () {
+		data.ranked_splits.push(this.value);
+	});
 
 	fetch(`/admin/api/opl/tournaments`, {
 		method: 'POST',
@@ -98,7 +102,11 @@ function writeTournamentFromForm(button) {
 					clear_results_dialog(tournamentId);
 					add_to_results_dialog(tournamentId, "Turnier erfolgreich aktualisiert");
 					for (let key in res.changes) {
-						add_to_results_dialog(tournamentId, `- [${key}] auf '${res.changes[key]}' gesetzt`);
+						if (typeof res.changes == "object") {
+							add_to_results_dialog(tournamentId, `- [${key}] angepasst`)
+						} else {
+							add_to_results_dialog(tournamentId, `- [${key}] auf '${res.changes[key]}' gesetzt`);
+						}
 					}
 					show_results_dialog(tournamentId);
 					break;

@@ -33,6 +33,15 @@ class TournamentRepository extends AbstractRepository {
 		}
 
 		$rankedSplits = !is_null($rootTournament) ? $rootTournament->rankedSplits : $rankedSplits;
+		if ($newEntity && $data["eventType"] === EventType::TOURNAMENT->value) {
+			$rankedSplits = [];
+			foreach ($data["ranked_splits"] ?? [] as $rankedSplit) {
+				$rankedSplit_exploded = explode("-", $rankedSplit);
+				$rankedSplit_season = $this->intOrNull($rankedSplit_exploded[0]);
+				$rankedSplit_split = $this->intOrNull($rankedSplit_exploded[1]??null);
+				$rankedSplits[] = $this->rankedSplitRepo->findBySeasonAndSplit($rankedSplit_season, $rankedSplit_split);
+			}
+		}
 		if (is_null($rankedSplits) || count($rankedSplits) === 0) {
 			$rankedSplits = $this->rankedSplitRepo->findAllByTournamentId($data["OPL_ID"]);
 		}
@@ -82,15 +91,15 @@ class TournamentRepository extends AbstractRepository {
 		return $tournament;
 	}
 
-	public function findById(int $tournamentId, ?Tournament $directParent=null, ?Tournament $rootParent=null) : ?Tournament {
-		if (isset($this->cache[$tournamentId])) {
+	public function findById(int $tournamentId, ?Tournament $directParent=null, ?Tournament $rootParent=null, bool $ignoreCache = false) : ?Tournament {
+		if (isset($this->cache[$tournamentId]) && !$ignoreCache) {
 			return $this->cache[$tournamentId];
 		}
 		$result = $this->dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID = ?", [$tournamentId]);
 		$data = $result->fetch_assoc();
 
 		$tournament = $data ? $this->mapToEntity($data,$directParent,$rootParent) : null;
-		$this->cache[$tournamentId] = $tournament;
+		if (!$ignoreCache) $this->cache[$tournamentId] = $tournament;
 
 		return $tournament;
 	}
@@ -299,6 +308,8 @@ class TournamentRepository extends AbstractRepository {
 		$query = "UPDATE tournaments SET $assignments WHERE OPL_ID = ?";
 		$this->dbcn->execute_query($query, [...$values, $tournament->id]);
 
+		$this->updateRankedsplits($tournament);
+
 		unset($this->cache[$tournament->id]);
 	}
 	/**
@@ -323,6 +334,30 @@ class TournamentRepository extends AbstractRepository {
 			Logger::log('db', "Fehler beim Speichern von Turnier $tournament->id: " . $e->getMessage() . $e->getTraceAsString());
 			return ['result'=>SaveResult::FAILED];
 		}
+	}
+
+	private function updateRankedsplits(Tournament $tournament): array {
+		$existingTournament = $this->findById($tournament->id, ignoreCache: true);
+		$newRankedSplits = array_map(fn($rankedSplit) => $rankedSplit->getName(), $tournament->rankedSplits);
+		$newRankedSplits = array_combine($newRankedSplits, $tournament->rankedSplits);
+		$oldRankedSplits = array_map(fn($rankedSplit) => $rankedSplit->getName(), $existingTournament->rankedSplits);
+		$oldRankedSplits = array_combine($oldRankedSplits, $existingTournament->rankedSplits);
+		$rankedSplitsToAdd = array_values(array_diff(array_keys($newRankedSplits), array_keys($oldRankedSplits)));;
+		$rankedSplitsToRemove = array_values(array_diff(array_keys($oldRankedSplits), array_keys($newRankedSplits)));
+
+		$addQuery = "INSERT INTO tournaments_in_ranked_splits (OPL_ID_tournament, season, split) VALUES (?,?,?)";
+		$removeQuery = "DELETE FROM tournaments_in_ranked_splits WHERE OPL_ID_tournament = ? AND season = ? AND split = ?";
+
+		foreach ($rankedSplitsToAdd as $rankedSplit) {
+			$this->dbcn->execute_query($addQuery, [$tournament->id, $newRankedSplits[$rankedSplit]->season, $newRankedSplits[$rankedSplit]->split]);
+		}
+		foreach ($rankedSplitsToRemove as $rankedSplit) {
+			$this->dbcn->execute_query($removeQuery, [$tournament->id, $oldRankedSplits[$rankedSplit]->season, $oldRankedSplits[$rankedSplit]->split]);
+		}
+
+		$saveResult = (count($rankedSplitsToAdd) > 0 || count($rankedSplitsToRemove)) ? SaveResult::UPDATED : SaveResult::NOT_CHANGED;
+
+		return ["saveResult" => $saveResult, "rankedSplitsAdded" => $rankedSplitsToAdd, "rankedSplitsRemoved" => $rankedSplitsToRemove];
 	}
 
 	public function createFromOplData(array $oplData): Tournament {
