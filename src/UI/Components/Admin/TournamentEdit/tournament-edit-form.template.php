@@ -53,7 +53,7 @@ $nonRootDisableAttribute = $tournament->eventType === EventType::TOURNAMENT ? ''
 					<select name="format">
 						<option value="">Format wählen</option>
                         <?php foreach (EventFormat::cases() as $eventFormat): ?>
-                            <option value="<?=$eventFormat->value?>" <?=$tournament->eventType === $eventFormat ? 'selected' : ''?>><?=$eventFormat->value?></option>
+                            <option value="<?=$eventFormat->value?>" <?=$tournament->format === $eventFormat ? 'selected' : ''?>><?=$eventFormat->value?></option>
 						<?php endforeach; ?>
 					</select>
 					<?= IconRenderer::getMaterialIconSpan('arrow_drop_down')?>
