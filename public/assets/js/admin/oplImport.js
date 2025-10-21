@@ -102,7 +102,7 @@ function writeTournamentFromForm(button) {
 					clear_results_dialog(tournamentId);
 					add_to_results_dialog(tournamentId, "Turnier erfolgreich aktualisiert");
 					for (let key in res.changes) {
-						if (typeof res.changes == "object") {
+						if (typeof res.changes[key] == "object") {
 							add_to_results_dialog(tournamentId, `- [${key}] angepasst`)
 						} else {
 							add_to_results_dialog(tournamentId, `- [${key}] auf '${res.changes[key]}' gesetzt`);
