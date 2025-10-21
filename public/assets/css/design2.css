@@ -3420,9 +3420,6 @@ div.tournament-write-data {
 dialog#tournament-add div.tournament-write-data {
 	margin-bottom: 10px;
 }
-div.turnier-select div.tournament-write-data {
-	overflow: auto;
-}
 .write_tournament_row {
 	display: grid;
 	gap: 8px;
@@ -3472,6 +3469,10 @@ div.tournament-write-data label {
 	}
 	.write_tournament_row.wtrow-3 {
 		grid-template: repeat(2, auto) / repeat(3, auto);
+
+		& .write_tournament_ranked_splits {
+			grid-column: 2 / 4;
+		}
 	}
 	.write_tournament_id {
 		justify-self: end;
@@ -3523,6 +3524,11 @@ div.tournament-write-data label {
 	}
 	.write_tournament_row.wtrow-3 {
 		grid-template: repeat(3, 1fr) / repeat(2, 1fr);
+
+		& .write_tournament_ranked_splits {
+			grid-row: 3;
+			grid-column: 1 / 4;
+		}
 	}
 }
 div.tournament-write-data select {
@@ -3566,9 +3572,7 @@ input[type=date] {
 	width: 48px;
 }
 .write_tournament_number input,
-.write_tournament_number2 input,
-.write_tournament_ranked_season input,
-.write_tournament_ranked_split input {
+.write_tournament_number2 input {
 	width: 40px;
 	padding: 0;
 	text-align: center;

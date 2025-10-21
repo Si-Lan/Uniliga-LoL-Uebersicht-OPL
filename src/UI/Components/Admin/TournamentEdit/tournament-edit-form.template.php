@@ -3,6 +3,7 @@
 /** @var bool $isNew */
 /** @var array $parentIds */
 /** @var array $childrenIds */
+/** @var array $rankedSplits */
 
 use App\Domain\Enums\EventFormat;
 use App\Domain\Enums\EventType;
@@ -65,8 +66,15 @@ $nonRootDisableAttribute = $tournament->eventType === EventType::TOURNAMENT ? ''
 			<label class="write_tournament_finished">Beendet:<input type="checkbox" name="finished" value="true" <?=$tournament->finished ? 'checked' : ''?> <?=$nonRootDisableAttribute?>></label>
 			<label class="write_tournament_archived">Archiviert:<input type="checkbox" name="archived" value="true" <?=$tournament->archived ? 'checked' : ''?> <?=$nonRootDisableAttribute?>></label>
 			<label class="write_tournament_logoid">Logo:<input type="number" name="OPL_ID_logo" value="<?=$tournament->logoId?>" readonly=""></label>
-			<label class="write_tournament_ranked_season">Rank-Season:<input type="text" name="ranked_season" value="<?=$tournament->rankedSplit?->season?>" placeholder="##" <?=$nonRootDisableAttribute?>></label>
-			<label class="write_tournament_ranked_split">Rank-Split:<input type="text" name="ranked_split" value="<?=$tournament->rankedSplit?->split?>" placeholder="#" <?=$nonRootDisableAttribute?>></label>
+            <?php if ($tournament->eventType === EventType::TOURNAMENT): ?>
+                <?php
+                $rankedSplits = array_map(fn($rankedSplit) => $rankedSplit->getName(),$rankedSplits);
+                $selectedRankedSplits = array_map(fn($rankedSplit) => $rankedSplit->getName(),$tournament->rankedSplits);
+                ?>
+                <label class="write_tournament_ranked_splits">Rank-Split:
+                <?=new \App\UI\Components\UI\MultiSelectDropdown("Ranked-Splits auswählen", $rankedSplits, $selectedRankedSplits)?>
+                </label>
+            <?php endif; ?>
 		</div>
 	</div>
     <?php
