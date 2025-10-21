@@ -38,10 +38,27 @@ function getTournamentAndShowForm() {
 					}
 				})
 				.then(fragment => {
+					fragment.css?.forEach(href => {
+						if (!document.querySelector(`link[href="${href}"]`)) {
+							const link = document.createElement('link');
+							link.rel = 'stylesheet';
+							link.href = href;
+							document.head.appendChild(link);
+						}
+					})
+					fragment.js?.forEach(src => {
+						if (!document.querySelector(`script[src="${src}"]`)) {
+							const script = document.createElement('script');
+							script.src = src;
+							script.defer = true;
+							document.body.appendChild(script);
+						}
+					})
 					dialogContent.append(fragment.html);
 					remove_popupLoadingIndicator(dialog);
 				})
-				.catch(() => {
+				.catch(error => {
+					console.warn(error);
 					dialogContent.append("Fehler beim Erstellen des Turnierformulars");
 					remove_popupLoadingIndicator(dialog);
 					return "Fehler beim Erstellen des Turnierformulars";

@@ -9,6 +9,7 @@ use App\UI\Components\Admin\RankedSplit\RankedSplitRow;
 use App\UI\Components\Admin\RelatedTournamentButtonList;
 use App\UI\Components\Admin\TournamentEdit\TournamentEditForm;
 use App\UI\Components\Admin\TournamentEdit\TournamentEditList;
+use App\UI\Page\AssetManager;
 
 class FragmentHandler {
 	use DataParsingHelpers;
@@ -47,7 +48,7 @@ class FragmentHandler {
 
 		$tournamentForm = new TournamentEditForm($tournament,$newTournament, $parentIds, $childrenIds);
 
-		echo json_encode(["html"=>$tournamentForm->render()]);
+		echo json_encode(["html"=>$tournamentForm->render(), "js"=>AssetManager::getJsFiles(), "css"=>AssetManager::getCssFiles()]);
 	}
 
 	public function RelatedTournamentList(array $dataGet):void {
