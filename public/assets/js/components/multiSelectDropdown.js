@@ -35,12 +35,6 @@ $(document).on("click", ".multi-select-options>label>input", function () {
 	} else {
 		header.find(`.multi-select-header-selection[data-selection="${selectionName}"]`).remove()
 	}
-
-	const selectedElements = checkbox.closest(".multi-select-options").find("label>input:checked");
-	const selectedElementsNames = selectedElements.map(function () {
-		return $(this).val();
-	}).get();
-	console.log(selectedElementsNames);
 })
 
 $(document).on("click", function () {
