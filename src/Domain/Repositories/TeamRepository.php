@@ -46,6 +46,20 @@ class TeamRepository extends AbstractRepository {
 	}
 
 	/**
+	 * @return array<Team>
+	 */
+	public function findAll(): array {
+		$result = $this->dbcn->execute_query("SELECT * FROM teams WHERE OPL_ID > 0");
+		$data = $result->fetch_all(MYSQLI_ASSOC);
+
+		$teams = [];
+		foreach ($data as $row) {
+			$teams[] = $this->mapToEntity($row);
+		}
+		return $teams;
+	}
+
+	/**
 	 * @param string $name
 	 * @return array<Team>
 	 */

@@ -40,4 +40,16 @@ class TeamsHandler extends AbstractHandler {
 
 		echo json_encode($saveResult);
 	}
+
+	public function postTeamsUpdate(int $teamId): void {
+		$this->checkRequestMethod('POST');
+
+		try {
+			$saveResult = $this->teamUpdater->updateTeam($teamId);
+		} catch (\Exception $e) {
+			$this->sendErrorResponse($e->getCode(), $e->getMessage());
+		}
+
+		echo json_encode($saveResult);
+	}
 }

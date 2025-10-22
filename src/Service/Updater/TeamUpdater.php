@@ -9,13 +9,77 @@ use App\Domain\Repositories\TeamInTournamentRepository;
 use App\Domain\Repositories\TeamRepository;
 use App\Domain\Repositories\TournamentRepository;
 use App\Service\OplApiService;
+use App\Service\OplLogoService;
 
 class TeamUpdater {
 	private TeamRepository $teamRepo;
+	private PlayerRepository $playerRepo;
 	private OplApiService $oplApiService;
+	private OplLogoService $oplLogoService;
 	public function __construct() {
 		$this->teamRepo = new TeamRepository();
+		$this->playerRepo = new PlayerRepository();
 		$this->oplApiService = new OplApiService();
+		$this->oplLogoService = new OplLogoService();
+	}
+
+	/**
+	 * @throws \Exception
+	 */
+	public function updateTeam(int $teamId): array {
+		$team = $this->teamRepo->findById($teamId);
+		if ($team === null) {
+			throw new \Exception("Team not found", 404);
+		}
+
+		try {
+			$oplTeam = $this->oplApiService->fetchFromEndpoint("team/$teamId/users");
+		} catch (\Exception $e) {
+			throw new \Exception("Failed to fetch data from OPL API: ".$e->getMessage(), 500);
+		}
+
+		$teamEntity = $this->teamRepo->createFromOplData($oplTeam);
+		$teamSaveResult = $this->teamRepo->save($teamEntity, fromOplData: true);
+		if ($teamSaveResult["team"]?->logoId !== null) {
+			$lastLogoUpdate = $teamSaveResult["team"]->lastLogoDownload;
+			$now = new \DateTimeImmutable();
+			if ($lastLogoUpdate === null || $now->diff($lastLogoUpdate)->days > 7) {
+				$logoDownload = $this->oplLogoService->downloadTeamLogo($teamEntity->id);
+				$teamSaveResult["logoDownload"] = $logoDownload;
+			}
+			if (!array_key_exists("logoDownload", $teamSaveResult)) $teamSaveResult["logoDownload"] = null;
+		}
+
+		$oplPlayers = $oplTeam['users'];
+		$oplPlayerIds = array_column($oplPlayers, 'ID');
+
+		$playerInTeamRepo = new PlayerInTeamRepository();
+
+		$playerSaveResults = [];
+		$addedPlayers = [];
+		$removedPlayers = [];
+		foreach ($oplPlayers as $oplPlayer) {
+			$playerEntity = $this->playerRepo->createFromOplData($oplPlayer);
+			$playerSaveResult = $this->playerRepo->save($playerEntity, fromOplData: true);
+			$playerSaveResults[] = $playerSaveResult;
+
+			if ($playerSaveResult["player"]?->id !== null) {
+				$addedToTeam = $playerInTeamRepo->addPlayerToTeam($playerSaveResult["player"]->id, $team->id);
+				if ($addedToTeam) {
+					$addedPlayers[] = $playerSaveResult["player"];
+				}
+			}
+		}
+
+		$playersCurrentlyInTeam = $playerInTeamRepo->findAllByTeamAndActiveStatus($team, active: true);
+		foreach ($playersCurrentlyInTeam as $playerInTeam) {
+			if (!in_array($playerInTeam->player->id, $oplPlayerIds)) {
+				$playerInTeamRepo->removePlayerFromTeam($playerInTeam->player->id, $team->id);
+				$removedPlayers[] = $playerInTeam->player;
+			}
+		}
+
+		return ["team"=>$teamSaveResult, "players"=>$playerSaveResults, "addedPlayers"=>$addedPlayers, "removedPlayers"=>$removedPlayers];
 	}
 
 	/**

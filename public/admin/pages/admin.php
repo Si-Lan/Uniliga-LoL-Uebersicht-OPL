@@ -35,7 +35,7 @@ echo new Header(HeaderType::ADMIN);
         <button class="update_all_teams"><span>Alle Teams aktualisieren</span></button>
         <button class="update_all_player_ranks"><span>Ränge für alle Spieler aktualisieren</span></button>
         <div class="result-wrapper no-res gen-admin">
-            <div class="clear-button" onclick="clear_results('gen-admin')">Clear</div>
+            <div class="clear-button" onclick="clearGeneralResults()">Clear</div>
             <div class="result-content"></div>
         </div>
         <button class="open_ranked_split_popup" data-dialog-id="ranked-split-popup"><span>LoL Ranked Splits</span></button>
