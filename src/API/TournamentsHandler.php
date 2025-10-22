@@ -10,7 +10,7 @@ use App\Domain\Repositories\TeamInTournamentRepository;
 use App\Domain\Repositories\TournamentRepository;
 use JetBrains\PhpStorm\NoReturn;
 
-class TournamentsHandler {
+class TournamentsHandler extends AbstractHandler {
 	use DataParsingHelpers;
 	private TournamentRepository $tournamentRepo;
 
@@ -27,12 +27,6 @@ class TournamentsHandler {
 			$this->sendErrorResponse(404, 'Tournament not found');
 		}
 		return $tournament;
-	}
-
-	#[NoReturn] private function sendErrorResponse(int $statusCode, string $message): void {
-		http_response_code($statusCode);
-		echo json_encode(['error' => $message]);
-		exit;
 	}
 
 	public function getTournamentsAll(): void {
