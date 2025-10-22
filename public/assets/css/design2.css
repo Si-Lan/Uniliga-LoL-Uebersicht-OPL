@@ -3730,12 +3730,13 @@ span.patch-name {
 	border-radius: 5px 0 0 5px;
 	border: var(--element-bg) solid 2px;
 	border-right: none;
-}
-.patchdata-status[data-status="true"] {
-	background-color: green;
-}
-.patchdata-status[data-status="false"] {
-	background-color: darkred;
+
+	&[data-status="1"] {
+		background-color: green;
+	}
+	&[data-status="0"] {
+		background-color: darkred;
+	}
 }
 button.patch-update {
 	border-radius: 0 5px 5px 0;

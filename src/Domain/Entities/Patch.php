@@ -19,6 +19,14 @@ class Patch {
 		$this->imgUrl = "/assets/ddragon/$this->patchNumber/img";
 	}
 
+	public function allWebp(): bool {
+		return $this->championWebp && $this->itemWebp && $this->spellWebp && $this->runesWebp;
+	}
+
+	public function getPatchNumberDashed(): string {
+		return str_replace('.','-',$this->patchNumber);
+	}
+
 	public function getRuneUrlById(int $runeId): ?string {
 		if ($this->runesData === null) {
 			$this->runesData = json_decode(file_get_contents(BASE_PATH."/public/assets/ddragon/$this->patchNumber/data/runesReforged.json"),true);

@@ -20,6 +20,22 @@ class PatchRepository extends AbstractRepository {
 		);
 	}
 
+	/**
+	 * @return array<Patch>
+	 */
+	public function findAll(): array {
+		$data = $this->dbcn->execute_query("SELECT * FROM local_patches")->fetch_all(MYSQLI_ASSOC);
+		usort($data, function($a, $b) {
+			return version_compare($a['patch'], $b['patch']);
+		});
+
+		$patches = [];
+		foreach ($data as $patch) {
+			$patches[] = $this->mapToEntity($patch);
+		}
+		return $patches;
+	}
+
 	public function findLatestPatchWithAllData(): Patch {
 		$patches = $this->dbcn->execute_query("SELECT * FROM local_patches WHERE data IS TRUE AND champion_webp IS TRUE AND item_webp IS TRUE AND runes_webp IS TRUE AND spell_webp IS TRUE")->fetch_all(MYSQLI_ASSOC);
 		usort($patches, function($a, $b) {

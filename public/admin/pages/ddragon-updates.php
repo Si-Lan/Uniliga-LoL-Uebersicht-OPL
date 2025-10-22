@@ -1,14 +1,13 @@
 <?php
 /** @var mysqli $dbcn  */
 
+use App\UI\Components\Admin\PatchData\PatchDataRows;
 use App\UI\Components\Navigation\Header;
 use App\UI\Components\UI\DropdownCustom;
 use App\UI\Enums\HeaderType;
-use App\UI\Page\AssetManager;
 use App\UI\Page\PageMeta;
 
 $pageMeta = new PageMeta('DDragon Updates',bodyClass: 'admin');
-AssetManager::addJsFile('/admin/scripts/main.js');
 
 echo new Header(HeaderType::ADMIN_DDRAGON);
 
@@ -35,6 +34,6 @@ echo new Header(HeaderType::ADMIN_DDRAGON);
             <input type="checkbox" id="force-overwrite-patch-img" name="force-overwrite-patch-img">
             <label for="force-overwrite-patch-img">Alle Bilder herunterladen und überschreiben erzwingen</label>
         </div>
-        <?= generate_patch_rows($dbcn) ?>
+        <?= new PatchDataRows() ?>
     </div>
 </div>
