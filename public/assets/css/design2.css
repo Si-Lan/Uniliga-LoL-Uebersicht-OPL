@@ -3795,6 +3795,10 @@ dialog.add-patch-popup .dialog-content {
 	padding: 25px 50px;
 	align-items: center;
 	min-height: 200px;
+
+	.popup-loading-indicator {
+		position: unset;
+	}
 }
 .add-patches-row {
 	display: flex;

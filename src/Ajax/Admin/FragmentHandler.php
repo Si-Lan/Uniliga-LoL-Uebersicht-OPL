@@ -5,6 +5,7 @@ namespace App\Ajax\Admin;
 use App\Core\Utilities\DataParsingHelpers;
 use App\Domain\Repositories\RankedSplitRepository;
 use App\Domain\Repositories\TournamentRepository;
+use App\UI\Components\Admin\PatchData\AddPatchesView;
 use App\UI\Components\Admin\RankedSplit\RankedSplitRow;
 use App\UI\Components\Admin\RelatedTournamentButtonList;
 use App\UI\Components\Admin\TournamentEdit\TournamentEditForm;
@@ -93,5 +94,11 @@ class FragmentHandler {
 		$rankedSplit = $rankedSplitRepo->findBySeasonAndSplit($season, $split);
 		$rankedSplitRow = new RankedSplitRow($rankedSplit);
 		echo json_encode(["html" => $rankedSplitRow->render()]);
+	}
+
+	public function addPatchesRows(array $dataGet): void {
+		$type = $this->stringOrNull($dataGet['type'] ?? "new");
+		$patchView = new AddPatchesView(type: $type, onlyRows: true);
+		echo json_encode(["html" => $patchView->render()]);
 	}
 }

@@ -794,22 +794,24 @@ function handle_dropdown_selection(type, selection) {
 		loading_indicator.css("display","");
 		if (patch_view_fetch_control !== null) patch_view_fetch_control.abort();
 		patch_view_fetch_control = new AbortController();
-		fetch(`/admin/ajax/ddragon-update.php`, {
-			method: "GET",
-			headers: {
-				type: "add-patch-view",
-				view: selection,
-				limit: 10,
-			},
-			signal: patch_view_fetch_control.signal,
+		fetch(`/admin/ajax/fragment/add-patches-rows?type=${selection}`, {
+			method:"GET",
+			signal: patch_view_fetch_control.signal
 		})
-			.then(res => res.text())
+			.then(res => {
+				if (res.ok) {
+					return res.json();
+				} else {
+					return {"html": "Fehler beim Laden der Daten"};
+				}
+			})
 			.then(patches => {
 				loading_indicator.css("display","none");
-				element.html(patches);
-				$(".add_patch").on("click", function () {
-					add_new_patch(this);
-				});
+				element.html(patches.html);
+			})
+			.catch(err => {
+				loading_indicator.css("display","none");
+				element.html("Fehler beim Laden der Daten");
 			})
 	}
 }

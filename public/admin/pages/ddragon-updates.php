@@ -1,9 +1,10 @@
 <?php
 /** @var mysqli $dbcn  */
 
+use App\UI\Components\Admin\PatchData\AddPatchesView;
 use App\UI\Components\Admin\PatchData\PatchDataRows;
 use App\UI\Components\Navigation\Header;
-use App\UI\Components\UI\DropdownCustom;
+use App\UI\Components\Popups\Popup;
 use App\UI\Enums\HeaderType;
 use App\UI\Page\PageMeta;
 
@@ -18,17 +19,9 @@ echo new Header(HeaderType::ADMIN_DDRAGON);
     </dialog>
     <div class="patch-table">
         <div class="patch-header">
-            <button type="button" class="open_add_patch_popup"><span>Patch hinzufügen</span></button>
+            <button type="button" class="open_add_patch_popup" data-dialog-id="add-patch-popup"><span>Patch hinzufügen</span></button>
+            <?= new Popup(id: "add-patch-popup", noCloseButton: true, content: new AddPatchesView(), additionalClasses: ["add-patch-popup"]) ?>
             <button type="button" class="sync_patches"><span>Patches synchronisieren</span></button>
-            <dialog class="add-patch-popup dismissable-popup">
-                <div class="dialog-content">
-                    <?= new DropdownCustom("get-patches",["new"=>"neue Patches","missing"=>"fehlende Patches","old"=>"alte Patches"]) ?>
-                    <div class='popup-loading-indicator' style="display: none"></div>
-                    <div class='add-patches-display'>
-                        <?= create_add_patch_view($dbcn, "new")?>
-                    </div>
-                </div>
-            </dialog>
         </div>
         <div class="get-patch-options">
             <input type="checkbox" id="force-overwrite-patch-img" name="force-overwrite-patch-img">
