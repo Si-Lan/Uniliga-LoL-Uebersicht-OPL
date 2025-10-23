@@ -6,6 +6,7 @@ use App\Core\Utilities\DataParsingHelpers;
 use App\Domain\Repositories\RankedSplitRepository;
 use App\Domain\Repositories\TournamentRepository;
 use App\UI\Components\Admin\PatchData\AddPatchesView;
+use App\UI\Components\Admin\PatchData\PatchDataRows;
 use App\UI\Components\Admin\RankedSplit\RankedSplitRow;
 use App\UI\Components\Admin\RelatedTournamentButtonList;
 use App\UI\Components\Admin\TournamentEdit\TournamentEditForm;
@@ -100,5 +101,9 @@ class FragmentHandler {
 		$type = $this->stringOrNull($dataGet['type'] ?? "new");
 		$patchView = new AddPatchesView(type: $type, onlyRows: true);
 		echo json_encode(["html" => $patchView->render()]);
+	}
+	public function PatchesList(array $dataGet): void {
+		$patchesList = new PatchDataRows();
+		echo json_encode(["html" => $patchesList->render()]);
 	}
 }

@@ -3,6 +3,7 @@
 
 use App\Domain\Entities\Patch;
 use App\UI\Components\Admin\PatchData\PatchDataRowDetails;
+use App\UI\Components\Helpers\IconRenderer;
 use App\UI\Components\Popups\Popup;
 
 $popupContent = new PatchDataRowDetails($patch);
@@ -21,4 +22,5 @@ $popup = new Popup(id: "patch_options_{$patch->getPatchNumberDashed()}", noClose
 	</div>
 	<button type='button' class='patch-more-options' data-dialog-id="<?= $popup->getId() ?>"><span>einzelne Bilder</span></button>
 	<?= $popup->render() ?>
+    <button type="button" title="Löschen" class="patch-delete" data-patch="<?=$patch->patchNumber?>" style="padding: 0 12px"><?= IconRenderer::getMaterialIconSpan('delete')?></button>
 </div>

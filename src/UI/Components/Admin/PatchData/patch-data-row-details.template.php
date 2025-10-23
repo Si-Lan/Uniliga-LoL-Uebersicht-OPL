@@ -22,5 +22,4 @@ use App\Domain\Entities\Patch;
 		<div class='patchdata-status runes-img' data-status='<?= $patch->runesWebp ?>' data-patch='<?= $patch->patchNumber ?>'></div>
 		<button type='button' class='patch-update' data-getimg='runes' data-patch='<?= $patch->patchNumber ?>'><span>Runes</span></button>
 	</div>
-	<button type='button' class='patch-remove-pngs'><span>alte PNGs löschen</span></button>
 </div>

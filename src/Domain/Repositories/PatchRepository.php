@@ -2,7 +2,9 @@
 
 namespace App\Domain\Repositories;
 
+use App\Core\Logger;
 use App\Domain\Entities\Patch;
+use App\Domain\Enums\SaveResult;
 
 class PatchRepository extends AbstractRepository {
 	protected static array $ALL_DATA_KEYS = ["patch","data","champion_webp","item_webp","spell_webp","runes_webp"];
@@ -18,6 +20,18 @@ class PatchRepository extends AbstractRepository {
 			spellWebp: (bool) $data['spell_webp'] ?? false,
 			runesWebp: (bool) $data['runes_webp'] ?? false
 		);
+	}
+
+	public function findByPatchNumber(string $patchNumber): ?Patch {
+		$query = "SELECT * FROM local_patches WHERE patch = ?";
+		$data = $this->dbcn->execute_query($query, [$patchNumber])->fetch_assoc();
+
+		return $data ? $this->mapToEntity($data) : null;
+	}
+	public function patchExists(string $patchNumber): bool {
+		$query = "SELECT * FROM local_patches WHERE patch = ?";
+		$data = $this->dbcn->execute_query($query, [$patchNumber]);
+		return $data->num_rows > 0;
 	}
 
 	/**
@@ -75,5 +89,69 @@ class PatchRepository extends AbstractRepository {
 			return (int)$aMajor <=> (int)$bMajor;
 		}
 		return (int)$aMinor <=> (int)$bMinor;
+	}
+
+	private function mapEntityToData(Patch $patch): array {
+		return [
+			'patch' => $patch->patchNumber,
+			'data' => (int) $patch->data,
+			'champion_webp' => (int) $patch->championWebp,
+			'item_webp' => (int) $patch->itemWebp,
+			'spell_webp' => (int) $patch->spellWebp,
+			'runes_webp' => (int) $patch->runesWebp
+		];
+	}
+
+	private function insert(Patch $patch): void {
+		$data = $this->mapEntityToData($patch);
+		$columns = implode(",", array_keys($data));
+		$placeholders = implode(",", array_fill(0, count($data), "?"));
+		$values = array_values($data);
+		/** @noinspection SqlInsertValues */
+		$query = "INSERT INTO local_patches ($columns) VALUES ($placeholders)";
+		$this->dbcn->execute_query($query, $values);
+	}
+
+	private function update(Patch $patch): array {
+		$existingPatch = $this->findByPatchNumber($patch->patchNumber);
+		$dataNew = $this->mapEntityToData($patch);
+		$dataOld = $this->mapEntityToData($existingPatch);
+		$dataChanged = array_diff_assoc($dataNew, $dataOld);
+		$dataPrevious = array_diff_assoc($dataOld, $dataNew);
+
+		if (count($dataChanged) == 0) {
+			return ['result' => SaveResult::NOT_CHANGED];
+		}
+
+		$set = implode(",", array_map(fn($key) => "$key = ?", array_keys($dataChanged)));
+		$values = array_values($dataChanged);
+
+		$query = "UPDATE local_patches SET $set WHERE patch = ?";
+		$this->dbcn->execute_query($query, [...$values, $patch->patchNumber]);
+		return ['result' => SaveResult::UPDATED, 'changes' => $dataChanged, 'previous' => $dataPrevious];
+	}
+
+	public function save(Patch $patch): array {
+		try {
+			if ($this->patchExists($patch->patchNumber)) {
+				$saveResult = $this->update($patch);
+			} else {
+				$this->insert($patch);
+				$saveResult = ['result'=>SaveResult::INSERTED];
+			}
+		} catch (\Throwable $e) {
+			Logger::log('db', "Fehler beim Speichern von Patches: " . $e->getMessage() . "\n" . $e->getTraceAsString());
+			$saveResult = ['result'=>SaveResult::FAILED];
+		}
+		$saveResult['patch'] = $this->findByPatchNumber($patch->patchNumber);
+		return $saveResult;
+	}
+
+	public function delete(Patch $patch): bool {
+		if (!$this->patchExists($patch->patchNumber)) {
+			return false;
+		}
+		$query = "DELETE FROM local_patches WHERE patch = ?";
+		return $this->dbcn->execute_query($query, [$patch->patchNumber]);
 	}
 }
