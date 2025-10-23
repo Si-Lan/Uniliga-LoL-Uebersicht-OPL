@@ -218,6 +218,7 @@ class PatchUpdater {
 			return false;
 		}
 		$champions = json_decode(file_get_contents($championJsonFile), true)['data'];
+		$allChampionCount = count($champions);
 		if ($startIndex !== null && $endIndex !== null) {
 			$champions = array_slice($champions, $startIndex, $endIndex - $startIndex +1);
 		}
@@ -227,8 +228,11 @@ class PatchUpdater {
 			$downloads[$champion["id"]] = $this->downloadAndConvertImg($ddragonSourceUrl . $champion["image"]["full"], $targetDir, $champion["id"], $overwrite);
 		}
 
-		$patch->championWebp = true;
-		$this->patchRepo->save($patch);
+		if ($endIndex >= $allChampionCount || $endIndex === null) {
+			$patch = $this->patchRepo->findByPatchNumber($patchNumber);
+			$patch->championWebp = true;
+			$this->patchRepo->save($patch);
+		}
 		return $downloads;
 	}
 
@@ -249,6 +253,7 @@ class PatchUpdater {
 			return false;
 		}
 		$items = json_decode(file_get_contents($itemJsonFile), true)['data'];
+		$allItemCount = count($items);
 		if ($startIndex !== null && $endIndex !== null) {
 			$items = array_slice($items, $startIndex, $endIndex - $startIndex +1, true);
 		}
@@ -258,8 +263,11 @@ class PatchUpdater {
 			$downloads[$item_id] = $this->downloadAndConvertImg($ddragonSourceUrl . $item["image"]["full"], $targetDir, $item_id, $overwrite);
 		}
 
-		$patch->itemWebp = true;
-		$this->patchRepo->save($patch);
+		if ($endIndex >= $allItemCount || $endIndex === null) {
+			$patch = $this->patchRepo->findByPatchNumber($patchNumber);
+			$patch->itemWebp = true;
+			$this->patchRepo->save($patch);
+		}
 		return $downloads;
 	}
 
@@ -284,6 +292,7 @@ class PatchUpdater {
 			$downloads[$summoner_id] = $this->downloadAndConvertImg($ddragonSourceUrl . $summoner['image']['full'], $targetDir, $summoner_id, $overwrite);
 		}
 
+		$patch = $this->patchRepo->findByPatchNumber($patchNumber);
 		$patch->spellWebp = true;
 		$this->patchRepo->save($patch);
 		return $downloads;
@@ -314,6 +323,7 @@ class PatchUpdater {
 			}
 		}
 
+		$patch = $this->patchRepo->findByPatchNumber($patchNumber);
 		$patch->runesWebp = true;
 		$this->patchRepo->save($patch);
 		return $downloads;

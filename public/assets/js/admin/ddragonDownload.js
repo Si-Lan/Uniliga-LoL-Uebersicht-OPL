@@ -97,7 +97,7 @@ async function downloadJson(patchNumber) {
 	await refreshPatchStatus(patchNumber);
 }
 
-$(document).on("click", ".patch-row button.patch-update[data-getimg]", async function () {
+$(document).on("click", ".patch-row button.patch-update[data-getimg]:not(.all-img)", async function () {
 	const patchNumber = this.dataset.patch;
 	const jqButton = $(this);
 	setButtonUpdating(jqButton);
@@ -140,7 +140,7 @@ async function downloadImg(patchNumber, imgType, button=null) {
 			const innerQueryParameter = queryParameter + (queryParameter.length > 0 ? "&" : "?") + "start=" + startIndex + "&end=" + endIndex;
 			await fetch(`/admin/api/patches/${patchParts[0]}/${patchParts[1]}/${patchParts[2]}/imgs/${imgType}${innerQueryParameter}`, {method: 'POST'})
 				.catch(e => console.error(e));
-			setButtonLoadingBarWidth(button, Math.round((i+1) / batches * 100));
+			if (button !== null) setButtonLoadingBarWidth(button, Math.round((i+1) / batches * 100));
 		}
 	} else {
 		await fetch(`/admin/api/patches/${patchParts[0]}/${patchParts[1]}/${patchParts[2]}/imgs/${imgType}${queryParameter}`, {method: 'POST'})
@@ -148,6 +148,34 @@ async function downloadImg(patchNumber, imgType, button=null) {
 	}
 	await refreshPatchStatus(patchNumber);
 }
+
+$(document).on("click", ".patch-row button.patch-update.all-img", async function () {
+	const patchNumber = this.dataset.patch;
+	const jqButton = $(this);
+	setButtonUpdating(jqButton);
+
+	const otherPatchButtons = $(`button.patch-update[data-getimg][data-patch="${patchNumber}"]`);
+	setButtonUpdating(otherPatchButtons);
+
+	const allTypes = ['champions', 'items', 'summoners', 'runes'];
+	let counter = 0;
+	let fetches = [];
+	for (const type of allTypes) {
+		const button = otherPatchButtons.filter(`[data-getimg="${type}"]`);
+		fetches.push(downloadImg(patchNumber, type, button)
+			.then(() => {
+				counter++;
+				setButtonLoadingBarWidth(jqButton, Math.round(counter / allTypes.length * 100));
+				unsetButtonUpdating(button);
+			})
+			.catch(e => console.error(e))
+		);
+	}
+
+	await Promise.all(fetches);
+	unsetButtonUpdating(jqButton);
+	unsetButtonUpdating(otherPatchButtons);
+})
 
 
 
