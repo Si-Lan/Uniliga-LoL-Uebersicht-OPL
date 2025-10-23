@@ -34,7 +34,6 @@ async function deletePatch(patchNumber) {
 	await refreshPatchList();
 }
 
-
 async function refreshPatchList() {
 	await fetch(`/admin/ajax/fragment/patches-list`, {method: 'GET'})
 		.then(res => {
@@ -50,4 +49,50 @@ async function refreshPatchList() {
 			$('.patch-table').append(response.html);
 		})
 		.catch(e => console.error(e));
+}
+async function refreshPatchStatus(patchNumber) {
+	const patchParts = patchNumber.split('.');
+	if (patchParts.length !== 3) {
+		return;
+	}
+	await fetch(`/admin/api/patches/${patchParts[0]}/${patchParts[1]}/${patchParts[2]}`, {method: 'GET'})
+		.then(res => {
+			if (res.ok) {
+				return res.json()
+			} else {
+				return {"error": "Fehler beim Laden der Daten"};
+			}
+		})
+		.then(patch => {
+			if (patch.error) {return}
+			const patchRow = $(`.patch-row[data-patch="${patchNumber}"]`);
+			patchRow.find(`.patchdata-status.json`).attr('data-status', patch.data ? '1':'0');
+			patchRow.find(`.patchdata-status.all-img`).attr('data-status', (patch.championWebp && patch.itemWebp && patch.spellWebp && patch.runesWebp) ? '1':'0');
+			patchRow.find(`.patchdata-status.champion-img`).attr('data-status', patch.championWebp ? '1':'0');
+			patchRow.find(`.patchdata-status.item-img`).attr('data-status', patch.itemWebp ? '1':'0');
+			patchRow.find(`.patchdata-status.spell-img`).attr('data-status', patch.spellWebp ? '1':'0');
+			patchRow.find(`.patchdata-status.runes-img`).attr('data-status', patch.runesWebp ? '1':'0');
+		})
+		.catch(e => console.error(e));
+}
+
+$(document).on("click", ".patch-row button.patch-update.json", async function () {
+	const patchNumber = this.dataset.patch;
+	this.classList.add('button-updating');
+	this.disabled = true;
+
+	await downloadJson(patchNumber);
+
+	this.classList.remove('button-updating');
+	this.disabled = false;
+})
+
+async function downloadJson(patchNumber) {
+	const patchParts = patchNumber.split('.');
+	if (patchParts.length !== 3) {
+		return;
+	}
+	await fetch(`/admin/api/patches/${patchParts[0]}/${patchParts[1]}/${patchParts[2]}/json`, {method: 'POST'})
+		.catch(e => console.error(e));
+	await refreshPatchStatus(patchNumber);
 }

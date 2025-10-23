@@ -16,13 +16,26 @@ class PatchUpdater {
 		$this->ddragonDirIterator = new \DirectoryIterator(self::LOCAL_DDRAGON_DIR);
 	}
 
+	private function getChampionsJsonUrl(string $patchNumber): string {
+		return "https://ddragon.leagueoflegends.com/cdn/$patchNumber/data/en_US/champion.json";
+	}
+	private function getItemsJsonUrl(string $patchNumber): string {
+		return "https://ddragon.leagueoflegends.com/cdn/$patchNumber/data/en_US/item.json";
+	}
+	private function getSummonerSpellsJsonUrl(string $patchNumber): string {
+		return "https://ddragon.leagueoflegends.com/cdn/$patchNumber/data/en_US/summoner.json";
+	}
+	private function getRunesJsonUrl(string $patchNumber): string {
+		return "https://ddragon.leagueoflegends.com/cdn/$patchNumber/data/en_US/runesReforged.json";
+	}
+
 	/**
 	 * @throws \Exception
 	 */
 	public function getPatchNumbersExternal(): array {
 		$response = file_get_contents(self::PATCH_JSON_URL);
 		if (!isset($http_response_header)) {
-			throw new \Exception('No response from DDragon API');;
+			throw new \Exception('No response from DDragon API');
 		}
 		$httpStatus = $http_response_header[0] ?? '';
 		if ($response === false || !str_contains($httpStatus, '200')) {
@@ -137,5 +150,24 @@ class PatchUpdater {
 			}
 		}
 		return rmdir($patchDir);
+	}
+
+	public function downloadJsons(string $patchNumber, bool $force = false): bool {
+		$patch = $this->patchRepo->findByPatchNumber($patchNumber);
+		if ($patch === null || ($patch->data === true && !$force)) {
+			return false;
+		}
+		if (!file_exists(self::LOCAL_DDRAGON_DIR . "/$patchNumber/data")) {
+			mkdir(self::LOCAL_DDRAGON_DIR . "/$patchNumber/data");
+		}
+
+		file_put_contents(self::LOCAL_DDRAGON_DIR . "/$patchNumber/data/champion.json", file_get_contents($this->getChampionsJsonUrl($patchNumber)));
+		file_put_contents(self::LOCAL_DDRAGON_DIR . "/$patchNumber/data/item.json", file_get_contents($this->getItemsJsonUrl($patchNumber)));
+		file_put_contents(self::LOCAL_DDRAGON_DIR . "/$patchNumber/data/summoner.json", file_get_contents($this->getSummonerSpellsJsonUrl($patchNumber)));
+		file_put_contents(self::LOCAL_DDRAGON_DIR . "/$patchNumber/data/runesReforged.json", file_get_contents($this->getRunesJsonUrl($patchNumber)));
+
+		$patch->data = true;
+		$this->patchRepo->save($patch);
+		return true;
 	}
 }
