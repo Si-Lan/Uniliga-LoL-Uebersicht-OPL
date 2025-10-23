@@ -15,4 +15,11 @@ abstract class AbstractHandler {
 			$this->sendErrorResponse(400, 'Invalid request method');
 		}
 	}
+	protected function parseRequestData(): array {
+		$requestData = json_decode(file_get_contents('php://input'), true);
+		if (json_last_error() !== JSON_ERROR_NONE || !$requestData) {
+			$this->sendErrorResponse(400, 'Invalid request data');
+		}
+		return $requestData;
+	}
 }
