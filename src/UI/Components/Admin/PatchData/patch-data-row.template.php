@@ -17,7 +17,7 @@ $popup = new Popup(id: "patch_options_{$patch->getPatchNumberDashed()}", noClose
 		<button type='button' class='patch-update json' data-patch='<?=$patch->patchNumber?>'><span>JSONs</span></button>
 	</div>
 	<div class='patch-updatebutton-wrapper'>
-		<div class='patchdata-status all-img' data-status='<?=$patch->allWebp()?>' data-patch='<?=$patch->patchNumber?>'></div>
+		<div class='patchdata-status all-img' data-status='<?=(int)$patch->allWebp()?>' data-patch='<?=$patch->patchNumber?>'></div>
 		<button type='button' class='patch-update all-img' data-getimg='all' data-patch='<?=$patch->patchNumber?>'><span>Bilder</span></button>
 	</div>
 	<button type='button' class='patch-more-options' data-dialog-id="<?= $popup->getId() ?>"><span>einzelne Bilder</span></button>
