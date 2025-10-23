@@ -134,14 +134,28 @@ async function downloadImg(patchNumber, imgType, button=null) {
 	if (batching > 0) {
 		const batchSize = 20;
 		const batches = Math.ceil(batching / 20);
+
+		let counter = 0;
+		let fetches = [];
 		for (let i = 0; i < batches; i++) {
 			const startIndex = i * batchSize;
 			const endIndex = Math.min((i+1) * batchSize-1, batching);
 			const innerQueryParameter = queryParameter + (queryParameter.length > 0 ? "&" : "?") + "start=" + startIndex + "&end=" + endIndex;
-			await fetch(`/admin/api/patches/${patchParts[0]}/${patchParts[1]}/${patchParts[2]}/imgs/${imgType}${innerQueryParameter}`, {method: 'POST'})
-				.catch(e => console.error(e));
-			if (button !== null) setButtonLoadingBarWidth(button, Math.round((i+1) / batches * 100));
+			fetches.push(() =>
+				fetch(`/admin/api/patches/${patchParts[0]}/${patchParts[1]}/${patchParts[2]}/imgs/${imgType}${innerQueryParameter}`, {method: 'POST'})
+					.then(() => {
+						counter++;
+						if (button !== null) setButtonLoadingBarWidth(button, Math.round(counter / batches * 100));
+					})
+					.catch(e => console.error(e))
+			);
 		}
+
+		const staggeredPromises = fetches.map(async (fetchCall, index) => {
+			await new Promise(r => setTimeout(r, 4500 * index));
+			return fetchCall();
+		});
+		await Promise.all(staggeredPromises);
 	} else {
 		await fetch(`/admin/api/patches/${patchParts[0]}/${patchParts[1]}/${patchParts[2]}/imgs/${imgType}${queryParameter}`, {method: 'POST'})
 			.catch(e => console.error(e));
