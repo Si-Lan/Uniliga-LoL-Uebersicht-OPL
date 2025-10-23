@@ -170,4 +170,178 @@ class PatchUpdater {
 		$this->patchRepo->save($patch);
 		return true;
 	}
+
+	/**
+	 * Für Champions und Items liefert diese Funktion die jeweilige Anzahl aus der JSON-Datei des Patches.
+	 * Damit diese client-seitig per JS in Batches geladen werden können
+	 **/
+	// (Für Summoner und Runen nicht notwendig, da diese nur in kleinen Mengen existieren)
+	// (Außerdem lässt sich für Runen aufgrund der verschachtelten Struktur keine sinnvolle Zahl liefern)
+	public function imgCountFromJson(string $patchNumber, string $type): int {
+		$types = ["champions","items"];
+		if (!in_array($type, $types)) {
+			return 0;
+		}
+
+		switch ($type) {
+			case "champions":
+				if (!file_exists(self::LOCAL_DDRAGON_DIR . "/$patchNumber/data/champion.json")) {
+					return 0;
+				}
+				$champions = json_decode(file_get_contents(self::LOCAL_DDRAGON_DIR . "/$patchNumber/data/champion.json"), true);
+				return count($champions['data']);
+			case "items":
+				if (!file_exists(self::LOCAL_DDRAGON_DIR . "/$patchNumber/data/item.json")) {
+					return 0;
+				}
+				$items = json_decode(file_get_contents(self::LOCAL_DDRAGON_DIR . "/$patchNumber/data/item.json"), true);
+				return count($items['data']);
+			default:
+				return 0;
+		}
+	}
+
+	/**
+	 * @param string $patchNumber
+	 * @param bool $overwrite
+	 * @param int|null $startIndex
+	 * @param int|null $endIndex
+	 * @return bool|array<string> array of downloaded imgPaths or false, if no JSON-File for Patch exists
+	 */
+	public function downloadChampionImgs(string $patchNumber, bool $overwrite = false, ?int $startIndex = null, ?int $endIndex = null): bool|array {
+		$patch = $this->patchRepo->findByPatchNumber($patchNumber);
+		$championJsonFile = self::LOCAL_DDRAGON_DIR . "/$patchNumber/data/champion.json";
+		$ddragonSourceUrl = "https://ddragon.leagueoflegends.com/cdn/$patchNumber/img/champion/";
+		$targetDir = self::LOCAL_DDRAGON_DIR . "/$patchNumber/img/champion";
+
+		if ($patch === null || !file_exists($championJsonFile)) {
+			return false;
+		}
+		$champions = json_decode(file_get_contents($championJsonFile), true)['data'];
+		if ($startIndex !== null && $endIndex !== null) {
+			$champions = array_slice($champions, $startIndex, $endIndex - $startIndex +1);
+		}
+
+		$downloads = [];
+		foreach ($champions as $champion) {
+			$downloads[$champion["id"]] = $this->downloadAndConvertImg($ddragonSourceUrl . $champion["image"]["full"], $targetDir, $champion["id"], $overwrite);
+		}
+
+		$patch->championWebp = true;
+		$this->patchRepo->save($patch);
+		return $downloads;
+	}
+
+	/**
+	 * @param string $patchNumber
+	 * @param bool $overwrite
+	 * @param int|null $startIndex
+	 * @param int|null $endIndex
+	 * @return bool|array<string> array of downloaded imgPaths or false, if no JSON-File for Patch exists
+	 */
+	public function downloadItemImgs(string $patchNumber, bool $overwrite = false, ?int $startIndex = null, ?int $endIndex = null): bool|array {
+		$patch = $this->patchRepo->findByPatchNumber($patchNumber);
+		$itemJsonFile = self::LOCAL_DDRAGON_DIR . "/$patchNumber/data/item.json";
+		$ddragonSourceUrl = "https://ddragon.leagueoflegends.com/cdn/$patchNumber/img/item/";
+		$targetDir = self::LOCAL_DDRAGON_DIR . "/$patchNumber/img/item";
+
+		if ($patch === null || !file_exists($itemJsonFile)) {
+			return false;
+		}
+		$items = json_decode(file_get_contents($itemJsonFile), true)['data'];
+		if ($startIndex !== null && $endIndex !== null) {
+			$items = array_slice($items, $startIndex, $endIndex - $startIndex +1, true);
+		}
+
+		$downloads = [];
+		foreach ($items as $item_id=>$item) {
+			$downloads[$item_id] = $this->downloadAndConvertImg($ddragonSourceUrl . $item["image"]["full"], $targetDir, $item_id, $overwrite);
+		}
+
+		$patch->itemWebp = true;
+		$this->patchRepo->save($patch);
+		return $downloads;
+	}
+
+	/**
+	 * @param string $patchNumber
+	 * @param bool $overwrite
+	 * @return bool|array<string> array of downloaded imgPaths or false, if no JSON-File for Patch exists
+	 */
+	public function downloadSummonerImgs(string $patchNumber, bool $overwrite = false): bool|array {
+		$patch = $this->patchRepo->findByPatchNumber($patchNumber);
+		$summonerJsonFile = self::LOCAL_DDRAGON_DIR . "/$patchNumber/data/summoner.json";
+		$ddragonSourceUrl = "https://ddragon.leagueoflegends.com/cdn/$patchNumber/img/spell/";
+		$targetDir = self::LOCAL_DDRAGON_DIR . "/$patchNumber/img/spell";
+
+		if ($patch === null || !file_exists($summonerJsonFile)) {
+			return false;
+		}
+		$summoners = json_decode(file_get_contents($summonerJsonFile), true);
+
+		$downloads = [];
+		foreach ($summoners['data'] as $summoner_id=>$summoner) {
+			$downloads[$summoner_id] = $this->downloadAndConvertImg($ddragonSourceUrl . $summoner['image']['full'], $targetDir, $summoner_id, $overwrite);
+		}
+
+		$patch->spellWebp = true;
+		$this->patchRepo->save($patch);
+		return $downloads;
+	}
+	public function downloadRuneImgs(string $patchNumber, bool $overwrite = false): bool|array {
+		$patch = $this->patchRepo->findByPatchNumber($patchNumber);
+		$runesJsonFile = self::LOCAL_DDRAGON_DIR . "/$patchNumber/data/runesReforged.json";
+		$ddragonSourceUrl = "https://ddragon.leagueoflegends.com/cdn/img/";
+		$targetDir = self::LOCAL_DDRAGON_DIR . "/$patchNumber/img/";
+
+		if ($patch === null || !file_exists($runesJsonFile)) {
+			return false;
+		}
+		$runes = json_decode(file_get_contents($runesJsonFile), true);
+
+		$downloads = [];
+		foreach ($runes as $runeTree) {
+			$runeTreeSubdir = implode("/",explode("/",$runeTree["icon"],-1));
+			$imageName = explode("/",$runeTree["icon"]);
+			$imageName = explode(".", end($imageName))[0];
+			$downloads[$imageName] = $this->downloadAndConvertImg($ddragonSourceUrl . $runeTree["icon"], $targetDir . $runeTreeSubdir, $imageName, $overwrite);
+
+			foreach ($runeTree["slots"][0]["runes"] as $keystone) {
+				$keystoneSubdir = implode("/",explode("/",$keystone["icon"],-1));
+				$imageName = explode("/",$keystone["icon"]);
+				$imageName = explode(".", end($imageName))[0];
+				$downloads[$imageName] = $this->downloadAndConvertImg($ddragonSourceUrl . $keystone["icon"], $targetDir . $keystoneSubdir, $imageName, $overwrite);
+			}
+		}
+
+		$patch->runesWebp = true;
+		$this->patchRepo->save($patch);
+		return $downloads;
+	}
+
+
+	/**
+	 * @param string $sourceUrl
+	 * @param string $targetDir
+	 * @param string $targetFilename
+	 * @param bool $overwrite
+	 * @return bool|string the path to the downloaded file or false if the file already exists and $overwrite is false
+	 */
+	private function downloadAndConvertImg(string $sourceUrl, string $targetDir, string $targetFilename, bool $overwrite): bool|string {
+		if (!file_exists($targetDir)) {
+			mkdir($targetDir, 0777, true);
+		}
+		$targetPath = realpath($targetDir)."/$targetFilename.webp";
+		if (file_exists($targetPath) && !$overwrite) {
+			return false;
+		}
+
+		$img = imagecreatefrompng($sourceUrl);
+		imagepalettetotruecolor($img);
+		imagealphablending($img, true);
+		imagesavealpha($img, true);
+		imagewebp($img, $targetPath, 50);
+		imagedestroy($img);
+		return $targetPath;
+	}
 }

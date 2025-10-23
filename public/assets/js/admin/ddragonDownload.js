@@ -96,3 +96,72 @@ async function downloadJson(patchNumber) {
 		.catch(e => console.error(e));
 	await refreshPatchStatus(patchNumber);
 }
+
+$(document).on("click", ".patch-row button.patch-update[data-getimg]", async function () {
+	const patchNumber = this.dataset.patch;
+	const jqButton = $(this);
+	setButtonUpdating(jqButton);
+
+	await downloadImg(patchNumber, this.dataset.getimg, jqButton);
+
+	unsetButtonUpdating(jqButton);
+})
+
+async function downloadImg(patchNumber, imgType, button=null) {
+	const patchParts = patchNumber.split('.');
+	if (patchParts.length !== 3) {
+		return;
+	}
+	let queryParameter = "";
+
+	let overwrite = $('#force-overwrite-patch-img')[0].checked;
+	if (overwrite) {
+		queryParameter += (queryParameter.length > 0 ? "&" : "?")
+		queryParameter += 'overwrite=true';
+	}
+	let batching = 0;
+	if (imgType === 'champions' || imgType === 'items') {
+		batching = await fetch(`/admin/api/patches/${patchParts[0]}/${patchParts[1]}/${patchParts[2]}/${imgType}/count`, {method: 'GET'})
+			.then(res => {
+				if (res.ok) {
+					return res.text()
+				} else {
+					return 0;
+				}
+			})
+			.catch(e => console.error(e));
+	}
+	if (batching > 0) {
+		const batchSize = 20;
+		const batches = Math.ceil(batching / 20);
+		for (let i = 0; i < batches; i++) {
+			const startIndex = i * batchSize;
+			const endIndex = Math.min((i+1) * batchSize-1, batching);
+			const innerQueryParameter = queryParameter + (queryParameter.length > 0 ? "&" : "?") + "start=" + startIndex + "&end=" + endIndex;
+			await fetch(`/admin/api/patches/${patchParts[0]}/${patchParts[1]}/${patchParts[2]}/imgs/${imgType}${innerQueryParameter}`, {method: 'POST'})
+				.catch(e => console.error(e));
+			setButtonLoadingBarWidth(button, Math.round((i+1) / batches * 100));
+		}
+	} else {
+		await fetch(`/admin/api/patches/${patchParts[0]}/${patchParts[1]}/${patchParts[2]}/imgs/${imgType}${queryParameter}`, {method: 'POST'})
+			.catch(e => console.error(e));
+	}
+	await refreshPatchStatus(patchNumber);
+}
+
+
+
+
+function setButtonUpdating(button) {
+	setButtonLoadingBarWidth(button, 0);
+	button.addClass("button-updating");
+	button.prop("disabled",true);
+}
+function unsetButtonUpdating(button) {
+	button.removeClass("button-updating");
+	button.prop("disabled",false);
+	setButtonLoadingBarWidth(button, 0);
+}
+function setButtonLoadingBarWidth(button, widthPercentage) {
+	button.attr("style", `--loading-bar-width: ${widthPercentage}%`);
+}
