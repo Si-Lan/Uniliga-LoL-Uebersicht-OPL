@@ -14,11 +14,11 @@ CREATE TABLE `games_to_matches` (
 
 CREATE TABLE `local_patches` (
   `patch` varchar(10) NOT NULL,
-  `data` tinyint(1) NOT NULL DEFAULT 0,
-  `champion_webp` tinyint(1) NOT NULL DEFAULT 0,
-  `item_webp` tinyint(1) NOT NULL DEFAULT 0,
-  `spell_webp` tinyint(1) NOT NULL DEFAULT 0,
-  `runes_webp` tinyint(1) NOT NULL DEFAULT 0
+  `data` tinyint(1) DEFAULT NULL,
+  `champion_webp` tinyint(1) DEFAULT NULL,
+  `item_webp` tinyint(1) DEFAULT NULL,
+  `spell_webp` tinyint(1) DEFAULT NULL,
+  `runes_webp` tinyint(1) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE TABLE `lol_ranked_splits` (
