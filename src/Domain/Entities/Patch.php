@@ -10,11 +10,11 @@ class Patch {
 	private string $imgUrl;
 	public function __construct(
 		public string $patchNumber,
-		public ?bool $data = null,
-		public ?bool $championWebp = null,
-		public ?bool $itemWebp = null,
-		public ?bool $spellWebp = null,
-		public ?bool $runesWebp = null
+		public ?bool $data = false,
+		public ?bool $championWebp = false,
+		public ?bool $itemWebp = false,
+		public ?bool $spellWebp = false,
+		public ?bool $runesWebp = false
 	) {
 		$this->imgUrl = "/assets/ddragon/$this->patchNumber/img";
 	}
