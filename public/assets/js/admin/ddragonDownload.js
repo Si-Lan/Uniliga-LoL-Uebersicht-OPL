@@ -66,12 +66,12 @@ async function refreshPatchStatus(patchNumber) {
 		.then(patch => {
 			if (patch.error) {return}
 			const patchRow = $(`.patch-row[data-patch="${patchNumber}"]`);
-			patchRow.find(`.patchdata-status.json`).attr('data-status', patch.data ? '1':'0');
-			patchRow.find(`.patchdata-status.all-img`).attr('data-status', (patch.championWebp && patch.itemWebp && patch.spellWebp && patch.runesWebp) ? '1':'0');
-			patchRow.find(`.patchdata-status.champion-img`).attr('data-status', patch.championWebp ? '1':'0');
-			patchRow.find(`.patchdata-status.item-img`).attr('data-status', patch.itemWebp ? '1':'0');
-			patchRow.find(`.patchdata-status.spell-img`).attr('data-status', patch.spellWebp ? '1':'0');
-			patchRow.find(`.patchdata-status.runes-img`).attr('data-status', patch.runesWebp ? '1':'0');
+			patchRow.find(`.patchdata-status.json`).attr('data-status', patch.data === null ? '' : (patch.data ? '1' : '0'));
+			patchRow.find(`.patchdata-status.all-img`).attr('data-status', patch.championWebp === null && patch.itemWebp === null && patch.spellWebp === null && patch.runesWebp === null ? '' : ((patch.championWebp && patch.itemWebp && patch.spellWebp && patch.runesWebp) ? '1' : '0'));
+			patchRow.find(`.patchdata-status.champion-img`).attr('data-status', patch.championWebp === null ? '' : (patch.championWebp ? '1' : '0'));
+			patchRow.find(`.patchdata-status.item-img`).attr('data-status', patch.itemWebp === null ? '' : (patch.itemWebp ? '1' : '0'));
+			patchRow.find(`.patchdata-status.spell-img`).attr('data-status', patch.spellWebp === null ? '' : (patch.spellWebp ? '1' : '0'));
+			patchRow.find(`.patchdata-status.runes-img`).attr('data-status', patch.runesWebp === null ? '' : (patch.runesWebp ? '1' : '0'));
 		})
 		.catch(e => console.error(e));
 }
