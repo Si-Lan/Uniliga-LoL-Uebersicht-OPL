@@ -3,10 +3,12 @@
 namespace App\Domain\Repositories;
 
 use App\Core\Logger;
+use App\Core\Utilities\DataParsingHelpers;
 use App\Domain\Entities\Patch;
 use App\Domain\Enums\SaveResult;
 
 class PatchRepository extends AbstractRepository {
+	use DataParsingHelpers;
 	protected static array $ALL_DATA_KEYS = ["patch","data","champion_webp","item_webp","spell_webp","runes_webp"];
 	protected static array $REQUIRED_DATA_KEYS = ["patch"];
 
@@ -14,11 +16,11 @@ class PatchRepository extends AbstractRepository {
 		$data = $this->normalizeData($data);
 		return new Patch(
 			patchNumber: (string) $data['patch'],
-			data: (bool) $data['data'] ?? false,
-			championWebp: (bool) $data['champion_webp'] ?? false,
-			itemWebp: (bool) $data['item_webp'] ?? false,
-			spellWebp: (bool) $data['spell_webp'] ?? false,
-			runesWebp: (bool) $data['runes_webp'] ?? false
+			data: $this->boolOrNull($data['data']),
+			championWebp: $this->boolOrNull($data['champion_webp']),
+			itemWebp: $this->boolOrNull($data['item_webp']),
+			spellWebp: $this->boolOrNull($data['spell_webp']),
+			runesWebp: $this->boolOrNull($data['runes_webp'])
 		);
 	}
 
@@ -94,11 +96,11 @@ class PatchRepository extends AbstractRepository {
 	private function mapEntityToData(Patch $patch): array {
 		return [
 			'patch' => $patch->patchNumber,
-			'data' => (int) $patch->data,
-			'champion_webp' => (int) $patch->championWebp,
-			'item_webp' => (int) $patch->itemWebp,
-			'spell_webp' => (int) $patch->spellWebp,
-			'runes_webp' => (int) $patch->runesWebp
+			'data' => $this->intOrNull($patch->data),
+			'champion_webp' => $this->intOrNull($patch->championWebp),
+			'item_webp' => $this->intOrNull($patch->itemWebp),
+			'spell_webp' => $this->intOrNull($patch->spellWebp),
+			'runes_webp' => $this->intOrNull($patch->runesWebp)
 		];
 	}
 

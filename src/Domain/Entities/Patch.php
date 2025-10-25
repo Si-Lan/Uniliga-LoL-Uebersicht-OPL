@@ -10,16 +10,17 @@ class Patch {
 	private string $imgUrl;
 	public function __construct(
 		public string $patchNumber,
-		public bool $data = false,
-		public bool $championWebp = false,
-		public bool $itemWebp = false,
-		public bool $spellWebp = false,
-		public bool $runesWebp = false
+		public ?bool $data = false,
+		public ?bool $championWebp = false,
+		public ?bool $itemWebp = false,
+		public ?bool $spellWebp = false,
+		public ?bool $runesWebp = false
 	) {
 		$this->imgUrl = "/assets/ddragon/$this->patchNumber/img";
 	}
 
-	public function allWebp(): bool {
+	public function allWebp(): ?bool {
+		if (is_null($this->championWebp) && is_null($this->itemWebp) && is_null($this->spellWebp) && is_null($this->runesWebp)) return null;
 		return $this->championWebp && $this->itemWebp && $this->spellWebp && $this->runesWebp;
 	}
 

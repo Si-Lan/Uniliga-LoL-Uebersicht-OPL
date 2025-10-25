@@ -13,11 +13,11 @@ $popup = new Popup(id: "patch_options_{$patch->getPatchNumberDashed()}", noClose
 <div class='patch-row' data-patch='<?=$patch->patchNumber?>'>
 	<span class='patch-name'><?=$patch->patchNumber?></span>
 	<div class='patch-updatebutton-wrapper'>
-		<div class='patchdata-status json' data-status='<?=$patch->data?>' data-patch='<?=$patch->patchNumber?>'></div>
+		<div class='patchdata-status json' data-status='<?=is_null($patch->data) ? null : (int)$patch->data?>' data-patch='<?=$patch->patchNumber?>'></div>
 		<button type='button' class='patch-update json' data-patch='<?=$patch->patchNumber?>'><span>JSONs</span></button>
 	</div>
 	<div class='patch-updatebutton-wrapper'>
-		<div class='patchdata-status all-img' data-status='<?=(int)$patch->allWebp()?>' data-patch='<?=$patch->patchNumber?>'></div>
+		<div class='patchdata-status all-img' data-status='<?=is_null($patch->allWebp()) ? null : (int)$patch->allWebp()?>' data-patch='<?=$patch->patchNumber?>'></div>
 		<button type='button' class='patch-update all-img' data-getimg='all' data-patch='<?=$patch->patchNumber?>'><span>Bilder</span></button>
 	</div>
 	<button type='button' class='patch-more-options' data-dialog-id="<?= $popup->getId() ?>"><span>einzelne Bilder</span></button>
