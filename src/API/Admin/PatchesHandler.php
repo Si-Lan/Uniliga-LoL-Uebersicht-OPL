@@ -122,4 +122,16 @@ class PatchesHandler extends AbstractHandler {
 		$downloads = $this->patchUpdater->downloadRuneImgs($patchNumber, $overwrite);
 		echo json_encode($downloads);
 	}
+
+	public function getPatchesSyncAll(): void {
+		echo json_encode($this->patchUpdater->syncPatchDirsToDb());
+	}
+
+	public function getPatchesCheck(string $major, string $minor, string $patch): void {
+		$patchNumber = $this->combinePatchNumbers($major, $minor, $patch);
+		$patchEntity = $this->validateAndGetPatchEntity($patchNumber);
+
+		$saveResult = $this->patchUpdater->checkExistingFilesForPatch($patchEntity);
+		echo json_encode($saveResult);
+	}
 }

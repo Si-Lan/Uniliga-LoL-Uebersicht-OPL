@@ -108,7 +108,7 @@ class PatchUpdater {
 	public function getPatchNumbersFromDirectories(): array {
 		$patchNumbers = [];
 		foreach ($this->ddragonDirIterator as $fileinfo) {
-			if ($fileinfo->isDir() && $fileinfo->getFilename() !== "img") {
+			if ($fileinfo->isDir() && $fileinfo->getFilename() !== "img" && !$fileinfo->isDot()) {
 				$patchNumbers[] = $fileinfo->getFilename();
 			}
 		}
@@ -158,7 +158,7 @@ class PatchUpdater {
 			return false;
 		}
 		if (!file_exists(self::LOCAL_DDRAGON_DIR . "/$patchNumber/data")) {
-			mkdir(self::LOCAL_DDRAGON_DIR . "/$patchNumber/data");
+			mkdir(self::LOCAL_DDRAGON_DIR . "/$patchNumber/data", 0777, true);
 		}
 
 		file_put_contents(self::LOCAL_DDRAGON_DIR . "/$patchNumber/data/champion.json", file_get_contents($this->getChampionsJsonUrl($patchNumber)));
@@ -353,5 +353,125 @@ class PatchUpdater {
 		imagewebp($img, $targetPath, 50);
 		imagedestroy($img);
 		return $targetPath;
+	}
+
+	/**
+	 * @return array{added: array<string>, patches: array<Patch>}
+	 */
+	public function syncPatchDirsToDb(): array {
+		$directoryPatchNumbers = $this->getPatchNumbersFromDirectories();
+		$dbPatches = $this->patchRepo->findAll();
+		$databasePatchNumbers = array_map(fn($patch) => $patch->patchNumber, $dbPatches);
+		foreach ($directoryPatchNumbers as $patchNumber) {
+			if (!in_array($patchNumber, $databasePatchNumbers)) {
+				$this->addNewPatch($patchNumber);
+			}
+		}
+
+		return ["added" => array_values(array_diff($directoryPatchNumbers, $databasePatchNumbers)), "patches" => array_reverse($this->patchRepo->findAll())];
+	}
+
+	public function checkExistingFilesForPatch(Patch $patch): array {
+		$patchDir = self::LOCAL_DDRAGON_DIR."/".$patch->patchNumber;
+		$dataCheck = null;
+		$championCheck = null;
+		$itemCheck = null;
+		$spellCheck = null;
+		$runesCheck = null;
+		if (!file_exists($patchDir."/data")) {
+			$dataCheck = false;
+		}
+		if (!file_exists($patchDir."/img/champion")) {
+			$championCheck = false;
+		}
+		if (!file_exists($patchDir."/img/item")) {
+			$itemCheck = false;
+		}
+		if (!file_exists($patchDir."/img/spell")) {
+			$spellCheck = false;
+		}
+		if (!file_exists($patchDir."/img/perk-images")) {
+			$runesCheck = false;
+		}
+
+		if (is_null($dataCheck)) {
+			if (file_exists($patchDir."/data/champion.json")
+				&& file_exists($patchDir."/data/item.json")
+				&& file_exists($patchDir."/data/summoner.json")
+				&& file_exists($patchDir."/data/runesReforged.json")
+			) {
+				$dataCheck = true;
+			} else {
+				$dataCheck = false;
+			}
+		}
+
+		if (is_null($championCheck) && $dataCheck) {
+			$champions = json_decode(file_get_contents($patchDir . "/data/champion.json"), true)['data'];
+			foreach ($champions as $champion) {
+				if (!file_exists($patchDir . "/img/champion/" . $champion["id"] . ".webp")) {
+					$championCheck = false;
+					break;
+				}
+			}
+			if (is_null($championCheck)) {
+				$championCheck = true;
+			}
+		}
+
+		if (is_null($itemCheck) && $dataCheck) {
+			$items = json_decode(file_get_contents($patchDir . "/data/item.json"), true)['data'];
+			foreach ($items as $item_id=>$item) {
+				if (!file_exists($patchDir . "/img/item/" . $item_id . ".webp")) {
+					$itemCheck = false;
+					break;
+				}
+			}
+			if (is_null($itemCheck)) {
+				$itemCheck = true;
+			}
+		}
+
+		if (is_null($spellCheck) && $dataCheck) {
+			$summoners = json_decode(file_get_contents($patchDir . "/data/summoner.json"), true)['data'];
+			foreach ($summoners as $summoner_id=>$summoner) {
+				if (!file_exists($patchDir . "/img/spell/" . $summoner_id . ".webp")) {
+					$spellCheck = false;
+					break;
+				}
+			}
+			if (is_null($spellCheck)) {
+				$spellCheck = true;
+			}
+		}
+
+		if (is_null($runesCheck) && $dataCheck) {
+			$runes = json_decode(file_get_contents($patchDir . "/data/runesReforged.json"), true);
+			foreach ($runes as $runeTree) {
+				$treeIcon = explode(".",$runeTree["icon"])[0].".webp";
+				if (!file_exists($patchDir . "/img/" . $treeIcon)) {
+					$runesCheck = false;
+					break;
+				}
+				foreach ($runeTree["slots"][0]["runes"] as $keystone) {
+					$runeIcon = explode(".",$keystone["icon"])[0].".webp";
+					if (!file_exists($patchDir . "/img/" . $runeIcon)) {
+						$runesCheck = false;
+						break;
+					}
+				}
+			}
+			if (is_null($runesCheck)) {
+				$runesCheck = true;
+			}
+		}
+
+
+		$patch->data = $dataCheck;
+		$patch->championWebp = $championCheck;
+		$patch->itemWebp = $itemCheck;
+		$patch->spellWebp = $spellCheck;
+		$patch->runesWebp = $runesCheck;
+		return $this->patchRepo->save($patch);
 	}
 }

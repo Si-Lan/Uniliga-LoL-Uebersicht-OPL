@@ -191,6 +191,57 @@ $(document).on("click", ".patch-row button.patch-update.all-img", async function
 	unsetButtonUpdating(otherPatchButtons);
 })
 
+$(document).on("click", ".patch-header button.sync_patches", async function () {
+	const jqButton = $(this);
+	setButtonUpdating(jqButton);
+	await syncDataForPatches(jqButton);
+	unsetButtonUpdating(jqButton);
+})
+async function syncDataForPatches(button = null) {
+	const syncResult = await fetch(`/admin/api/patches/sync`, {method: 'GET'})
+		.then(res => {
+			if (res.ok) {
+				return res.json()
+			} else {
+				return {"error": "Fehler beim Laden der Daten"};
+			}
+		})
+		.catch(e => console.error(e));
+	if (syncResult.error) {
+		return;
+	}
+	const addedPatches = syncResult.added.join(", ");
+	const patches = syncResult.patches;
+	await refreshPatchList();
+
+	let counter = 0;
+	let updatedPatches = [];
+	for (const patch of patches) {
+		const patchParts = patch.patchNumber.split('.');
+		if (patchParts.length !== 3) {
+			continue;
+		}
+		const checkResult = await fetch(`/admin/api/patches/${patchParts[0]}/${patchParts[1]}/${patchParts[2]}/check`, {method: 'GET'})
+			.then(res => {
+				if (res.ok) {
+					return res.json()
+				} else {
+					return {"error": "Fehler beim Laden der Daten"};
+				}
+			})
+			.catch(e => console.error(e));
+		if (!checkResult.error && checkResult.result === "updated") {
+			updatedPatches.push(checkResult.patch.patchNumber);
+		}
+		counter++;
+		if (button !== null) setButtonLoadingBarWidth(button, Math.round(counter / patches.length * 100));
+	}
+
+	await refreshPatchList();
+
+	$('dialog.patch-result-popup .dialog-content').html(`neue Patches: ${addedPatches === "" ? "keine" : addedPatches}<br> aktualisierte Patches: ${updatedPatches.length === 0 ? "keine" : updatedPatches.join(", ")}`);
+	$('dialog.patch-result-popup')[0].showModal();
+}
 
 
 
