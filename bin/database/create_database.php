@@ -1,5 +1,5 @@
 <?php
-require_once dirname(__DIR__) . '/bootstrap.php';
+require_once dirname(__DIR__,2) . '/bootstrap.php';
 
 $options = getopt('', ['name:','schema:']);
 $dbName = $options['name'] ?? 'uniliga_opl_overview';
@@ -16,7 +16,7 @@ echo "Datenbank '$dbName' erstellt oder existiert bereits.\n";
 
 $dbcn->select_db($dbName);
 
-$schemaFile = dirname(__DIR__) . "/database/$schema";
+$schemaFile = BASE_PATH . "/database/$schema";
 if (!file_exists($schemaFile)) {
 	echo "Schema-Datei '$schemaFile' nicht gefunden.\n";
 	exit(1);

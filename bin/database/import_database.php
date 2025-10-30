@@ -1,17 +1,17 @@
 <?php
-require_once dirname(__DIR__) . '/bootstrap.php';
+require_once dirname(__DIR__,2) . '/bootstrap.php';
 
 $options = getopt('', ['file:', 'database:']);
 $sqlFile = $options['file'] ?? null;
 $dbName = $options['database'] ?? 'uniliga_opl_overview';
 
 if (!$sqlFile) {
-    echo "Fehler: Keine SQL-Datei angegeben. Bitte mit --file=dateiname.sql aufrufen.\n";
+    echo "Fehler: Keine SQL-Datei angegeben. Bitte mit --file=dateiname.sql aufrufen. SQL-Datei sollte im 'database' Verzeichnis liegen.\n";
     echo "Verwendung: php import_database.php --file=dateiname.sql [--database=datenbankname]\n";
     exit(1);
 }
 
-$filePath = dirname(__DIR__) . "/database/$sqlFile";
+$filePath = BASE_PATH . "/database/$sqlFile";
 if (!file_exists($filePath)) {
     echo "Fehler: SQL-Datei '$filePath' nicht gefunden.\n";
     exit(1);

@@ -1,6 +1,6 @@
 <?php
 
-require_once dirname(__DIR__) . '/bootstrap.php';
+require_once dirname(__DIR__,2) . '/bootstrap.php';
 
 $options = getopt('', ['db_old:', 'db_new:']);
 $dbOld = $options['db_old'] ?? null;
