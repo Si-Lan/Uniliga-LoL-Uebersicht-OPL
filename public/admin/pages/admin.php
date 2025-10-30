@@ -1,5 +1,4 @@
 <?php
-/** @var mysqli $dbcn  */
 
 use App\Core\Utilities\UserContext;
 use App\UI\Components\Admin\RankedSplit\RankedSplitList;

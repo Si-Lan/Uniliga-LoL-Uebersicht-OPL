@@ -1,5 +1,4 @@
 <?php
-/** @var mysqli $dbcn  */
 
 use App\UI\Components\Admin\PatchData\AddPatchesView;
 use App\UI\Components\Admin\PatchData\PatchDataRows;

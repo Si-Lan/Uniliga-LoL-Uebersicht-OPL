@@ -1,5 +1,4 @@
 <?php
-/** @var mysqli $dbcn  */
 
 use App\UI\Components\Navigation\Header;
 use App\UI\Enums\HeaderType;

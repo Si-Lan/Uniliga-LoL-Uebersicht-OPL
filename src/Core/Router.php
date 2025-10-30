@@ -214,7 +214,6 @@ class Router {
 	}
 
 	private static function renderPage(string $pageFile): void {
-		$dbcn = DatabaseConnection::getConnection(); //TODO: temporär, solange pages noch selbst Datenbank Anfragen machen
 		ob_start();
 		require $pageFile;
 		$pageContent = ob_get_clean();
