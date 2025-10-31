@@ -1,8 +1,5 @@
 RewriteEngine On
 
-RewriteCond %{HTTPS} off
-RewriteRule (.*) https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
-
 # enable opening php files without .php ending
 RewriteCond %{REQUEST_FILENAME}.php !-f
 RewriteRule ^([^.]+)$ $1.php [NC,L]
