@@ -5,6 +5,7 @@ $options = getopt('', ['name:','schema:']);
 $dbName = $options['name'] ?? 'uniliga_opl_overview';
 $schema = $options['schema'] ?? 'schema.sql';
 
+$_ENV['DB_DATABASE'] = '';
 $dbcn = \App\Core\DatabaseConnection::getConnection();
 
 if (!$dbcn->query("CREATE DATABASE IF NOT EXISTS `$dbName` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci")) {
