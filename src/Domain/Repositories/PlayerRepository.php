@@ -49,6 +49,19 @@ class PlayerRepository extends AbstractRepository {
 	}
 
 	/**
+	 * @return array<Player>
+	 */
+	public function findAll(): array {
+		$result = $this->dbcn->execute_query("SELECT * FROM players");
+		$data = $result->fetch_all(MYSQLI_ASSOC);
+		$players = [];
+		foreach ($data as $row) {
+			$players[] = $this->mapToEntity($row);
+		}
+		return $players;
+	}
+
+	/**
 	 * @param array<int> $playerIds
 	 * @return array<Player>
 	 */
