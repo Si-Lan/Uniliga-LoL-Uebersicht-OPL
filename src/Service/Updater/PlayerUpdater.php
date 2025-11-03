@@ -9,14 +9,17 @@ use App\Domain\Repositories\PlayerInTeamRepository;
 use App\Domain\Repositories\PlayerRepository;
 use App\Domain\Repositories\TeamRepository;
 use App\Service\OplApiService;
+use App\Service\RiotApiService;
 
 class PlayerUpdater {
 	private PlayerRepository $playerRepo;
 	private OplApiService $oplApiService;
+	private RiotApiService $riotApiService;
 
 	public function __construct() {
 		$this->playerRepo = new PlayerRepository();
 		$this->oplApiService = new OplApiService();
+		$this->riotApiService = new RiotApiService();
 	}
 
 	/**
@@ -71,5 +74,30 @@ class PlayerUpdater {
 		}
 
 		return ['players' => $saveResults, 'errors' => $errors, 'team' => $team];
+	}
+
+	/**
+	 * @return array{'result': SaveResult, 'changes': ?array<string, mixed>, 'previous': ?array<string,mixed>, 'player': ?Player}
+	 * @throws \Exception
+	 */
+	public function updatePuuidByRiotId(int $playerId): array {
+		$player = $this->playerRepo->findById($playerId);
+		if ($player === null) {
+			throw new \Exception("Player not found", 404);
+		}
+		if ($player->riotIdName === null || $player->riotIdTag === null) {
+			throw new \Exception("Player does not have a linked Riot Account", 200);
+		}
+
+		$riotApiResponse = $this->riotApiService->getRiotAccountByRiotId($player->riotIdName, $player->riotIdTag);
+
+		if (!$riotApiResponse->isSuccess()) {
+			return ['result'=>SaveResult::FAILED, 'httpCode'=> $riotApiResponse->getStatusCode(), 'changes'=>null, 'previous'=>null, 'player'=>$player];
+		}
+
+		$puuid = $riotApiResponse->getData()['puuid'];
+		$player->puuid = $puuid;
+		$saveResult = $this->playerRepo->save($player);
+		return ['result'=>$saveResult['result'], 'changes'=>$saveResult['changes']??null, 'previous'=>$saveResult['previous']??null, 'player'=>$player];
 	}
 }
