@@ -1,0 +1,169 @@
+<?php
+
+namespace App\Domain\Repositories;
+
+use App\Core\Utilities\DataParsingHelpers;
+use App\Domain\Entities\UpdateJob;
+use App\Domain\Enums\Jobs\UpdateJobAction;
+use App\Domain\Enums\Jobs\UpdateJobContextType;
+use App\Domain\Enums\Jobs\UpdateJobStatus;
+use App\Domain\Enums\Jobs\UpdateJobType;
+use App\Domain\Enums\SaveResult;
+
+class UpdateJobRepository extends AbstractRepository {
+	use DataParsingHelpers;
+	private TournamentRepository $tournamentRepo;
+	private TeamRepository $teamRepo;
+	private MatchupRepository $matchupRepo;
+	protected static array $ALL_DATA_KEYS = ["id", "type", "action", "status", "progress", "context_type", "context_id", "tournament_id", "started_at", "finished_at", "message", "created_at", "updated_at", "pid"];
+	protected static array $REQUIRED_DATA_KEYS = ["id", "type", "action"];
+
+	public function __construct() {
+		parent::__construct();
+		$this->tournamentRepo = new TournamentRepository();
+		$this->teamRepo = new TeamRepository();
+		$this->matchupRepo = new MatchupRepository();
+	}
+	public function mapToEntity(array $data): UpdateJob {
+		$data = $this->normalizeData($data);
+
+		$context = null;
+		$contextId = $this->intOrNull($data['context_id']);
+		if ($contextId !== null) {
+			switch ($data['context_type']) {
+				case UpdateJobContextType::TOURNAMENT->value:
+					$context = $this->tournamentRepo->findById($contextId);
+					break;
+				case UpdateJobContextType::TEAM->value:
+					$context = $this->teamRepo->findById($contextId);
+					break;
+				case UpdateJobContextType::MATCHUP->value:
+					$context = $this->matchupRepo->findById($contextId);
+					break;
+			}
+		}
+		$tournament = null;
+		$tournamentId = $this->intOrNull($data['tournament_id']);
+		if ($tournamentId !== null) {
+			$tournament = $this->tournamentRepo->findById($tournamentId);
+		}
+
+		return new UpdateJob(
+			id: (int) $data['id'],
+			type: UpdateJobType::tryFrom($data['type']),
+			action: UpdateJobAction::tryFrom($data['action']),
+			status: UpdateJobStatus::tryFrom($data['status']??''),
+			progress: floatval($data['progress']),
+			contextType: UpdateJobContextType::tryFrom($data['context_type']??''),
+			context: $context,
+			tournament: $tournament,
+			startedAt: $this->DateTimeImmutableOrNull($data['started_at']),
+			finishedAt: $this->DateTimeImmutableOrNull($data['finished_at']),
+			message: $this->stringOrNull($data['message']),
+			createdAt: $this->DateTimeImmutableOrNull($data['created_at']),
+			updatedAt: $this->DateTimeImmutableOrNull($data['updated_at']),
+			pid: $this->intOrNull($data['pid'])??null
+		);
+	}
+	public function mapEntityToData(UpdateJob $job): array {
+		$data = [];
+		$data['id'] = $job->id;
+		$data['type'] = $job->type->value;
+		$data['action'] = $job->action->value;
+		$data['context_type'] = $job->contextType->value;
+		$data['context_id'] = $job->context?->id;
+		$data['tournament_id'] = $job->tournament?->id;
+		$data['started_at'] = $job->startedAt?->format('Y-m-d H:i:s');
+		$data['finished_at'] = $job->finishedAt?->format('Y-m-d H:i:s');
+		$data['status'] = $job->status->value;
+		$data['progress'] = $job->progress;
+		$data['message'] = $job->message;
+		$data['created_at'] = $job->createdAt?->format('Y-m-d H:i:s');
+		$data['updated_at'] = $job->updatedAt?->format('Y-m-d H:i:s');
+		$data['pid'] = $job->pid;
+		return $data;
+	}
+
+	public function findById(int $id): ?UpdateJob {
+		$query = 'SELECT * FROM update_jobs WHERE id = ?';
+		$result = $this->dbcn->execute_query($query, [$id]);
+		$data = $result->fetch_assoc();
+		return $data ? $this->mapToEntity($data) : null;
+
+	}
+
+	/**
+	 * @param UpdateJobType|null $type
+	 * @param UpdateJobAction|null $action
+	 * @param UpdateJobStatus|null $status
+	 * @param UpdateJobContextType|null $contextType
+	 * @param int|null $contextId
+	 * @param int|null $tournamentId
+	 * @return array<UpdateJob>
+	 */
+	public function findAll(?UpdateJobType $type = null, ?UpdateJobAction $action = null, ?UpdateJobStatus $status = null, ?UpdateJobContextType $contextType = null, ?int $contextId = null, ?int $tournamentId = null): array {
+		/** @noinspection SqlConstantExpression */
+		$query = 'SELECT * FROM update_jobs WHERE 1 = 1';
+		$params = [];
+		if ($type !== null) {
+			$query .= ' AND type = ?';
+			$params[] = $type->value;
+		}
+		if ($action !== null) {
+			$query .= ' AND action = ?';
+			$params[] = $action->value;
+		}
+		if ($status !== null) {
+			$query .= ' AND status = ?';
+			$params[] = $status->value;
+		}
+		if ($contextType !== null) {
+			$query .= ' AND context_type = ?';
+			$params[] = $contextType->value;
+		}
+		if ($contextId !== null) {
+			$query .= ' AND context_id = ?';
+			$params[] = $contextId;
+		}
+		if ($tournamentId !== null) {
+			$query .= ' AND tournament_id = ?';
+			$params[] = $tournamentId;
+		}
+		$query .= ' ORDER BY id DESC';
+
+		$result = $this->dbcn->execute_query($query, $params);
+		$data = $result->fetch_all(MYSQLI_ASSOC);
+		$jobs = [];
+		foreach ($data as $jobData) {
+			$jobs[] = $this->mapToEntity($jobData);
+		}
+		return $jobs;
+	}
+
+	public function createJob(UpdateJobType $type, UpdateJobAction $action, ?UpdateJobContextType $contextType = null, ?int $contextId = null, ?int $tournamentId = null): UpdateJob {
+		$query = 'INSERT INTO update_jobs (type, action, context_type, context_id, tournament_id) VALUES (?, ?, ?, ?, ?)';
+		$params = [$type->value, $action->value, $contextType?->value, $contextId, $tournamentId];
+		$this->dbcn->execute_query($query, $params);
+		$id = $this->dbcn->insert_id;
+		return $this->findById($id);
+	}
+	public function save(UpdateJob $job): array {
+		$existingJob = $this->findById($job->id);
+		$dataNew = $this->mapEntityToData($job);
+		$dataOld = $this->mapEntityToData($existingJob);
+		$dataChanged = array_diff_assoc($dataNew, $dataOld);
+		$dataPrevious = array_diff_assoc($dataOld, $dataNew);
+
+		if (count($dataChanged) === 0) {
+			return ['result' => SaveResult::NOT_CHANGED];
+		}
+
+		$set = implode(", ", array_map(fn($key) => "$key = ?", array_keys($dataChanged)));
+		$values = array_values($dataChanged);
+
+		$query = "UPDATE update_jobs SET $set WHERE id = ?";
+		$this->dbcn->execute_query($query, [...$values, $job->id]);
+
+		return ['result'=>SaveResult::UPDATED, 'changes'=>$dataChanged, 'previous'=>$dataPrevious];
+	}
+}

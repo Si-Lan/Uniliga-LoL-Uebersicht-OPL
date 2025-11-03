@@ -212,6 +212,42 @@ CREATE TABLE `updates_user_team` (
   `last_update` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+CREATE TABLE update_jobs (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    type ENUM('admin', 'user', 'cron') NOT NULL,
+    action ENUM(
+        'update_teams',
+        'update_players',
+        'update_matches',
+        'update_results',
+        'update_riotids_opl',
+        'update_puuids',
+        'update_riotids_puuid',
+        'update_player_ranks',
+        'update_team_ranks',
+        'update_gamedata',
+        'update_team',
+        'update_group',
+        'update_match',
+        'update_tournament'
+    ) NOT NULL,
+    status ENUM('queued','running','success','error','cancelled','abandoned') DEFAULT 'queued',
+    progress FLOAT UNSIGNED DEFAULT 0,
+
+    context_type ENUM('tournament','team','group','matchup') NULL,
+    context_id INT(11) NULL,
+
+    tournament_id INT(11) NULL,
+
+    started_at DATETIME NULL,
+    finished_at DATETIME NULL,
+
+    message TEXT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+    pid INT(11) NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 
 -- Indizes
@@ -325,6 +361,8 @@ ALTER TABLE `updates_user_team`
   ADD PRIMARY KEY (`OPL_ID_team`),
   ADD KEY `OPL_ID_team` (`OPL_ID_team`);
 
+ALTER TABLE update_jobs
+    ADD KEY tournament_idx (tournament_id);
 
 
 -- Views
@@ -604,3 +642,9 @@ ALTER TABLE `updates_user_matchup`
 
 ALTER TABLE `updates_user_team`
   ADD CONSTRAINT `updates_user_team_ibfk_1` FOREIGN KEY (`OPL_ID_team`) REFERENCES `teams` (`OPL_ID`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+ALTER TABLE update_jobs
+    ADD CONSTRAINT fk_update_jobs_tournament
+        FOREIGN KEY (tournament_id)
+            REFERENCES tournaments(OPL_ID)
+            ON DELETE SET NULL ON UPDATE CASCADE;
