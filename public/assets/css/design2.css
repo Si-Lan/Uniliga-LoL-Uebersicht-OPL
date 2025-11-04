@@ -3687,6 +3687,9 @@ body.admin div.writing-wrapper {
 	flex-direction: column;
 	gap: 8px;
 	align-items: stretch;
+	& button.write {
+		width: 101%;
+	}
 }
 body.admin div.writing-wrapper.hidden {
 	display: none;

@@ -38,21 +38,21 @@ $tournaments = EntitySorter::sortTournamentsByStartDate($tournaments);
 		} else {
 			$hiddenclass = " hidden";
 		}
-		echo "<div class='writing-wrapper ".$tournament->id.$hiddenclass."'>";
+		echo "<div class='writing-wrapper $hiddenclass' data-id='$tournament->id'>";
 		echo "<h2>{$tournament->getFullName()}</h2>";
         if ($tournament->archived) {
             echo "<span style='color: #ff6161; text-align: center'>Dieses Turnier ist archiviert!</span>";
         }
-		echo "<button class='write puuids {$tournament->id}' onclick='get_puuids(\"{$tournament->id}\")'>get PUUIDs for Players without ID</button>";
-		echo "<button class='write puuids-all {$tournament->id}' onclick='get_puuids(\"{$tournament->id}\",false)'>get PUUIDs for all Players</button>";
-		echo "<button class='write riotids-puuids {$tournament->id}' onclick='get_riotids_by_puuids(\"{$tournament->id}\")'>get RiotIDs for all Players</button>";
-		echo "<button class='write get-ranks {$tournament->id}' onclick='get_ranks(\"{$tournament->id}\")'>get Ranks for Players</button>";
-		echo "<button class='write calc-team-rank {$tournament->id}' onclick='get_average_team_ranks(\"{$tournament->id}\")'>calculate average Ranks for Teams</button>";
-		echo "<button class='write gamedata {$tournament->id}' onclick='get_game_data(\"{$tournament->id}\")'>get Gamedata for Games without Data</button>";
-		echo "<button class='write get-pstats {$tournament->id}' onclick='get_stats_for_players(\"{$tournament->id}\")'>calculate Playerstats</button>";
-		echo "<button class='write teamstats {$tournament->id}' onclick='get_teamstats(\"{$tournament->id}\")'>calculate Teamstats</button>";
-		echo "<div class='result-wrapper no-res {$tournament->id}'>
-                        <div class='clear-button' onclick='clear_results(\"{$tournament->id}\")'>Clear</div>
+		echo "<button class='write puuids' data-id='{$tournament->id}'><span>get PUUIDs for Players without ID</span></button>";
+		echo "<button class='write puuids-all' data-id='{$tournament->id}'><span>get PUUIDs for all Players</span></button>";
+		echo "<button class='write riotids-puuids' data-id='{$tournament->id}'><span>get RiotIDs for all Players</span></button>";
+		echo "<button class='write get-ranks' data-id='{$tournament->id}'><span>get Ranks for Players</span></button>";
+		echo "<button class='write calc-team-rank' data-id='{$tournament->id}'><span>calculate average Ranks for Teams</span></button>";
+		echo "<button class='write gamedata' data-id='{$tournament->id}'><span>get Gamedata for Games without Data</span></button>";
+		echo "<button class='write get-pstats' data-id='{$tournament->id}'><span>calculate Playerstats</span></button>";
+		echo "<button class='write teamstats' data-id='{$tournament->id}'><span>calculate Teamstats</span></button>";
+		echo "<div class='result-wrapper no-res' data-id='{$tournament->id}'>
+                        <div class='clear-button' data-id='{$tournament->id}'>Clear</div>
                         <div class='result-content'></div>
                       </div>";
 		echo "</div>";

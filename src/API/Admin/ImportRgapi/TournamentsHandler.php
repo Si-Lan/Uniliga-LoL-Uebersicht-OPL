@@ -6,11 +6,14 @@ use App\API\AbstractHandler;
 use App\Domain\Enums\Jobs\UpdateJobAction;
 use App\Domain\Enums\Jobs\UpdateJobContextType;
 use App\Domain\Enums\Jobs\UpdateJobType;
+use App\Domain\Repositories\TournamentRepository;
 use App\Domain\Repositories\UpdateJobRepository;
 
 class TournamentsHandler extends AbstractHandler {
+	private TournamentRepository $tournamentRepo;
 	private UpdateJobRepository $updateJobRepo;
 	public function __construct() {
+		$this->tournamentRepo = new TournamentRepository();
 		$this->updateJobRepo = new UpdateJobRepository();
 	}
 
@@ -18,6 +21,10 @@ class TournamentsHandler extends AbstractHandler {
 	public function postTournamentsPlayersPuuids(int $tournamentId): void {
 		$this->checkRequestMethod('POST');
 		$withoutPuuidOnly = isset($_GET["withoutPuuid"]) && $_GET["withoutPuuid"] === "true";
+
+		if ($this->tournamentRepo->tournamentExists($tournamentId) === false) {
+			$this->sendErrorResponse(404, "Tournament not found");
+		}
 
 		$job = $this->updateJobRepo->createJob(UpdateJobType::ADMIN, UpdateJobAction::UPDATE_PUUIDS, UpdateJobContextType::TOURNAMENT, $tournamentId);
 
