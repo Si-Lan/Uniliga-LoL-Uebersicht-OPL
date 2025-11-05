@@ -10,6 +10,7 @@ class Logger {
 	];
 
 	public static function log(string $type, string $message):void {
+		if (!file_exists(BASE_PATH."/logs")) mkdir(BASE_PATH."/logs");
 		$path = self::LOG_PATHS[$type] ?? self::LOG_PATHS['default'];
 		$entry = "[".date("Y-m-d H:i:s")."]: ".$message."\n";
 		file_put_contents($path, $entry, FILE_APPEND);
