@@ -1,0 +1,1 @@
+*/10 * * * * www-data /usr/local/bin/php /var/www/uniliga_silence_lol/bin/cron/job_check.php >> /var/log/cron.log 2>&1
