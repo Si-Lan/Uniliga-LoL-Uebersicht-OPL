@@ -154,7 +154,7 @@ class PlayerUpdater {
         $riotApiResponse = $this->riotApiService->getRankByPuuid($player->puuid);
 
         if (!$riotApiResponse->isSuccess()) {
-            return ['player'=>['result'=>SaveResult::FAILED, 'error'=>$riotApiResponse->getError(), 'httpCode'=>$riotApiResponse->getStatusCode(), 'previous'=>null, 'player'=>$player]];
+            return ['player'=>['result'=>SaveResult::FAILED, 'error'=>$riotApiResponse->getError(), 'httpCode'=>$riotApiResponse->getStatusCode(), 'previous'=>null, 'player'=>$player], 'playerSeasonRank'=>null];
         }
 
         $rankedQueues = array_column($riotApiResponse->getData(), null, 'queueType');
@@ -174,7 +174,7 @@ class PlayerUpdater {
         $playerSeasonRankRepo = new PlayerSeasonRankRepository();
         $playerSeasonRank = $playerSeasonRankRepo->findCurrentSeasonRankForPlayer($player);
         if ($playerSeasonRank === null) {
-            return ['player'=>$playerSaveResult];
+            return ['player'=>$playerSaveResult, 'playerSeasonRank'=>null];
         }
         $playerSeasonRank->rank = $playerRank;
         $playerSeasonSaveResult = $this->playerSeasonRankRepo->save($playerSeasonRank);

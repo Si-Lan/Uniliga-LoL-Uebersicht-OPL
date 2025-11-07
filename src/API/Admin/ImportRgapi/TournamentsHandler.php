@@ -50,4 +50,18 @@ class TournamentsHandler extends AbstractHandler {
 
         echo json_encode(['job_id'=>$job->id]);
     }
+
+    public function postTournamentsPlayersRanks(int $tournamentId): void {
+        $this->checkRequestMethod('POST');
+        if ($this->tournamentRepo->tournamentExists($tournamentId) === false) {
+            $this->sendErrorResponse(404, "Tournament not found");
+        }
+
+        $job = $this->updateJobRepo->createJob(UpdateJobType::ADMIN, UpdateJobAction::UPDATE_PLAYER_RANKS, UpdateJobContextType::TOURNAMENT, $tournamentId);
+
+        $optionsString = "-j $job->id";
+        exec("php ".BASE_PATH."/bin/admin_updates/update_player_ranks.php $optionsString > /dev/null 2>&1 &");
+
+        echo json_encode(['job_id'=>$job->id]);
+    }
 }
