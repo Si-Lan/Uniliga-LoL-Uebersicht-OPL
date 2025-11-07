@@ -16,7 +16,7 @@ class MatchPopupContent {
 		$gameInMatchRepo = new GameInMatchRepository();
 		$gamesInMatch = $gameInMatchRepo->findAllByMatchup($matchup);
 		$this->gamesInMatch = $gamesInMatch;
-		AssetManager::addCssFile('assets/css/game.css');
+		AssetManager::addCssAsset('game.css');
 	}
 	public function render(): string {
 		$matchup = $this->matchup;
