@@ -9,7 +9,7 @@ enum UpdateJobAction: string {
 	case UPDATE_RESULTS = 'update_results';
 	case UPDATE_RIOTIDS_OPL = 'update_riotids_opl';
 	case UPDATE_PUUIDS = 'update_puuids';
-	case UPDATE_RIOTIDS_PUUIDS = 'update_riotids_puuids';
+	case UPDATE_RIOTIDS_PUUIDS = 'update_riotids_puuid';
 	case UPDATE_PLAYER_RANKS = 'update_player_ranks';
 	case UPDATE_TEAM_RANKS = 'update_team_ranks';
 	case UPDATE_GAMEDATA = 'update_gamedata';

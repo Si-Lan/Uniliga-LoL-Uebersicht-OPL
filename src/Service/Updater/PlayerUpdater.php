@@ -100,4 +100,32 @@ class PlayerUpdater {
 		$saveResult = $this->playerRepo->save($player);
 		return ['result'=>$saveResult['result'], 'changes'=>$saveResult['changes']??null, 'previous'=>$saveResult['previous']??null, 'player'=>$player];
 	}
+
+    /**
+     * @param int $playerId
+     * @return array{'result': SaveResult, 'changes': ?array<string, mixed>, 'previous': ?array<string,mixed>, 'player': ?Player}
+     * @throws \Exception
+     */
+    public function updateRiotIdByPuuid(int $playerId): array {
+        $player = $this->playerRepo->findById($playerId);
+        if ($player === null) {
+            throw new \Exception("Player not found", 404);
+        }
+        if ($player->puuid === null) {
+            throw new \Exception("Player does not have a set PUUID", 200);
+        }
+
+        $riotApiResponse = $this->riotApiService->getRiotAccountByPuuid($player->puuid);
+
+        if (!$riotApiResponse->isSuccess()) {
+            return ['result'=>SaveResult::FAILED, 'error'=>$riotApiResponse->getError(), 'httpCode'=>$riotApiResponse->getStatusCode(), 'changes'=>null, 'previous'=>null, 'player'=>$player];
+        }
+
+        $gameName = $riotApiResponse->getData()['gameName'];
+        $tagLine = $riotApiResponse->getData()['tagLine'];
+        $player->riotIdName = $gameName;
+        $player->riotIdTag = $tagLine;
+        $saveResult = $this->playerRepo->save($player);
+        return $saveResult;
+    }
 }
