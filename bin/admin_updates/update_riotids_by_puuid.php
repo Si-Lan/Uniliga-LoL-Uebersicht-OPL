@@ -67,7 +67,7 @@ $count = 0;
 $total = count($players);
 $batches = array_chunk($players, $batchSize);
 
-$job->addMessage("Updating $total players in ".count($players)." Batches.");
+$job->addMessage("Updating $total players in ".count($batches)." Batches.");
 foreach ($batches as $i=>$batch) {
     $batchNum = $i+1;
     $job->addMessage("Batch $batchNum:");
