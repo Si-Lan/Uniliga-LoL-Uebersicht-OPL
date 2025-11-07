@@ -30,6 +30,19 @@ $(document).on("click", "button.write.puuids-all", async function () {
 	unsetButtonUpdating(jqButton);
 })
 
+$(document).on("click", "button.write.riotids-puuids", async function () {
+    const tournamentId = this.dataset.id;
+    const jqButton = $(this);
+    const jobResponse = await startJob(`/admin/api/rgapi/tournaments/${tournamentId}/players/riotids`)
+    if (jobResponse.error) {
+        console.error(jobResponse.error);
+        return;
+    }
+    const jobId = parseInt(jobResponse["job_id"]);
+    setButtonUpdating(jqButton);
+    await checkJobStatusRepeatedly(jobId, 1000, jqButton);
+    unsetButtonUpdating(jqButton);
+})
 
 async function startJob(endpoint) {
 	return await fetch(endpoint, {method: 'POST'})
