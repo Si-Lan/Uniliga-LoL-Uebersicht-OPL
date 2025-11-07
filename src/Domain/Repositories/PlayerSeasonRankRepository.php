@@ -2,11 +2,13 @@
 
 namespace App\Domain\Repositories;
 
+use App\Core\Logger;
 use App\Core\Utilities\DataParsingHelpers;
 use App\Domain\Entities\Player;
 use App\Domain\Entities\PlayerSeasonRank;
 use App\Domain\Entities\RankedSplit;
 use App\Domain\Entities\ValueObjects\RankForPlayer;
+use App\Domain\Enums\SaveResult;
 
 class PlayerSeasonRankRepository extends AbstractRepository {
 	use DataParsingHelpers;
@@ -44,6 +46,16 @@ class PlayerSeasonRankRepository extends AbstractRepository {
 			)
 		);
 	}
+    public function mapEntityToData(PlayerSeasonRank $playerSeasonRank): array {
+        return [
+            "OPL_ID_player" => $playerSeasonRank->player->id,
+            "season" => $playerSeasonRank->rankedSplit->season,
+            "split" => $playerSeasonRank->rankedSplit->split,
+            "rank_tier" => $playerSeasonRank->rank?->rankTier,
+            "rank_div" => $playerSeasonRank->rank?->rankDiv,
+            "rank_LP" => $playerSeasonRank->rank?->rankLp
+        ];
+    }
 
 	/**
 	 * @param Player|int $player Player-Objekt oder Spieler-ID
@@ -51,7 +63,7 @@ class PlayerSeasonRankRepository extends AbstractRepository {
 	 * @param string|null $split Split (nur notwendig, wenn Season als String übergeben wird)
 	 * @return PlayerSeasonRank|null
 	 */
-	public function findPlayerSeasonRank(Player|int $player, string|RankedSplit $seasonOrRankedSplit, ?string $split = null): ?PlayerSeasonRank {
+	public function findPlayerSeasonRank(Player|int $player, string|RankedSplit $seasonOrRankedSplit, ?string $split = null, bool $ignoreCache = false): ?PlayerSeasonRank {
 		$playerId = $player instanceof Player ? $player->id : $player;
 		$playerObj = $player instanceof Player ? $player : null;
 
@@ -68,7 +80,7 @@ class PlayerSeasonRankRepository extends AbstractRepository {
 		}
 
 		$cacheKey = $playerId."_".$season."_".$split;
-		if (isset($this->cache[$cacheKey])) {
+		if (isset($this->cache[$cacheKey]) && !$ignoreCache) {
 			return $this->cache[$cacheKey];
 		}
 
@@ -76,8 +88,75 @@ class PlayerSeasonRankRepository extends AbstractRepository {
 		$data = $result->fetch_assoc();
 
 		$playerSeasonRank = $data ? $this->mapToEntity($data, player: $playerObj, rankedSplit: $rankedSplitObj) : null;
-		$this->cache[$cacheKey] = $playerSeasonRank;
+		if (!$ignoreCache) $this->cache[$cacheKey] = $playerSeasonRank;
 
 		return $playerSeasonRank;
 	}
+
+    /**
+     * @param Player $player
+     * @return PlayerSeasonRank|null
+     */
+    public function findCurrentSeasonRankForPlayer(Player $player): ?PlayerSeasonRank {
+        $currentRankedSplits = $this->rankedSplitRepo->findCurrentSplits();
+        if (count($currentRankedSplits) === 0) {
+            return null;
+        }
+        $currentRankedSplit = $currentRankedSplits[0];
+        return $this->findPlayerSeasonRank($player, $currentRankedSplit);
+    }
+
+    public function insert(PlayerSeasonRank $playerSeasonRank): void {
+        $data = $this->mapEntityToData($playerSeasonRank);
+        $columns = implode(",", array_keys($data));
+        $placeholders = implode(",", array_fill(0, count($data), "?"));
+        $values = array_values($data);
+
+        $query = "INSERT INTO players_season_rank ($columns) VALUES ($placeholders)";
+        $this->dbcn->execute_query($query, $values);
+
+        $cacheKey = $playerSeasonRank->player->id."_".$playerSeasonRank->rankedSplit->season."_".$playerSeasonRank->rankedSplit->split;
+        unset($this->cache[$cacheKey]);
+    }
+
+    /**
+     * @param PlayerSeasonRank $playerSeasonRank
+     * @return array{'result': SaveResult, 'changes': array<string, mixed>}
+     */
+    public function update(PlayerSeasonRank $playerSeasonRank): array {
+        $existingPlayerSeasonRank = $this->findPlayerSeasonRank($playerSeasonRank->player->id, $playerSeasonRank->rankedSplit, ignoreCache: true);
+        $dataNew = $this->mapEntityToData($playerSeasonRank);
+        $dataOld = $this->mapEntityToData($existingPlayerSeasonRank);
+        $dataChanged = array_diff_assoc($dataNew, $dataOld);
+        $dataPrevious = array_diff_assoc($dataOld, $dataNew);
+
+        if (count($dataChanged) == 0) {
+            return ['result' => SaveResult::NOT_CHANGED];
+        }
+        $set = implode(",", array_map(fn($key) => "$key = ?", array_keys($dataChanged)));
+        $values = array_values($dataChanged);
+
+        $query = "UPDATE players_season_rank SET $set WHERE OPL_ID_player = ? AND season = ? AND split = ?";
+        $this->dbcn->execute_query($query, [...$values, $playerSeasonRank->player->id, $playerSeasonRank->rankedSplit->season, $playerSeasonRank->rankedSplit->split]);
+
+        unset($this->cache[$playerSeasonRank->player->id."_".$playerSeasonRank->rankedSplit->season."_".$playerSeasonRank->rankedSplit->split]);
+        return ['result' => SaveResult::UPDATED, 'changes' => $dataChanged, 'previous' => $dataPrevious];
+    }
+
+    public function save(PlayerSeasonRank $playerSeasonRank): array {
+        $saveResult = [];
+        try {
+            if ($this->findPlayerSeasonRank($playerSeasonRank->player->id, $playerSeasonRank->rankedSplit)) {
+                $saveResult = $this->update($playerSeasonRank);
+            } else {
+                $this->insert($playerSeasonRank);
+                $saveResult = ['result'=>SaveResult::INSERTED];
+            }
+        } catch (\Throwable $e) {
+            Logger::log('db', "Fehler beim Speichern von PlayerSeasonRank für {$playerSeasonRank->player->id} in {$playerSeasonRank->rankedSplit->getName()}: " . $e->getMessage() . "\n" . $e->getTraceAsString());
+            $saveResult = ['result'=>SaveResult::FAILED];
+        }
+        $saveResult['playerSeasonRank'] = $this->findPlayerSeasonRank($playerSeasonRank->player->id, $playerSeasonRank->rankedSplit, ignoreCache: true);
+        return $saveResult;
+    }
 }

@@ -4,12 +4,12 @@ namespace App\Service;
 
 use App\Service\RiotApiResponse;
 class RiotApiService {
-	private function fetchFromEndpoint(string $endpoint): RiotApiResponse {
+	private function fetchFromEndpoint(string $endpoint, string $region = 'europe'): RiotApiResponse {
         if (empty($_ENV['RIOT_API_KEY'])) {
             return RiotApiResponse::error('Missing API credentials');
         }
 
-        $apiUrl = "https://europe.api.riotgames.com/$endpoint";
+        $apiUrl = "https://$region.api.riotgames.com/$endpoint";
         $options = ["http" => [
             "header" => ["X-Riot-Token: {$_ENV['RIOT_API_KEY']}"]
         ]];
@@ -65,7 +65,7 @@ class RiotApiService {
 
     public function getRankByPuuid(string $puuid): RiotApiResponse {
         $endpoint = "lol/league/v4/entries/by-puuid/$puuid";
-        return $this->fetchFromEndpoint($endpoint);
+        return $this->fetchFromEndpoint($endpoint, 'euw1');
     }
 
     public function getMatchByMatchId(string $matchId): RiotApiResponse {

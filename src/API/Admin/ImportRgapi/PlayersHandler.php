@@ -34,4 +34,16 @@ class PlayersHandler extends AbstractHandler {
 
         echo json_encode($saveResult);
     }
+
+    public function postPlayersRank(int $playerId): void {
+        $this->checkRequestMethod('POST');
+
+        try {
+            $saveResult = $this->playerUpdater->updateRank($playerId);
+        } catch (\Exception $e) {
+            $this->sendErrorResponse($e->getCode(), $e->getMessage());
+        }
+
+        echo json_encode($saveResult);
+    }
 }

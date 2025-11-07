@@ -65,6 +65,22 @@ class RankedSplitRepository extends AbstractRepository {
 		return $rankedSplits;
 	}
 
+    /**
+     * @return array<RankedSplit>
+     */
+    public function findCurrentSplits(): array {
+        $today = new \DateTimeImmutable();
+        $query = "SELECT * FROM lol_ranked_splits WHERE split_start <= ? AND (split_end >= ? OR split_end IS NULL) ORDER BY season DESC, split DESC";
+        $result = $this->dbcn->execute_query($query, [$today->format("Y-m-d"), $today->format("Y-m-d")]);
+        $data = $result->fetch_all(MYSQLI_ASSOC);
+
+        $rankedSplits = [];
+        foreach ($data as $rankedSplitData) {
+            $rankedSplits[] = $this->mapToEntity($rankedSplitData);
+        }
+        return $rankedSplits;
+    }
+
 	public function findFirstSplitForTournament(Tournament $tournament) : ?RankedSplit {
 		return count($tournament->rankedSplits) > 0 ? $this->findBySeasonAndSplit($tournament->rankedSplits[0]->season, $tournament->rankedSplits[0]->split) : null;
 	}

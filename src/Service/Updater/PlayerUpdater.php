@@ -3,10 +3,13 @@
 namespace App\Service\Updater;
 
 use App\Domain\Entities\Player;
+use App\Domain\Entities\PlayerSeasonRank;
 use App\Domain\Entities\Team;
+use App\Domain\Entities\ValueObjects\RankForPlayer;
 use App\Domain\Enums\SaveResult;
 use App\Domain\Repositories\PlayerInTeamRepository;
 use App\Domain\Repositories\PlayerRepository;
+use App\Domain\Repositories\PlayerSeasonRankRepository;
 use App\Domain\Repositories\TeamRepository;
 use App\Service\OplApiService;
 use App\Service\RiotApiService;
@@ -15,11 +18,13 @@ class PlayerUpdater {
 	private PlayerRepository $playerRepo;
 	private OplApiService $oplApiService;
 	private RiotApiService $riotApiService;
+    private PlayerSeasonRankRepository $playerSeasonRankRepo;
 
 	public function __construct() {
 		$this->playerRepo = new PlayerRepository();
 		$this->oplApiService = new OplApiService();
 		$this->riotApiService = new RiotApiService();
+        $this->playerSeasonRankRepo = new PlayerSeasonRankRepository();
 	}
 
 	/**
@@ -127,5 +132,53 @@ class PlayerUpdater {
         $player->riotIdTag = $tagLine;
         $saveResult = $this->playerRepo->save($player);
         return $saveResult;
+    }
+
+    /**
+     * @param int $playerId
+     * @return array{
+     *     'player': array{'result': SaveResult, 'changes': ?array<string, mixed>, 'previous': ?array<string,mixed>, 'player': ?Player},
+     *     'playerSeasonRank': ?array{'result': SaveResult, 'changes': ?array<string, mixed>, 'previous': ?array<string,mixed>, 'playerSeasonRank': ?PlayerSeasonRank}
+     *     }
+     * @throws \Exception
+     */
+    public function updateRank(int $playerId): array {
+        $player = $this->playerRepo->findById($playerId);
+        if ($player === null) {
+            throw new \Exception("Player not found", 404);
+        }
+        if ($player->puuid === null) {
+            throw new \Exception("Player does not have a set PUUID", 200);
+        }
+
+        $riotApiResponse = $this->riotApiService->getRankByPuuid($player->puuid);
+
+        if (!$riotApiResponse->isSuccess()) {
+            return ['player'=>['result'=>SaveResult::FAILED, 'error'=>$riotApiResponse->getError(), 'httpCode'=>$riotApiResponse->getStatusCode(), 'previous'=>null, 'player'=>$player]];
+        }
+
+        $rankedQueues = array_column($riotApiResponse->getData(), null, 'queueType');
+
+        if (array_key_exists('RANKED_SOLO_5x5', $rankedQueues)) {
+            $soloRanked = $rankedQueues['RANKED_SOLO_5x5'];
+            $playerRank = new RankForPlayer($soloRanked['tier'], $soloRanked['rank'], $soloRanked['leaguePoints']);
+        } else {
+            $playerRank = new RankForPlayer('UNRANKED', null, null);
+        }
+
+        // Update Rank for Player
+        $player->rank = $playerRank;
+        $playerSaveResult = $this->playerRepo->save($player);
+
+        // Update Rank for Player in currently running RankedSplit
+        $playerSeasonRankRepo = new PlayerSeasonRankRepository();
+        $playerSeasonRank = $playerSeasonRankRepo->findCurrentSeasonRankForPlayer($player);
+        if ($playerSeasonRank === null) {
+            return ['player'=>$playerSaveResult];
+        }
+        $playerSeasonRank->rank = $playerRank;
+        $playerSeasonSaveResult = $this->playerSeasonRankRepo->save($playerSeasonRank);
+
+        return ['player'=>$playerSaveResult, 'playerSeasonRank'=>$playerSeasonSaveResult];
     }
 }
