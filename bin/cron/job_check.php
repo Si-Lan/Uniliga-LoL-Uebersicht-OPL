@@ -15,6 +15,16 @@ foreach ($runningJobs as $runningJob) {
 	}
 }
 
+$queuedJobs = $jobRepo->findAll(status: UpdateJobStatus::QUEUED);
+
+foreach ($queuedJobs as $queuedJob) {
+    $now = new DateTimeImmutable();
+    $minutesSinceCreation = ($now->getTimestamp() - $queuedJob->createdAt->getTimestamp()) / 60;
+    if ($minutesSinceCreation >= 10) {
+        saveAsAbandoned($queuedJob);
+    }
+}
+
 function saveAsAbandoned(UpdateJob $job): void {
 	global $jobRepo;
 	$job->status = UpdateJobStatus::ABANDONED;
