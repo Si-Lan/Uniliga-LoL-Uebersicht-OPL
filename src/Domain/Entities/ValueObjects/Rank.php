@@ -26,4 +26,12 @@ class Rank {
 		}
 		return $this->getRankTier()." ".$this->rankDiv;
 	}
+
+    public function isRank(): bool {
+        return $this->rankTier !== null && $this->rankTier !== "UNRANKED";
+    }
+
+    public function getValue(): int {
+        return RankMapper::getValue($this);
+    }
 }

@@ -267,6 +267,25 @@ class TournamentRepository extends AbstractRepository {
 		return array_values(array_filter($tournaments, fn(Tournament $tournament) => $tournament->isRunning()));
 	}
 
+    public function findAllRootTournamentsInCurrentRankedSplit(): array {
+        $tournaments = $this->findAllRootTournaments();
+        $currentRankedSplits = $this->rankedSplitRepo->findCurrentSplits();
+        if (count($currentRankedSplits) === 0) {
+            return [];
+        }
+        $currentRankedSplit = $currentRankedSplits[0];
+        $currentTournaments = array_values(array_filter($tournaments, function(Tournament $tournament) use ($currentRankedSplit) {
+            foreach ($tournament->rankedSplits as $rankedSplit) {
+                if ($rankedSplit->equals($currentRankedSplit)) {
+                    return true;
+                }
+            }
+            return false;
+        }));
+
+        return $currentTournaments;
+    }
+
 
 	public function mapEntityToData(Tournament $tournament): array {
 		return [

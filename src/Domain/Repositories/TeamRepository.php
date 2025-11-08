@@ -90,7 +90,7 @@ class TeamRepository extends AbstractRepository {
 			"last_logo_download" => $team->lastLogoDownload?->format("Y-m-d") ?? null,
 			"avg_rank_tier" => $team->rank?->rankTier,
 			"avg_rank_div" => $team->rank?->rankDiv,
-			"avg_rank_num" => $team->rank?->rankNum,
+			"avg_rank_num" => round($team->rank?->rankNum??0, 2),
 		];
 	}
 

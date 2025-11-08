@@ -2,11 +2,17 @@
 
 namespace App\Service\Updater;
 
+use App\Domain\Entities\TeamSeasonRankInTournament;
+use App\Domain\Entities\Tournament;
+use App\Domain\Entities\ValueObjects\RankAverage;
+use App\Domain\Entities\ValueObjects\RankMapper;
 use App\Domain\Repositories\PlayerInTeamInTournamentRepository;
 use App\Domain\Repositories\PlayerInTeamRepository;
 use App\Domain\Repositories\PlayerRepository;
+use App\Domain\Repositories\RankedSplitRepository;
 use App\Domain\Repositories\TeamInTournamentRepository;
 use App\Domain\Repositories\TeamRepository;
+use App\Domain\Repositories\TeamSeasonRankInTournamentRepository;
 use App\Domain\Repositories\TournamentRepository;
 use App\Service\OplApiService;
 use App\Service\OplLogoService;
@@ -165,4 +171,80 @@ class TeamUpdater {
 
 		return ['players' => $saveResults, 'addedPlayers' => $addedPlayers, 'removedPlayers' => $removedPlayers, 'tournamentChanges' => $tournamentAdditions];
 	}
+
+    /**
+     * @throws \Exception
+     */
+    public function updateRank(int $teamId): array {
+        $team = $this->teamRepo->findById($teamId);
+        if ($team === null) {
+            throw new \Exception("Team not found", 404);
+        }
+
+        $tournamentRepo = new TournamentRepository();
+        $playerInTeamRepo = new PlayerInTeamRepository();
+
+
+        // 1. Aktuelle Spieler im Team holen, avg Rank ausrechnen und im Team setzen
+        $playersInTeam = $playerInTeamRepo->findAllByTeamAndActiveStatus($team, active: true);
+        $playerRanks = [];
+        foreach ($playersInTeam as $playerInTeam) {
+            $rank = $playerInTeam->player->rank;
+            if ($rank !== null && $rank->isRank()) {
+                $playerRanks[] = $rank;
+            }
+        }
+
+        if (count($playerRanks) > 0) {
+            $rankValues = array_map(fn($rank) => RankMapper::getValue($rank), $playerRanks);
+            $avgRankNum = array_sum($rankValues) / count($rankValues);
+            $avgRank = RankMapper::fromValue($avgRankNum);
+            $team->rank = new RankAverage($avgRank->rankTier, $avgRank->rankDiv, $avgRankNum);
+        } else {
+            $team->rank = new RankAverage("UNRANKED", null, 0);
+        }
+        $teamSaveResult = $this->teamRepo->save($team);
+
+        // 2. Alle laufenden Turniere im laufenden RankedSplit holen
+        $teamInTournamentRepo = new TeamInTournamentRepository();
+        $playerInTeamInTournamentRepo = new PlayerInTeamInTournamentRepository();
+        $rankedSplitRepo = new RankedSplitRepository();
+        $currentRankedSplits = $rankedSplitRepo->findCurrentSplits();
+        $currentRankedSplit = $currentRankedSplits[0]??null;
+        $currentTournaments = $tournamentRepo->findAllRootTournamentsInCurrentRankedSplit();
+        $currentTournaments = array_values(array_filter($currentTournaments, fn(Tournament $tournament) => !$tournament->finished));
+
+        // 3. Für jedes Turnier Spieler im Team holen, avg Rank ausrechnen und als TeamSeasonRankInTournament setzen
+        $teamSeasonRankInTournamentRepo = new TeamSeasonRankInTournamentRepository();
+        $tournamentSaveResults = [];
+        foreach ($currentTournaments as $tournament) {
+            if (!$teamInTournamentRepo->isTeamInRootTournament($team->id, $tournament->id)) {
+                continue;
+            }
+
+            $playersInTeamInTournament = $playerInTeamInTournamentRepo->findAllByTeamAndTournamentAndActiveStatus($team, $tournament, active: true);
+
+            $tournamentPlayerRanks = [];
+            foreach ($playersInTeamInTournament as $playerInTeamInTournament) {
+                $rank = $playerInTeamInTournament->player->rank;
+                if ($rank !== null && $rank->isRank()) {
+                    $tournamentPlayerRanks[] = $rank;
+                }
+            }
+
+            if (count($tournamentPlayerRanks) > 0) {
+                $rankValues = array_map(fn($rank) => RankMapper::getValue($rank), $tournamentPlayerRanks);
+                $avgRankNum = array_sum($rankValues) / count($rankValues);
+                $avgRank = RankMapper::fromValue($avgRankNum);
+                $teamSeasonRankinTournamentAverage = new RankAverage($avgRank->rankTier, $avgRank->rankDiv, $avgRankNum);
+                $teamSeasonRankInTournament = new TeamSeasonRankInTournament($team, $tournament, $currentRankedSplit, $teamSeasonRankinTournamentAverage);
+            } else {
+                $teamSeasonRankInTournament = new TeamSeasonRankInTournament($team, $tournament, $currentRankedSplit, new RankAverage("UNRANKED", null, 0));
+            }
+
+            $tournamentSaveResults[] = $teamSeasonRankInTournamentRepo->save($teamSeasonRankInTournament);
+        }
+
+        return ['team'=>$teamSaveResult, 'tournamentSeasonRanks'=>$tournamentSaveResults];
+    }
 }

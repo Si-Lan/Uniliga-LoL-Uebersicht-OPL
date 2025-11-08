@@ -2,12 +2,14 @@
 
 namespace App\Domain\Repositories;
 
+use App\Core\Logger;
 use App\Core\Utilities\DataParsingHelpers;
 use App\Domain\Entities\RankedSplit;
 use App\Domain\Entities\Team;
 use App\Domain\Entities\TeamSeasonRankInTournament;
 use App\Domain\Entities\Tournament;
 use App\Domain\Entities\ValueObjects\RankAverage;
+use App\Domain\Enums\SaveResult;
 
 class TeamSeasonRankInTournamentRepository extends AbstractRepository {
 	use DataParsingHelpers;
@@ -46,6 +48,18 @@ class TeamSeasonRankInTournamentRepository extends AbstractRepository {
 			)
 		);
 	}
+
+    public function mapEntityToData(TeamSeasonRankInTournament $rank): array {
+        return [
+            'OPL_ID_team' => $rank->team->id,
+            'OPL_ID_tournament' => $rank->tournament->id,
+            'season' => $rank->rankedSplit->season,
+            'split' => $rank->rankedSplit->split,
+            'avg_rank_tier' => $rank->rank->rankTier,
+            'avg_rank_div' => $rank->rank->rankDiv,
+            'avg_rank_num' => round($rank->rank->rankNum??0, 2),
+        ];
+    }
 
 	/**
 	 * @param Team|int $team Team-Objekt oder Team-Id
@@ -131,4 +145,54 @@ class TeamSeasonRankInTournamentRepository extends AbstractRepository {
 		}
 		return $indexedRanks;
 	}
+
+
+    public function insert(TeamSeasonRankInTournament $rank): void {
+        $data = $this->mapEntityToData($rank);
+        $columns = implode(",", array_keys($data));
+        $placeholders = implode(",", array_fill(0, count($data), "?"));
+        $values = array_values($data);
+
+        $query = "INSERT INTO teams_season_rank_in_tournament ($columns) VALUES ($placeholders)";
+        $this->dbcn->execute_query($query, $values);
+    }
+
+    /**
+     * @param TeamSeasonRankInTournament $rank
+     * @return array{'result': SaveResult, 'changes': ?array<string, mixed>, 'previous': ?array<string, mixed>}}
+     */
+    public function update(TeamSeasonRankInTournament $rank): array {
+        $existingRank = $this->findTeamSeasonRankInTournament($rank->team->id, $rank->tournament->id, $rank->rankedSplit);
+        $dataNew = $this->mapEntityToData($rank);
+        $dataOld = $this->mapEntityToData($existingRank);
+        $dataChanged = array_diff_assoc($dataNew, $dataOld);
+        $dataPrevious = array_diff_assoc($dataOld, $dataNew);
+
+        if (count($dataChanged) == 0) {
+            return ['result' => SaveResult::NOT_CHANGED];
+        }
+        $set = implode(",", array_map(fn($key) => "$key = ?", array_keys($dataChanged)));
+        $values = array_values($dataChanged);
+
+        $query = "UPDATE teams_season_rank_in_tournament SET $set WHERE OPL_ID_team = ? AND OPL_ID_tournament = ? AND season = ? AND split = ?";
+        $this->dbcn->execute_query($query, [...$values, $rank->team->id, $rank->tournament->id, $rank->rankedSplit->season, $rank->rankedSplit->split]);
+
+        return ['result' => SaveResult::UPDATED, 'changes' => $dataChanged, 'previous' => $dataPrevious];
+    }
+
+    public function save(TeamSeasonRankInTournament $rank): array {
+        try {
+            if ($this->findTeamSeasonRankInTournament($rank->team->id, $rank->tournament->id, $rank->rankedSplit)) {
+                $saveResult = $this->update($rank);
+            } else {
+                $this->insert($rank);
+                $saveResult = ['result'=>SaveResult::INSERTED];
+            }
+        } catch (\Throwable $e) {
+            Logger::log('db', "Fehler beim Speichern von TeamSeasonRankInTournament: " . $e->getMessage() . "\n" . $e->getTraceAsString());
+            $saveResult = ['result'=>SaveResult::FAILED];
+        }
+        $saveResult['teamSeasonRankInTournament'] = $this->findTeamSeasonRankInTournament($rank->team->id, $rank->tournament->id, $rank->rankedSplit);
+        return $saveResult;
+    }
 }
