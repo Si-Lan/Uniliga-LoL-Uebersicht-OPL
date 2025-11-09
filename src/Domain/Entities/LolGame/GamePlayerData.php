@@ -14,6 +14,7 @@ class GamePlayerData {
 	public int $championLevel;
 	public string $teamPosition;
 	public int $goldEarned;
+	public bool $win;
 	public int $kills;
 	public int $deaths;
 	public int $assists;
@@ -33,6 +34,7 @@ class GamePlayerData {
 		$this->championLevel = $playerData['champLevel'];
 		$this->teamPosition = $playerData['teamPosition'];
 		$this->goldEarned = $playerData['goldEarned'];
+		$this->win = $playerData['win'];
 		$this->kills = $playerData['kills'];
 		$this->deaths = $playerData['deaths'];
 		$this->assists = $playerData['assists'];

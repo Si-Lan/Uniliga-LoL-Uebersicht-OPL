@@ -4,6 +4,7 @@ namespace App\Domain\Entities\LolGame;
 
 class GameTeamData {
 	public int $goldEarned = 0;
+	public bool $win;
 	public int $kills = 0;
 	public int $deaths = 0;
 	public int $assists = 0;
@@ -27,6 +28,7 @@ class GameTeamData {
 			$this->deaths += $gamePlayer->deaths;
 			$this->assists += $gamePlayer->assists;
 		}
+		$this->win = $teamData['win'];
 		$this->bans = $teamData['bans'];
 		$this->bans = array_column($this->bans,'championId');
 		$this->towers = $teamData['objectives']['tower']['kills'];
