@@ -55,7 +55,9 @@ class PlayerInTournamentRepository extends AbstractRepository {
 				WHERE p.OPL_ID = ?';
 		$result = $this->dbcn->execute_query($query, [$tournamentId,$playerId]);
 		$data = $result->fetch_assoc();
-
+        if ($data['OPL_ID_tournament'] === null) {
+            $data['OPL_ID_tournament'] = $tournamentId;
+        }
 		return $data ? $this->mapToEntity($data) : null;
 	}
 
