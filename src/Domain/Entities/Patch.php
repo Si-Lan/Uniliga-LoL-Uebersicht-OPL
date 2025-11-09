@@ -28,10 +28,17 @@ class Patch {
 		return str_replace('.','-',$this->patchNumber);
 	}
 
+    /**
+     * @return ?array<int,array>
+     */
+    public function getRuneData(): ?array {
+        if ($this->runesData === null) {
+            $this->runesData = json_decode(file_get_contents(BASE_PATH."/public/assets/ddragon/$this->patchNumber/data/runesReforged.json"),true);
+        }
+        return $this->runesData;
+    }
 	public function getRuneUrlById(int $runeId): ?string {
-		if ($this->runesData === null) {
-			$this->runesData = json_decode(file_get_contents(BASE_PATH."/public/assets/ddragon/$this->patchNumber/data/runesReforged.json"),true);
-		}
+		$this->getRuneData();
 		foreach ($this->runesData as $runePage) {
 			if ($runePage['id'] == $runeId) {
 				return $this->imgUrl.'/'.str_replace('.png','.webp',$runePage['icon']);
@@ -45,9 +52,7 @@ class Patch {
 		return null;
 	}
 	public function getRuneNameById(int $runeId): ?string {
-		if ($this->runesData === null) {
-			$this->runesData = json_decode(file_get_contents(BASE_PATH."/public/assets/ddragon/$this->patchNumber/data/runesReforged.json"),true);
-		}
+		$this->getRuneData();
 		foreach ($this->runesData as $runePage) {
 			if ($runePage['id'] == $runeId) {
 				return $runePage['name'];
@@ -61,29 +66,54 @@ class Patch {
 		return null;
 	}
 
+    /**
+     * @return ?array<int,string>
+     */
+    public function getSummonerSpellData(): ?array {
+        if ($this->summonerSpellData === null) {
+            $this->summonerSpellData = json_decode(file_get_contents(BASE_PATH."/public/assets/ddragon/$this->patchNumber/data/summoner.json"),true);
+            // Adjust summoner spell data, so that key (number) is index for id (name)
+            $this->summonerSpellData = array_column($this->summonerSpellData['data'],'id','key');
+        }
+        return $this->summonerSpellData;
+    }
 	public function getSummonerSpellUrlById(int $summonerSpellId): ?string {
-		if ($this->summonerSpellData === null) {
-			$this->summonerSpellData = json_decode(file_get_contents(BASE_PATH."/public/assets/ddragon/$this->patchNumber/data/summoner.json"),true);
-			$this->summonerSpellData = array_column($this->summonerSpellData['data'],'id','key');
-		}
+		$this->getSummonerSpellData();
 		return $this->imgUrl.'/spell/'.$this->summonerSpellData[$summonerSpellId].'.webp';
 	}
 
+    /**
+     * @return ?array<int,array>
+     */
+    public function getItemData(): ?array {
+        if ($this->itemData === null) {
+            $this->itemData = json_decode(file_get_contents(BASE_PATH."/public/assets/ddragon/$this->patchNumber/data/item.json"),true);
+            // Adjust item data, so it only contains itemId pointing to an array of item data
+            $this->itemData = $this->itemData['data'];
+        }
+        return $this->itemData;
+    }
 	public function getItemUrlById(int $itemId): ?string {
 		return $this->imgUrl."/item/$itemId.webp";
 	}
 	public function getItemNameById(int $itemId): ?string {
-		if ($this->itemData === null) {
-			$this->itemData = json_decode(file_get_contents(BASE_PATH."/public/assets/ddragon/$this->patchNumber/data/item.json"),true);
-			$this->itemData = $this->itemData['data'];
-		}
+		$this->getItemData();
 		return $this->itemData[$itemId]['name'];
 	}
+
+    /**
+     * @return ?array<int,string>
+     */
+    public function getChampionData(): ?array {
+        if ($this->championData === null) {
+            $this->championData = json_decode(file_get_contents(BASE_PATH."/public/assets/ddragon/$this->patchNumber/data/champion.json"),true);
+            // Adjust champion data, so that key (number) is index for id (name)
+            $this->championData = array_column($this->championData['data'],'id','key');
+        }
+        return $this->championData;
+    }
 	public function getChampionUrlById(int $championId): ?string {
-		if ($this->championData === null) {
-			$this->championData = json_decode(file_get_contents(BASE_PATH."/public/assets/ddragon/$this->patchNumber/data/champion.json"),true);
-			$this->championData = array_column($this->championData['data'],'id','key');
-		}
+		$this->getChampionData();
 		return $this->imgUrl.'/champion/'.$this->championData[$championId].'.webp';
 	}
 }
