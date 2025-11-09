@@ -6,6 +6,7 @@ class GameData {
 	public string $gameVersion;
 	public string $gameStart;
 	public string $gameDuration;
+    public int $gameDurationSeconds;
 	public bool $blueTeamWin;
 	public bool $redTeamWin;
 	/** @var array<GamePlayerData> */
@@ -17,6 +18,7 @@ class GameData {
 	public function __construct(array $matchdata) {
 		$this->gameVersion = $matchdata['info']['gameVersion'];
 		$this->gameStart = date('d.m.y', intval($matchdata['info']['gameCreation']/1000));
+        $this->gameDurationSeconds = $matchdata['info']['gameDuration'];
 		$gameDurationSeconds = $matchdata['info']['gameDuration'] % 60;
 		$gameDurationSeconds = ($gameDurationSeconds < 10) ? '0'.$gameDurationSeconds : $gameDurationSeconds;
 		$this->gameDuration = floor($matchdata['info']['gameDuration'] / 60 ) . ":" . $gameDurationSeconds;
