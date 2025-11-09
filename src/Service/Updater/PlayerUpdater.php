@@ -7,10 +7,14 @@ use App\Domain\Entities\PlayerSeasonRank;
 use App\Domain\Entities\Team;
 use App\Domain\Entities\ValueObjects\RankForPlayer;
 use App\Domain\Enums\SaveResult;
+use App\Domain\Repositories\GameInMatchRepository;
+use App\Domain\Repositories\PlayerInTeamInTournamentRepository;
 use App\Domain\Repositories\PlayerInTeamRepository;
+use App\Domain\Repositories\PlayerInTournamentRepository;
 use App\Domain\Repositories\PlayerRepository;
 use App\Domain\Repositories\PlayerSeasonRankRepository;
 use App\Domain\Repositories\TeamRepository;
+use App\Domain\Repositories\TournamentRepository;
 use App\Service\OplApiService;
 use App\Service\RiotApiService;
 
@@ -180,5 +184,109 @@ class PlayerUpdater {
         $playerSeasonSaveResult = $this->playerSeasonRankRepo->save($playerSeasonRank);
 
         return ['player'=>$playerSaveResult, 'playerSeasonRank'=>$playerSeasonSaveResult];
+    }
+
+    /**
+     * @param int $playerId
+     * @param int $tournamentId
+     * @return array{playerInTournament: array, playerInTeamsInTournament: array}
+     * @throws \Exception
+     */
+    public function updateStats(int $playerId, int $tournamentId): array {
+        $player = $this->playerRepo->findById($playerId);
+        if ($player === null) {
+            throw new \Exception("Player not found", 404);
+        }
+        $tournamentRepo = new TournamentRepository();
+        $tournament = $tournamentRepo->findById($tournamentId);
+        if ($tournament === null) {
+            throw new \Exception("Tournament not found", 404);
+        }
+        $playerInTournamentRepo = new PlayerInTournamentRepository();
+        $playerInTournament = $playerInTournamentRepo->findByPlayerIdAndTournamentId($player->id, $tournament->id);
+        if ($playerInTournament === null) {
+            throw new \Exception("Player not in tournament", 404);
+        }
+
+        $playerInTeamInTournamentRepo = new PlayerInTeamInTournamentRepository();
+        $playerInTeamsInTournament = $playerInTeamInTournamentRepo->findAllByPlayerAndTournament($player, $tournament);
+
+        $allRoles = ["top","jungle","middle","bottom","utility"];
+        $roles = ["top"=>0,"jungle"=>0,"middle"=>0,"bottom"=>0,"utility"=>0];
+        $champions = [];
+
+        $gameInMatchRepo = new GameInMatchRepository();
+
+        $statTeamsTournamentResults = [];
+        foreach ($playerInTeamsInTournament as $playerInTeamInTournament) {
+            $rolesInTeam = ["top"=>0,"jungle"=>0,"middle"=>0,"bottom"=>0,"utility"=>0];
+            $championsInTeam = [];
+
+            $gamesInMatches = $gameInMatchRepo->findAllByTeamInTournament($playerInTeamInTournament->teamInTournament);
+            foreach ($gamesInMatches as $gameInMatch) {
+                $game = $gameInMatch->game;
+                if ($game->gameData === null) continue;
+                $allPlayerData = array_merge($game->gameData->blueTeamPlayers, $game->gameData->redTeamPlayers);
+                $allPlayerPuuids = array_map(fn($playerData)=> $playerData->puuid, $allPlayerData);
+
+                if (!in_array($player->puuid, $allPlayerData)) continue;
+
+                $bluePlayerPuuids = array_map(fn($playerData)=> $playerData->puuid, $game->gameData->blueTeamPlayers);
+                $teamPlayerData = in_array($player->puuid, $bluePlayerPuuids) ? $game->gameData->blueTeamPlayers : $game->gameData->redTeamPlayers;
+                $teamPlayerPuuids = array_map(fn($playerData)=> $playerData->puuid, $teamPlayerData);
+
+                $allPlayerDataKey = array_search($player->puuid, $allPlayerPuuids);
+                $playerData = $allPlayerData[$allPlayerDataKey];
+
+                $position = strtolower($playerData->position);
+
+                if ($position === "") {
+                    $teamRoles = array_map(fn($playerData) => strtolower($playerData->teamPosition), $teamPlayerData);
+                    $teamRoles = array_filter($teamRoles, fn($role) => $role !== "");
+                    $possibleRoles = array_values(array_diff($allRoles, $teamRoles));
+                    if (count($possibleRoles) == 1) {
+                        $position = $possibleRoles[0];
+                    } else {
+                        $teamPlayerDataKey = array_search($player->puuid, $teamPlayerPuuids);
+                        $position = $allRoles[$teamPlayerDataKey];
+                    }
+                }
+
+                $rolesInTeam[$position]++;
+                $roles[$position]++;
+                $champion = $playerData->championName;
+                foreach ([&$champions, &$championsInTeam] as &$championsRef) {
+                    if (!array_key_exists($champion, $championsRef)) {
+                        $championsRef[$champion] = [
+                            'games' => 1,
+                            'wins' => ($playerData->win ? 1 : 0),
+                            'kills' => $playerData->kills,
+                            'deaths' => $playerData->deaths,
+                            'assists' => $playerData->assists,
+                        ];
+                    } else {
+                        $championsRef[$champion]['games']++;
+                        $championsRef[$champion]['wins'] += ($playerData->win ? 1 : 0);
+                        $championsRef[$champion]['kills'] += $playerData->kills;
+                        $championsRef[$champion]['deaths'] += $playerData->deaths;
+                        $championsRef[$champion]['assists'] += $playerData->assists;
+                    }
+                }
+                unset($championsRef);
+            }
+
+            $playerInTeamInTournament->stats->roles = $rolesInTeam;
+            $playerInTeamInTournament->stats->champions = $championsInTeam;
+            $statTeamsTournamentResults[] = $playerInTeamInTournamentRepo->saveStats($playerInTeamInTournament);
+        }
+
+        $playerInTournament->stats->roles = $roles;
+        $playerInTournament->stats->champions = $champions;
+        $statTournamentResult = $playerInTournamentRepo->saveStats($playerInTournament);
+
+        return [
+            "playerInTournament" => $statTournamentResult,
+            "playerInTeamsInTournament" => $statTeamsTournamentResults,
+        ];
     }
 }

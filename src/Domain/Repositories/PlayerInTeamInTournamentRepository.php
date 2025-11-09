@@ -178,6 +178,30 @@ class PlayerInTeamInTournamentRepository extends AbstractRepository {
 		return $players;
 	}
 
+    /**
+     * @param Player $player
+     * @param Tournament $tournament
+     * @return array<PlayerInTeamInTournament>
+     */
+    public function findAllByPlayerAndTournament(Player $player, Tournament $tournament): array {
+        $query = '
+            SELECT *, pitt.OPL_ID_team, pitt.OPL_ID_tournament
+            FROM players p
+                JOIN players_in_teams_in_tournament pitt
+                    ON p.OPL_ID = pitt.OPL_ID_player AND pitt.OPL_ID_tournament = ?
+                LEFT JOIN stats_players_teams_tournaments spitt
+                    ON p.OPL_ID = spitt.OPL_ID_player AND spitt.OPL_ID_team = pitt.OPL_ID_team AND spitt.OPL_ID_tournament = pitt.OPL_ID_tournament
+            WHERE p.OPL_ID = ?
+        ';
+        $result = $this->dbcn->execute_query($query, [$tournament->id, $player->id]);
+        $data = $result->fetch_all(MYSQLI_ASSOC);
+        $players = [];
+        foreach ($data as $playerData) {
+            $players[] = $this->mapToEntity($playerData, player: $player, tournament: $tournament);
+        }
+        return $players;
+    }
+
 	public function isPlayerInTeamInTournament(int $playerId, int $teamId, int $tournamentId, bool $activeOnly = false): bool {
 		$activeQuery = $activeOnly ? 'AND removed = 0' : '';
 		$result = $this->dbcn->execute_query('SELECT * FROM players_in_teams_in_tournament WHERE OPL_ID_player = ? AND OPL_ID_team = ? AND OPL_ID_tournament = ? '.$activeQuery, [$playerId, $teamId, $tournamentId]);

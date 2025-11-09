@@ -13,6 +13,8 @@ enum UpdateJobAction: string {
 	case UPDATE_PLAYER_RANKS = 'update_player_ranks';
 	case UPDATE_TEAM_RANKS = 'update_team_ranks';
 	case UPDATE_GAMEDATA = 'update_gamedata';
+    case UPDATE_PLAYER_STATS = 'update_player_stats';
+    case UPDATE_TEAM_STATS = 'update_team_stats';
 	case UPDATE_TEAM = 'update_team';
 	case UPDATE_GROUP = 'update_group';
 	case UPDATE_MATCH = 'update_match';

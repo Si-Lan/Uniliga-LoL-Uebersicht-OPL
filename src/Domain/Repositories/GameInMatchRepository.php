@@ -7,6 +7,7 @@ use App\Domain\Entities\Game;
 use App\Domain\Entities\GameInMatch;
 use App\Domain\Entities\Matchup;
 use App\Domain\Entities\Team;
+use App\Domain\Entities\TeamInTournament;
 use App\Domain\Entities\TeamInTournamentStage;
 use App\Domain\Enums\SaveResult;
 
@@ -89,6 +90,27 @@ class GameInMatchRepository extends AbstractRepository {
 		}
 		return $gamesInMatchup;
 	}
+
+    /**
+     * @param TeamInTournament $teamInTournament
+     * @return array<GameInMatch>
+     */
+    public function findAllByTeamInTournament(TeamInTournament $teamInTournament): array {
+        $query = 'SELECT gtm.*
+                    FROM games_to_matches gtm
+                    JOIN matchups m ON gtm.OPL_ID_matches = m.OPL_ID
+                    JOIN tournaments t ON m.OPL_ID_tournament = t.OPL_ID
+                    WHERE (gtm.OPL_ID_blueTeam = ? OR gtm.OPL_ID_redTeam = ?)
+                      AND t.OPL_ID_top_parent = ?';
+        $result = $this->dbcn->execute_query($query, [$teamInTournament->team->id, $teamInTournament->team->id, $teamInTournament->tournament->id]);
+        $data = $result->fetch_all(MYSQLI_ASSOC);
+
+        $gamesInMatchup = [];
+        foreach ($data as $gameData) {
+            $gamesInMatchup[] = $this->mapToEntity($gameData);
+        }
+        return $gamesInMatchup;
+    }
 
 	public function gameIsInMatchup(string $gameId, int $matchupId): bool {
 		$query = 'SELECT * FROM games_to_matches WHERE RIOT_matchID = ? AND OPL_ID_matches = ?';

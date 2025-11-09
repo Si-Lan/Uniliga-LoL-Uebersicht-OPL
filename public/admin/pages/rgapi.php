@@ -49,7 +49,7 @@ $tournaments = EntitySorter::sortTournamentsByStartDate($tournaments);
 		echo "<button class='write get-ranks' data-id='{$tournament->id}'><span>get Ranks for Players</span></button>";
 		echo "<button class='write calc-team-rank' data-id='{$tournament->id}'><span>calculate average Ranks for Teams</span></button>";
 		echo "<button class='write gamedata' data-id='{$tournament->id}'><span>get Gamedata for Games without Data</span></button>";
-		echo "<button class='write get-pstats' data-id='{$tournament->id}'><span>calculate Playerstats</span></button>";
+		echo "<button class='write playerstats' data-id='{$tournament->id}'><span>calculate Playerstats</span></button>";
 		echo "<button class='write teamstats' data-id='{$tournament->id}'><span>calculate Teamstats</span></button>";
 		echo "<div class='result-wrapper no-res' data-id='{$tournament->id}'>
                         <div class='clear-button' data-id='{$tournament->id}'>Clear</div>
