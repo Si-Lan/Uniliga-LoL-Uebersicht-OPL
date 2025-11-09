@@ -72,6 +72,20 @@ $(document).on("click", "button.write.calc-team-rank", async function () {
     unsetButtonUpdating(jqButton);
 })
 
+$(document).on("click", "button.write.gamedata", async function () {
+	const tournamentId = this.dataset.id;
+	const jqButton = $(this);
+    setButtonUpdating(jqButton);
+    const jobResponse = await startJob(`/admin/api/rgapi/tournaments/${tournamentId}/games/data`)
+    if (jobResponse.error) {
+        console.error(jobResponse.error);
+        return;
+    }
+    const jobId = parseInt(jobResponse["job_id"]);
+    await checkJobStatusRepeatedly(jobId, 1000, jqButton);
+    unsetButtonUpdating(jqButton);
+})
+
 async function startJob(endpoint) {
 	return await fetch(endpoint, {method: 'POST'})
 		.then(res => {

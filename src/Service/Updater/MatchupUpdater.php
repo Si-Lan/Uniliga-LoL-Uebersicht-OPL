@@ -10,9 +10,13 @@ use App\Service\OplApiService;
 
 class MatchupUpdater {
 	private MatchupRepository $matchupRepo;
+    private GameInMatchRepository $gameInMatchRepo;
+    private GameUpdater $gameUpdater;
 	private OplApiService $oplApiService;
 	public function __construct() {
 		$this->matchupRepo = new MatchupRepository();
+        $this->gameInMatchRepo = new GameInMatchRepository();
+        $this->gameUpdater = new GameUpdater();
 		$this->oplApiService = new OplApiService();
 	}
 
@@ -95,4 +99,27 @@ class MatchupUpdater {
 
 		return ['matchup' => $matchupSaveResult, 'games' => $gameSaveResults, 'gamesInMatchup' => $gameToMatchResults];
 	}
+
+    /**
+     * @throws \Exception
+     */
+    public function updateGameData(int $matchupId): array {
+        $matchup = $this->matchupRepo->findById($matchupId);
+        if ($matchup === null) {
+            throw new \Exception("Matchup not found", 404);
+        }
+
+        $gamesInMatch = $this->gameInMatchRepo->findAllByMatchup($matchup);
+
+        $gameResults = [];
+        foreach ($gamesInMatch as $gameInMatch) {
+            try {
+                $gameResults[] = $this->gameUpdater->updateGameData($gameInMatch->game->id);
+            } catch (\Exception $e) {
+                $gameResults[] = ['result'=>SaveResult::FAILED, 'error'=>$e->getMessage(), 'game'=>$gameInMatch->game];
+            }
+        }
+
+        return ['matchup'=>$matchup, 'gamesInMatch'=>$gamesInMatch, 'gameResults'=>$gameResults];
+    }
 }
