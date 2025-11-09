@@ -317,6 +317,8 @@ class TournamentRepository extends AbstractRepository {
 		$query = "INSERT INTO tournaments ($columns) VALUES ($placeholders)";
 		$this->dbcn->execute_query($query, $values);
 
+        $this->updateRankedsplits($tournament);
+
 		unset($this->cache[$tournament->id]);
 	}
 	private function update(Tournament $tournament):void {
