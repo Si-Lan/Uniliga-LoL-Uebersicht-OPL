@@ -13,6 +13,12 @@ class Logger {
 		if (!file_exists(BASE_PATH."/logs")) mkdir(BASE_PATH."/logs");
 		$path = self::LOG_PATHS[$type] ?? self::LOG_PATHS['default'];
 		$entry = "[".date("Y-m-d H:i:s")."]: ".$message."\n";
+
+        $fileExists = file_exists($path);
 		file_put_contents($path, $entry, FILE_APPEND);
+
+        if (!$fileExists) {
+            chmod($path, 0664);
+        }
 	}
 }
