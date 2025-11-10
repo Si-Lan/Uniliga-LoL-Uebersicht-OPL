@@ -3,14 +3,14 @@
 use App\Core\Utilities\UserContext;
 use App\UI\Components\Admin\RankedSplit\RankedSplitList;
 use App\UI\Components\Admin\TournamentEdit\TournamentEditList;
+use App\UI\Components\Helpers\IconRenderer;
 use App\UI\Components\Navigation\Header;
 use App\UI\Components\Popups\Popup;
 use App\UI\Enums\HeaderType;
 use App\UI\Page\AssetManager;
 use App\UI\Page\PageMeta;
 
-$pageMeta = new PageMeta('Admin-Panel', bodyClass: 'admin');
-//AssetManager::addJsFile('/admin/scripts/main.js');
+$pageMeta = new PageMeta('Admin-Panel', bodyClass: 'admin opl');
 AssetManager::addJsAsset('admin/oplImport.js');
 AssetManager::addJsAsset('admin/rankedSplits.js');
 AssetManager::addJsAsset('admin/generalAdmin.js');
@@ -18,7 +18,6 @@ AssetManager::addJsAsset('admin/generalAdmin.js');
 echo new Header(HeaderType::ADMIN);
 
 ?>
-<h1>OPL -> Database</h1>
 
 <main>
     <button type="button" id="maintenance-mode" class="maintenance-<?= UserContext::isMaintenanceMode() ? 'on' : 'off' ?>">Maintenance Mode</button>
@@ -31,13 +30,17 @@ echo new Header(HeaderType::ADMIN);
 
     <h2>Allgemeine Verwaltung:</h2>
     <div class="general-administration">
-        <button class="update_all_teams"><span>Alle Teams aktualisieren</span></button>
-        <button class="update_all_player_ranks"><span>Ränge für alle Spieler aktualisieren</span></button>
+        <button class="update_all_teams">
+            <span>Alle Teams aktualisieren<?=IconRenderer::getMaterialIconSpan('sync')?></span>
+        </button>
         <div class="result-wrapper no-res gen-admin">
             <div class="clear-button" onclick="clearGeneralResults()">Clear</div>
             <div class="result-content"></div>
         </div>
-        <button class="open_ranked_split_popup" data-dialog-id="ranked-split-popup"><span>LoL Ranked Splits</span></button>
+        <div class="divider" style="margin-bottom: 4px"></div>
+        <button class="open_ranked_split_popup" data-dialog-id="ranked-split-popup">
+            <span>LoL Ranked Splits<?= IconRenderer::getMaterialIconSpan('ad_group')?></span>
+        </button>
         <?=new Popup("ranked-split-popup", content: new RankedSplitList())?>
     </div>
 

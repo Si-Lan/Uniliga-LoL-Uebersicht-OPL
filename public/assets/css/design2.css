@@ -3128,8 +3128,13 @@ body.admin main {
 body.admin {
 	text-align: center;
 }
-body.admin h2 {
-	margin-top: 40px;
+body.admin {
+    h2 {
+        font-size: 1.8em;
+    }
+    &.opl h2 {
+        margin-top: 40px;
+    }
 }
 body.admin h3 {
 	font-size: 2em;
@@ -3167,6 +3172,20 @@ body.admin h5 {
 }
 .general-administration dialog .close-popup {
 	padding: 4px 8px;
+}
+div.general-administration>button {
+    &>span {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    svg {
+        height: 18px;
+        width: 18px;
+    }
+}
+div.general-administration>button>span {
+
 }
 #main-selection {
 	display: flex;

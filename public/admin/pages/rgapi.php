@@ -20,6 +20,20 @@ $tournaments = EntitySorter::sortTournamentsByStartDate($tournaments);
 ?>
 
 <main>
+    <div class="general-administration">
+        <h2>Allgemeine Verwaltung</h2>
+        <button class="get_all_player_puuids">
+            <span>PUUIDs für alle Spieler ohne holen<?=IconRenderer::getMaterialIconSpan('sync')?></span>
+        </button>
+        <button class="update_all_player_ranks">
+            <span>Ränge für alle Spieler aktualisieren<?=IconRenderer::getMaterialIconSpan('sync')?></span>
+        </button>
+        <button class="update_all_team_ranks">
+            <span>Ränge für alle Teams aktualisieren<?=IconRenderer::getMaterialIconSpan('sync')?></span>
+        </button>
+    </div>
+    <div class="divider" style="margin-top: 28px"></div>
+    <h2>Turniere:</h2>
     <div class='slct'>
         <select class="tournament-selector">
             <?php
@@ -39,7 +53,7 @@ $tournaments = EntitySorter::sortTournamentsByStartDate($tournaments);
 			$hiddenclass = " hidden";
 		}
 		echo "<div class='writing-wrapper $hiddenclass' data-id='$tournament->id'>";
-		echo "<h2>{$tournament->getFullName()}</h2>";
+		echo "<h4>{$tournament->getFullName()}</h4>";
         if ($tournament->archived) {
             echo "<span style='color: #ff6161; text-align: center'>Dieses Turnier ist archiviert!</span>";
         }
