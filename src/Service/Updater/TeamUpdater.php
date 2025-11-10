@@ -6,6 +6,8 @@ use App\Domain\Entities\TeamSeasonRankInTournament;
 use App\Domain\Entities\Tournament;
 use App\Domain\Entities\ValueObjects\RankAverage;
 use App\Domain\Entities\ValueObjects\RankMapper;
+use App\Domain\Repositories\GameInMatchRepository;
+use App\Domain\Repositories\PatchRepository;
 use App\Domain\Repositories\PlayerInTeamInTournamentRepository;
 use App\Domain\Repositories\PlayerInTeamRepository;
 use App\Domain\Repositories\PlayerRepository;
@@ -246,5 +248,131 @@ class TeamUpdater {
         }
 
         return ['team'=>$teamSaveResult, 'tournamentSeasonRanks'=>$tournamentSaveResults];
+    }
+
+    /**
+     * @param int $teamId
+     * @param int $tournamentId
+     * @return array
+     * @throws \Exception
+     */
+    public function updateStats(int $teamId, int $tournamentId): array {
+        $team = $this->teamRepo->findById($teamId);
+        if ($team === null) {
+            throw new \Exception("Team not found", 404);
+        }
+        $tournamentRepo = new TournamentRepository();
+        $tournament = $tournamentRepo->findById($tournamentId);
+        if ($tournament === null) {
+            throw new \Exception("Tournament not found", 404);
+        }
+        $teamInTournamentRepo = new TeamInTournamentRepository();
+        $teamInTournament = $teamInTournamentRepo->findByTeamAndTournament($team, $tournament);
+        if ($teamInTournament === null) {
+            throw new \Exception("Team not in tournament", 404);
+        }
+
+        $patchRepo = new PatchRepository();
+        $latestPatch = $patchRepo->findLatestPatchWithAllData();
+        $championData = $latestPatch->getChampionData();
+
+
+        // setup stat arrays
+        $champsPlayed = [];
+        $champsBanned = [];
+        $champsPlayedAgainst = [];
+        $champsBannedAgainst = [];
+        $gamesPlayed = 0;
+        $gamesWon = 0;
+        $winTime = 0;
+        $avgWinTime = 0;
+
+        $gameInMatchRepo = new GameInMatchRepository();
+        $gamesInMatches = $gameInMatchRepo->findAllByTeamInTournament($teamInTournament);
+
+        foreach ($gamesInMatches as $gameInMatch) {
+            $game = $gameInMatch->game;
+            if ($game->gameData === null) continue;
+            if ($gameInMatch->blueTeam->team->id === $team->id) {
+                $teamData = $game->gameData->blueTeam;
+                $playerData = $game->gameData->blueTeamPlayers;
+                $opponentData = $game->gameData->redTeam;
+                $opponentPlayerData = $game->gameData->redTeamPlayers;
+            } elseif ($gameInMatch->redTeam->team->id === $team->id) {
+                $teamData = $game->gameData->redTeam;
+                $playerData = $game->gameData->redTeamPlayers;
+                $opponentData = $game->gameData->blueTeam;
+                $opponentPlayerData = $game->gameData->blueTeamPlayers;
+            } else {
+                continue;
+            }
+
+            $gamesPlayed++;
+
+            // Wins and WinTime
+            if ($teamData->win) {
+                $gamesWon++;
+                $winTime += $game->gameData->gameDurationSeconds;
+            }
+
+            // played Champions
+            foreach ($playerData as $player) {
+                $champion = $player->championName;
+                if (!array_key_exists($champion, $champsPlayed)) {
+                    $champsPlayed[$champion] = ['games' => 1, 'wins' => $teamData->win ? 1 : 0];
+                } else {
+                    $champsPlayed[$champion]['games']++;
+                    if ($teamData->win) {
+                        $champsPlayed[$champion]['wins']++;
+                    }
+                }
+            }
+            // played Champions Against
+            foreach ($opponentPlayerData as $player) {
+                $champion = $player->championName;
+                if (!array_key_exists($champion, $champsPlayedAgainst)) {
+                    $champsPlayedAgainst[$champion] = ['games' => 1, 'wins' => $teamData->win ? 0 : 1];
+                } else {
+                    $champsPlayedAgainst[$champion]['games']++;
+                    if ($teamData->win) {
+                        $champsPlayedAgainst[$champion]['wins']++;
+                    }
+                }
+            }
+            // banned Champions
+            foreach ($teamData->bans as $ban) {
+                $champion = $championData[$ban];
+                if (!array_key_exists($champion, $champsBanned)) {
+                    $champsBanned[$champion] = 1;
+                } else {
+                    $champsBanned[$champion]++;
+                }
+            }
+            // banned Champions Against
+            foreach ($opponentData->bans as $ban) {
+                $champion = $championData[$ban];
+                if (!array_key_exists($champion, $champsBannedAgainst)) {
+                    $champsBannedAgainst[$champion] = 1;
+                } else {
+                    $champsBannedAgainst[$champion]++;
+                }
+            }
+        }
+
+        if ($gamesWon > 0) {
+            $avgWinTime = $winTime / $gamesWon;
+        }
+
+        $teamInTournament->champsPlayed = $champsPlayed;
+        $teamInTournament->champsBanned = $champsBanned;
+        $teamInTournament->champsPlayedAgainst = $champsPlayedAgainst;
+        $teamInTournament->champsBannedAgainst = $champsBannedAgainst;
+        $teamInTournament->gamesPlayed = $gamesPlayed;
+        $teamInTournament->gamesWon = $gamesWon;
+        $teamInTournament->avgWinTime = $avgWinTime;
+
+        $saveResult = $teamInTournamentRepo->saveStats($teamInTournament);
+
+        return $saveResult;
     }
 }

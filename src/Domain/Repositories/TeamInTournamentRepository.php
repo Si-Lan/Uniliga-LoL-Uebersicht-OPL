@@ -2,10 +2,12 @@
 
 namespace App\Domain\Repositories;
 
+use App\Core\Logger;
 use App\Core\Utilities\DataParsingHelpers;
 use App\Domain\Entities\Team;
 use App\Domain\Entities\TeamInTournament;
 use App\Domain\Entities\Tournament;
+use App\Domain\Enums\SaveResult;
 
 class TeamInTournamentRepository extends AbstractRepository {
 	use DataParsingHelpers;
@@ -47,10 +49,23 @@ class TeamInTournamentRepository extends AbstractRepository {
 			nameInTournament: $this->stringOrNull($data["name"])
 		);
 	}
+    public function mapEntityToStatsData(TeamInTournament $teamInTournament): array {
+        return [
+            "OPL_ID_team" => $teamInTournament->team->id,
+            "OPL_ID_tournament" => $teamInTournament->tournament->id,
+            "champs_played" => json_encode($teamInTournament->champsPlayed),
+            "champs_banned" => json_encode($teamInTournament->champsBanned),
+            "champs_played_against" => json_encode($teamInTournament->champsPlayedAgainst),
+            "champs_banned_against" => json_encode($teamInTournament->champsBannedAgainst),
+            "games_played" => $teamInTournament->gamesPlayed,
+            "games_won" => $teamInTournament->gamesWon,
+            "avg_win_time" => $teamInTournament->avgWinTime
+        ];
+    }
 
-	private function findInternal(int $teamId, int $tournamentId, ?Team $team=null, ?Tournament $tournament=null): ?TeamInTournament {
+	private function findInternal(int $teamId, int $tournamentId, ?Team $team=null, ?Tournament $tournament=null, bool $ignoreCache = false): ?TeamInTournament {
 		$cacheKey = $teamId."_".$tournamentId;
-		if (isset($this->cache[$cacheKey])) {
+		if (isset($this->cache[$cacheKey]) && !$ignoreCache) {
 			return $this->cache[$cacheKey];
 		}
 
@@ -86,21 +101,21 @@ class TeamInTournamentRepository extends AbstractRepository {
 		}
 
 		$teamInTournament = $data ? $this->mapToEntity($data, team: $team, tournament: $tournament) : null;
-		$this->cache[$cacheKey] = $teamInTournament;
+		if (!$ignoreCache) $this->cache[$cacheKey] = $teamInTournament;
 
 		return $teamInTournament;
 	}
 
-	public function findByTeamIdAndTournamentId(int $teamId, int $tournamentId): ?TeamInTournament {
+	public function findByTeamIdAndTournamentId(int $teamId, int $tournamentId, bool $ignoreCache = false): ?TeamInTournament {
 		return $this->findInternal($teamId, $tournamentId);
 	}
-	public function findByTeamAndTournament(Team $team, Tournament $tournament): ?TeamInTournament {
+	public function findByTeamAndTournament(Team $team, Tournament $tournament, bool $ignoreCache = false): ?TeamInTournament {
 		return $this->findInternal($team->id, $tournament->id, $team, $tournament);
 	}
-	public function findByTeamIdAndTournament(int $teamId, Tournament $tournament): ?TeamInTournament {
+	public function findByTeamIdAndTournament(int $teamId, Tournament $tournament, bool $ignoreCache = false): ?TeamInTournament {
 		return $this->findInternal($teamId, $tournament->id, null, $tournament);
 	}
-	public function findByTeamAndTournamentId(Team $team, int $tournamentId): ?TeamInTournament {
+	public function findByTeamAndTournamentId(Team $team, int $tournamentId, bool $ignoreCache = false): ?TeamInTournament {
 		return $this->findInternal($team->id, $tournamentId, $team);
 	}
 
@@ -246,4 +261,59 @@ class TeamInTournamentRepository extends AbstractRepository {
 		$result = $this->dbcn->execute_query($query, [$tournamentId,$teamId]);
 		return $result->num_rows > 0;
 	}
+
+    public function statsExist(TeamInTournament $teamInTournament): bool {
+        $query = 'SELECT * FROM stats_teams_in_tournaments WHERE OPL_ID_team = ? AND OPL_ID_tournament = ?';
+        $result = $this->dbcn->execute_query($query, [$teamInTournament->team->id, $teamInTournament->tournament->id]);
+        return $result->num_rows > 0;
+    }
+
+    private function insertStats(TeamInTournament $teamInTournament): void {
+        $data = $this->mapEntityToStatsData($teamInTournament);
+        $columns = implode(", ", array_keys($data));
+        $placeholders = implode(", ", array_fill(0, count($data), "?"));
+        $values = array_values($data);
+
+        /** @noinspection SqlInsertValues */
+        $query = "INSERT INTO stats_teams_in_tournaments ($columns) VALUES ($placeholders)";
+        $this->dbcn->execute_query($query, $values);
+        unset($this->cache[$teamInTournament->team->id."_".$teamInTournament->tournament->id]);
+    }
+    private function updateStats(TeamInTournament $teamInTournament): array {
+        $existingTeamInTournament = $this->findByTeamAndTournament($teamInTournament->team, $teamInTournament->tournament);
+        $dataNew = $this->mapEntityToStatsData($teamInTournament);
+        $dataOld = $this->mapEntityToStatsData($existingTeamInTournament);
+        $dataChanged = array_diff_assoc($dataNew, $dataOld);
+        $dataPrevious = array_diff_assoc($dataOld, $dataNew);
+
+        if (count($dataChanged) == 0) {
+            return ['result' => SaveResult::NOT_CHANGED];
+        }
+
+        $set = implode(", ", array_map(fn($key) => "$key = ?", array_keys($dataChanged)));
+        $values = array_values($dataChanged);
+
+        $query = "UPDATE stats_teams_in_tournaments SET $set WHERE OPL_ID_team = ? AND OPL_ID_tournament = ?";
+        $this->dbcn->execute_query($query, [...$values, $teamInTournament->team->id, $teamInTournament->tournament->id]);
+        unset($this->cache[$teamInTournament->team->id."_".$teamInTournament->tournament->id]);
+
+        return ['result' => SaveResult::UPDATED, 'changes' => $dataChanged, 'previous' => $dataPrevious];
+    }
+
+    public function saveStats(TeamInTournament $teamInTournament): array {
+        try {
+            if ($this->statsExist($teamInTournament)) {
+                $saveResult = $this->updateStats($teamInTournament);
+            } else {
+                $this->insertStats($teamInTournament);
+                $saveResult = ['result' => SaveResult::INSERTED];
+            }
+        } catch (\Throwable $e) {
+            Logger::log('db', "Fehler beim Speichern von TeamInTournament-Statistiken: ".$e->getMessage()."\n".$e->getTraceAsString());
+            return ['result' => SaveResult::FAILED];
+        }
+
+        $saveResult['teamInTournament'] = $this->findByTeamIdAndTournamentId($teamInTournament->team->id, $teamInTournament->tournament->id);
+        return $saveResult;
+    }
 }
