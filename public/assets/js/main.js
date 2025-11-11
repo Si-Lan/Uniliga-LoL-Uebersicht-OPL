@@ -1839,10 +1839,6 @@ function getCookie(cname) {
 	return "";
 }
 
-function close_warningheader() {
-	$(".warning-header").remove();
-}
-
 let team_event_switch_control = null;
 function switch_team_event(page, event_id, team_id, playoff_id = null) {
 	const buttons = $(`#teampage_switch_group_buttons .teampage_switch_group`);

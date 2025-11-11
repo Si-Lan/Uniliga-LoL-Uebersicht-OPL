@@ -1,14 +1,4 @@
 <?php
-function is_logged_in(): bool {
-	include_once(dirname(__DIR__,2) . "/config/data.php");
-	$admin_pass = get_admin_pass();
-	if (isset($_COOKIE['admin-login'])) {
-		if (password_verify($admin_pass, $_COOKIE['admin-login'])) {
-			return TRUE;
-		}
-	}
-	return FALSE;
-}
 
 function max_time_from_timestamp($timestamp):string {
 	$days = floor($timestamp/86400);
@@ -56,36 +46,4 @@ function get_top_parent_tournament(mysqli $dbcn, $event_id) {
 	} else {
 		return $current_tournament["OPL_ID_top_parent"];
 	}
-}
-
-function get_second_ranked_split_for_tournament(mysqli $dbcn, $tournament_id, $string=FALSE): array|string|null {
-	$tournament = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID = ?", [$tournament_id])->fetch_assoc();
-	$split = $dbcn->execute_query("SELECT * FROM lol_ranked_splits WHERE season > ? OR (season = ? AND split > ?) ORDER BY season, split LIMIT 1",[$tournament["ranked_season"], $tournament["ranked_season"], $tournament["ranked_split"]])->fetch_assoc();
-	if ($split == null) {
-        return ($string) ? "" : null;
-    }
-    $split_string = "{$split['season']}-{$split['split']}";
-	return ($string) ? $split_string : $split;
-}
-
-function get_current_ranked_split(mysqli $dbcn, $tournament_id) {
-	$tournament = $dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID = ?", [$tournament_id])->fetch_assoc();
-	$ranked_season = $tournament["ranked_season"];
-	$ranked_split = $tournament["ranked_split"];
-	$ranked_season_comb = "$ranked_season-$ranked_split";
-
-	if (!isset($_COOKIE["tournament_ranked_splits"])) {
-		// Keine Split-Auswahl gespeichert, nehme ersten Split des Turniers
-		$current_split = $ranked_season_comb;
-	} else {
-		$splits = json_decode($_COOKIE["tournament_ranked_splits"], true) ?? [];
-		if (array_key_exists($tournament_id, $splits)) {
-			$current_split = $splits[$tournament_id];
-		} else {
-			// Keine Split-Auswahl für aktuelles Turnier gespeichert, nehme ersten Split des Turniers
-			$current_split = $ranked_season_comb;
-		}
-	}
-
-	return $current_split;
 }
