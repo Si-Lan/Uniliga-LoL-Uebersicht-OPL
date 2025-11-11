@@ -3,12 +3,17 @@
 namespace App\API\Admin\ImportRgapi;
 
 use App\API\AbstractHandler;
+use App\Domain\Enums\Jobs\UpdateJobAction;
+use App\Domain\Enums\Jobs\UpdateJobType;
+use App\Domain\Repositories\UpdateJobRepository;
 use App\Service\Updater\PlayerUpdater;
 
 class PlayersHandler extends AbstractHandler {
 	private PlayerUpdater $playerUpdater;
+	private UpdateJobRepository $updateJobRepo;
 	public function __construct() {
 		$this->playerUpdater = new PlayerUpdater();
+		$this->updateJobRepo = new UpdateJobRepository();
 	}
 
 	public function postPlayersPuuid(int $playerId): void {
@@ -21,6 +26,18 @@ class PlayersHandler extends AbstractHandler {
 		}
 
 		echo json_encode($saveResult);
+	}
+	public function postPlayersAllPuuid(): void {
+		$this->checkRequestMethod('POST');
+
+		$job = $this->updateJobRepo->createJob(
+			UpdateJobType::ADMIN,
+			UpdateJobAction::UPDATE_PUUIDS
+		);
+		$optionsString = "-j $job->id";
+		exec("php ".BASE_PATH."/bin/admin_updates/update_puuids.php $optionsString > /dev/null 2>&1 &");
+
+		echo json_encode(['job_id' => $job->id]);
 	}
 
     public function postPlayersRiotid(int $playerId): void {
@@ -46,4 +63,17 @@ class PlayersHandler extends AbstractHandler {
 
         echo json_encode($saveResult);
     }
+
+	public function postPlayersAllRank(): void {
+		$this->checkRequestMethod('POST');
+
+		$job = $this->updateJobRepo->createJob(
+			UpdateJobType::ADMIN,
+			UpdateJobAction::UPDATE_PLAYER_RANKS
+		);
+		$optionsString = "-j $job->id";
+		exec("php ".BASE_PATH."/bin/admin_updates/update_player_ranks.php $optionsString > /dev/null 2>&1 &");
+
+		echo json_encode(['job_id' => $job->id]);
+	}
 }
