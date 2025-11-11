@@ -1,8 +1,10 @@
+// Turnier-Auswahl Dropdown
 $(document).on("change", "select.tournament-selector", function () {
 	$("div.writing-wrapper").addClass("hidden");
 	$(`div.writing-wrapper[data-id=${this.value}]`).removeClass("hidden");
 });
 
+// PUUIDs im Turnier schreiben
 $(document).on("click", "button.write.puuids", async function () {
 	const tournamentId = this.dataset.id;
 	const jqButton = $(this);
@@ -30,6 +32,7 @@ $(document).on("click", "button.write.puuids-all", async function () {
 	unsetButtonUpdating(jqButton);
 })
 
+// RiotIDs im Turnier schreiben
 $(document).on("click", "button.write.riotids-puuids", async function () {
     const tournamentId = this.dataset.id;
     const jqButton = $(this);
@@ -44,6 +47,7 @@ $(document).on("click", "button.write.riotids-puuids", async function () {
     unsetButtonUpdating(jqButton);
 })
 
+// Player-Ranks im Turnier schreiben
 $(document).on("click", "button.write.get-ranks", async function () {
 	const tournamentId = this.dataset.id;
 	const jqButton = $(this);
@@ -58,6 +62,7 @@ $(document).on("click", "button.write.get-ranks", async function () {
     unsetButtonUpdating(jqButton);
 })
 
+// Team-Ranks im Turnier schreiben
 $(document).on("click", "button.write.calc-team-rank", async function () {
 	const tournamentId = this.dataset.id;
 	const jqButton = $(this);
@@ -72,6 +77,7 @@ $(document).on("click", "button.write.calc-team-rank", async function () {
     unsetButtonUpdating(jqButton);
 })
 
+// Spieldaten im Turnier schreiben
 $(document).on("click", "button.write.gamedata", async function () {
 	const tournamentId = this.dataset.id;
 	const jqButton = $(this);
@@ -86,6 +92,7 @@ $(document).on("click", "button.write.gamedata", async function () {
     unsetButtonUpdating(jqButton);
 })
 
+// Stats im Turnier schreiben
 $(document).on("click", "button.write.playerstats", async function () {
     const tournamentId = this.dataset.id;
     const jqButton = $(this);
@@ -112,6 +119,10 @@ $(document).on("click", "button.write.teamstats", async function () {
     await checkJobStatusRepeatedly(jobId, 1000, jqButton);
     unsetButtonUpdating(jqButton);
 })
+
+
+
+/* -------------- */
 
 async function startJob(endpoint) {
 	return await fetch(endpoint, {method: 'POST'})
