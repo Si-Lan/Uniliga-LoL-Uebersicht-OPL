@@ -29,12 +29,17 @@ class PlayersHandler extends AbstractHandler {
 	}
 	public function postPlayersAllPuuid(): void {
 		$this->checkRequestMethod('POST');
+        $withoutPuuidOnly = isset($_GET["withoutPuuid"]) && $_GET["withoutPuuid"] === "true";
 
 		$job = $this->updateJobRepo->createJob(
 			UpdateJobType::ADMIN,
 			UpdateJobAction::UPDATE_PUUIDS
 		);
-		$optionsString = "-j $job->id";
+
+        $commandOptions = ["-j $job->id"];
+        if ($withoutPuuidOnly) $commandOptions[] = "--without-puuid";
+
+		$optionsString = implode(" ", $commandOptions);
 		exec("php ".BASE_PATH."/bin/admin_updates/update_puuids.php $optionsString > /dev/null 2>&1 &");
 
 		echo json_encode(['job_id' => $job->id]);

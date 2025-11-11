@@ -120,6 +120,45 @@ $(document).on("click", "button.write.teamstats", async function () {
     unsetButtonUpdating(jqButton);
 })
 
+// PUUIDs aller Spieler schreiben
+$(document).on("click", ".general-administration button.get_all_player_puuids", async function () {
+    const jqButton = $(this);
+    setButtonUpdating(jqButton);
+    const jobResponse = await startJob(`/admin/api/rgapi/players/all/puuid?withoutPuuid=true`)
+    if (jobResponse.error) {
+        console.error(jobResponse.error);
+        return;
+    }
+    const jobId = parseInt(jobResponse["job_id"]);
+    await checkJobStatusRepeatedly(jobId, 1000, jqButton);
+    unsetButtonUpdating(jqButton);
+})
+// Ränge aller Spieler schreiben
+$(document).on("click", ".general-administration button.update_all_player_ranks", async function () {
+    const jqButton = $(this);
+    setButtonUpdating(jqButton);
+    const jobResponse = await startJob(`/admin/api/rgapi/players/all/rank`)
+    if (jobResponse.error) {
+        console.error(jobResponse.error);
+        return;
+    }
+    const jobId = parseInt(jobResponse["job_id"]);
+    await checkJobStatusRepeatedly(jobId, 1000, jqButton);
+    unsetButtonUpdating(jqButton);
+})
+// Ränge aller Teams schreiben
+$(document).on("click", ".general-administration button.update_all_team_ranks", async function () {
+    const jqButton = $(this);
+    setButtonUpdating(jqButton);
+    const jobResponse = await startJob(`/admin/api/rgapi/teams/all/rank`)
+    if (jobResponse.error) {
+        console.error(jobResponse.error);
+        return;
+    }
+    const jobId = parseInt(jobResponse["job_id"]);
+    await checkJobStatusRepeatedly(jobId, 1000, jqButton);
+    unsetButtonUpdating(jqButton);
+})
 
 
 /* -------------- */
