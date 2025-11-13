@@ -38,7 +38,7 @@ if ($job->action !== UpdateJobAction::UPDATE_PUUIDS) {
 
 $job->startJob(getmypid());
 $jobRepo->save($job);
-Logger::log('admin_update',"Starting job $jobId");;
+Logger::log('admin_update',"Starting job $jobId");
 
 $tournamentContext = $job->context;
 if ($tournamentContext !== null && !($tournamentContext instanceof Tournament)) {
