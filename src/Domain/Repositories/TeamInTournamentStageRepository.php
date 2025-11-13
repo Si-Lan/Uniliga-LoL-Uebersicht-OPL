@@ -183,7 +183,7 @@ class TeamInTournamentStageRepository extends AbstractRepository {
 			    LEFT JOIN teams_in_tournament_stages tits
 			        ON t.OPL_ID = tits.OPL_ID_team
 			WHERE t.OPL_ID = ?
-			  AND tits.OPL_ID_group IN (SELECT * FROM tournaments WHERE OPL_ID_top_parent = ?)';
+			  AND tits.OPL_ID_group IN (SELECT OPL_ID FROM tournaments WHERE OPL_ID_top_parent = ?)';
 		$result = $this->dbcn->execute_query($query, [$team->id, $tournament->id]);
 		$data = $result->fetch_all(MYSQLI_ASSOC);
 
