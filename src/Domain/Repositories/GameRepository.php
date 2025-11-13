@@ -98,7 +98,7 @@ class GameRepository extends AbstractRepository {
 		$this->dbcn->execute_query($query, $values);
 	}
 
-    private function update(Game $game): array {
+    private function update(Game $game, bool $dontOverwriteGameData = false): array {
         $existingGame = $this->findById($game->id);
 
         $dataNew = $this->mapEntityToData($game);
@@ -106,6 +106,9 @@ class GameRepository extends AbstractRepository {
         $dataChanges = array_diff_assoc($dataNew, $dataOld);
         $dataPrevious = array_diff_assoc($dataOld, $dataNew);
 
+		if ($dontOverwriteGameData && array_key_exists('matchdata', $dataChanges)) {
+			unset($dataChanges['matchdata']);
+		}
         if (count($dataChanges) == 0) {
             return ['result' => SaveResult::NOT_CHANGED];
         }
@@ -119,10 +122,10 @@ class GameRepository extends AbstractRepository {
         return ['result' => SaveResult::UPDATED, 'changes' => $dataChanges, 'previous' => $dataPrevious];
     }
 
-	public function save(Game $game): array {
+	public function save(Game $game, bool $dontOverwriteGameData = false): array {
 		try {
             if ($this->gameExists($game->id)) {
-                $saveResult = $this->update($game);
+                $saveResult = $this->update($game, $dontOverwriteGameData);
             } else {
                 $this->insert($game);
                 $saveResult = ['result' => SaveResult::INSERTED];

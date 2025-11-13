@@ -64,7 +64,7 @@ class MatchupUpdater {
 		$gameInMatchRepo = new GameInMatchRepository();
 		foreach ($oplGames as $i=>$oplGame) {
 			$gameEntity = $gameRepo->createEmptyFromId($oplGame['metadata']['matchId']);
-			$gameSaveResult = $gameRepo->save($gameEntity);
+			$gameSaveResult = $gameRepo->save($gameEntity, dontOverwriteGameData: true);
 			$gameSaveResults[] = $gameSaveResult;
 
 			if ($gameSaveResult['result'] === SaveResult::FAILED) {
