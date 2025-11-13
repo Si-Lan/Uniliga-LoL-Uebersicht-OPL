@@ -229,7 +229,7 @@ class PlayerUpdater {
                 $allPlayerData = array_merge($game->gameData->blueTeamPlayers, $game->gameData->redTeamPlayers);
                 $allPlayerPuuids = array_map(fn($playerData)=> $playerData->puuid, $allPlayerData);
 
-                if (!in_array($player->puuid, $allPlayerData)) continue;
+                if (!in_array($player->puuid, $allPlayerPuuids)) continue;
 
                 $bluePlayerPuuids = array_map(fn($playerData)=> $playerData->puuid, $game->gameData->blueTeamPlayers);
                 $teamPlayerData = in_array($player->puuid, $bluePlayerPuuids) ? $game->gameData->blueTeamPlayers : $game->gameData->redTeamPlayers;
@@ -238,7 +238,7 @@ class PlayerUpdater {
                 $allPlayerDataKey = array_search($player->puuid, $allPlayerPuuids);
                 $playerData = $allPlayerData[$allPlayerDataKey];
 
-                $position = strtolower($playerData->position);
+                $position = strtolower($playerData->teamPosition??"");
 
                 if ($position === "") {
                     $teamRoles = array_map(fn($playerData) => strtolower($playerData->teamPosition), $teamPlayerData);

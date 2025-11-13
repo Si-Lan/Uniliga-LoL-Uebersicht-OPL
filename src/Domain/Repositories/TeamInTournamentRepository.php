@@ -107,16 +107,16 @@ class TeamInTournamentRepository extends AbstractRepository {
 	}
 
 	public function findByTeamIdAndTournamentId(int $teamId, int $tournamentId, bool $ignoreCache = false): ?TeamInTournament {
-		return $this->findInternal($teamId, $tournamentId);
+		return $this->findInternal($teamId, $tournamentId, ignoreCache: $ignoreCache);
 	}
 	public function findByTeamAndTournament(Team $team, Tournament $tournament, bool $ignoreCache = false): ?TeamInTournament {
-		return $this->findInternal($team->id, $tournament->id, $team, $tournament);
+		return $this->findInternal($team->id, $tournament->id, $team, $tournament, ignoreCache: $ignoreCache);
 	}
 	public function findByTeamIdAndTournament(int $teamId, Tournament $tournament, bool $ignoreCache = false): ?TeamInTournament {
-		return $this->findInternal($teamId, $tournament->id, null, $tournament);
+		return $this->findInternal($teamId, $tournament->id, null, $tournament, ignoreCache: $ignoreCache);
 	}
 	public function findByTeamAndTournamentId(Team $team, int $tournamentId, bool $ignoreCache = false): ?TeamInTournament {
-		return $this->findInternal($team->id, $tournamentId, $team);
+		return $this->findInternal($team->id, $tournamentId, $team, ignoreCache: $ignoreCache);
 	}
 
 	/**
@@ -280,7 +280,7 @@ class TeamInTournamentRepository extends AbstractRepository {
         unset($this->cache[$teamInTournament->team->id."_".$teamInTournament->tournament->id]);
     }
     private function updateStats(TeamInTournament $teamInTournament): array {
-        $existingTeamInTournament = $this->findByTeamAndTournament($teamInTournament->team, $teamInTournament->tournament);
+        $existingTeamInTournament = $this->findByTeamAndTournament($teamInTournament->team, $teamInTournament->tournament, ignoreCache: true);
         $dataNew = $this->mapEntityToStatsData($teamInTournament);
         $dataOld = $this->mapEntityToStatsData($existingTeamInTournament);
         $dataChanged = array_diff_assoc($dataNew, $dataOld);

@@ -331,12 +331,9 @@ class TeamUpdater {
             foreach ($opponentPlayerData as $player) {
                 $champion = $player->championName;
                 if (!array_key_exists($champion, $champsPlayedAgainst)) {
-                    $champsPlayedAgainst[$champion] = ['games' => 1, 'wins' => $teamData->win ? 0 : 1];
+                    $champsPlayedAgainst[$champion] = 1;
                 } else {
-                    $champsPlayedAgainst[$champion]['games']++;
-                    if ($teamData->win) {
-                        $champsPlayedAgainst[$champion]['wins']++;
-                    }
+                    $champsPlayedAgainst[$champion]++;
                 }
             }
             // banned Champions
