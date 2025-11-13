@@ -369,10 +369,34 @@ class TeamUpdater {
         $teamInTournament->champsBannedAgainst = $champsBannedAgainst;
         $teamInTournament->gamesPlayed = $gamesPlayed;
         $teamInTournament->gamesWon = $gamesWon;
-        $teamInTournament->avgWinTime = $avgWinTime;
+        $teamInTournament->avgWinTime = (int) $avgWinTime;
 
         $saveResult = $teamInTournamentRepo->saveStats($teamInTournament);
 
         return $saveResult;
+    }
+
+    /**
+     * @param int $teamId
+     * @param int $tournamentId
+     * @return array
+     * @throws \Exception
+     */
+    public function updatePlayerStats(int $teamId, int $tournamentId): array {
+        $teamInTournamentRepo = new TeamInTournamentRepository();
+        $teamInTournament = $teamInTournamentRepo->findByTeamIdAndTournamentId($teamId, $tournamentId);
+        if ($teamInTournament === null) {
+            throw new \Exception("Team not in tournament", 404);
+        }
+        $playerInTeamInTournamentRepo = new PlayerInTeamInTournamentRepository();
+        $playersInTournament = $playerInTeamInTournamentRepo->findAllByTeamInTournament($teamInTournament);
+
+        $playerUpdater = new PlayerUpdater();
+        $playerUpdateResults = [];
+        foreach ($playersInTournament as $playerInTournament) {
+            $playerUpdateResults = $playerUpdater->updateStats($playerInTournament->player->id, $tournamentId);
+        }
+
+        return $playerUpdateResults;
     }
 }

@@ -32,6 +32,7 @@ class UpdateJobRepository extends AbstractRepository {
 		if ($contextId !== null) {
 			switch ($data['context_type']) {
 				case UpdateJobContextType::TOURNAMENT->value:
+				case UpdateJobContextType::GROUP->value:
 					$context = $this->tournamentRepo->findById($contextId);
 					break;
 				case UpdateJobContextType::TEAM->value:
@@ -78,8 +79,6 @@ class UpdateJobRepository extends AbstractRepository {
 		$data['status'] = $job->status->value;
 		$data['progress'] = $job->progress;
 		$data['message'] = $job->message;
-		$data['created_at'] = $job->createdAt?->format('Y-m-d H:i:s');
-		$data['updated_at'] = $job->updatedAt?->format('Y-m-d H:i:s');
 		$data['pid'] = $job->pid;
 		return $data;
 	}
@@ -139,6 +138,13 @@ class UpdateJobRepository extends AbstractRepository {
 		}
 		return $jobs;
 	}
+
+    public function findLatest(?UpdateJobType $type = null, ?UpdateJobAction $action = null, ?UpdateJobStatus $status = null, ?UpdateJobContextType $contextType = null, ?int $contextId = null, ?int $tournamentId = null): ?UpdateJob {
+        $jobs = $this->findAll($type, $action, $status, $contextType, $contextId, $tournamentId);
+        if (count($jobs) === 0) return null;
+        usort($jobs, fn(UpdateJob $a, UpdateJob $b) => $b->updatedAt <=> $a->updatedAt);
+        return $jobs[0];
+    }
 
 	public function createJob(UpdateJobType $type, UpdateJobAction $action, ?UpdateJobContextType $contextType = null, ?int $contextId = null, ?int $tournamentId = null): UpdateJob {
 		$query = 'INSERT INTO update_jobs (type, action, context_type, context_id, tournament_id) VALUES (?, ?, ?, ?, ?)';

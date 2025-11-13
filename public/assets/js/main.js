@@ -1150,11 +1150,6 @@ async function user_update_group(button) {
 			$("main .matches").replaceWith(matchlist);
 		})
 }
-$(document).ready(function () {
-	$(".user_update_group").on("click", function () {
-		user_update_group(this);
-	});
-});
 
 async function user_update_team(button) {
 	let team_ID = button.getAttribute("data-team");
@@ -1477,11 +1472,6 @@ async function user_update_team(button) {
 		groupButtons.prop("disabled", false);
 	});
 }
-$(document).ready(function () {
-	$(".user_update_team").on("click", function () {
-		user_update_team(this);
-	});
-});
 
 async function user_update_match(button) {
 	let match_ID = button.getAttribute("data-match");
@@ -1640,11 +1630,6 @@ async function user_update_match(button) {
 		groupButtons.prop("disabled", false);
 	});
 }
-$(document).ready(function () {
-	$(".user_update_match").on("click", function () {
-		user_update_match(this);
-	});
-});
 
 
 let header_search_controller = null;

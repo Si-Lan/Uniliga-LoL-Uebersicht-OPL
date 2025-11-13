@@ -6,7 +6,8 @@ class Logger {
 	private const array LOG_PATHS = [
 		'db' => BASE_PATH."/logs/db.log",
 		'default' => BASE_PATH."/logs/default.log",
-		'admin_update' => BASE_PATH."/logs/admin_update.log"
+		'admin_update' => BASE_PATH."/logs/admin_update.log",
+        'user_update' => BASE_PATH."/logs/user_update.log",
 	];
 
 	public static function log(string $type, string $message):void {
