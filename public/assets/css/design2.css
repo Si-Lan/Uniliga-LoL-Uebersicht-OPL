@@ -1711,6 +1711,10 @@ div.updatebuttonwrapper {
 	display: flex;
 	align-items: center;
 	gap: 8px;
+
+    .last-update {
+        min-width: 168px;
+    }
 }
 button.user_update {
 	padding: 12px 20px;
