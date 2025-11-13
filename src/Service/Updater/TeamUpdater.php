@@ -58,57 +58,31 @@ class TeamUpdater {
 			if (!array_key_exists("logoDownload", $teamSaveResult)) $teamSaveResult["logoDownload"] = null;
 		}
 
-		$oplPlayers = $oplTeam['users'];
-		$oplPlayerIds = array_column($oplPlayers, 'ID');
+		$playerSaveResults = $this->updatePlayers($teamId, $oplTeam);
 
-		$playerInTeamRepo = new PlayerInTeamRepository();
-
-		$playerSaveResults = [];
-		$addedPlayers = [];
-		$removedPlayers = [];
-		foreach ($oplPlayers as $oplPlayer) {
-			$playerEntity = $this->playerRepo->createFromOplData($oplPlayer);
-			$playerSaveResult = $this->playerRepo->save($playerEntity, fromOplData: true);
-			$playerSaveResults[] = $playerSaveResult;
-
-			if ($playerSaveResult["player"]?->id !== null) {
-				$addedToTeam = $playerInTeamRepo->addPlayerToTeam($playerSaveResult["player"]->id, $team->id);
-				if ($addedToTeam) {
-					$addedPlayers[] = $playerSaveResult["player"];
-				}
-			}
-		}
-
-		$playersCurrentlyInTeam = $playerInTeamRepo->findAllByTeamAndActiveStatus($team, active: true);
-		foreach ($playersCurrentlyInTeam as $playerInTeam) {
-			if (!in_array($playerInTeam->player->id, $oplPlayerIds)) {
-				$playerInTeamRepo->removePlayerFromTeam($playerInTeam->player->id, $team->id);
-				$removedPlayers[] = $playerInTeam->player;
-			}
-		}
-
-		return ["team"=>$teamSaveResult, "players"=>$playerSaveResults, "addedPlayers"=>$addedPlayers, "removedPlayers"=>$removedPlayers];
+		return ["team"=>$teamSaveResult, "players"=>$playerSaveResults, "addedPlayers"=>$playerSaveResults['addedPlayers'], "removedPlayers"=>$playerSaveResults['removedPlayers']];
 	}
 
 	/**
 	 * @throws \Exception
 	 */
-	public function updatePlayers(int $teamId): array {
+	public function updatePlayers(int $teamId, ?array $teamData = null): array {
 		$team = $this->teamRepo->findById($teamId);
 		if ($team === null) {
 			throw new \Exception("Team not found", 404);
 		}
 
-		try {
-			$teamData = $this->oplApiService->fetchFromEndpoint("team/$teamId/users");
-		} catch (\Exception $e) {
-			throw new \Exception("Failed to fetch data from OPL API: ".$e->getMessage(), 500);
+		if ($teamData === null) {
+			try {
+				$teamData = $this->oplApiService->fetchFromEndpoint("team/$teamId/users");
+			} catch (\Exception $e) {
+				throw new \Exception("Failed to fetch data from OPL API: ".$e->getMessage(), 500);
+			}
 		}
 
 		$oplPlayers = $teamData['users'];
 		$ids = array_column($oplPlayers, 'ID');
 
-		$playerRepo = new PlayerRepository();
 		$playerInTeamRepo = new PlayerInTeamRepository();
 		$playerinTeamInTournamentRepo = new PlayerInTeamInTournamentRepository();
 		$tournamentRepo = new TournamentRepository();
@@ -130,8 +104,8 @@ class TeamUpdater {
 		$addedPlayers = [];
 		foreach ($oplPlayers as $oplPlayer) {
 			// Spieler speichern
-			$playerEntity = $playerRepo->createFromOplData($oplPlayer);
-			$saveResult = $playerRepo->save($playerEntity, fromOplData: true);
+			$playerEntity = $this->playerRepo->createFromOplData($oplPlayer);
+			$saveResult = $this->playerRepo->save($playerEntity, fromOplData: true);
 			$saveResults[] = $saveResult;
 
 			// Spieler in Team eintragen
