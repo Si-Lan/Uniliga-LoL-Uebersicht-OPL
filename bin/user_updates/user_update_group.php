@@ -21,6 +21,7 @@ $jobId = $options['j'] ?? null;
 
 if ($groupId !== null && $jobId !== null) {
 	echo "Multiple arguments given, use either -g <groupid> or -j <jobid>\n";
+	exit;
 }
 
 $jobRepo = new UpdateJobRepository();
@@ -99,7 +100,7 @@ Logger::log('user_update',"Starting job $job->id");
 
 $tournamentUpdater = new TournamentUpdater();
 
-$groupSaveResult = $tournamentUpdater->updateTeams($group->id);
+$groupSaveResult = tryAndLog(fn() => $tournamentUpdater->updateTeams($group->id));
 $job->progress = 10;
 $jobRepo->save($job);
 
@@ -122,8 +123,7 @@ $teamUpdater = new TeamUpdater();
 $matchResultSaveResults = [];
 foreach ($matchups as $i=>$matchup) {
     tryAndLog(
-        function() use ($matchupUpdater, $gameUpdater, $matchup, &$matchResultSaveResults) {
-            global $matchupUpdater, $gameUpdater, $teamUpdater;
+        function() use ($matchupUpdater, $gameUpdater, $teamUpdater, $matchup, &$matchResultSaveResults) {
             $resultSaveResult = $matchupUpdater->updateMatchupResults($matchup->id);
             $matchResultSaveResults[] = $resultSaveResult;
 
