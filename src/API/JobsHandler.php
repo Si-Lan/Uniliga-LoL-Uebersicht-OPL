@@ -6,6 +6,7 @@ use App\Domain\Enums\Jobs\UpdateJobAction;
 use App\Domain\Enums\Jobs\UpdateJobContextType;
 use App\Domain\Enums\Jobs\UpdateJobStatus;
 use App\Domain\Enums\Jobs\UpdateJobType;
+use App\Domain\Repositories\TeamInTournamentRepository;
 use App\Domain\Repositories\TournamentRepository;
 use App\Domain\Repositories\UpdateJobRepository;
 
@@ -90,4 +91,73 @@ class JobsHandler extends AbstractHandler {
 
         echo json_encode($job->getApiOutput());
     }
+
+	public function getJobsUserTeamTournamentRunning(int $teamId, int $tournamentId): void {
+		$runningJob = $this->jobRepo->findLatest(
+			UpdateJobType::USER,
+			UpdateJobAction::UPDATE_TEAM,
+			UpdateJobStatus::RUNNING,
+			UpdateJobContextType::TEAM,
+			contextId: $teamId,
+			tournamentId: $tournamentId
+		);
+		echo json_encode($runningJob?->getApiOutput());
+	}
+
+	public function postJobsUserTeamTournament(int $teamId, int $tournamentId): void {
+		$this->checkRequestMethod('POST');
+
+		$teamInTournamentRepo = new TeamInTournamentRepository();
+		$teamInTournament = $teamInTournamentRepo->findByTeamIdAndTournamentId($teamId, $tournamentId);
+		if ($teamInTournament === null) {
+			$this->sendErrorResponse(404, "Team not found in tournament");
+		}
+
+		$runningJob = $this->jobRepo->findLatest(
+			UpdateJobType::USER,
+			UpdateJobAction::UPDATE_TEAM,
+			UpdateJobStatus::RUNNING,
+			UpdateJobContextType::TEAM,
+			contextId: $teamInTournament->team->id,
+			tournamentId: $teamInTournament->tournament->id
+		);
+
+		if ($runningJob !== null) {
+			echo json_encode($runningJob->getApiOutput());
+			exit;
+		}
+
+		$latestJob = $this->jobRepo->findLatest(
+			UpdateJobType::USER,
+			UpdateJobAction::UPDATE_TEAM,
+			UpdateJobStatus::SUCCESS,
+			UpdateJobContextType::TEAM,
+			contextId: $teamInTournament->team->id,
+			tournamentId: $teamInTournament->tournament->id
+		);
+
+		if ($latestJob !== null) {
+			$latestTime = $latestJob->finishedAt ?? $latestJob->updatedAt;
+			$currentTime = new \DateTimeImmutable();
+			$diff = $currentTime->diff($latestTime, true);
+			if ($diff->i < 10) {
+				http_response_code(429);
+				echo json_encode($latestJob->getApiOutput());
+				exit;
+			}
+		}
+
+		$job = $this->jobRepo->createJob(
+			UpdateJobType::USER,
+			UpdateJobAction::UPDATE_TEAM,
+			UpdateJobContextType::TEAM,
+			contextId: $teamInTournament->team->id,
+			tournamentId: $teamInTournament->tournament->id
+		);
+
+		$optionsString = "-j $job->id";
+		exec("php ".BASE_PATH."/bin/user_updates/user_update_team.php $optionsString > ".BASE_PATH."/logs/test.log 2>&1 &");
+
+		echo json_encode($job->getApiOutput());
+	}
 }

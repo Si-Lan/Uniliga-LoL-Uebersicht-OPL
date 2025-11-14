@@ -51,7 +51,24 @@ class UpdateButton {
 		if ($entity instanceof TeamInTournament) {
 			$this->htmlClassString = 'user_update_team';
 			$this->htmlDataString = "data-type='team' data-team='{$entity->team->id}' data-tournament='{$entity->tournament->id}'";
-			$this->updateHistory = $updateHistoryRepo->findByTeamInTournament($entity);
+			$this->updateJob = $updateJobRepo->findLatest(
+				UpdateJobType::USER,
+				UpdateJobAction::UPDATE_TEAM,
+				UpdateJobStatus::RUNNING,
+				UpdateJobContextType::TEAM,
+				contextId: $entity->team->id,
+				tournamentId: $entity->tournament->id
+			);
+			if ($this->updateJob === null) {
+				$this->updateJob = $updateJobRepo->findLatest(
+					UpdateJobType::USER,
+					UpdateJobAction::UPDATE_TEAM,
+					UpdateJobStatus::SUCCESS,
+					UpdateJobContextType::TEAM,
+					contextId: $entity->team->id,
+					tournamentId: $entity->tournament->id
+				);
+			}
 		}
 		if ($entity instanceof Matchup) {
 			$this->htmlClassString = 'user_update_match';

@@ -7,12 +7,16 @@ $(async function () {
         if (type === "group" && button.data("group")) {
             runningUpdate = await checkRunningGroupUpdate(button.data("group"));
         }
+        if (type === "team" && button.data("team") && button.data("tournament")) {
+            runningUpdate = await checkRunningTeamUpdate(button.data("team"), button.data("tournament"));
+        }
         if (runningUpdate !== null && !runningUpdate.error) {
             setUserButtonUpdating(button);
             checkUserUpdateStatusRepeatedly(runningUpdate.id, 1000, button)
                 .then(() => {
                     unsetUserButtonUpdating(button);
                     if (type === "group") refreshTournamentStagePageContent(button.data("group"));
+                    if (type === "team") refreshTeamInTournamentPageContent(button.data("team"), button.data("tournament"));
                 })
                 .catch(e => console.error(e));
         }
@@ -28,6 +32,10 @@ $(document).on("click", "button.user_update", async function () {
     switch (type) {
         case "group":
             jobResponse = await startUserUpdateGroup(button.data("group"));
+            break;
+        case "team":
+            jobResponse = await startUserUpdateTeam(button.data("team"), button.data("tournament"));
+            break;
     }
 
     if (jobResponse !== null && jobResponse.error === "Zu viele Anfragen") {
@@ -46,6 +54,7 @@ $(document).on("click", "button.user_update", async function () {
         .then(() => {
             unsetUserButtonUpdating(button);
             if (type === "group") refreshTournamentStagePageContent(button.data("group"));
+            if (type === "team") refreshTeamInTournamentPageContent(button.data("team"), button.data("tournament"));
         })
         .catch(e => console.error(e))
 })
@@ -60,7 +69,24 @@ async function checkRunningGroupUpdate(groupId) {
                 return {"error": "Fehler beim Laden der Daten"};
             }
         })
-        .catch(e => console.error(e));
+        .catch(e => {
+            console.error(e);
+            return {"error": "Fehler beim Laden der Daten"};
+        });
+}
+async function checkRunningTeamUpdate(teamId, tournamentId) {
+    return await fetch(`/api/jobs/user/team/${teamId}/tournament/${tournamentId}/running`, {method: "GET"})
+        .then(res => {
+            if (res.ok) {
+                return res.json()
+            } else {
+                return {"error": "Fehler beim Laden der Daten"};
+            }
+        })
+        .catch(e => {
+            console.error(e);
+            return {"error": "Fehler beim Laden der Daten"};
+        })
 }
 
 async function checkUserUpdateStatusRepeatedly(jobId, interval, button = null) {
@@ -97,6 +123,9 @@ async function checkUserUpdateStatus(jobId) {
 }
 async function startUserUpdateGroup(groupId) {
     return await startJob(`/api/jobs/user/group/${groupId}`)
+}
+async function startUserUpdateTeam(teamId, tournamentId) {
+    return await startJob(`/api/jobs/user/team/${teamId}/tournament/${tournamentId}`)
 }
 async function startJob(endpoint) {
     return await fetch(endpoint, {method: "POST"})
@@ -141,4 +170,37 @@ function refreshTournamentStagePageContent(tournamentId) {
         .then(html => {
             $("main .matches").replaceWith(html);
         })
+}
+
+function refreshTeamInTournamentPageContent(teamId, tournamentId) {
+    fragmentLoader(`summoner-cards?teamId=${teamId}&tournamentId=${tournamentId}`, null, null, true)
+        .then(html => {
+            $("div.summoner-card-container").replaceWith(html);
+        })
+    fragmentLoader(`multi-opgg-button?teamId=${teamId}&tournamentId=${tournamentId}`, null, null, true)
+        .then(html => {
+            $(".opgg-cards a.button.op-gg").replaceWith(html);
+        })
+
+    const stageButtons = $("button.teampage_switch_group");
+    const activeStageButton = $("button.teampage_switch_group.active");
+    let activeStageId = (activeStageButton.length > 0) ? activeStageButton.data("group") : null;
+
+    stageButtons.prop("disabled", true);
+
+    let fetchArray = [];
+    fetchArray.push(
+        fragmentLoader(`standings-table?tournamentId=${activeStageId}&teamId=${teamId}`, null, null, true)
+            .then(html => {
+                $("div.standings").replaceWith(html);
+            })
+    )
+    fetchArray.push(
+        fragmentLoader(`match-button-list?tournamentId=${activeStageId}&teamId=${teamId}`, null, null, true)
+            .then(html => {
+                $("main .matches").replaceWith(html);
+            })
+    )
+    Promise.all(fetchArray)
+        .then(() => stageButtons.prop("disabled", false));
 }

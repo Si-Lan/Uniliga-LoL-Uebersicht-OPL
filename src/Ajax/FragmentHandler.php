@@ -18,6 +18,7 @@ use App\UI\Components\Games\GameDetails;
 use App\UI\Components\Matches\MatchButton;
 use App\UI\Components\Matches\MatchButtonList;
 use App\UI\Components\Matches\MatchHistory;
+use App\UI\Components\MultiOpggButton;
 use App\UI\Components\Player\PlayerOverview;
 use App\UI\Components\Player\PlayerSearchCard;
 use App\UI\Components\Popups\MatchPopupContent;
@@ -97,6 +98,20 @@ class FragmentHandler {
 		}
 
 		$this->sendJsonFragment("<div class='summoner-card-container'>$summonerCardHtml</div>");
+	}
+	public function multiOpggButton(array $dataGet): void {
+		$teamId = $this->intOrNull($dataGet['teamId'] ?? null);
+		$tournamentId = $this->intOrNull($dataGet['tournamentId'] ?? null);
+		if (is_null($teamId) || is_null($tournamentId)) {
+			$this->sendJsonError('Missing teamId or tournamentId',400);
+		}
+		$teamInTournamentRepo = new TeamInTournamentRepository();
+		$teamInTournament = $teamInTournamentRepo->findByTeamIdAndTournamentId($teamId, $tournamentId);
+		if (is_null($teamInTournament)) {
+			$this->sendJsonError('Team not found in tournament',404);
+		}
+
+		$this->sendJsonFragment(new MultiOpggButton($teamInTournament));
 	}
 
 	public function matchButton(array $dataGet): void {
