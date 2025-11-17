@@ -109,7 +109,8 @@ async function open_popup_match(button, event) {
 	event.preventDefault();
 	let dialogId = button.dataset.dialogId;
 	let matchId = button.dataset.matchId;
-	let teamId = button.dataset.teamId;
+	let teamId = button.dataset.teamId ?? null;
+    const teamIdParam = teamId ? `&teamId=${teamId}` : "";
 
 	let dialog = $(`dialog#${dialogId}`);
 	if (dialog.length === 0) {
@@ -128,7 +129,7 @@ async function open_popup_match(button, event) {
 
 	add_popupLoadingIndicator(dialog);
 
-	fragmentLoader(`match-popup?matchId=${matchId}&teamId=${teamId}`, null, () => {
+	fragmentLoader(`match-popup?matchId=${matchId}${teamIdParam}`, null, () => {
 		current_matchpopups_loaded = current_matchpopups_loaded.filter(id => id !== dialogId);
 	})
 		.then(content => {
@@ -148,5 +149,4 @@ function setParamAndUpdateUrl(param, value) {
 
 $(document).ready(() => {
 	$('dialog.match-popup').each(function () {bindDialogCloseHandler(this)});
-	closeMatchObserver.observe(document.body, {childList: true, subtree: true});
 })
