@@ -156,7 +156,7 @@ class JobsHandler extends AbstractHandler {
 		);
 
 		$optionsString = "-j $job->id";
-		exec("php ".BASE_PATH."/bin/user_updates/user_update_team.php $optionsString > ".BASE_PATH."/logs/test.log 2>&1 &");
+		exec("php ".BASE_PATH."/bin/user_updates/user_update_team.php $optionsString > /dev/null 2>&1 &");
 
 		echo json_encode($job->getApiOutput());
 	}
