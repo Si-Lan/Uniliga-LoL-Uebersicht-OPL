@@ -12,7 +12,8 @@ class MatchButton {
 	public function __construct(
 		public Matchup $matchup,
 		public ?Team $team = null,
-		private ?TeamInTournamentRepository $teamInTournamentRepo = null
+		private ?TeamInTournamentRepository $teamInTournamentRepo = null,
+		public ?string $injectedPopupId = null
 	) {
 		if (is_null($this->teamInTournamentRepo)) {
 			$this->teamInTournamentRepo = new TeamInTournamentRepository();
@@ -25,6 +26,7 @@ class MatchButton {
 		$matchup = $this->matchup;
 		$currentTeam = $this->team;
 		$popupOpened = $this->popupOpened;
+		$injectedPopupId = $this->injectedPopupId;
 		ob_start();
 		include __DIR__.'/match-button.template.php';
 		return ob_get_clean();

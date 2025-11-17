@@ -117,6 +117,7 @@ class FragmentHandler {
 	public function matchButton(array $dataGet): void {
 		$matchupId = $this->intOrNull($dataGet['matchupId'] ?? null);
 		$teamId = $this->intOrNull($dataGet['teamId'] ?? null);
+		$popupId = $this->stringOrNull($dataGet['popupId'] ?? null);
 
 		if (is_null($matchupId)) {
 			$this->sendJsonError('Missing matchupId',400);
@@ -133,7 +134,7 @@ class FragmentHandler {
 		$teamRepo = new TeamRepository();
 		$team = ($teamId) ? $teamRepo->findById($teamId) : null;
 
-		$this->sendJsonFragment(new MatchButton($matchup,$team));
+		$this->sendJsonFragment(new MatchButton($matchup,$team, injectedPopupId: $popupId));
 	}
 
 	public function matchButtonList(array $dataGet): void {
@@ -311,10 +312,6 @@ class FragmentHandler {
 			$this->sendJsonError('missing matchId',400);
 			return;
 		}
-		if (is_null($teamId)) {
-			$this->sendJsonError('missing teamId',400);
-			return;
-		}
 
 		$matchupRepo = new MatchupRepository();
 		$matchup = $matchupRepo->findById($matchId);
@@ -323,7 +320,7 @@ class FragmentHandler {
 			return;
 		}
 		$teamRepo = new TeamRepository();
-		$team = $teamRepo->findById($teamId);
+		$team = $teamId ? $teamRepo->findById($teamId) : null;
 
 		$this->sendJsonFragment(new MatchPopupContent($matchup, $team));
 	}

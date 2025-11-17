@@ -2,6 +2,7 @@
 /** @var \App\Domain\Entities\Matchup $matchup */
 /** @var \App\Domain\Entities\Team|null $currentTeam */
 /** @var bool $popupOpened */
+/** @var ?string $injectedPopupId */
 
 use App\UI\Components\Popups\MatchPopupContent;
 use App\UI\Components\Popups\Popup;
@@ -18,7 +19,12 @@ $matchPopup = new Popup(
 );
 ?>
 <div class="match-button-wrapper" data-matchid="<?=$matchup->id?>" data-tournamentid="<?=$matchup->tournamentStage->rootTournament->id?>">
-	<a class="button match sideext-right" href="?match=<?=$matchup->id?>" data-match-id="<?=$matchup->id?>" <?=(!is_null($currentTeam?->id) && $currentTeam?->id === $matchup->team1?->team->id) ? "data-team-id='{$currentTeam->id}'" : ""?> data-dialog-id="<?=$matchPopup->getId()?>">
+	<a class="button match sideext-right"
+       href="?match=<?=$matchup->id?>"
+       data-match-id="<?=$matchup->id?>"
+            <?=(!is_null($currentTeam?->id) && ($currentTeam?->id === $matchup->team1?->team->id || $currentTeam?->id === $matchup->team2?->team->id)) ? "data-team-id='{$currentTeam->id}'" : ""?>
+       data-dialog-id="<?= $injectedPopupId === null ? $matchPopup->getId() : $injectedPopupId ?>"
+    >
 		<div class="<?=implode(" ", array_filter(["teams", ($matchup->played) ? "score" : ""]))?>">
 			<div class="<?=implode(" ", array_filter(["team", 1, $matchup->getTeam1Result(), (!is_null($currentTeam?->id) && $currentTeam?->id === $matchup->team1?->team->id) ? "current" : ""]))?>" title="<?=$team1Name?>"><?=$team1Name?></div>
 			<?php if ($matchup->played) {?>
@@ -37,4 +43,4 @@ $matchPopup = new Popup(
 		<?= \App\UI\Components\Helpers\IconRenderer::getMaterialIconDiv("open_in_new")?>
 	</a>
 </div>
-<?= $matchPopup->render()?>
+<?= $injectedPopupId === null ? $matchPopup->render() : ""?>
