@@ -9,7 +9,7 @@ use App\UI\Components\Matches\MatchRound;use App\UI\Components\UpdateButton;
 ?>
 
 <div class="mh-popup-buttons">
-	<?= new UpdateButton($matchup)?>
+	<?= new UpdateButton($matchup, teamContext: $team)?>
 </div>
 <span>Spieldatum: <?=$matchup->plannedDate->format('d.m.Y, H:i')?></span>
 <?= new MatchRound($matchup) ?>

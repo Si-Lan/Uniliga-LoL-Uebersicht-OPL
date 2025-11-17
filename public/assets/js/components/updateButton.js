@@ -10,6 +10,9 @@ $(async function () {
         if (type === "team" && button.data("team") && button.data("tournament")) {
             runningUpdate = await checkRunningTeamUpdate(button.data("team"), button.data("tournament"));
         }
+        if (type === "match" && button.data("match")) {
+            runningUpdate = await checkRunningMatchUpdate(button.data("match"));
+        }
         if (runningUpdate !== null && !runningUpdate.error) {
             setUserButtonUpdating(button);
             checkUserUpdateStatusRepeatedly(runningUpdate.id, 1000, button)
@@ -17,6 +20,11 @@ $(async function () {
                     unsetUserButtonUpdating(button);
                     if (type === "group") refreshTournamentStagePageContent(button.data("group"));
                     if (type === "team") refreshTeamInTournamentPageContent(button.data("team"), button.data("tournament"));
+                    if (type === "match") {
+                        const popupId = button.closest("dialog.match-popup").attr("id");
+                        const teamId = button.data("team") ? button.data("team") : null;
+                        refreshMatchPopupContent(popupId, button.data("match"), teamId);
+                    }
                 })
                 .catch(e => console.error(e));
         }
@@ -35,6 +43,9 @@ $(document).on("click", "button.user_update", async function () {
             break;
         case "team":
             jobResponse = await startUserUpdateTeam(button.data("team"), button.data("tournament"));
+            break;
+        case "match":
+            jobResponse = await startUserUpdateMatch(button.data("match"));
             break;
     }
 
@@ -55,6 +66,11 @@ $(document).on("click", "button.user_update", async function () {
             unsetUserButtonUpdating(button);
             if (type === "group") refreshTournamentStagePageContent(button.data("group"));
             if (type === "team") refreshTeamInTournamentPageContent(button.data("team"), button.data("tournament"));
+            if (type === "match") {
+                const popupId = button.closest("dialog.match-popup").attr("id");
+                const teamId = button.data("team") ? button.data("team") : null;
+                refreshMatchPopupContent(popupId, button.data("match"), teamId);
+            }
         })
         .catch(e => console.error(e))
 })
@@ -76,6 +92,20 @@ async function checkRunningGroupUpdate(groupId) {
 }
 async function checkRunningTeamUpdate(teamId, tournamentId) {
     return await fetch(`/api/jobs/user/team/${teamId}/tournament/${tournamentId}/running`, {method: "GET"})
+        .then(res => {
+            if (res.ok) {
+                return res.json()
+            } else {
+                return {"error": "Fehler beim Laden der Daten"};
+            }
+        })
+        .catch(e => {
+            console.error(e);
+            return {"error": "Fehler beim Laden der Daten"};
+        })
+}
+async function checkRunningMatchUpdate(matchId) {
+    return await fetch(`/api/jobs/user/matchup/${matchId}/running`, {method: "GET"})
         .then(res => {
             if (res.ok) {
                 return res.json()
@@ -126,6 +156,9 @@ async function startUserUpdateGroup(groupId) {
 }
 async function startUserUpdateTeam(teamId, tournamentId) {
     return await startJob(`/api/jobs/user/team/${teamId}/tournament/${tournamentId}`)
+}
+async function startUserUpdateMatch(matchId) {
+    return await startJob(`/api/jobs/user/matchup/${matchId}`)
 }
 async function startJob(endpoint) {
     return await fetch(endpoint, {method: "POST"})
@@ -203,4 +236,43 @@ function refreshTeamInTournamentPageContent(teamId, tournamentId) {
     )
     Promise.all(fetchArray)
         .then(() => stageButtons.prop("disabled", false));
+}
+
+function refreshMatchPopupContent(popupId, matchId, teamId = null) {
+    const teamIdParam = teamId !== null ? `&teamId=${teamId}` : "";
+    const popupIdParam = popupId !== null ? `&popupId=${popupId}` : "";
+    fragmentLoader(`match-popup?matchId=${matchId}${teamIdParam}`)
+        .then(html => {
+            $(`dialog#${popupId} .dialog-content`).html(html);
+        })
+
+    let activeStageId = 6925;
+    let stageButtons = null;
+    let activeStageButton = null;
+    if (teamId !== null) {
+        stageButtons = $("button.teampage_switch_group");
+        activeStageButton = $("button.teampage_switch_group.active");
+        activeStageId = (activeStageButton.length > 0) ? activeStageButton.data("group") : null;
+        stageButtons.prop("disabled", true);
+    }
+
+    let fetchArray = [];
+    fetchArray.push(
+        fragmentLoader(`standings-table?tournamentId=${activeStageId}${teamIdParam}`, null, null, true)
+            .then(html => {
+                $("div.standings").replaceWith(html);
+            })
+    )
+    fetchArray.push(
+        fragmentLoader(`match-button?matchupId=${matchId}${teamIdParam}${popupIdParam}`, null, null, true)
+            .then(html => {
+                $(`div.match-button-wrapper[data-matchid=${matchId}]`).replaceWith(html);
+            })
+    )
+    Promise.all(fetchArray)
+        .then(() => {
+            if (teamId !== null) {
+                stageButtons.prop("disabled", false)
+            }
+        });
 }

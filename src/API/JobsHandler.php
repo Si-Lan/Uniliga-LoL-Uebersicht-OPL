@@ -6,6 +6,7 @@ use App\Domain\Enums\Jobs\UpdateJobAction;
 use App\Domain\Enums\Jobs\UpdateJobContextType;
 use App\Domain\Enums\Jobs\UpdateJobStatus;
 use App\Domain\Enums\Jobs\UpdateJobType;
+use App\Domain\Repositories\MatchupRepository;
 use App\Domain\Repositories\TeamInTournamentRepository;
 use App\Domain\Repositories\TournamentRepository;
 use App\Domain\Repositories\UpdateJobRepository;
@@ -157,6 +158,71 @@ class JobsHandler extends AbstractHandler {
 
 		$optionsString = "-j $job->id";
 		exec("php ".BASE_PATH."/bin/user_updates/user_update_team.php $optionsString > /dev/null 2>&1 &");
+
+		echo json_encode($job->getApiOutput());
+	}
+
+	public function getJobsUserMatchupRunning(int $matchId): void {
+		$runningJob = $this->jobRepo->findLatest(
+			UpdateJobType::USER,
+			UpdateJobAction::UPDATE_MATCH,
+			UpdateJobStatus::RUNNING,
+			UpdateJobContextType::MATCHUP,
+			$matchId
+		);
+		echo json_encode($runningJob?->getApiOutput());
+	}
+
+	public function postJobsUserMatchup(int $matchId): void {
+		$this->checkRequestMethod('POST');
+
+		$matchupRepo = new MatchupRepository();
+		$matchup = $matchupRepo->findById($matchId);
+		if ($matchup === null) {
+			$this->sendErrorResponse(404, "Matchup not found");
+		}
+
+		$runningJob = $this->jobRepo->findLatest(
+			UpdateJobType::USER,
+			UpdateJobAction::UPDATE_MATCH,
+			UpdateJobStatus::RUNNING,
+			UpdateJobContextType::MATCHUP,
+			$matchup->id
+		);
+
+		if ($runningJob !== null) {
+			echo json_encode($runningJob->getApiOutput());
+			exit;
+		}
+
+		$lastJob = $this->jobRepo->findLatest(
+			UpdateJobType::USER,
+			UpdateJobAction::UPDATE_MATCH,
+			UpdateJobStatus::SUCCESS,
+			UpdateJobContextType::MATCHUP,
+			$matchup->id
+		);
+
+		if ($lastJob !== null) {
+			$latestTime = $lastJob->finishedAt ?? $lastJob->updatedAt;
+			$currentTime = new \DateTimeImmutable();
+			$diff = $currentTime->diff($latestTime, true);
+			if ($diff->i < 10) {
+				http_response_code(429);
+				echo json_encode($lastJob->getApiOutput());
+				exit;
+			}
+		}
+
+		$job = $this->jobRepo->createJob(
+			UpdateJobType::USER,
+			UpdateJobAction::UPDATE_MATCH,
+			UpdateJobContextType::MATCHUP,
+			$matchup->id
+		);
+
+		$optionsString = "-j $job->id";
+		exec("php ".BASE_PATH."/bin/user_updates/user_update_match.php $optionsString > /dev/null 2>&1 &");
 
 		echo json_encode($job->getApiOutput());
 	}
