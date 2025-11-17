@@ -94,6 +94,7 @@ class GameRepository extends AbstractRepository {
         $placeholders = implode(",", array_fill(0, count($data), "?"));
         $values = array_values($data);
 
+		/** @noinspection SqlInsertValues */
 		$query = "INSERT INTO games ($columns) VALUES ($placeholders)";
 		$this->dbcn->execute_query($query, $values);
 	}
