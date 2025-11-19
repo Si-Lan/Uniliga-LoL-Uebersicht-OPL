@@ -229,7 +229,8 @@ CREATE TABLE update_jobs (
         'update_team',
         'update_group',
         'update_match',
-        'update_tournament'
+        'update_tournament',
+        'full_update'
     ) NOT NULL,
     status ENUM('queued','running','success','error','cancelled','abandoned') DEFAULT 'queued',
     progress FLOAT UNSIGNED DEFAULT 0,

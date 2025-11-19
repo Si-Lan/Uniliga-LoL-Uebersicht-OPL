@@ -71,7 +71,7 @@ class UpdateJobRepository extends AbstractRepository {
 		$data['id'] = $job->id;
 		$data['type'] = $job->type->value;
 		$data['action'] = $job->action->value;
-		$data['context_type'] = $job->contextType->value;
+		$data['context_type'] = $job->contextType?->value;
 		$data['context_id'] = $job->context?->id;
 		$data['tournament_id'] = $job->tournament?->id;
 		$data['started_at'] = $job->startedAt?->format('Y-m-d H:i:s');

@@ -19,4 +19,5 @@ enum UpdateJobAction: string {
 	case UPDATE_GROUP = 'update_group';
 	case UPDATE_MATCH = 'update_match';
 	case UPDATE_TOURNAMENT = 'update_tournament';
+	case FULL_UPDATE = 'full_update';
 }
