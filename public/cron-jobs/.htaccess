@@ -1,4 +1,0 @@
-#AuthType Basic
-#AuthName "restricted area"
-#AuthUserFile {root-Verzeichnis}/cron-jobs/.htpasswd
-#require valid-user
