@@ -107,19 +107,13 @@ function update_team_filter_groups(div_id) {
 	if (div_id === "all") {
 		$("select.groups").empty().append("<option value='all' selected='selected'>Alle Gruppen</option>");
 	} else {
-		fetch(`/api/get-data.php`, {
-			method: "GET",
-			headers: {
-				"type": "groups",
-				"tournamentID": div_id,
-			}
-		})
+		fetch(`/api/tournaments/${div_id}/leafes`, {method: "GET"})
 			.then(res => res.json())
 			.then(groups => {
 				let groupslist = $("select.groups");
 				groupslist.empty().append("<option value='all' selected='selected'>Alle Gruppen</option>")
 				for (let i = 0; i < groups.length; i++) {
-					groupslist.append(`<option value='${groups[i]["OPL_ID"]}'>Gruppe ${groups[i]["number"]}</option>`);
+					groupslist.append(`<option value='${groups[i]["id"]}'>Gruppe ${groups[i]["number"]}</option>`);
 				}
 			})
 			.catch(error => console.error(error));
