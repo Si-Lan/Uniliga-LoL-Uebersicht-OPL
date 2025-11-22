@@ -72,11 +72,25 @@ class MatchupUpdater {
 			}
 
 			$matchResultSegments = $oplMatchupResults['result_segments'];
+
+			// Team-Zuweisung Fallback, falls Ids von OPL nicht eindeutig sind
+			// Dann sind Teams zwar falsch zugewiesen, aber besser als nichts
+			// Normalerweise sollten immer nur eine Win-ID und eine Loss-ID pro Spiel vorhanden sein, da es in einzelnen LoL-Spielen keine Unentschieden geben kann
+			$fallbackIdsUsed = false;
+			$blueTeamId = null;
+			$redTeamId = null;
+			if (count($matchResultSegments[$i]['win_IDs']) !== 1 || count($matchResultSegments[$i]['loss_IDs']) !== 1) {
+				$fallbackIdsUsed = true;
+				$blueTeamId = $matchup->team1->team->id;
+				$redTeamId = $matchup->team2->team->id;
+			}
+
 			$blueTeamWin = $oplGame['info']['teams'][0]['win'];
-			if ($blueTeamWin) {
+			$redTeamWin = $oplGame['info']['teams'][1]['win'];
+			if ($blueTeamWin && !$fallbackIdsUsed) {
 				$blueTeamId = intval($matchResultSegments[$i]['win_IDs'][0]);
 				$redTeamId = intval($matchResultSegments[$i]['loss_IDs'][0]);
-			} else {
+			} elseif ($redTeamWin && !$fallbackIdsUsed) {
 				$blueTeamId = intval($matchResultSegments[$i]['loss_IDs'][0]);
 				$redTeamId = intval($matchResultSegments[$i]['win_IDs'][0]);
 			}

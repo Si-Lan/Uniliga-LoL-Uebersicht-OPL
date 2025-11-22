@@ -33,10 +33,10 @@ class GameInMatchRepository extends AbstractRepository {
 		if (is_null($matchup)) {
 			$matchup = $this->matchupRepo->findById($data['OPL_ID_matches']);
 		}
-		if (is_null($blueTeam)) {
+		if (is_null($blueTeam) && !is_null($data['OPL_ID_blueTeam'])) {
 			$blueTeam = $this->teamInTournamentRepo->findByTeamIdAndTournament($data['OPL_ID_blueTeam'],$matchup->tournamentStage->rootTournament);
 		}
-		if (is_null($redTeam)) {
+		if (is_null($redTeam) && !is_null($data['OPL_ID_redTeam'])) {
 			$redTeam = $this->teamInTournamentRepo->findByTeamIdAndTournament($data['OPL_ID_redTeam'],$matchup->tournamentStage->rootTournament);
 		}
 		return new GameInMatch(
