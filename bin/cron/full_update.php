@@ -188,7 +188,7 @@ Logger::log('cron_update', "Finished full update job $job->id");
 function tryAndLog(callable $callback): mixed {
 	try {
 		return $callback();
-	} catch (Exception $e) {
+	} catch (Throwable $e) {
 		if ($e->getCode() !== 200) Logger::log('cron_update',"Error on full cron update: \n".$e->getMessage()."\n".$e->getTraceAsString());
 		return false;
 	}
