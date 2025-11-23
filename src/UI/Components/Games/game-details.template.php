@@ -8,6 +8,10 @@
 
 use App\UI\Components\Helpers\IconRenderer;
 
+$blueTeamExists = !is_null($gameInMatch->blueTeam);
+$redTeamExists = !is_null($gameInMatch->redTeam);
+$winningTeamExists = !is_null($gameInMatch->getWinningTeam());
+$losingTeamExists = !is_null($gameInMatch->getLosingTeam());
 $teamFocus = !is_null($currentTeam);
 
 $blueTeamScoreText = ($gameData->blueTeamWin) ? 'Victory' : 'Defeat';
@@ -18,19 +22,19 @@ $blueTeamScoreClass = ($gameData->blueTeamWin) ? 'win' : 'loss';
 $redTeamScoreClass = ($gameData->redTeamWin) ? 'win' : 'loss';
 $teamScoreClasses = [$blueTeamScoreClass, $redTeamScoreClass];
 
-$currentTeamIsBlueClass = ($teamFocus && $currentTeam->equals($gameInMatch->blueTeam->team)) ? 'current' : '';
-$currentTeamIsRedClass = ($teamFocus && $currentTeam->equals($gameInMatch->redTeam->team)) ? 'current' : '';
+$currentTeamIsBlueClass = ($teamFocus && $blueTeamExists && $currentTeam->equals($gameInMatch->blueTeam->team)) ? 'current' : '';
+$currentTeamIsRedClass = ($teamFocus && $redTeamExists && $currentTeam->equals($gameInMatch->redTeam->team)) ? 'current' : '';
 $currentTeamClasses = [$currentTeamIsBlueClass, $currentTeamIsRedClass];
 
-if ($teamFocus && $currentTeam->equals($gameInMatch->getWinningTeam()->team)) {
+if ($teamFocus && $winningTeamExists && $currentTeam->equals($gameInMatch->getWinningTeam()->team)) {
 	$resultWrapperClass = 'win';
     $miniScoreText = 'Victory';
-} elseif ($teamFocus && $currentTeam->equals($gameInMatch->getLosingTeam()->team)) {
+} elseif ($teamFocus && $losingTeamExists && $currentTeam->equals($gameInMatch->getLosingTeam()->team)) {
 	$resultWrapperClass = 'loss';
 	$miniScoreText = 'Defeat';
 } else {
     $resultWrapperClass = 'general';
-	$miniScoreText = $gameInMatch->getWinningTeam()->nameInTournament;
+	$miniScoreText = $gameInMatch->getWinningTeam()?->nameInTournament;
 }
 
 
@@ -47,6 +51,7 @@ if ($teamFocus && $currentTeam->equals($gameInMatch->getWinningTeam()->team)) {
 			<span><?= $gameData->gameDuration ?></span>
 		</div>
 
+        <?php if ($blueTeamExists): ?>
         <?php $classes = implode(' ', array_filter(['team', $blueTeamScoreClass, $currentTeamIsBlueClass])) ?>
         <a class="<?=$classes?>" href="/turnier/<?= $gameInMatch->matchup->tournamentStage->rootTournament->id ?>/team/<?= $gameInMatch->blueTeam->team->id ?>">
 			<?php if ($gameInMatch->blueTeam->getLogoUrl(true)): ?>
@@ -54,6 +59,7 @@ if ($teamFocus && $currentTeam->equals($gameInMatch->getWinningTeam()->team)) {
 			<?php endif; ?>
             <span><?= $gameInMatch->blueTeam->nameInTournament ?></span>
         </a>
+        <?php endif; ?>
 
         <?php foreach ([$gameData->blueTeamPlayers, $gameData->redTeamPlayers] as $teamPlayers): ?>
             <div class="players">
@@ -76,6 +82,7 @@ if ($teamFocus && $currentTeam->equals($gameInMatch->getWinningTeam()->team)) {
         <?php endforeach; ?>
 
 
+        <?php if ($redTeamExists): ?>
 		<?php $classes = implode(' ', array_filter(['team', $redTeamScoreClass, $currentTeamIsRedClass])) ?>
         <a class="<?=$classes?>" href="/turnier/<?= $gameInMatch->matchup->tournamentStage->rootTournament->id ?>/team/<?= $gameInMatch->redTeam->team->id ?>">
             <?php if ($gameInMatch->redTeam->getLogoUrl(true)): ?>
@@ -83,6 +90,7 @@ if ($teamFocus && $currentTeam->equals($gameInMatch->getWinningTeam()->team)) {
             <?php endif; ?>
             <span><?= $gameInMatch->redTeam->nameInTournament ?></span>
         </a>
+        <?php endif; ?>
 
         <button class='expand-game-details'>
             <?= IconRenderer::getMaterialIconDiv('expand_less')?>
@@ -96,6 +104,7 @@ if ($teamFocus && $currentTeam->equals($gameInMatch->getWinningTeam()->team)) {
         <div class="game-row teams">
 			<?php /** @var \App\Domain\Entities\TeamInTournament $team */
 			foreach ([$gameInMatch->blueTeam, $gameInMatch->redTeam] as $index=> $team): ?>
+                <?php if (!is_null($team)): ?>
 				<?php $classes = implode(' ', array_filter(['team', $index+1, $teamScoreClasses[$index], $currentTeamClasses[$index]])) ?>
                 <a class="<?=$classes?>" href="/turnier/<?= $gameInMatch->matchup->tournamentStage->rootTournament->id ?>/team/<?= $team->team->id ?>">
                     <div class="name">
@@ -109,6 +118,7 @@ if ($teamFocus && $currentTeam->equals($gameInMatch->getWinningTeam()->team)) {
 						<?= $teamScoreTexts[$index] ?>
                     </div>
                 </a>
+                <?php endif; ?>
                 <?php if ($index == 0): ?>
                     <div class='time'>
                         <div><?= $gameData->gameDuration ?></div>

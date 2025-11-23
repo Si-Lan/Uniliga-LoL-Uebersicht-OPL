@@ -68,9 +68,13 @@ class GameDetails {
 		$rankedSplit2 = $rankedSplitRepo->findNextSplitForTournament($this->gameInMatch->matchup->tournamentStage->rootTournament);
 		$this->currentSplit = $this->gameInMatch->matchup->tournamentStage->rootTournament->userSelectedRankedSplit;
 
-
-		$playersInTeams = $this->playerInTeamInTournamentRepo->findAllByTeamInTournament($this->gameInMatch->blueTeam);
-		$playersInTeams = array_merge($playersInTeams, $this->playerInTeamInTournamentRepo->findAllByTeamInTournament($this->gameInMatch->redTeam));
+		$playersInTeams = [];
+		if ($this->gameInMatch->blueTeam !== null) {
+			$playersInTeams = $this->playerInTeamInTournamentRepo->findAllByTeamInTournament($this->gameInMatch->blueTeam);
+		}
+		if ($this->gameInMatch->redTeam !== null) {
+			$playersInTeams = array_merge($playersInTeams, $this->playerInTeamInTournamentRepo->findAllByTeamInTournament($this->gameInMatch->redTeam));
+		}
 
 		foreach ($playersInTeams as $playerInTeam) {
 			$this->indexedPlayerSeasonRanksByPuuid[$playerInTeam->player->puuid] = array_filter([
