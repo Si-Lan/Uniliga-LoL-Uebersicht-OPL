@@ -223,9 +223,12 @@ class PlayerUpdater {
             $championsInTeam = [];
 
             $gamesInMatches = $gameInMatchRepo->findAllByTeamInTournament($playerInTeamInTournament->teamInTournament);
+			$checkedGameIds = [];
             foreach ($gamesInMatches as $gameInMatch) {
                 $game = $gameInMatch->game;
-                if ($game->gameData === null) continue;
+				if (in_array($game->id, $checkedGameIds)) continue;
+				$checkedGameIds[] = $game->id;
+				if ($game->gameData === null) continue;
                 $allPlayerData = array_merge($game->gameData->blueTeamPlayers, $game->gameData->redTeamPlayers);
                 $allPlayerPuuids = array_map(fn($playerData)=> $playerData->puuid, $allPlayerData);
 

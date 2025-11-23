@@ -263,10 +263,12 @@ class TeamUpdater {
 
         $gameInMatchRepo = new GameInMatchRepository();
         $gamesInMatches = $gameInMatchRepo->findAllByTeamInTournament($teamInTournament);
-
+		$checkedGameIds = [];
         foreach ($gamesInMatches as $gameInMatch) {
             $game = $gameInMatch->game;
-            if ($game->gameData === null) continue;
+			if (in_array($game->id, $checkedGameIds)) continue;
+			$checkedGameIds[] = $game->id;
+			if ($game->gameData === null) continue;
             if ($gameInMatch->blueTeam->team->id === $team->id) {
                 $teamData = $game->gameData->blueTeam;
                 $playerData = $game->gameData->blueTeamPlayers;
