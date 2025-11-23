@@ -73,7 +73,8 @@ class JobsHandler extends AbstractHandler {
 			$latestTime = $lastJob->finishedAt ?? $lastJob->updatedAt;
 			$currentTime = new \DateTimeImmutable();
 			$diff = $currentTime->diff($latestTime, true);
-			if ($diff->i < 10) {
+			$totalMinutes = ($diff->days * 24 * 60) + ($diff->h * 60) + $diff->i;
+			if ($totalMinutes < 10) {
 				http_response_code(429);
 				echo json_encode($lastJob->getApiOutput());
 				exit;
@@ -141,7 +142,8 @@ class JobsHandler extends AbstractHandler {
 			$latestTime = $latestJob->finishedAt ?? $latestJob->updatedAt;
 			$currentTime = new \DateTimeImmutable();
 			$diff = $currentTime->diff($latestTime, true);
-			if ($diff->i < 10) {
+			$totalMinutes = ($diff->days * 24 * 60) + ($diff->h * 60) + $diff->i;
+			if ($totalMinutes < 10) {
 				http_response_code(429);
 				echo json_encode($latestJob->getApiOutput());
 				exit;
@@ -207,7 +209,8 @@ class JobsHandler extends AbstractHandler {
 			$latestTime = $lastJob->finishedAt ?? $lastJob->updatedAt;
 			$currentTime = new \DateTimeImmutable();
 			$diff = $currentTime->diff($latestTime, true);
-			if ($diff->i < 10) {
+			$totalMinutes = ($diff->days * 24 * 60) + ($diff->h * 60) + $diff->i;
+			if ($totalMinutes < 10) {
 				http_response_code(429);
 				echo json_encode($lastJob->getApiOutput());
 				exit;
