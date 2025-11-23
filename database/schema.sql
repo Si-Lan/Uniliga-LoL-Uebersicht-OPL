@@ -226,6 +226,8 @@ CREATE TABLE update_jobs (
         'update_player_ranks',
         'update_team_ranks',
         'update_gamedata',
+        'update_player_stats',
+        'update_team_stats',
         'update_team',
         'update_group',
         'update_match',
