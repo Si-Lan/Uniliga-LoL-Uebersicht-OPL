@@ -45,7 +45,7 @@ class MatchHistory {
 				}
 			}
 			foreach ($games as $gameInMatchup) {
-				echo new GameDetails($gameInMatchup->game,$this->teamInTournament->team,$this->playerInTeamInTournamentRepo, $this->playerSeasonRankRepo);
+				echo new GameDetails($gameInMatchup,$this->teamInTournament->team,$this->playerInTeamInTournamentRepo, $this->playerSeasonRankRepo);
 			}
 			echo "</div>";
 		}

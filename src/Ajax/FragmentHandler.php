@@ -3,6 +3,7 @@
 namespace App\Ajax;
 
 use App\Core\Utilities\DataParsingHelpers;
+use App\Domain\Repositories\GameInMatchRepository;
 use App\Domain\Repositories\GameRepository;
 use App\Domain\Repositories\MatchupRepository;
 use App\Domain\Repositories\PlayerInTeamInTournamentRepository;
@@ -162,6 +163,7 @@ class FragmentHandler {
 	public function gameDetails(array $dataGet): void {
 		$gameId = $this->stringOrNull($dataGet['gameId'] ?? null);
 		$teamId = $this->intOrNull($dataGet['teamId'] ?? null);
+		$matchupId = $this->intOrNull($dataGet['matchupId'] ?? null);
 
 		if (is_null($gameId)) {
 			$this->sendJsonError('Missing gameId',400);
@@ -177,7 +179,19 @@ class FragmentHandler {
 		$teamRepo = new TeamRepository();
 		$focusTeam = $teamId ? $teamRepo->findById($teamId) : null;
 
-		$this->sendJsonFragment(new GameDetails($game, $focusTeam));
+		$gameInMatch = null;
+		if (!is_null($matchupId)) {
+			$gameInMatchRepo = new GameInMatchRepository();
+			$gameInMatch = $gameInMatchRepo->findByGameIdAndMatchupId($gameId, $matchupId);
+			if (is_null($gameInMatch)) {
+				$this->sendJsonError('GameInMatch not found for given matchupId',404);
+				return;
+			}
+		}
+
+		$gameParameter = $gameInMatch ?? $game;
+
+		$this->sendJsonFragment(new GameDetails($gameParameter, $focusTeam));
 	}
 
 	public function matchHistory(array $dataGet): void {

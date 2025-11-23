@@ -22,6 +22,6 @@ use App\UI\Components\Matches\MatchRound;use App\UI\Components\UpdateButton;
     <div class="no-game-found">Noch keine eingetragenen Spiele gefunden</div>
 <?php else: ?>
     <?php foreach ($gamesInMatch as $index=>$gameInMatch): ?>
-        <div class="game game<?=$index?>"><?= new GameDetails($gameInMatch->game,$team)?></div>
+        <div class="game game<?=$index?>"><?= new GameDetails($gameInMatch,$team)?></div>
     <?php endforeach; ?>
 <?php endif; ?>

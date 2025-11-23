@@ -32,17 +32,27 @@ class GameDetails {
 
 	private Patch $patch;
 	public function __construct(
-		private Game $game,
+		private Game|GameInMatch $game,
 		private ?Team $currentTeam = null,
 		private ?PlayerInTeamInTournamentRepository $playerInTeamInTournamentRepo = null,
 		private ?PlayerSeasonRankRepository $playerSeasonRankRepo = null,
 	) {
+		if ($this->game instanceof GameInMatch) {
+			$this->gameInMatch = $this->game;
+			$this->game = $this->game->game;
+		} elseif ($this->game instanceof Game) {
+			$gameInMatchRepo = new GameInMatchRepository();
+			$this->gameInMatch = $gameInMatchRepo->findByGame($this->game);
+		} else {
+			return;
+		}
+
 		if (is_null($this->game->gameData)) {
 			return;
 		} else {
 			$this->gameDataLoaded = true;
 		}
-		$gameInMatchRepo = new GameInMatchRepository();
+
 		$patchRepo = new PatchRepository();
 		$rankedSplitRepo = new RankedSplitRepository();
 		if (is_null($this->playerInTeamInTournamentRepo)) {
@@ -52,9 +62,7 @@ class GameDetails {
 			$this->playerSeasonRankRepo = new PlayerSeasonRankRepository();
 		}
 
-		$this->gameInMatch = $gameInMatchRepo->findByGame($game);
-
-		$this->patch = $patchRepo->findLatestPatchByPatchString($game->gameData->gameVersion);
+		$this->patch = $patchRepo->findLatestPatchByPatchString($this->game->gameData->gameVersion);
 
 		$rankedSplit1 = $this->gameInMatch->matchup->tournamentStage->rootTournament->rankedSplits[0] ?? null;
 		$rankedSplit2 = $rankedSplitRepo->findNextSplitForTournament($this->gameInMatch->matchup->tournamentStage->rootTournament);
