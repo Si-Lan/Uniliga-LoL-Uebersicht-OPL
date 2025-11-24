@@ -76,7 +76,7 @@ class GameRepository extends AbstractRepository {
 	public function mapEntityToData(Game $game): array {
 		return [
 			"RIOT_matchID" => $game->id,
-			"matchdata" => json_encode($game->rawMatchdata),
+			"matchdata" => $game->rawMatchdata !== null ? json_encode($game->rawMatchdata) : null,
 			"played_at" => $game->playedAt?->format("Y-m-d H:i:s") ?? null,
 		];
 	}
