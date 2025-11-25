@@ -13,6 +13,7 @@ use App\Domain\Repositories\PlayerInTeamRepository;
 use App\Domain\Repositories\PlayerInTournamentRepository;
 use App\Domain\Repositories\PlayerRepository;
 use App\Domain\Repositories\PlayerSeasonRankRepository;
+use App\Domain\Repositories\RankedSplitRepository;
 use App\Domain\Repositories\TeamRepository;
 use App\Domain\Repositories\TournamentRepository;
 use App\Service\OplApiService;
@@ -175,12 +176,17 @@ class PlayerUpdater {
         $playerSaveResult = $this->playerRepo->save($player);
 
         // Update Rank for Player in currently running RankedSplit
-        $playerSeasonRankRepo = new PlayerSeasonRankRepository();
-        $playerSeasonRank = $playerSeasonRankRepo->findCurrentSeasonRankForPlayer($player);
-        if ($playerSeasonRank === null) {
-            return ['player'=>$playerSaveResult, 'playerSeasonRank'=>null];
-        }
-        $playerSeasonRank->rank = $playerRank;
+		$rankedSplitRepo = new RankedSplitRepository();
+		$currentRankedSplits = $rankedSplitRepo->findCurrentSplits();
+		$currentRankedSplit = $currentRankedSplits[0] ?? null;
+		if ($currentRankedSplit === null) {
+			return ['player'=>$playerSaveResult, 'playerSeasonRank'=>null];
+		}
+		$playerSeasonRank = new PlayerSeasonRank(
+			$player,
+			$currentRankedSplit,
+			$playerRank
+		);
         $playerSeasonSaveResult = $this->playerSeasonRankRepo->save($playerSeasonRank);
 
         return ['player'=>$playerSaveResult, 'playerSeasonRank'=>$playerSeasonSaveResult];
