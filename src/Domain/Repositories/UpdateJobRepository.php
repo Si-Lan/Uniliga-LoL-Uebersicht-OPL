@@ -146,6 +146,20 @@ class UpdateJobRepository extends AbstractRepository {
         return $jobs[0];
     }
 
+	/**
+	 * finde alle Jobs, die älter sind als 2 Wochen, und eine Nachricht enthalten
+	 */
+	public function findOldJobsWithMessage(): array	 {
+		$query = 'SELECT * FROM update_jobs WHERE message IS NOT NULL AND updated_at < NOW() - INTERVAL 14 DAY';
+		$result = $this->dbcn->execute_query($query);
+		$data = $result->fetch_all(MYSQLI_ASSOC);
+		$jobs = [];
+		foreach ($data as $jobData) {
+			$jobs[] = $this->mapToEntity($jobData);
+		}
+		return $jobs;
+	}
+
 	public function createJob(UpdateJobType $type, UpdateJobAction $action, ?UpdateJobContextType $contextType = null, ?int $contextId = null, ?int $tournamentId = null): UpdateJob {
 		$query = 'INSERT INTO update_jobs (type, action, context_type, context_id, tournament_id) VALUES (?, ?, ?, ?, ?)';
 		$params = [$type->value, $action->value, $contextType?->value, $contextId, $tournamentId];
