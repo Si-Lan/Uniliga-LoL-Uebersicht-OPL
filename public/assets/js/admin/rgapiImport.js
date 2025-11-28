@@ -4,6 +4,66 @@ $(document).on("change", "select.tournament-selector", function () {
 	$(`div.writing-wrapper[data-id=${this.value}]`).removeClass("hidden");
 });
 
+// Beim Start nach laufenden Jobs suchen und Buttons aktualisieren
+$(async function () {
+    // Rufe alle Jobs ab
+    const runningJobs = await fetch('/api/jobs/admin/running')
+        .then(res => {
+            if (res.ok) {
+                return res.json()
+            } else {
+                console.error("Fehler beim Laden der Daten");
+            }
+        })
+        .catch(e => console.error(e));
+    if (!runningJobs || runningJobs.error) {
+        return;
+    }
+
+    for (const job of runningJobs) {
+        // wenn kein Kontext gesetzt ist, prüfe nach generellen Updates
+        if (job['contextType'] === null) {
+            const action = job['action'];
+            if (['update_puuids', 'update_player_ranks', 'update_team_ranks'].indexOf(action) === -1) {
+                continue;
+            }
+            const jqButton = $(`div.general-administration button[data-action=${action}]`);
+            if (jqButton.length === 0) {
+                continue;
+            }
+            setButtonUpdating(jqButton);
+            checkJobStatusRepeatedly(job['id'], 1000, jqButton)
+                .then(() => {
+                    unsetButtonUpdating(jqButton);
+                })
+                .catch(e => console.error(e));
+            continue;
+        }
+
+        // Für RGAPI-Updates sind jetzt nur noch Jobs mit korrektem TournamentContext relevant
+        if (job['contextType'] !== 'tournament') {
+            continue;
+        }
+        if (!job['context'] || !job['context']['id']) {
+            continue;
+        }
+
+        // Prüfe nach passenden Turnier-Update Buttons
+        const tournamentId = job['context']['id'];
+        const action = job['action'];
+        const jqButton = $(`button.write[data-id=${tournamentId}][data-action=${action}]`);
+        if (jqButton.length === 0) {
+            continue;
+        }
+        setButtonUpdating(jqButton);
+        checkJobStatusRepeatedly(job['id'], 1000, jqButton)
+            .then(() => {
+                unsetButtonUpdating(jqButton);
+            })
+            .catch(e => console.error(e));
+    }
+})
+
 // PUUIDs im Turnier schreiben
 $(document).on("click", "button.write.puuids", async function () {
 	const tournamentId = this.dataset.id;

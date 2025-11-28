@@ -25,6 +25,15 @@ class JobsHandler extends AbstractHandler {
 		echo json_encode($job?->getApiOutput());
 	}
 
+	public function getJobsAdminRunningAll(): void {
+		$runningJobs = $this->jobRepo->findAll(
+			UpdateJobType::ADMIN,
+			status: UpdateJobStatus::RUNNING
+		);
+		$jobOutput = array_map(fn($job) => $job->getApiOutput(), $runningJobs);
+		echo json_encode($jobOutput);
+	}
+
     public function getJobsUserGroupRunning(int $groupId): void {
         $runningJob = $this->jobRepo->findLatest(
             UpdateJobType::USER,
