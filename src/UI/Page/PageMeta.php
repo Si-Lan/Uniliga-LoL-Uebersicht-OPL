@@ -8,7 +8,8 @@ class PageMeta {
 		public string $title = '',
 		public array $css = [],
 		public array $js = [],
-		public string $bodyClass = ''
+		public string $bodyClass = '',
+		public string $bodyDataId = ''
 	) {
 		if ($title) {
 			$this->shortTitle = $title;
@@ -21,5 +22,6 @@ class PageMeta {
 		$this->js[] = 'jquery-3.7.1.min';
 		$this->js[] = 'main';
 		AssetManager::addJsFile('/assets/js/fragmentLoader.js');
+		$this->bodyDataId = "data-id='{$this->bodyDataId}'";
 	}
 }

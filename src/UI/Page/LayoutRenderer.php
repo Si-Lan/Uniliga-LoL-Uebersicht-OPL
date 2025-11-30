@@ -35,7 +35,7 @@ class LayoutRenderer {
             <meta name="theme-color" content="#e7e7e7">
 		</head>
         <?php $classes = implode(' ', array_filter([$meta->bodyClass, UserContext::getLightModeClass()])) ?>
-        <body class="<?= $classes ?>">
+        <body class="<?= $classes ?>"<?= $meta->bodyDataId == "" ? "" : " {$meta->bodyDataId}" ?>>
         <?= $content ?>
         </body>
 		</html>

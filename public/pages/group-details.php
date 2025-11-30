@@ -16,7 +16,8 @@ $group = $tournamentRepo->findStandingsEventById($_GET["group"]);
 
 $pageMeta = new PageMeta(
         title: $group->getFullName()." | ".$group->rootTournament->getShortName(),
-        bodyClass: 'group'
+        bodyClass: 'group',
+        bodyDataId: $group->id
 );
 
 ?>
