@@ -246,7 +246,11 @@ function refreshMatchPopupContent(popupId, matchId, teamId = null) {
             $(`dialog#${popupId} .dialog-content`).html(html);
         })
 
-    let activeStageId = 6925;
+    let activeStageId = null;
+    let groupBody = $(`body.group`);
+    if (groupBody.length > 0) {
+        activeStageId = groupBody.data("id");
+    }
     let stageButtons = null;
     let activeStageButton = null;
     if (teamId !== null) {
