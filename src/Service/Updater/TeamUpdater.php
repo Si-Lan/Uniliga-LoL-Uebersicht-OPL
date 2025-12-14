@@ -314,6 +314,7 @@ class TeamUpdater {
             }
             // banned Champions
             foreach ($teamData->bans as $ban) {
+				if ($ban === -1) continue;
                 $champion = $championData[$ban];
                 if (!array_key_exists($champion, $champsBanned)) {
                     $champsBanned[$champion] = 1;
@@ -323,6 +324,7 @@ class TeamUpdater {
             }
             // banned Champions Against
             foreach ($opponentData->bans as $ban) {
+				if ($ban === -1) continue;
                 $champion = $championData[$ban];
                 if (!array_key_exists($champion, $champsBannedAgainst)) {
                     $champsBannedAgainst[$champion] = 1;
