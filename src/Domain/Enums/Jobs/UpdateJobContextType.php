@@ -7,4 +7,5 @@ enum UpdateJobContextType: string {
 	case TEAM = 'team';
 	case GROUP = 'group';
 	case MATCHUP = 'matchup';
+	case PATCH = 'patch';
 }

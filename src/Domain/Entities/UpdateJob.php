@@ -16,7 +16,7 @@ class UpdateJob {
 		public UpdateJobStatus $status,
 		public float $progress,
 		public ?UpdateJobContextType $contextType,
-		public Tournament|Team|Matchup|null $context,
+		public Tournament|Team|Matchup|Patch|null $context,
 		public ?Tournament $tournament,
 		public ?DateTimeImmutable $startedAt,
 		public ?DateTimeImmutable $finishedAt,

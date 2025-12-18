@@ -3,6 +3,7 @@
 namespace App\Domain\Repositories;
 
 use App\Core\Utilities\DataParsingHelpers;
+use App\Domain\Entities\Patch;
 use App\Domain\Entities\UpdateJob;
 use App\Domain\Enums\Jobs\UpdateJobAction;
 use App\Domain\Enums\Jobs\UpdateJobContextType;
@@ -15,6 +16,7 @@ class UpdateJobRepository extends AbstractRepository {
 	private TournamentRepository $tournamentRepo;
 	private TeamRepository $teamRepo;
 	private MatchupRepository $matchupRepo;
+	private PatchRepository $patchRepo;
 	protected static array $ALL_DATA_KEYS = ["id", "type", "action", "status", "progress", "context_type", "context_id", "tournament_id", "started_at", "finished_at", "message", "created_at", "updated_at", "pid"];
 	protected static array $REQUIRED_DATA_KEYS = ["id", "type", "action"];
 
@@ -23,12 +25,14 @@ class UpdateJobRepository extends AbstractRepository {
 		$this->tournamentRepo = new TournamentRepository();
 		$this->teamRepo = new TeamRepository();
 		$this->matchupRepo = new MatchupRepository();
+		$this->patchRepo = new PatchRepository();
 	}
 	public function mapToEntity(array $data): UpdateJob {
 		$data = $this->normalizeData($data);
 
 		$context = null;
 		$contextId = $this->intOrNull($data['context_id']);
+		$contextName = $this->stringOrNull($data['context_name']);
 		if ($contextId !== null) {
 			switch ($data['context_type']) {
 				case UpdateJobContextType::TOURNAMENT->value:
@@ -41,6 +45,10 @@ class UpdateJobRepository extends AbstractRepository {
 				case UpdateJobContextType::MATCHUP->value:
 					$context = $this->matchupRepo->findById($contextId);
 					break;
+			}
+		} elseif ($contextName !== null) {
+			if ($data['context_type'] === UpdateJobContextType::PATCH->value) {
+				$context = $this->patchRepo->findByPatchNumber($contextName);
 			}
 		}
 		$tournament = null;
@@ -72,7 +80,16 @@ class UpdateJobRepository extends AbstractRepository {
 		$data['type'] = $job->type->value;
 		$data['action'] = $job->action->value;
 		$data['context_type'] = $job->contextType?->value;
-		$data['context_id'] = $job->context?->id;
+		if ($job->context !== null && property_exists($job->context,'id')) {
+			$data['context_id'] = $job->context->id;
+		} else {
+			$data['context_id'] = null;
+		}
+		if ($job->context instanceof Patch) {
+			$data['context_name'] = $job->context->patchNumber;
+		} else {
+			$data['context_name'] = null;
+		}
 		$data['tournament_id'] = $job->tournament?->id;
 		$data['started_at'] = $job->startedAt?->format('Y-m-d H:i:s');
 		$data['finished_at'] = $job->finishedAt?->format('Y-m-d H:i:s');
@@ -160,9 +177,9 @@ class UpdateJobRepository extends AbstractRepository {
 		return $jobs;
 	}
 
-	public function createJob(UpdateJobType $type, UpdateJobAction $action, ?UpdateJobContextType $contextType = null, ?int $contextId = null, ?int $tournamentId = null): UpdateJob {
-		$query = 'INSERT INTO update_jobs (type, action, context_type, context_id, tournament_id) VALUES (?, ?, ?, ?, ?)';
-		$params = [$type->value, $action->value, $contextType?->value, $contextId, $tournamentId];
+	public function createJob(UpdateJobType $type, UpdateJobAction $action, ?UpdateJobContextType $contextType = null, ?int $contextId = null, ?int $tournamentId = null, ?string $contextName = null): UpdateJob {
+		$query = 'INSERT INTO update_jobs (type, action, context_type, context_id, context_name, tournament_id) VALUES (?, ?, ?, ?, ?, ?)';
+		$params = [$type->value, $action->value, $contextType?->value, $contextId, $contextName, $tournamentId];
 		$this->dbcn->execute_query($query, $params);
 		$id = $this->dbcn->insert_id;
 		return $this->findById($id);

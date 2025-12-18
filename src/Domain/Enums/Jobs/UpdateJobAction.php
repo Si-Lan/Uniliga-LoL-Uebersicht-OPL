@@ -20,4 +20,8 @@ enum UpdateJobAction: string {
 	case UPDATE_MATCH = 'update_match';
 	case UPDATE_TOURNAMENT = 'update_tournament';
 	case FULL_UPDATE = 'full_update';
+	case DOWNLOAD_CHAMPION_IMAGES = 'download_champion_images';
+	case DOWNLOAD_ITEM_IMAGES = 'download_item_images';
+	case DOWNLOAD_SPELL_IMAGES = 'download_spell_images';
+	case DOWNLOAD_RUNE_IMAGES = 'download_rune_images';
 }

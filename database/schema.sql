@@ -232,13 +232,18 @@ CREATE TABLE update_jobs (
         'update_group',
         'update_match',
         'update_tournament',
-        'full_update'
+        'full_update',
+        'download_champion_images',
+        'download_item_images',
+        'download_spell_images',
+        'download_rune_images'
     ) NOT NULL,
     status ENUM('queued','running','success','error','cancelled','abandoned') DEFAULT 'queued',
     progress FLOAT UNSIGNED DEFAULT 0,
 
-    context_type ENUM('tournament','team','group','matchup') NULL,
+    context_type ENUM('tournament','team','group','matchup','patch') NULL,
     context_id INT(11) NULL,
+    context_name VARCHAR(25) NULL,
 
     tournament_id INT(11) NULL,
 
