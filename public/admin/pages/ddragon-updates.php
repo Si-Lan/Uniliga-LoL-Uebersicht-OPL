@@ -20,7 +20,7 @@ echo new Header(HeaderType::ADMIN_DDRAGON);
         <div class="patch-header">
             <button type="button" class="open_add_patch_popup" data-dialog-id="add-patch-popup"><span>Patch hinzufügen</span></button>
             <?= new Popup(id: "add-patch-popup", noCloseButton: true, content: new AddPatchesView(), additionalClasses: ["add-patch-popup"]) ?>
-            <button type="button" class="sync_patches"><span>Patches synchronisieren</span></button>
+            <button type="button" class="sync_patches"><span>Patchintegrität prüfen</span></button>
         </div>
         <div class="get-patch-options">
             <input type="checkbox" id="force-overwrite-patch-img" name="force-overwrite-patch-img">
