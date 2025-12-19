@@ -108,6 +108,19 @@ class UpdateJobRepository extends AbstractRepository {
 
 	}
 
+	public function findByIds(array $ids): array {
+		if (count($ids) === 0) return [];
+		$placeholders = implode(',', array_fill(0, count($ids), '?'));
+		$query = "SELECT * FROM update_jobs WHERE id IN ($placeholders)";
+		$result = $this->dbcn->execute_query($query, $ids);
+		$data = $result->fetch_all(MYSQLI_ASSOC);
+		$jobs = [];
+		foreach ($data as $jobData) {
+			$jobs[] = $this->mapToEntity($jobData);
+		}
+		return $jobs;
+	}
+
 	/**
 	 * @param UpdateJobType|null $type
 	 * @param UpdateJobAction|null $action

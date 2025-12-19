@@ -24,6 +24,16 @@ class JobsHandler extends AbstractHandler {
 		}
 		echo json_encode($job?->getApiOutput());
 	}
+	public function getJobsAll(): void {
+		if (!isset($_GET['ids'])) {
+			echo "[]";
+		}
+		$ids = $_GET['ids'] ?? null;
+		$ids = explode(",", $ids);
+		$ids = array_map("intval", $ids);
+		$jobs = $this->jobRepo->findByIds($ids);
+		echo json_encode(array_map(fn($job) => $job->getApiOutput(), $jobs));
+	}
 
 	public function getJobsAdminRunningAll(): void {
 		$runningJobs = $this->jobRepo->findAll(
