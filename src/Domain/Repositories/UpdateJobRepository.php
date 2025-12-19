@@ -127,10 +127,11 @@ class UpdateJobRepository extends AbstractRepository {
 	 * @param UpdateJobStatus|null $status
 	 * @param UpdateJobContextType|null $contextType
 	 * @param int|null $contextId
+	 * @param string|null $contextName
 	 * @param int|null $tournamentId
 	 * @return array<UpdateJob>
 	 */
-	public function findAll(?UpdateJobType $type = null, ?UpdateJobAction $action = null, ?UpdateJobStatus $status = null, ?UpdateJobContextType $contextType = null, ?int $contextId = null, ?int $tournamentId = null): array {
+	public function findAll(?UpdateJobType $type = null, ?UpdateJobAction $action = null, ?UpdateJobStatus $status = null, ?UpdateJobContextType $contextType = null, ?int $contextId = null, ?string $contextName = null, ?int $tournamentId = null): array {
 		/** @noinspection SqlConstantExpression */
 		$query = 'SELECT * FROM update_jobs WHERE 1 = 1';
 		$params = [];
@@ -154,6 +155,10 @@ class UpdateJobRepository extends AbstractRepository {
 			$query .= ' AND context_id = ?';
 			$params[] = $contextId;
 		}
+		if ($contextName !== null) {
+			$query .= ' AND context_name = ?';
+			$params[] = $contextName;
+		}
 		if ($tournamentId !== null) {
 			$query .= ' AND tournament_id = ?';
 			$params[] = $tournamentId;
@@ -169,8 +174,8 @@ class UpdateJobRepository extends AbstractRepository {
 		return $jobs;
 	}
 
-    public function findLatest(?UpdateJobType $type = null, ?UpdateJobAction $action = null, ?UpdateJobStatus $status = null, ?UpdateJobContextType $contextType = null, ?int $contextId = null, ?int $tournamentId = null): ?UpdateJob {
-        $jobs = $this->findAll($type, $action, $status, $contextType, $contextId, $tournamentId);
+    public function findLatest(?UpdateJobType $type = null, ?UpdateJobAction $action = null, ?UpdateJobStatus $status = null, ?UpdateJobContextType $contextType = null, ?int $contextId = null, ?string $contextName = null, ?int $tournamentId = null): ?UpdateJob {
+        $jobs = $this->findAll($type, $action, $status, $contextType, $contextId, $contextName, $tournamentId);
         if (count($jobs) === 0) return null;
         usort($jobs, fn(UpdateJob $a, UpdateJob $b) => $b->updatedAt <=> $a->updatedAt);
         return $jobs[0];
