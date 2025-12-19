@@ -3,7 +3,9 @@
 namespace App\Service\Updater;
 
 use App\Domain\Entities\Patch;
+use App\Domain\Entities\UpdateJob;
 use App\Domain\Repositories\PatchRepository;
+use App\Domain\Repositories\UpdateJobRepository;
 use FilesystemIterator;
 
 class PatchUpdater {
@@ -11,9 +13,11 @@ class PatchUpdater {
 	private const string LOCAL_DDRAGON_DIR = BASE_PATH . "/public/assets/ddragon";
 	private PatchRepository $patchRepo;
 	private \DirectoryIterator $ddragonDirIterator;
+	private UpdateJobRepository $updateJobRepo;
 	public function __construct() {
 		$this->patchRepo = new PatchRepository();
 		$this->ddragonDirIterator = new \DirectoryIterator(self::LOCAL_DDRAGON_DIR);
+		$this->updateJobRepo = new UpdateJobRepository();
 	}
 
 	private function getChampionsJsonUrl(string $patchNumber): string {
@@ -204,11 +208,10 @@ class PatchUpdater {
 	/**
 	 * @param string $patchNumber
 	 * @param bool $overwrite
-	 * @param int|null $startIndex
-	 * @param int|null $endIndex
+	 * @param UpdateJob|null $job
 	 * @return bool|array<string> array of downloaded imgPaths or false, if no JSON-File for Patch exists
 	 */
-	public function downloadChampionImgs(string $patchNumber, bool $overwrite = false, ?int $startIndex = null, ?int $endIndex = null): bool|array {
+	public function downloadChampionImgs(string $patchNumber, bool $overwrite = false, ?UpdateJob $job = null): bool|array {
 		$patch = $this->patchRepo->findByPatchNumber($patchNumber);
 		$championJsonFile = self::LOCAL_DDRAGON_DIR . "/$patchNumber/data/champion.json";
 		$ddragonSourceUrl = "https://ddragon.leagueoflegends.com/cdn/$patchNumber/img/champion/";
@@ -218,32 +221,32 @@ class PatchUpdater {
 			return false;
 		}
 		$champions = json_decode(file_get_contents($championJsonFile), true)['data'];
-		$allChampionCount = count($champions);
-		if ($startIndex !== null && $endIndex !== null) {
-			$champions = array_slice($champions, $startIndex, $endIndex - $startIndex +1);
-		}
 
 		$downloads = [];
+		$i = 1;
 		foreach ($champions as $champion) {
 			$downloads[$champion["id"]] = $this->downloadAndConvertImg($ddragonSourceUrl . $champion["image"]["full"], $targetDir, $champion["id"], $overwrite);
+			if ($job !== null) {
+				$job->progress = $i / count($champions) * 100;
+				$this->updateJobRepo->save($job);
+			}
+			$i++;
 		}
 
-		if ($endIndex >= $allChampionCount || $endIndex === null) {
-			$patch = $this->patchRepo->findByPatchNumber($patchNumber);
-			$patch->championWebp = true;
-			$this->patchRepo->save($patch);
-		}
+		$patch = $this->patchRepo->findByPatchNumber($patchNumber);
+		$patch->championWebp = true;
+		$this->patchRepo->save($patch);
+
 		return $downloads;
 	}
 
 	/**
 	 * @param string $patchNumber
 	 * @param bool $overwrite
-	 * @param int|null $startIndex
-	 * @param int|null $endIndex
+	 * @param UpdateJob|null $job
 	 * @return bool|array<string> array of downloaded imgPaths or false, if no JSON-File for Patch exists
 	 */
-	public function downloadItemImgs(string $patchNumber, bool $overwrite = false, ?int $startIndex = null, ?int $endIndex = null): bool|array {
+	public function downloadItemImgs(string $patchNumber, bool $overwrite = false, ?UpdateJob $job = null): bool|array {
 		$patch = $this->patchRepo->findByPatchNumber($patchNumber);
 		$itemJsonFile = self::LOCAL_DDRAGON_DIR . "/$patchNumber/data/item.json";
 		$ddragonSourceUrl = "https://ddragon.leagueoflegends.com/cdn/$patchNumber/img/item/";
@@ -253,30 +256,32 @@ class PatchUpdater {
 			return false;
 		}
 		$items = json_decode(file_get_contents($itemJsonFile), true)['data'];
-		$allItemCount = count($items);
-		if ($startIndex !== null && $endIndex !== null) {
-			$items = array_slice($items, $startIndex, $endIndex - $startIndex +1, true);
-		}
 
 		$downloads = [];
+		$i = 1;
 		foreach ($items as $item_id=>$item) {
 			$downloads[$item_id] = $this->downloadAndConvertImg($ddragonSourceUrl . $item["image"]["full"], $targetDir, $item_id, $overwrite);
+			if ($job !== null) {
+				$job->progress = $i / count($items) * 100;
+				$this->updateJobRepo->save($job);
+			}
+			$i++;
 		}
 
-		if ($endIndex >= $allItemCount || $endIndex === null) {
-			$patch = $this->patchRepo->findByPatchNumber($patchNumber);
-			$patch->itemWebp = true;
-			$this->patchRepo->save($patch);
-		}
+		$patch = $this->patchRepo->findByPatchNumber($patchNumber);
+		$patch->itemWebp = true;
+		$this->patchRepo->save($patch);
+
 		return $downloads;
 	}
 
 	/**
 	 * @param string $patchNumber
 	 * @param bool $overwrite
+	 * @param UpdateJob|null $job
 	 * @return bool|array<string> array of downloaded imgPaths or false, if no JSON-File for Patch exists
 	 */
-	public function downloadSummonerImgs(string $patchNumber, bool $overwrite = false): bool|array {
+	public function downloadSummonerImgs(string $patchNumber, bool $overwrite = false, ?UpdateJob $job = null): bool|array {
 		$patch = $this->patchRepo->findByPatchNumber($patchNumber);
 		$summonerJsonFile = self::LOCAL_DDRAGON_DIR . "/$patchNumber/data/summoner.json";
 		$ddragonSourceUrl = "https://ddragon.leagueoflegends.com/cdn/$patchNumber/img/spell/";
@@ -288,16 +293,30 @@ class PatchUpdater {
 		$summoners = json_decode(file_get_contents($summonerJsonFile), true);
 
 		$downloads = [];
+		$i = 1;
 		foreach ($summoners['data'] as $summoner_id=>$summoner) {
 			$downloads[$summoner_id] = $this->downloadAndConvertImg($ddragonSourceUrl . $summoner['image']['full'], $targetDir, $summoner_id, $overwrite);
+			if ($job !== null) {
+				$job->progress = $i / count($summoners['data']) * 100;
+				$this->updateJobRepo->save($job);
+			}
+			$i++;
 		}
 
 		$patch = $this->patchRepo->findByPatchNumber($patchNumber);
 		$patch->spellWebp = true;
 		$this->patchRepo->save($patch);
+
 		return $downloads;
 	}
-	public function downloadRuneImgs(string $patchNumber, bool $overwrite = false): bool|array {
+
+	/**
+	 * @param string $patchNumber
+	 * @param bool $overwrite
+	 * @param UpdateJob|null $job
+	 * @return bool|array<string> array of downloaded imgPaths or false, if no JSON-File for Patch exists
+	 */
+	public function downloadRuneImgs(string $patchNumber, bool $overwrite = false, ?UpdateJob $job = null): bool|array {
 		$patch = $this->patchRepo->findByPatchNumber($patchNumber);
 		$runesJsonFile = self::LOCAL_DDRAGON_DIR . "/$patchNumber/data/runesReforged.json";
 		$ddragonSourceUrl = "https://ddragon.leagueoflegends.com/cdn/img/";
@@ -309,6 +328,7 @@ class PatchUpdater {
 		$runes = json_decode(file_get_contents($runesJsonFile), true);
 
 		$downloads = [];
+		$i = 1;
 		foreach ($runes as $runeTree) {
 			$runeTreeSubdir = implode("/",explode("/",$runeTree["icon"],-1));
 			$imageName = explode("/",$runeTree["icon"]);
@@ -321,6 +341,12 @@ class PatchUpdater {
 				$imageName = explode(".", end($imageName))[0];
 				$downloads[$imageName] = $this->downloadAndConvertImg($ddragonSourceUrl . $keystone["icon"], $targetDir . $keystoneSubdir, $imageName, $overwrite);
 			}
+
+			if ($job !== null) {
+				$job->progress = $i / count($runes) * 100;
+				$this->updateJobRepo->save($job);
+			}
+			$i++;
 		}
 
 		$patch = $this->patchRepo->findByPatchNumber($patchNumber);

@@ -4,15 +4,23 @@ namespace App\API\Admin;
 
 use App\API\AbstractHandler;
 use App\Domain\Entities\Patch;
+use App\Domain\Entities\UpdateJob;
+use App\Domain\Enums\Jobs\UpdateJobAction;
+use App\Domain\Enums\Jobs\UpdateJobContextType;
+use App\Domain\Enums\Jobs\UpdateJobStatus;
+use App\Domain\Enums\Jobs\UpdateJobType;
 use App\Domain\Repositories\PatchRepository;
+use App\Domain\Repositories\UpdateJobRepository;
 use App\Service\Updater\PatchUpdater;
 
 class PatchesHandler extends AbstractHandler {
 	private PatchUpdater $patchUpdater;
 	private PatchRepository $patchRepo;
+	private UpdateJobRepository $jobRepo;
 	public function __construct() {
 		$this->patchUpdater = new PatchUpdater();
 		$this->patchRepo = new PatchRepository();
+		$this->jobRepo = new UpdateJobRepository();
 	}
 
 	private function combinePatchNumbers(string $major, string $minor, string $patch): string {
@@ -58,69 +66,89 @@ class PatchesHandler extends AbstractHandler {
 		echo $this->patchUpdater->downloadJsons($patchNumber, true);
 	}
 
-	public function getPatchesChampionsCount(string $major, string $minor, string $patch): void {
+	public function postPatchesImgs(string $major, string $minor, string $patch): void {
 		$patchNumber = $this->combinePatchNumbers($major, $minor, $patch);
 		$patchEntity = $this->validateAndGetPatchEntity($patchNumber);
 
-		echo $this->patchUpdater->imgCountFromJson($patchNumber, "champions");
-	}
-	public function getPatchesItemsCount(string $major, string $minor, string $patch): void {
-		$patchNumber = $this->combinePatchNumbers($major, $minor, $patch);
-		$patchEntity = $this->validateAndGetPatchEntity($patchNumber);
+		$jobActions = [
+			UpdateJobAction::DOWNLOAD_CHAMPION_IMAGES,
+			UpdateJobAction::DOWNLOAD_ITEM_IMAGES,
+			UpdateJobAction::DOWNLOAD_SPELL_IMAGES,
+			UpdateJobAction::DOWNLOAD_RUNE_IMAGES
+		];
 
-		echo $this->patchUpdater->imgCountFromJson($patchNumber, "items");
+		$jobIds = [];
+		foreach ($jobActions as $jobAction) {
+			$job = $this->startDownloadJob($patchNumber, $jobAction);
+			$jobIds[] = $job->id;
+		}
+
+		echo json_encode(['job_ids' => $jobIds]);
 	}
 
 	public function postPatchesImgsChampions(string $major, string $minor, string $patch): void {
 		$patchNumber = $this->combinePatchNumbers($major, $minor, $patch);
 		$patchEntity = $this->validateAndGetPatchEntity($patchNumber);
 
-		$startIndex = isset($_GET['start']) ? (int)$_GET['start'] : null;
-		$endIndex = isset($_GET['end']) ? (int)$_GET['end'] : null;
-		if ($startIndex !== null && $endIndex !== null && ($startIndex < 0 || $endIndex <= $startIndex)) {
-			$this->sendErrorResponse(400, "Invalid indices for champion batch");
-		}
+		$job = $this->startDownloadJob($patchNumber, UpdateJobAction::DOWNLOAD_CHAMPION_IMAGES);
 
-		$overwrite = isset($_GET['overwrite']) && $_GET['overwrite'] === 'true';
-
-		$downloads = $this->patchUpdater->downloadChampionImgs($patchNumber, $overwrite, $startIndex, $endIndex);
-		echo json_encode($downloads);
+		echo json_encode(['job_id'=>$job->id]);
 	}
 
 	public function postPatchesImgsItems(string $major, string $minor, string $patch): void {
 		$patchNumber = $this->combinePatchNumbers($major, $minor, $patch);
 		$patchEntity = $this->validateAndGetPatchEntity($patchNumber);
 
-		$startIndex = isset($_GET['start']) ? (int)$_GET['start'] : null;
-		$endIndex = isset($_GET['end']) ? (int)$_GET['end'] : null;
-		if ($startIndex !== null && $endIndex !== null && ($startIndex < 0 || $endIndex <= $startIndex)) {
-			$this->sendErrorResponse(400, "Invalid indices for item batch");
-		}
+		$job = $this->startDownloadJob($patchNumber, UpdateJobAction::DOWNLOAD_ITEM_IMAGES);
 
-		$overwrite = isset($_GET['overwrite']) && $_GET['overwrite'] === 'true';
-
-		$downloads = $this->patchUpdater->downloadItemImgs($patchNumber, $overwrite, $startIndex, $endIndex);
-		echo json_encode($downloads);
+		echo json_encode(['job_id'=>$job->id]);
 	}
 
 	public function postPatchesImgsSummoners(string $major, string $minor, string $patch): void {
 		$patchNumber = $this->combinePatchNumbers($major, $minor, $patch);
 		$patchEntity = $this->validateAndGetPatchEntity($patchNumber);
 
-		$overwrite = isset($_GET['overwrite']) && $_GET['overwrite'] === 'true';
+		$job = $this->startDownloadJob($patchNumber, UpdateJobAction::DOWNLOAD_SPELL_IMAGES);
 
-		$downloads = $this->patchUpdater->downloadSummonerImgs($patchNumber, $overwrite);
-		echo json_encode($downloads);
+		echo json_encode(['job_id'=>$job->id]);
 	}
 
 	public function postPatchesImgsRunes(string $major, string $minor, string $patch): void {
 		$patchNumber = $this->combinePatchNumbers($major, $minor, $patch);
 		$patchEntity = $this->validateAndGetPatchEntity($patchNumber);
 
-		$overwrite = isset($_GET['overwrite']) && $_GET['overwrite'] === 'true';
+		$job = $this->startDownloadJob($patchNumber, UpdateJobAction::DOWNLOAD_RUNE_IMAGES);
 
-		$downloads = $this->patchUpdater->downloadRuneImgs($patchNumber, $overwrite);
-		echo json_encode($downloads);
+		echo json_encode(['job_id'=>$job->id]);
+	}
+
+	private function startDownloadJob(string $patchNumber, UpdateJobAction $action): UpdateJob {
+		$possibleRunningJob = $this->jobRepo->findLatest(
+			UpdateJobType::ADMIN,
+			$action,
+			UpdateJobStatus::RUNNING,
+			UpdateJobContextType::PATCH,
+			contextName: $patchNumber
+		);
+		if ($possibleRunningJob !== null) {
+			return $possibleRunningJob;
+		}
+		$job = $this->jobRepo->createJob(
+			UpdateJobType::ADMIN,
+			$action,
+			UpdateJobContextType::PATCH,
+			contextName: $patchNumber,
+		);
+
+		$overwrite = isset($_GET['overwrite']) && $_GET['overwrite'] === 'true';
+		$optionsString = "-j $job->id";
+		if ($overwrite) {
+			$optionsString .= " --overwrite";
+		}
+
+		exec("php ".BASE_PATH."/bin/ddragon_updates/download_patch_imgs.php $optionsString > /dev/null 2>&1 &");
+
+		return $job;
 	}
 
 	public function getPatchesSyncAll(): void {
