@@ -44,6 +44,21 @@ class JobsHandler extends AbstractHandler {
 		echo json_encode($jobOutput);
 	}
 
+	public function getJobsDdragonRunningAll(): void {
+		$runningJobs = $this->jobRepo->findAll(
+			UpdateJobType::ADMIN,
+			status: UpdateJobStatus::RUNNING
+		);
+		$runningJobs = array_filter($runningJobs, fn($job) => in_array($job->action, [
+			UpdateJobAction::DOWNLOAD_CHAMPION_IMAGES,
+			UpdateJobAction::DOWNLOAD_ITEM_IMAGES,
+			UpdateJobAction::DOWNLOAD_SPELL_IMAGES,
+			UpdateJobAction::DOWNLOAD_RUNE_IMAGES
+		]));
+		$jobOutput = array_map(fn($job) => $job->getApiOutput(), $runningJobs);
+		echo json_encode($jobOutput);
+	}
+
     public function getJobsUserGroupRunning(int $groupId): void {
         $runningJob = $this->jobRepo->findLatest(
             UpdateJobType::USER,
