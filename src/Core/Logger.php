@@ -9,6 +9,7 @@ class Logger {
 		'admin_update' => BASE_PATH."/logs/admin_update.log",
         'user_update' => BASE_PATH."/logs/user_update.log",
 		'cron_update' => BASE_PATH."/logs/cron_update.log",
+		'ddragon_update' => BASE_PATH."/logs/ddragon_update.log",
 	];
 
 	public static function log(string $type, string $message):void {
