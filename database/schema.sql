@@ -183,7 +183,8 @@ CREATE TABLE `tournaments` (
   `OPL_ID_logo` int(11) DEFAULT NULL,
   `finished` tinyint(1) NOT NULL DEFAULT 0,
   `deactivated` tinyint(1) NOT NULL DEFAULT 0,
-  `archived` tinyint(1) NOT NULL DEFAULT 0
+  `archived` tinyint(1) NOT NULL DEFAULT 0,
+  `last_cron_update` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE TABLE `tournaments_in_ranked_splits` (

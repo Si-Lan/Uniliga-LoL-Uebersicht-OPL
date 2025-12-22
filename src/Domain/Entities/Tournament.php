@@ -23,6 +23,7 @@ class Tournament {
 	 * @param bool $finished
 	 * @param bool $deactivated
 	 * @param bool $archived
+	 * @param \DateTimeImmutable|null $lastCronUpdate
 	 * @param array<RankedSplit> $rankedSplits
 	 * @param RankedSplit|null $userSelectedRankedSplit
 	 * @param int|null $mostCommonBestOf
@@ -44,6 +45,7 @@ class Tournament {
 		public bool $finished,
 		public bool $deactivated,
 		public bool $archived,
+		public ?\DateTimeImmutable $lastCronUpdate,
 		public array $rankedSplits,
 		public ?RankedSplit $userSelectedRankedSplit,
 		public ?int $mostCommonBestOf

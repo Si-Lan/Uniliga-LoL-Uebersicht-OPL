@@ -13,7 +13,7 @@ class TournamentRepository extends AbstractRepository {
 	use DataParsingHelpers;
 	private RankedSplitRepository $rankedSplitRepo;
 
-	protected static array $ALL_DATA_KEYS = ["OPL_ID","OPL_ID_parent","OPL_ID_top_parent","name","split","season","eventType","format","number","numberRangeTo","dateStart","dateEnd","OPL_ID_logo","finished","deactivated","archived"];
+	protected static array $ALL_DATA_KEYS = ["OPL_ID","OPL_ID_parent","OPL_ID_top_parent","name","split","season","eventType","format","number","numberRangeTo","dateStart","dateEnd","OPL_ID_logo","finished","deactivated","archived","last_cron_update"];
 	protected static array $REQUIRED_DATA_KEYS = ["OPL_ID","name"];
 	private array $cache = [];
 
@@ -74,6 +74,7 @@ class TournamentRepository extends AbstractRepository {
 			finished: (bool) $data['finished']??false,
 			deactivated: (bool) $data['deactivated']??false,
 			archived: (bool) $data['archived']??false,
+			lastCronUpdate: $this->DateTimeImmutableOrNull($data['last_cron_update']),
 			rankedSplits: $rankedSplits,
 			userSelectedRankedSplit: null,
 			mostCommonBestOf: null

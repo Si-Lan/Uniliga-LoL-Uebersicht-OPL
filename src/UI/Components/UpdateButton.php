@@ -2,6 +2,7 @@
 
 namespace App\UI\Components;
 
+use App\Core\Utilities\DateTimeHelper;
 use App\Domain\Entities\Matchup;
 use App\Domain\Entities\Team;
 use App\Domain\Entities\TeamInTournament;
@@ -11,31 +12,31 @@ use App\Domain\Enums\Jobs\UpdateJobAction;
 use App\Domain\Enums\Jobs\UpdateJobContextType;
 use App\Domain\Enums\Jobs\UpdateJobStatus;
 use App\Domain\Enums\Jobs\UpdateJobType;
-use App\Domain\Repositories\UpdateHistoryRepository;
 use App\Domain\Repositories\UpdateJobRepository;
 use App\UI\Page\AssetManager;
 
 class UpdateButton {
     private ?UpdateJob $updateJob = null;
+	private string $updatediff = "";
 	private string $htmlDataString = '';
 	private string $htmlClassString = '';
 	public function __construct(
 		public Tournament|TeamInTournament|Matchup $entity,
 		public ?Team $teamContext = null
 	) {
+		$tournament = null;
         AssetManager::addJsAsset("components/updateButton.js");
-		$updateHistoryRepo = new UpdateHistoryRepository();
         $updateJobRepo = new UpdateJobRepository();
-		if ($entity instanceof Tournament) {
+		if ($this->entity instanceof Tournament) {
 			$this->htmlClassString = 'user_update_group';
-			$this->htmlDataString = " data-type='group' data-group='$entity->id'";
+			$this->htmlDataString = " data-type='group' data-group='{$this->entity->id}'";
             // Suche nach laufendem Update
             $this->updateJob = $updateJobRepo->findLatest(
                 UpdateJobType::USER,
                 UpdateJobAction::UPDATE_GROUP,
                 UpdateJobStatus::RUNNING,
                 UpdateJobContextType::GROUP,
-                $entity->id
+				$this->entity->id
             );
             // Wenn keins läuft, suche nach erfolgreichen Update
             if ($this->updateJob === null) {
@@ -44,20 +45,21 @@ class UpdateButton {
                     UpdateJobAction::UPDATE_GROUP,
                     UpdateJobStatus::SUCCESS,
                     UpdateJobContextType::GROUP,
-                    $entity->id
+					$this->entity->id
                 );
             }
+			$tournament = $this->entity->getRootTournament();
 		}
-		if ($entity instanceof TeamInTournament) {
+		if ($this->entity instanceof TeamInTournament) {
 			$this->htmlClassString = 'user_update_team';
-			$this->htmlDataString = "data-type='team' data-team='{$entity->team->id}' data-tournament='{$entity->tournament->id}'";
+			$this->htmlDataString = "data-type='team' data-team='{$this->entity->team->id}' data-tournament='{$this->entity->tournament->id}'";
 			$this->updateJob = $updateJobRepo->findLatest(
 				UpdateJobType::USER,
 				UpdateJobAction::UPDATE_TEAM,
 				UpdateJobStatus::RUNNING,
 				UpdateJobContextType::TEAM,
-				contextId: $entity->team->id,
-				tournamentId: $entity->tournament->id
+				contextId: $this->entity->team->id,
+				tournamentId: $this->entity->tournament->id
 			);
 			if ($this->updateJob === null) {
 				$this->updateJob = $updateJobRepo->findLatest(
@@ -65,21 +67,22 @@ class UpdateButton {
 					UpdateJobAction::UPDATE_TEAM,
 					UpdateJobStatus::SUCCESS,
 					UpdateJobContextType::TEAM,
-					contextId: $entity->team->id,
-					tournamentId: $entity->tournament->id
+					contextId: $this->entity->team->id,
+					tournamentId: $this->entity->tournament->id
 				);
 			}
+			$tournament = $this->entity->tournament;
 		}
-		if ($entity instanceof Matchup) {
+		if ($this->entity instanceof Matchup) {
 			$this->htmlClassString = 'user_update_match';
 			$dataTeam = $this->teamContext !== null ? " data-team='{$this->teamContext->id}'" : '';
-			$this->htmlDataString = "data-type='match' data-match='$entity->id'$dataTeam";
+			$this->htmlDataString = "data-type='match' data-match='{$this->entity->id}'$dataTeam";
 			$this->updateJob = $updateJobRepo->findLatest(
 				UpdateJobType::USER,
 				UpdateJobAction::UPDATE_MATCH,
 				UpdateJobStatus::RUNNING,
 				UpdateJobContextType::MATCHUP,
-				$entity->id
+				$this->entity->id
 			);
 			if ($this->updateJob === null) {
 				$this->updateJob = $updateJobRepo->findLatest(
@@ -87,16 +90,23 @@ class UpdateButton {
 					UpdateJobAction::UPDATE_MATCH,
 					UpdateJobStatus::SUCCESS,
 					UpdateJobContextType::MATCHUP,
-					$entity->id
+					$this->entity->id
 				);
 			}
+			$tournament = $this->entity->tournamentStage->getRootTournament();
+		}
+
+		if ($tournament?->lastCronUpdate > $this->updateJob?->getLastUpdateTime()) {
+			$this->updatediff = DateTimeHelper::getRelativeTimeString($tournament?->lastCronUpdate);
+		} else {
+			$this->updatediff =  DateTimeHelper::getRelativeTimeString($this->updateJob?->getLastUpdateTime());
 		}
 	}
 
 	public function render(): string {
 		$htmlDataString = $this->htmlDataString;
 		$htmlClassString = $this->htmlClassString;
-		$updatediff = $this->updateJob?->getLastUpdateString() ?? "unbekannt";
+		$updatediff = $this->updatediff;
 		ob_start();
 		include __DIR__.'/update-button.template.php';
 		return ob_get_clean();

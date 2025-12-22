@@ -177,6 +177,10 @@ foreach ($tournaments as $i=>$tournament) {
 	Logger::log('cron_update', "finished updating team ranks for tournament $tournament->id");
 
 
+	$tournamentCurrent = $tournamentRepo->findById($tournament->id, ignoreCache: true);
+	$tournamentCurrent->lastCronUpdate = new DateTimeImmutable();
+	$tournamentRepo->save($tournamentCurrent);
+
 	Logger::log('cron_update', "Finished tournament $tournament->id");
 }
 
