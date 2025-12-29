@@ -35,7 +35,7 @@ class FragmentHandler {
 		$childrenIds = [];
 		if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 			$tournamentData = json_decode(file_get_contents('php://input'), true);
-			$tournament = $tournamentRepo->mapToEntity($tournamentData['entityData'], newEntity: true);
+			$tournament = $tournamentRepo->buildTournament($tournamentData['entityData'], newEntity: true);
 			$parentIds = $tournamentData['relatedTournaments']['parents'] ?? [];
 			$childrenIds = $tournamentData['relatedTournaments']['children'] ?? [];
 			$newTournament = true;

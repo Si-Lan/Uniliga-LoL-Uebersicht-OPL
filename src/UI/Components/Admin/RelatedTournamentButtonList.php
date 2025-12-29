@@ -18,7 +18,7 @@ class RelatedTournamentButtonList {
 			if (is_int($idOrData)) {
 				$buttons .= new RelatedTournamentButton($idOrData);
 			} else {
-				$tournament = $this->tournamentRepo->mapToEntity($idOrData["entityData"], newEntity: true);
+				$tournament = $this->tournamentRepo->buildTournament($idOrData["entityData"], newEntity: true);
 				$buttons .= new RelatedTournamentButton($tournament, $idOrData["relatedTournaments"]["children"]??[], $idOrData["relatedTournaments"]["parents"]??[]);
 			}
 		}

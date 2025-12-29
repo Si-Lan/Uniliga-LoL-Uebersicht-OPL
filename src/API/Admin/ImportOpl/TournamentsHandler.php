@@ -6,6 +6,7 @@ use App\API\AbstractHandler;
 use App\Core\Utilities\DataParsingHelpers;
 use App\Domain\Enums\EventFormat;
 use App\Domain\Enums\EventType;
+use App\Domain\Factories\TournamentFactory;
 use App\Domain\Repositories\TournamentRepository;
 use App\Service\OplApiService;
 use App\Service\OplLogoService;
@@ -32,9 +33,10 @@ class TournamentsHandler extends AbstractHandler{
 			$this->sendErrorResponse(500, 'Failed to fetch data from OPL API: ' . $e->getMessage());
 		}
 
+		$tournamentFactory = new TournamentFactory();
 		$tournamentRepo = new TournamentRepository();
 
-		$tournament = $tournamentRepo->createFromOplData($tournamentData);
+		$tournament = $tournamentFactory->createFromOplData($tournamentData);
 		sort($tournamentData['leafes']);
 		sort($tournamentData['ancestors']);
 
@@ -82,7 +84,7 @@ class TournamentsHandler extends AbstractHandler{
 
 		$relatedEvents  = ["children"=>$tournamentData['leafes'], "parents"=>$tournamentData['ancestors']];
 
-		echo json_encode(["entityData" => $tournamentRepo->mapEntityToData($tournament), "relatedTournaments" => $relatedEvents]);
+		echo json_encode(["entityData" => $tournamentFactory->mapEntityToDbData($tournament), "relatedTournaments" => $relatedEvents]);
 	}
 
 	/**
@@ -97,7 +99,7 @@ class TournamentsHandler extends AbstractHandler{
 		}
 
 		$tournamentRepo = new TournamentRepository();
-		$tournament = $tournamentRepo->mapToEntity($tournamentData, newEntity: true);
+		$tournament = $tournamentRepo->buildTournament($tournamentData, newEntity: true);
 
 		$saveResult = $tournamentRepo->save($tournament);
 		echo json_encode($saveResult);

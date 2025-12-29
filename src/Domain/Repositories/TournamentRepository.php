@@ -4,17 +4,15 @@ namespace App\Domain\Repositories;
 
 use App\Core\Logger;
 use App\Core\Utilities\DataParsingHelpers;
-use App\Domain\Entities\RankedSplit;
 use App\Domain\Entities\Tournament;
 use App\Domain\Enums\EventType;
 use App\Domain\Enums\SaveResult;
+use App\Domain\Factories\TournamentFactory;
 
 class TournamentRepository extends AbstractRepository {
 	use DataParsingHelpers;
+	private TournamentFactory $factory;
 	private RankedSplitRepository $rankedSplitRepo;
-
-	protected static array $ALL_DATA_KEYS = ["OPL_ID","OPL_ID_parent","OPL_ID_top_parent","name","split","season","eventType","format","number","numberRangeTo","dateStart","dateEnd","OPL_ID_logo","finished","deactivated","archived","last_cron_update"];
-	protected static array $REQUIRED_DATA_KEYS = ["OPL_ID","name"];
 	/**
 	 * @var array<int,Tournament>
 	 */
@@ -22,77 +20,57 @@ class TournamentRepository extends AbstractRepository {
 
 	public function __construct() {
 		parent::__construct();
+		$this->factory = new TournamentFactory();
 		$this->rankedSplitRepo = new RankedSplitRepository();
 	}
 
-	public function mapToEntity(array $data, ?Tournament $directParentTournament=null, ?Tournament $rootTournament=null, array $rankedSplits=[], bool $newEntity = false): Tournament {
-		$data = $this->normalizeData($data);
+	public function buildTournament(
+		array $data,
+		?Tournament $directParent = null,
+		?Tournament $rootParent = null,
+		array $rankedSplits=[],
+		bool $newEntity = false
+	): Tournament {
+		$id = $this->intOrNull($data['OPL_ID']);
+		$directParentId = $this->intOrNull($data['OPL_ID_parent']);
+		$rootParentId = $this->intOrNull($data['OPL_ID_top_parent']);
+		if ($rootParent === null && $rootParentId !== null && $id !== $rootParentId) {
+			$rootParent = $this->findById($rootParentId);
+		}
+		if ($directParent === null && $directParentId !== null && $id !== $directParentId) {
+			$directParent = $this->findById($directParentId,$rootParent,$rootParent);
+		}
+		$mostCommonBestOf = $this->findMostCommonBestOfById($id);
 
-		$dataRootId = $this->intOrNull($data['OPL_ID_top_parent']);
-		if (is_null($rootTournament)) {
-			if (!is_null($dataRootId) && $data["eventType"] !== EventType::TOURNAMENT->value) {
-				$rootTournament = $this->findById($dataRootId);
+		return $this->factory->createFromDbData($data,$directParent,$rootParent,$mostCommonBestOf, $rankedSplits, $newEntity);
+	}
+
+	/**
+	 * @return array<Tournament>
+	 */
+	private function buildTournamentArray(
+		array $data,
+		?Tournament $directParent = null,
+		?Tournament $rootParent = null
+	): array {
+		$tournaments = [];
+		foreach ($data as $tournamentData) {
+			if (isset($this->cache[$tournamentData["OPL_ID"]])) {
+				$tournaments[] = $this->cache[$tournamentData["OPL_ID"]];
+				continue;
 			}
-		}
 
-		$rankedSplits = !is_null($rootTournament) ? $rootTournament->rankedSplits : $rankedSplits;
-		if ($newEntity && $data["eventType"] === EventType::TOURNAMENT->value) {
-			$rankedSplits = [];
-			foreach ($data["ranked_splits"] ?? [] as $rankedSplit) {
-				$rankedSplit_exploded = explode("-", $rankedSplit);
-				$rankedSplit_season = $this->intOrNull($rankedSplit_exploded[0]);
-				$rankedSplit_split = $this->intOrNull($rankedSplit_exploded[1]??null);
-				$rankedSplits[] = $this->rankedSplitRepo->findBySeasonAndSplit($rankedSplit_season, $rankedSplit_split);
-			}
+			$tournament = $this->buildTournament($tournamentData,$directParent,$rootParent);
+			$this->cache[$tournament->id] = $tournament;
+			$tournaments[] = $tournament;
 		}
-		if (is_null($rankedSplits) || count($rankedSplits) === 0) {
-			$rankedSplits = $this->rankedSplitRepo->findAllByTournamentId($data["OPL_ID"]);
-		}
+		return $tournaments;
+	}
 
-		$dataDirectParentId = $this->intOrNull($data['OPL_ID_parent']);
-		if (is_null($directParentTournament)) {
-			if (!is_null($dataDirectParentId) && $data["eventType"] !== EventType::TOURNAMENT->value) {
-				if (!is_null($rootTournament) && $dataDirectParentId === $rootTournament->id) {
-					$directParentTournament = $rootTournament;
-				} else {
-					$directParentTournament = $this->findById($dataDirectParentId, rootParent: $rootTournament);
-				}
-			}
-		}
-
-		$tournament = new Tournament(
-			id: (int) $data['OPL_ID'],
-			directParentTournament: $directParentTournament,
-			rootTournament: $rootTournament,
-			name: (string) $data['name'],
-			split: $this->stringOrNull($data['split']),
-			season: $this->intOrNull($data['season']),
-			eventType: $this->EventTypeEnumOrNull($data['eventType']),
-			format: $this->EventFormatEnumOrNull($data['format']),
-			number: $this->stringOrNull($data['number']),
-			numberRangeTo: $this->stringOrNull($data['numberRangeTo']),
-			dateStart: $this->DateTimeImmutableOrNull($data['dateStart']),
-			dateEnd: $this->DateTimeImmutableOrNull($data['dateEnd']),
-			logoId: $this->intOrNull($data['OPL_ID_logo']),
-			finished: (bool) $data['finished']??false,
-			deactivated: (bool) $data['deactivated']??false,
-			archived: (bool) $data['archived']??false,
-			lastCronUpdate: $this->DateTimeImmutableOrNull($data['last_cron_update']),
-			rankedSplits: $rankedSplits,
-			userSelectedRankedSplit: null,
-			mostCommonBestOf: null
-		);
-
-		if ($newEntity) return $tournament;
-
-		if ($data["eventType"] !== EventType::TOURNAMENT->value && $rootTournament !== null) {
-			$tournament->userSelectedRankedSplit = $rootTournament->userSelectedRankedSplit;
-		} elseif ($data["eventType"] === EventType::TOURNAMENT->value) {
-			$tournament->userSelectedRankedSplit = $this->rankedSplitRepo->findSelectedSplitForTournament($tournament);
-		}
-		if ($tournament->isEventWithStanding()) $mostCommonBestOf = $this->dbcn->execute_query("SELECT bestOf, SUM(bestOf) AS amount FROM matchups WHERE OPL_ID_tournament = ? GROUP BY bestOf ORDER BY amount DESC",[$data["OPL_ID"]])->fetch_column();
-		$tournament->mostCommonBestOf = $this->intOrNull($mostCommonBestOf??null);
-		return $tournament;
+	private function findMostCommonBestOfById(int $tournamentId): ?int {
+		$result = $this->dbcn->execute_query("SELECT bestOf, SUM(bestOf) AS amount FROM matchups WHERE OPL_ID_tournament = ? GROUP BY bestOf ORDER BY amount DESC",[$tournamentId]);
+		$data = $result->fetch_column();
+		return $this->intOrNull($data);
 	}
 
 	public function findById(int $tournamentId, ?Tournament $directParent=null, ?Tournament $rootParent=null, bool $ignoreCache = false) : ?Tournament {
@@ -102,7 +80,10 @@ class TournamentRepository extends AbstractRepository {
 		$result = $this->dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID = ?", [$tournamentId]);
 		$data = $result->fetch_assoc();
 
-		$tournament = $data ? $this->mapToEntity($data,$directParent,$rootParent) : null;
+		if (!$data) return null;
+
+		$tournament = $this->buildTournament($data);
+
 		if (!$ignoreCache) $this->cache[$tournamentId] = $tournament;
 
 		return $tournament;
@@ -112,11 +93,14 @@ class TournamentRepository extends AbstractRepository {
 		$result = $this->dbcn->execute_query("SELECT * FROM events_with_standings WHERE OPL_ID = ?", [$tournamentId]);
 		$data = $result->fetch_assoc();
 
-		if ($data && isset($this->cache[$tournamentId])) {
+		if (!$data) return null;
+
+		if (isset($this->cache[$tournamentId])) {
 			return $this->cache[$tournamentId];
 		}
 
-		$tournament = $data ? $this->mapToEntity($data,$directParent,$rootParent) : null;
+		$tournament = $this->buildTournament($data);
+
 		$this->cache[$tournamentId] = $tournament;
 
 		return $tournament;
@@ -154,11 +138,7 @@ class TournamentRepository extends AbstractRepository {
 		$result = $this->dbcn->execute_query("SELECT * FROM tournaments");
 		$data = $result->fetch_all(MYSQLI_ASSOC);
 
-		$tournaments = [];
-		foreach ($data as $tournamentData) {
-			$tournaments[] = $this->mapToEntity($tournamentData);
-		}
-		return $tournaments;
+		return $this->buildTournamentArray($data);
 	}
 
 	/**
@@ -169,11 +149,7 @@ class TournamentRepository extends AbstractRepository {
 		$result = $this->dbcn->execute_query($query,[EventType::TOURNAMENT->value]);
 		$data = $result->fetch_all(MYSQLI_ASSOC);
 
-		$tournaments = [];
-		foreach ($data as $tournamentData) {
-			$tournaments[] = $this->mapToEntity($tournamentData);
-		}
-		return $tournaments;
+		return $this->buildTournamentArray($data);
 	}
 
 	/**
@@ -186,15 +162,12 @@ class TournamentRepository extends AbstractRepository {
 		$result = $this->dbcn->execute_query($query,[$rootTournament->id,$type->value]);
 		$data = $result->fetch_all(MYSQLI_ASSOC);
 
-		$tournaments = [];
-		foreach ($data as $tournamentData) {
-			$tournaments[] = $this->mapToEntity($tournamentData, rootTournament: $rootTournament);
-		}
-		return $tournaments;
+		return $this->buildTournamentArray($data, rootParent: $rootTournament);
 	}
+
 	/**
 	 * @param Tournament $parentTournament
-	 * @param EventType $type
+	 * @param EventType|null $type
 	 * @return array<Tournament>
 	 */
 	public function findAllByParentTournamentAndType(Tournament $parentTournament, ?EventType $type = null):array {
@@ -207,11 +180,7 @@ class TournamentRepository extends AbstractRepository {
 		}
 		$data = $result->fetch_all(MYSQLI_ASSOC);
 
-		$tournaments = [];
-		foreach ($data as $tournamentData) {
-			$tournaments[] = $this->mapToEntity($tournamentData, directParentTournament: $parentTournament);
-		}
-		return $tournaments;
+		return $this->buildTournamentArray($data, directParent: $parentTournament, rootParent: $parentTournament->getRootTournament());
 	}
 
 	/**
@@ -223,11 +192,7 @@ class TournamentRepository extends AbstractRepository {
 		$result = $this->dbcn->execute_query($query,[$rootTournament->id]);
 		$data = $result->fetch_all(MYSQLI_ASSOC);
 
-		$tournaments = [];
-		foreach ($data as $tournamentData) {
-			$tournaments[] = $this->mapToEntity($tournamentData, rootTournament: $rootTournament);
-		}
-		return $tournaments;
+		return $this->buildTournamentArray($data, rootParent: $rootTournament);
 	}
 
 	/**
@@ -239,11 +204,7 @@ class TournamentRepository extends AbstractRepository {
 		$result = $this->dbcn->execute_query($query,[$rootTournament->id]);
 		$data = $result->fetch_all(MYSQLI_ASSOC);
 
-		$tournaments = [];
-		foreach ($data as $tournamentData) {
-			$tournaments[] = $this->mapToEntity($tournamentData, rootTournament: $rootTournament);
-		}
-		return $tournaments;
+		return $this->buildTournamentArray($data, rootParent: $rootTournament);
 	}
 
 	/**
@@ -255,22 +216,15 @@ class TournamentRepository extends AbstractRepository {
 		$result = $this->dbcn->execute_query($query,[$parentTournament->id]);
 		$data = $result->fetch_all(MYSQLI_ASSOC);
 
-		$tournaments = [];
-		foreach ($data as $tournamentData) {
-			$tournaments[] = $this->mapToEntity($tournamentData, directParentTournament: $parentTournament);
-		}
-		return $tournaments;
+		return $this->buildTournamentArray($data, directParent: $parentTournament, rootParent: $parentTournament->getRootTournament());
 	}
 
 	public function findAllUnassignedTournaments():array {
 		$query = 'SELECT * FROM tournaments WHERE (OPL_ID_parent IS NULL OR OPL_ID_top_parent IS NULL) AND eventType != ?';
 		$result = $this->dbcn->execute_query($query,[EventType::TOURNAMENT->value]);
 		$data = $result->fetch_all(MYSQLI_ASSOC);
-		$tournaments = [];
-		foreach ($data as $tournamentData) {
-			$tournaments[] = $this->mapToEntity($tournamentData);
-		}
-		return $tournaments;
+
+		return $this->buildTournamentArray($data);
 	}
 
 	/**
@@ -301,28 +255,8 @@ class TournamentRepository extends AbstractRepository {
     }
 
 
-	public function mapEntityToData(Tournament $tournament): array {
-		return [
-			'OPL_ID' => $tournament->id,
-			'OPL_ID_parent' => $tournament->directParentTournament?->id,
-			'OPL_ID_top_parent' => $tournament->rootTournament?->id,
-			'name' => $tournament->name,
-			'split' => $tournament->split,
-			'season' => $tournament->season,
-			'eventType' => $tournament->eventType?->value,
-			'format' => $tournament->format?->value,
-			'number' => $tournament->number,
-			'numberRangeTo' => $tournament->numberRangeTo,
-			'dateStart' => $tournament->dateStart?->format('Y-m-d'),
-			'dateEnd' => $tournament->dateEnd?->format('Y-m-d'),
-			'OPL_ID_logo' => $tournament->logoId,
-			'finished' => $tournament->finished ? 1 : 0,
-			'deactivated' => $tournament->deactivated ? 1 : 0,
-			'archived' => $tournament->archived ? 1 : 0
-		];
-	}
 	private function insert(Tournament $tournament):void {
-		$data = $this->mapEntityToData($tournament);
+		$data = $this->factory->mapEntityToDbData($tournament);
 		$columns = implode(", ", array_keys($data));
 		$placeholders = implode(", ", array_fill(0, count($data), "?"));
 		$values = array_values($data);
@@ -336,7 +270,7 @@ class TournamentRepository extends AbstractRepository {
 		unset($this->cache[$tournament->id]);
 	}
 	private function update(Tournament $tournament):void {
-		$data = $this->mapEntityToData($tournament);
+		$data = $this->factory->mapEntityToDbData($tournament);
 		$assignments = implode(", ", array_map(fn($key) => "$key = ?", array_keys($data)));
 		$values = array_values($data);
 
@@ -348,7 +282,7 @@ class TournamentRepository extends AbstractRepository {
 		unset($this->cache[$tournament->id]);
 	}
 	/**
-	 * @param \App\Domain\Entities\Tournament $tournament
+	 * @param Tournament $tournament
 	 * @return array{'result': SaveResult, 'changes': array<string, mixed>}
 	 */
 	public function save(Tournament $tournament):array {
@@ -393,64 +327,5 @@ class TournamentRepository extends AbstractRepository {
 		$saveResult = (count($rankedSplitsToAdd) > 0 || count($rankedSplitsToRemove)) ? SaveResult::UPDATED : SaveResult::NOT_CHANGED;
 
 		return ["saveResult" => $saveResult, "rankedSplitsAdded" => $rankedSplitsToAdd, "rankedSplitsRemoved" => $rankedSplitsToRemove];
-	}
-
-	public function createFromOplData(array $oplData): Tournament {
-		$entityData = [
-			'OPL_ID' => $oplData['ID'],
-			'name' => $oplData['name'],
-			'dateStart' => $this->DateTimeImmutableOrNull($oplData['start_on']['date']??null)?->format('Y-m-d'),
-			'dateEnd' => $this->DateTimeImmutableOrNull($oplData['end_on']['date']??null)?->format('Y-m-d'),
-		];
-		$logo_url = $oplData["logo_array"]["background"] ?? null;
-		$logo_id = ($logo_url != null) ? explode("/", $logo_url, -1) : null;
-		$logo_id = ($logo_id != null) ? end($logo_id) : null;
-		$entityData['OPL_ID_logo'] = $logo_id;
-
-		$name_lower = strtolower($oplData['name']);
-
-		$entityData['split'] = null;
-		$possible_splits = ["winter", "sommer"];
-		foreach ($possible_splits as $possible_split) {
-			if (str_contains($name_lower, $possible_split)) {
-				$entityData['split'] = $possible_split;
-			}
-		}
-
-		$entityData['season'] = null;
-		if (preg_match("/(?:winter|sommer)(?:season|saison)? *[0-9]*([0-9]{2})/",$name_lower,$season_match)) {
-			$entityData['season'] = $season_match[1];
-		}
-
-		$entityData['eventType'] = EventType::fromName($name_lower)->value;;
-
-
-		$entityData['number'] = null;
-		$entityData['numberRangeTo'] = null;
-		switch ($entityData['eventType']) {
-			case EventType::LEAGUE->value:
-			case EventType::WILDCARD->value:
-			case EventType::PLAYOFFS->value:
-				// Matcht: "Liga 1", "Liga 2-5", "Liga 1./2."
-				if (preg_match('/\bliga\s*(\d)(?:\D+(\d))?/', $name_lower, $matches)) {
-					$entityData['number'] = (int) $matches[1];
-					$entityData['numberRangeTo'] = isset($matches[2]) ? (int) $matches[2] : null;
-				}
-				// Matcht: "1. Liga", "1./2. Liga"
-				if (preg_match('/\b(\d+)(?:\W+(\d+))?\.?\s*liga\b/', $name_lower, $matches)) {
-					$entityData['number'] = (int) $matches[1];
-					$entityData['numberRangeTo'] = isset($matches[2]) ? (int) $matches[2] : null;
-				}
-				break;
-
-			case EventType::GROUP->value:
-				// Matcht "Gruppe A" oder "Group A"
-				if (preg_match('/\b(?:gruppe|group)\s+([a-z])/', $name_lower, $matches)) {
-					$entityData['number'] = strtoupper($matches[1]);
-				}
-				break;
-		}
-
-		return $this->mapToEntity($entityData, newEntity: true);
 	}
 }
