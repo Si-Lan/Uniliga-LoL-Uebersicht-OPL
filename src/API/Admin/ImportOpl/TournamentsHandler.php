@@ -45,13 +45,14 @@ class TournamentsHandler extends AbstractHandler{
 			$tournament->dateEnd = $tournament->getRootTournament()->dateEnd;
 		}
 
-		try {
-			$format = $oplApi->getFormatByEventId($tournament->id);
-		} catch (\Exception $e) {
-			$format = null;
+		if ($tournament->isEventWithStanding()) {
+			try {
+				$format = $oplApi->getFormatByEventId($tournament->id);
+			} catch (\Exception $e) {
+				$format = null;
+			}
+			$tournament->format = EventFormat::fromString($format);
 		}
-
-		$tournament->format = EventFormat::fromString($format);
 
 		if ($tournament->eventType !== EventType::TOURNAMENT && count($tournamentData['ancestors']) > 0) {
 			switch ($tournament->eventType) {
