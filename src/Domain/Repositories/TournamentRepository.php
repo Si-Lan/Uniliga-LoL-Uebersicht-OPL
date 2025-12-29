@@ -424,7 +424,7 @@ class TournamentRepository extends AbstractRepository {
 					$entityData['numberRangeTo'] = isset($matches[2]) ? (int) $matches[2] : null;
 				}
 				// Matcht: "1. Liga", "1./2. Liga"
-				if (preg_match('/\b(\d+)(?:\D+(\d+))?\s*liga\b/', $name_lower, $matches)) {
+				if (preg_match('/\b(\d+)(?:\W+(\d+))?\.?\s*liga\b/', $name_lower, $matches)) {
 					$entityData['number'] = (int) $matches[1];
 					$entityData['numberRangeTo'] = isset($matches[2]) ? (int) $matches[2] : null;
 				}

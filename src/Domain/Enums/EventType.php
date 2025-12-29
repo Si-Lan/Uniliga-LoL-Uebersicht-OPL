@@ -37,13 +37,13 @@ enum EventType: string {
 		if (str_contains($name, "wildcard")) {
 			return self::WILDCARD;
 		}
-		if (str_contains("playoff",$name)) {
+		if (str_contains($name, "playoff")) {
 			return self::PLAYOFFS;
 		}
 		if (preg_match('/gruppe\s+[a-z1-9]/i', $name) || preg_match('/group\s+[a-z1-9]/i', $name)) {
 			return self::GROUP;
 		}
-		if (preg_match("/\bliga\s+\d+/",$name)) {
+		if (preg_match("/\bliga\s+\d+/",$name) || preg_match("/\b(\d+)\.?\s*liga\b/",$name)) {
 			return self::LEAGUE;
 		}
 		return self::TOURNAMENT;
