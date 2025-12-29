@@ -5,6 +5,7 @@ namespace App\API\Admin\ImportOpl;
 use App\API\AbstractHandler;
 use App\Core\Utilities\DataParsingHelpers;
 use App\Domain\Enums\EventFormat;
+use App\Domain\Enums\EventType;
 use App\Domain\Repositories\TournamentRepository;
 use App\Service\OplApiService;
 use App\Service\OplLogoService;
@@ -51,6 +52,32 @@ class TournamentsHandler extends AbstractHandler{
 		}
 
 		$tournament->format = EventFormat::fromString($format);
+
+		if ($tournament->eventType !== EventType::TOURNAMENT && count($tournamentData['ancestors']) > 0) {
+			switch ($tournament->eventType) {
+				case EventType::LEAGUE:
+				case EventType::WILDCARD:
+				case EventType::PLAYOFFS:
+					$possibleRootId = $tournamentData['ancestors'][0];
+					if ($tournamentRepo->tournamentExists($possibleRootId, EventType::TOURNAMENT)) {
+						$possibleParent = $tournamentRepo->findById($possibleRootId);
+						$tournament->directParentTournament = $possibleParent;
+						$tournament->rootTournament = $possibleParent;
+					}
+					break;
+				case EventType::GROUP:
+					foreach ($tournamentData['ancestors'] as $ancestorId) {
+						if ($tournamentRepo->tournamentExists($ancestorId, EventType::LEAGUE)) {
+							$possibleParent = $tournamentRepo->findById($ancestorId);
+							$tournament->directParentTournament = $possibleParent;
+							$tournament->rootTournament = $possibleParent->getRootTournament();
+						}
+					}
+					break;
+				case EventType::TOURNAMENT:
+					break;
+			}
+		}
 
 		$relatedEvents  = ["children"=>$tournamentData['leafes'], "parents"=>$tournamentData['ancestors']];
 

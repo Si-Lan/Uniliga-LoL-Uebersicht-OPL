@@ -438,32 +438,6 @@ class TournamentRepository extends AbstractRepository {
 				break;
 		}
 
-		$entityData['OPL_ID_parent'] = null;
-		$entityData['OPL_ID_top_parent'] = null;
-		if (count($oplData['ancestors'])>0) {
-			switch ($entityData['eventType']) {
-				case EventType::LEAGUE->value:
-				case EventType::WILDCARD->value:
-				case EventType::PLAYOFFS->value:
-					$rootId = min($oplData['ancestors']);
-					if ($this->tournamentExists($rootId, EventType::TOURNAMENT)) {
-						$entityData['OPL_ID_top_parent'] = $rootId;
-						$entityData['OPL_ID_parent'] = $rootId;
-					}
-					break;
-				case EventType::GROUP->value:
-					foreach ($oplData['ancestors'] as $ancestorId) {
-						if ($this->tournamentExists($ancestorId, EventType::TOURNAMENT)) {
-							$entityData['OPL_ID_top_parent'] = $ancestorId;
-						}
-						if ($this->tournamentExists($ancestorId, EventType::LEAGUE)) {
-							$entityData['OPL_ID_parent'] = $ancestorId;
-						}
-					}
-					break;
-			}
-		}
-
 		return $this->mapToEntity($entityData, newEntity: true);
 	}
 }
