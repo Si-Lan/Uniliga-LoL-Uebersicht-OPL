@@ -4,6 +4,7 @@ namespace App\API\Admin\ImportOpl;
 
 use App\API\AbstractHandler;
 use App\Core\Utilities\DataParsingHelpers;
+use App\Domain\Enums\EventFormat;
 use App\Domain\Repositories\TournamentRepository;
 use App\Service\OplApiService;
 use App\Service\OplLogoService;
@@ -42,6 +43,14 @@ class TournamentsHandler extends AbstractHandler{
 		if ($tournament->dateEnd === null && $tournament->getRootTournament()->dateEnd !== null) {
 			$tournament->dateEnd = $tournament->getRootTournament()->dateEnd;
 		}
+
+		try {
+			$format = $oplApi->getFormatByEventId($tournament->id);
+		} catch (\Exception $e) {
+			$format = null;
+		}
+
+		$tournament->format = EventFormat::fromString($format);
 
 		$relatedEvents  = ["children"=>$tournamentData['leafes'], "parents"=>$tournamentData['ancestors']];
 
