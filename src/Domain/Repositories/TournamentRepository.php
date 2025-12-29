@@ -15,6 +15,9 @@ class TournamentRepository extends AbstractRepository {
 
 	protected static array $ALL_DATA_KEYS = ["OPL_ID","OPL_ID_parent","OPL_ID_top_parent","name","split","season","eventType","format","number","numberRangeTo","dateStart","dateEnd","OPL_ID_logo","finished","deactivated","archived","last_cron_update"];
 	protected static array $REQUIRED_DATA_KEYS = ["OPL_ID","name"];
+	/**
+	 * @var array<int,Tournament>
+	 */
 	private array $cache = [];
 
 	public function __construct() {
@@ -126,11 +129,21 @@ class TournamentRepository extends AbstractRepository {
 			$result = $this->dbcn->execute_query("SELECT * FROM tournaments WHERE OPL_ID = ? AND eventType = ?", [$tournamentId, $eventType->value]);
 		}
 		$data = $result->fetch_assoc();
+
+		if (!$data && isset($this->cache[$tournamentId])) {
+			if ($eventType === null || $this->cache[$tournamentId]->eventType === $eventType) {
+				unset($this->cache[$tournamentId]);
+			}
+		}
 		return $data !== null;
 	}
 	public function standingEventExists(int $tournamentId): bool {
 		$result = $this->dbcn->execute_query("SELECT * FROM events_with_standings WHERE OPL_ID = ?", [$tournamentId]);
 		$data = $result->fetch_assoc();
+
+		if (!$data && isset($this->cache[$tournamentId]) && $this->cache[$tournamentId]->isEventWithStanding()) {
+			unset($this->cache[$tournamentId]);
+		}
 		return $data !== null;
 	}
 
