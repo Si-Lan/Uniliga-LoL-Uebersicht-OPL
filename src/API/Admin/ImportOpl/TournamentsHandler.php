@@ -38,13 +38,6 @@ class TournamentsHandler extends AbstractHandler{
 		sort($tournamentData['leafes']);
 		sort($tournamentData['ancestors']);
 
-		if ($tournament->dateStart === null && $tournament->getRootTournament()->dateStart !== null) {
-			$tournament->dateStart = $tournament->getRootTournament()->dateStart;
-		}
-		if ($tournament->dateEnd === null && $tournament->getRootTournament()->dateEnd !== null) {
-			$tournament->dateEnd = $tournament->getRootTournament()->dateEnd;
-		}
-
 		if ($tournament->isEventWithStanding()) {
 			try {
 				$format = $oplApi->getFormatByEventId($tournament->id);
@@ -78,6 +71,13 @@ class TournamentsHandler extends AbstractHandler{
 				case EventType::TOURNAMENT:
 					break;
 			}
+		}
+
+		if ($tournament->dateStart === null && $tournament->getRootTournament()->dateStart !== null) {
+			$tournament->dateStart = $tournament->getRootTournament()->dateStart;
+		}
+		if ($tournament->dateEnd === null && $tournament->getRootTournament()->dateEnd !== null) {
+			$tournament->dateEnd = $tournament->getRootTournament()->dateEnd;
 		}
 
 		$relatedEvents  = ["children"=>$tournamentData['leafes'], "parents"=>$tournamentData['ancestors']];
