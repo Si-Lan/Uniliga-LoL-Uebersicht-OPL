@@ -7,7 +7,7 @@ use App\Domain\Entities\Tournament;
 use App\Domain\Enums\EventType;
 use App\Domain\Repositories\RankedSplitRepository;
 
-class TournamentFactory {
+class TournamentFactory extends AbstractFactory {
     use DataParsingHelpers;
 
 	protected static array $DB_DATA_KEYS = [
@@ -38,20 +38,6 @@ class TournamentFactory {
 		private ?RankedSplitRepository $rankedSplitRepo = null
 	) {
 		if ($this->rankedSplitRepo === null) $this->rankedSplitRepo = new RankedSplitRepository();
-	}
-
-	/**
-	 * @throws \Exception
-	 */
-	protected function normalizeDbData(array $data): array {
-		$defaults = array_fill_keys(static::$DB_DATA_KEYS, null);
-		$normalizedData = array_merge($defaults, $data);
-		foreach (static::$REQUIRED_DB_DATA_KEYS as $key) {
-			if (is_null($normalizedData[$key])) {
-				throw new \Exception("Missing required key '$key'");
-			}
-		}
-		return $normalizedData;
 	}
 
 	public function createFromDbData(
