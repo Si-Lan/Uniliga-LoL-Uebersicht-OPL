@@ -1,6 +1,7 @@
 <?php
 require_once dirname(__DIR__,2) . '/bootstrap.php';
 
+use App\Core\Enums\LogType;
 use App\Core\Logger;
 use App\Domain\Entities\UpdateJob;
 use App\Domain\Enums\Jobs\UpdateJobAction;
@@ -16,6 +17,8 @@ use App\Service\Updater\PlayerUpdater;
 use App\Service\Updater\TeamUpdater;
 use App\Service\Updater\TournamentUpdater;
 
+$logger = new Logger(LogType::CRON_UPDATE);
+
 $jobRepo = new UpdateJobRepository();
 
 $runningJob = $jobRepo->findLatest(
@@ -25,7 +28,7 @@ $runningJob = $jobRepo->findLatest(
 );
 
 if ($runningJob !== null) {
-	Logger::log('cron_update', 'A full update is already running');
+	$logger->warning('A full update is already running');
 	echo "A full update is already running\n";
 	exit;
 }
@@ -37,7 +40,7 @@ $job = $jobRepo->createJob(
 
 $job->startJob(getmypid());
 $jobRepo->save($job);
-Logger::log('cron_update', "Starting full update job $job->id");
+$logger->info("Starting full update job $job->id");
 echo "Starting full update\n";
 
 $tournamentRepo = new TournamentRepository();
@@ -48,7 +51,7 @@ $matchupRepo = new MatchupRepository();
 $tournaments = $tournamentRepo->findAllRunningRootTournaments();
 $tournamentIds = array_map(fn($tournament) => $tournament->id, $tournaments);
 
-Logger::log('cron_update', "Found " . count($tournaments) . " running tournaments: " . implode(", ", $tournamentIds));
+$logger->info("Found " . count($tournaments) . " running tournaments: " . implode(", ", $tournamentIds));
 
 $tournamentUpdater = new TournamentUpdater();
 $teamUpdater = new TeamUpdater();
@@ -56,19 +59,19 @@ $playerUpdater = new PlayerUpdater();
 $matchupUpdater = new MatchupUpdater();
 
 foreach ($tournaments as $i=>$tournament) {
-	Logger::log('cron_update', "Starting update for tournament $tournament->id");
+	$logger->info("Starting update for tournament $tournament->id");
 
 	// Skip finished tournaments
 	$today = new DateTimeImmutable();
 	if ($tournament->dateEnd < $today) {
-		Logger::log('cron_update', "Tournament $tournament->id is over, skipping");
+		$logger->info("Tournament $tournament->id is over, skipping");
 		$tournament->finished = true;
 		$tournamentRepo->save($tournament);
 		continue;
 	}
 
 	$stages = $tournamentRepo->findAllStandingEventsByRootTournament($tournament);
-	Logger::log('cron_update', "Found " . count($stages) . " stages for tournament $tournament->id");
+	$logger->info("Found " . count($stages) . " stages for tournament $tournament->id");
 
 	// Update Teams from OPL
 	foreach ($stages as $stage) {
@@ -76,27 +79,27 @@ foreach ($tournaments as $i=>$tournament) {
 		usleep(500000);
 	}
 	setJobProgressForTournament($i, count($tournaments), $jobRepo, $job, 10);
-	Logger::log('cron_update', "updated teams for tournament $tournament->id");
+	$logger->info("updated teams for tournament $tournament->id");
 
 	// Update Players from OPL
 	$teams = $teamInTournamentRepo->findAllByRootTournament($tournament);
-	Logger::log('cron_update', "Found " . count($teams) . " teams in tournament $tournament->id");
+	$logger->info("Found " . count($teams) . " teams in tournament $tournament->id");
 	foreach ($teams as $team) {
 		tryAndLog(fn() => $teamUpdater->updatePlayers($team->team->id));
 		usleep(500000);
 	}
 	setJobProgressForTournament($i, count($tournaments), $jobRepo, $job, 20);
-	Logger::log('cron_update', "updated players for tournament $tournament->id");
+	$logger->info("updated players for tournament $tournament->id");
 
 	// Update Player Accounts from OPL
 	$players = $playerInTournamentRepo->findAllByTournament($tournament);
-	Logger::log('cron_update', "Found " . count($players) . " players in tournament $tournament->id");
+	$logger->info("Found " . count($players) . " players in tournament $tournament->id");
 	foreach ($players as $player) {
 		tryAndLog(fn() => $playerUpdater->updatePlayerAccount($player->player->id));
 		usleep(500000);;
 	}
 	setJobProgressForTournament($i, count($tournaments), $jobRepo, $job, 30);
-	Logger::log('cron_update', "updated player accounts for tournament $tournament->id");
+	$logger->info("updated player accounts for tournament $tournament->id");
 
 	// Update Matchups from OPL
 	foreach ($stages as $stage) {
@@ -104,11 +107,11 @@ foreach ($tournaments as $i=>$tournament) {
 		usleep(500000);
 	}
 	setJobProgressForTournament($i, count($tournaments), $jobRepo, $job, 40);
-	Logger::log('cron_update', "updated matchups for tournament $tournament->id");
+	$logger->info("updated matchups for tournament $tournament->id");
 
 	// Update Match Results from OPL | get Game Data from Riot Games API
 	$matchups = $matchupRepo->findAllByRootTournament($tournament);
-	Logger::log('cron_update', "Found " . count($matchups) . " matchups in tournament $tournament->id");
+	$logger->info("Found " . count($matchups) . " matchups in tournament $tournament->id");
 	foreach ($matchups as $matchup) {
 		tryAndLog(fn() => $matchupUpdater->updateMatchupResults($matchup->id));
 		// da Matchresults von OPL lange Ladezeiten haben, sollte es kein Ratelimit von Riot geben
@@ -116,15 +119,15 @@ foreach ($tournaments as $i=>$tournament) {
 		usleep(500000);
 	}
 	setJobProgressForTournament($i, count($tournaments), $jobRepo, $job, 65);
-	Logger::log('cron_update', "updated matchup results for tournament $tournament->id");
+	$logger->info("updated matchup results for tournament $tournament->id");
 
 	// Update Standings by calculating from matchups
-	Logger::log('cron_update', "Updating standings for tournament $tournament->id");
+	$logger->info("Updating standings for tournament $tournament->id");
 	foreach ($stages as $stage) {
 		tryAndLog(fn() => $tournamentUpdater->calculateStandings($stage->id));
 	}
 	setJobProgressForTournament($i, count($tournaments), $jobRepo, $job, 70);
-	Logger::log('cron_update', "finished updating standings for tournament $tournament->id");
+	$logger->info("finished updating standings for tournament $tournament->id");
 
 
 	// RGAPI Updates haben Limit von 50 Anfragen in 10 Sekunden
@@ -136,7 +139,7 @@ foreach ($tournaments as $i=>$tournament) {
 	$playerWithoutPuuidBatches = array_chunk($playersWithoutPuuid, $batchSize);
 
 	// Update PUUIDs from Riot Games API
-	Logger::log('cron_update', "Updating PUUIDs for tournament $tournament->id");
+	$logger->info("Updating PUUIDs for tournament $tournament->id");
 	foreach ($playerWithoutPuuidBatches as $pi=>$playerBatch) {
 		$job->addMessage("Updating PUUIDs for tournament $tournament->id, batch $pi");
 		foreach ($playerBatch as $player) {
@@ -145,19 +148,19 @@ foreach ($tournaments as $i=>$tournament) {
 		sleep($delay);
 	}
 	setJobProgressForTournament($i, count($tournaments), $jobRepo, $job, 80);
-	Logger::log('cron_update', "finished updating PUUIDs for tournament $tournament->id");
+	$logger->info("finished updating PUUIDs for tournament $tournament->id");
 
 	// Update Stats by calculating from matchups
-	Logger::log('cron_update', "Updating stats for tournament $tournament->id");
+	$logger->info("Updating stats for tournament $tournament->id");
 	foreach ($teams as $team) {
 		tryAndLog(fn() => $teamUpdater->updatePlayerStats($team->team->id, $tournament->id));
 		tryAndLog(fn() => $teamUpdater->updateStats($team->team->id, $tournament->id));
 	}
 	setJobProgressForTournament($i, count($tournaments), $jobRepo, $job, 85);
-	Logger::log('cron_update', "finished updating stats for tournament $tournament->id");
+	$logger->info("finished updating stats for tournament $tournament->id");
 
 	// Update Player Ranks from Riot Games API
-	Logger::log('cron_update', "Updating player ranks for tournament $tournament->id");
+	$logger->info("Updating player ranks for tournament $tournament->id");
 	foreach ($playerBatches as $pi=>$playerBatch) {
 		$job->addMessage("Updating player ranks for tournament $tournament->id, batch $pi");
 		foreach ($playerBatch as $player) {
@@ -166,34 +169,35 @@ foreach ($tournaments as $i=>$tournament) {
 		sleep($delay);
 	}
 	setJobProgressForTournament($i, count($tournaments), $jobRepo, $job, 95);
-	Logger::log('cron_update', "finished updating player ranks for tournament $tournament->id");
+	$logger->info("finished updating player ranks for tournament $tournament->id");
 
 	// Update Team Ranks by calculating from Player Ranks
-	Logger::log('cron_update', "Updating team ranks for tournament $tournament->id");
+	$logger->info("Updating team ranks for tournament $tournament->id");
 	foreach ($teams as $team) {
 		tryAndLog(fn() => $teamUpdater->updateRank($team->team->id));
 	}
 	setJobProgressForTournament($i, count($tournaments), $jobRepo, $job, 100);
-	Logger::log('cron_update', "finished updating team ranks for tournament $tournament->id");
+	$logger->info("finished updating team ranks for tournament $tournament->id");
 
 
 	$tournamentCurrent = $tournamentRepo->findById($tournament->id, ignoreCache: true);
 	$tournamentCurrent->lastCronUpdate = new DateTimeImmutable();
 	$tournamentRepo->save($tournamentCurrent);
 
-	Logger::log('cron_update', "Finished tournament $tournament->id");
+	$logger->info("Finished tournament $tournament->id");
 }
 
 $job->finishJob();
 $jobRepo->save($job);
-Logger::log('cron_update', "Finished full update job $job->id");
+$logger->info("Finished full update job $job->id");
 
 
 function tryAndLog(callable $callback): mixed {
+	global $logger;
 	try {
 		return $callback();
 	} catch (Throwable $e) {
-		if ($e->getCode() !== 200) Logger::log('cron_update',"Error on full cron update: \n".$e->getMessage()."\n".$e->getTraceAsString());
+		if ($e->getCode() !== 200) $logger->error("Error on full cron update: \n".$e->getMessage()."\n".$e->getTraceAsString());
 		return false;
 	}
 }

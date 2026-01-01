@@ -1,6 +1,7 @@
 <?php
 require_once dirname(__DIR__,2) . '/bootstrap.php';
 
+use App\Core\Enums\LogType;
 use App\Core\Logger;
 use App\Domain\Entities\Tournament;
 use App\Domain\Entities\UpdateJob;
@@ -11,6 +12,8 @@ use App\Domain\Repositories\PlayerInTournamentRepository;
 use App\Domain\Repositories\PlayerRepository;
 use App\Domain\Repositories\UpdateJobRepository;
 use App\Service\Updater\PlayerUpdater;
+
+$logger = new Logger(LogType::ADMIN_UPDATE);
 
 $options = getopt('j:');
 $jobId = $options['j'] ?? null;
@@ -23,28 +26,28 @@ $jobRepo = new UpdateJobRepository();
 $job = $jobRepo->findById($jobId);
 
 if ($job === null) {
-    Logger::log('admin_update', "Job $jobId not found");
+    $logger->warning( "Job $jobId not found");
     echo "Job $jobId not found\n";
     exit;
 }
 if ($job->status !== UpdateJobStatus::QUEUED) {
-    Logger::log('admin_update', "Job $jobId is not queued");
+    $logger->warning( "Job $jobId is not queued");
     echo "Job $jobId is not queued\n";
     exit;
 }
 if ($job->action !== UpdateJobAction::UPDATE_RIOTIDS_PUUIDS) {
-    Logger::log('admin_update', "Job $jobId is not an updated riotIds by Puuids job");
+    $logger->warning( "Job $jobId is not an updated riotIds by Puuids job");
     echo "Job $jobId is not an updated riotIds by Puuids job\n";
     exit;
 }
 
 $job->startJob(getmypid());
 $jobRepo->save($job);
-Logger::log('admin_update', "Job $jobId started.");
+$logger->info("Job $jobId started.");
 
 $tournamentContext = $job->context;
 if ($tournamentContext !== null && !($tournamentContext instanceof Tournament)) {
-    Logger::log('admin_update', "Job $jobId is not a tournament context");
+    $logger->warning("Job $jobId is not a tournament context");
     echo "Job $jobId has invalid context\n";
     exit;
 }
@@ -105,4 +108,4 @@ foreach ($batches as $i=>$batch) {
 
 $job->finishJob($jobId);
 $jobRepo->save($job);
-Logger::log('admin_update', "Finished job $jobId");
+$logger->info("Finished job $jobId");

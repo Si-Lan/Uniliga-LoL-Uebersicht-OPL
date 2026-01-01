@@ -1,6 +1,7 @@
 <?php
 require_once dirname(__DIR__,2) . '/bootstrap.php';
 
+use App\Core\Enums\LogType;
 use App\Core\Logger;
 use App\Domain\Entities\Tournament;
 use App\Domain\Enums\Jobs\UpdateJobAction;
@@ -10,6 +11,8 @@ use App\Domain\Repositories\TeamInTournamentRepository;
 use App\Domain\Repositories\TeamRepository;
 use App\Domain\Repositories\UpdateJobRepository;
 use App\Service\Updater\TeamUpdater;
+
+$logger = new Logger(LogType::ADMIN_UPDATE);
 
 $options = getopt('j:');
 $jobId = $options['j'] ?? null;
@@ -22,28 +25,28 @@ $jobRepo = new UpdateJobRepository();
 $job = $jobRepo->findById($jobId);
 
 if ($job === null) {
-	Logger::log('admin_update',"Job $jobId not found");
+	$logger->warning("Job $jobId not found");
     echo "Job $jobId not found\n";
 	exit;
 }
 if ($job->status !== UpdateJobStatus::QUEUED) {
-    Logger::log('admin_update',"Job $jobId is not queued");
+    $logger->warning("Job $jobId is not queued");
     echo "Job $jobId is not queued\n";
     exit;
 }
 if ($job->action !== UpdateJobAction::UPDATE_TEAM_STATS) {
-    Logger::log('admin_update',"Job $jobId is not an update team stats job");
+    $logger->warning("Job $jobId is not an update team stats job");
     echo "Job $jobId is not an update team stats job\n";
     exit;
 }
 
 $job->startJob(getmypid());
 $jobRepo->save($job);
-Logger::log('admin_update',"Starting job $jobId");
+$logger->info("Starting job $jobId");
 
 $tournamentContext = $job->context;
 if ($tournamentContext !== null && !($tournamentContext instanceof Tournament)) {
-    Logger::log('admin_update',"Job $jobId has invalid context");
+    $logger->warning("Job $jobId has invalid context");
     echo "Job $jobId has invalid context\n";
     exit;
 }
@@ -83,7 +86,7 @@ foreach ($teams as $team) {
         }
     } catch (\Exception $e) {
         $job->addMessage("Error: ". $e->getMessage());
-        Logger::log('admin_update',"Error: ". $e->getMessage(). "\n".$e->getTraceAsString());
+        $logger->error("Error: ". $e->getMessage(). "\n".$e->getTraceAsString());
     }
 
     $count++;
@@ -93,4 +96,4 @@ foreach ($teams as $team) {
 
 $job->finishJob();
 $jobRepo->save($job);
-Logger::log('admin_update',"Finished job $jobId");
+$logger->info("Finished job $jobId");

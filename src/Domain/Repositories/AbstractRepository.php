@@ -3,6 +3,8 @@
 namespace App\Domain\Repositories;
 
 use App\Core\DatabaseConnection;
+use App\Core\Enums\LogType;
+use App\Core\Logger;
 
 abstract class AbstractRepository {
 	protected \mysqli $dbcn;
@@ -23,8 +25,11 @@ abstract class AbstractRepository {
 	 */
 	protected static array $OPL_DATA_KEYS = [];
 
+	protected Logger $logger;
+
 	public function __construct() {
 		$this->dbcn = DatabaseConnection::getConnection();
+		$this->logger = new Logger(LogType::DB);
 	}
 
 	protected function normalizeData(array $data): array {

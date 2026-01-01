@@ -2,7 +2,6 @@
 
 namespace App\Domain\Repositories;
 
-use App\Core\Logger;
 use App\Core\Utilities\DataParsingHelpers;
 use App\Domain\Entities\RankedSplit;
 use App\Domain\Entities\Tournament;
@@ -178,7 +177,7 @@ class RankedSplitRepository extends AbstractRepository {
 				$saveResult = ['result'=>SaveResult::INSERTED];
 			}
 		} catch (\Throwable $e) {
-			Logger::log('db', "Fehler beim Speichern von RankedSplits: " . $e->getMessage() . "\n" . $e->getTraceAsString());
+			$this->logger->error("Fehler beim Speichern von RankedSplits: " . $e->getMessage() . "\n" . $e->getTraceAsString());
 			$saveResult = ['result'=>SaveResult::FAILED];
 		}
 		$saveResult['rankedSplit'] = $this->findBySeasonAndSplit($rankedSplit->season, $rankedSplit->split);

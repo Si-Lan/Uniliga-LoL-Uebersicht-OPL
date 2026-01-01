@@ -2,7 +2,6 @@
 
 namespace App\Domain\Repositories;
 
-use App\Core\Logger;
 use App\Core\Utilities\DataParsingHelpers;
 use App\Domain\Entities\Player;
 use App\Domain\Entities\ValueObjects\RankForPlayer;
@@ -191,7 +190,7 @@ class PlayerRepository extends AbstractRepository {
 				$saveResult = ['result'=>SaveResult::INSERTED];
 			}
 		} catch (\Throwable $e) {
-			Logger::log('db', "Fehler beim Speichern von Spieler $player->id: ".$e->getMessage() . "\n" . $e->getTraceAsString());
+			$this->logger->error("Fehler beim Speichern von Spieler $player->id: ".$e->getMessage() . "\n" . $e->getTraceAsString());
 			$saveResult = ['result'=>SaveResult::FAILED];
 		}
 		$saveResult['player'] = $this->findById($player->id);

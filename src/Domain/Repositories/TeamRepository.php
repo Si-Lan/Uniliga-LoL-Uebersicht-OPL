@@ -2,7 +2,6 @@
 
 namespace App\Domain\Repositories;
 
-use App\Core\Logger;
 use App\Core\Utilities\DataParsingHelpers;
 use App\Domain\Entities\Team;
 use App\Domain\Entities\ValueObjects\RankAverage;
@@ -165,7 +164,7 @@ class TeamRepository extends AbstractRepository {
 				$saveResult = ['result'=>SaveResult::INSERTED];
 			}
 		} catch (\Throwable $e) {
-			Logger::log('db', "Fehler beim Speichern von Team $team->id: ".$e->getMessage() . "\n" . $e->getTraceAsString());
+			$this->logger->error("Fehler beim Speichern von Team $team->id: ".$e->getMessage() . "\n" . $e->getTraceAsString());
 			$saveResult = ['result'=>SaveResult::FAILED];
 		}
 		$saveResult['team'] = $this->findById($team->id);

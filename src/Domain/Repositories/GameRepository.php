@@ -2,7 +2,6 @@
 
 namespace App\Domain\Repositories;
 
-use App\Core\Logger;
 use App\Core\Utilities\DataParsingHelpers;
 use App\Domain\Entities\Game;
 use App\Domain\Entities\Tournament;
@@ -132,7 +131,7 @@ class GameRepository extends AbstractRepository {
                 $saveResult = ['result' => SaveResult::INSERTED];
             }
         } catch (\Throwable $e) {
-            Logger::log('db', "Fehler beim Speichern der Spieldaten: " . $e->getMessage(). "\n" . $e->getTraceAsString());
+            $this->logger->error("Fehler beim Speichern der Spieldaten: " . $e->getMessage(). "\n" . $e->getTraceAsString());
             $saveResult['result'] = SaveResult::FAILED;
         }
 		$saveResult['game'] = $this->findById($game->id);

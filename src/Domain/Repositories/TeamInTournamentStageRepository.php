@@ -2,7 +2,6 @@
 
 namespace App\Domain\Repositories;
 
-use App\Core\Logger;
 use App\Core\Utilities\DataParsingHelpers;
 use App\Domain\Entities\Team;
 use App\Domain\Entities\TeamInTournament;
@@ -285,7 +284,7 @@ class TeamInTournamentStageRepository extends AbstractRepository {
 				throw new \Exception("Team is not in tournament");
 			}
 		} catch (\Throwable $e) {
-			Logger::log('db', "Fehler beim Speichern von TeamInTournamentStage: ".$e->getMessage()."\n".$e->getTraceAsString());
+			$this->logger->error("Fehler beim Speichern von TeamInTournamentStage: ".$e->getMessage()."\n".$e->getTraceAsString());
 			$saveResult = ['result' => SaveResult::FAILED];
 		}
 		$saveResult['teamInTournamentStage'] = $this->findByTeamIdAndTournamentStageId($teamInTournamentStage->team->id, $teamInTournamentStage->tournamentStage->id);

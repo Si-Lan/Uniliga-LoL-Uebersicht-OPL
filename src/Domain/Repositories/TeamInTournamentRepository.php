@@ -2,7 +2,6 @@
 
 namespace App\Domain\Repositories;
 
-use App\Core\Logger;
 use App\Core\Utilities\DataParsingHelpers;
 use App\Domain\Entities\Team;
 use App\Domain\Entities\TeamInTournament;
@@ -309,7 +308,7 @@ class TeamInTournamentRepository extends AbstractRepository {
                 $saveResult = ['result' => SaveResult::INSERTED];
             }
         } catch (\Throwable $e) {
-            Logger::log('db', "Fehler beim Speichern von TeamInTournament-Statistiken: ".$e->getMessage()."\n".$e->getTraceAsString());
+            $this->logger->error("Fehler beim Speichern von TeamInTournament-Statistiken: ".$e->getMessage()."\n".$e->getTraceAsString());
             return ['result' => SaveResult::FAILED];
         }
 

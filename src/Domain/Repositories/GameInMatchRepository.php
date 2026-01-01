@@ -2,7 +2,6 @@
 
 namespace App\Domain\Repositories;
 
-use App\Core\Logger;
 use App\Domain\Entities\Game;
 use App\Domain\Entities\GameInMatch;
 use App\Domain\Entities\Matchup;
@@ -169,7 +168,7 @@ class GameInMatchRepository extends AbstractRepository {
 				$saveResult = ['result'=>SaveResult::INSERTED];
 			}
 		} catch (\Throwable $e) {
-			Logger::log('db', "Fehler beim Speichern von Spielen in Matchups: " . $e->getMessage() . "\n" . $e->getTraceAsString());
+			$this->logger->error("Fehler beim Speichern von Spielen in Matchups: " . $e->getMessage() . "\n" . $e->getTraceAsString());
 			$saveResult = ['result'=>SaveResult::FAILED];
 		}
 		$saveResult['gameInMatch'] = $this->findByGameIdAndMatchupId($gameInMatch->game->id, $gameInMatch->matchup->id);

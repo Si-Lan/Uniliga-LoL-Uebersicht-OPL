@@ -2,7 +2,6 @@
 
 namespace App\Domain\Repositories;
 
-use App\Core\Logger;
 use App\Core\Utilities\DataParsingHelpers;
 use App\Domain\Entities\Player;
 use App\Domain\Entities\PlayerSeasonRank;
@@ -153,7 +152,7 @@ class PlayerSeasonRankRepository extends AbstractRepository {
                 $saveResult = ['result'=>SaveResult::INSERTED];
             }
         } catch (\Throwable $e) {
-            Logger::log('db', "Fehler beim Speichern von PlayerSeasonRank für {$playerSeasonRank->player->id} in {$playerSeasonRank->rankedSplit->getName()}: " . $e->getMessage() . "\n" . $e->getTraceAsString());
+            $this->logger->error("Fehler beim Speichern von PlayerSeasonRank für {$playerSeasonRank->player->id} in {$playerSeasonRank->rankedSplit->getName()}: " . $e->getMessage() . "\n" . $e->getTraceAsString());
             $saveResult = ['result'=>SaveResult::FAILED];
         }
         $saveResult['playerSeasonRank'] = $this->findPlayerSeasonRank($playerSeasonRank->player->id, $playerSeasonRank->rankedSplit, ignoreCache: true);

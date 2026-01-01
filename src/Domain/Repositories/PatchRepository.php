@@ -2,7 +2,6 @@
 
 namespace App\Domain\Repositories;
 
-use App\Core\Logger;
 use App\Core\Utilities\DataParsingHelpers;
 use App\Domain\Entities\Patch;
 use App\Domain\Enums\SaveResult;
@@ -142,7 +141,7 @@ class PatchRepository extends AbstractRepository {
 				$saveResult = ['result'=>SaveResult::INSERTED];
 			}
 		} catch (\Throwable $e) {
-			Logger::log('db', "Fehler beim Speichern von Patches: " . $e->getMessage() . "\n" . $e->getTraceAsString());
+			$this->logger->error("Fehler beim Speichern von Patches: " . $e->getMessage() . "\n" . $e->getTraceAsString());
 			$saveResult = ['result'=>SaveResult::FAILED];
 		}
 		$saveResult['patch'] = $this->findByPatchNumber($patch->patchNumber);

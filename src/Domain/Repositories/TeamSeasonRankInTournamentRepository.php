@@ -2,7 +2,6 @@
 
 namespace App\Domain\Repositories;
 
-use App\Core\Logger;
 use App\Core\Utilities\DataParsingHelpers;
 use App\Domain\Entities\RankedSplit;
 use App\Domain\Entities\Team;
@@ -189,7 +188,7 @@ class TeamSeasonRankInTournamentRepository extends AbstractRepository {
                 $saveResult = ['result'=>SaveResult::INSERTED];
             }
         } catch (\Throwable $e) {
-            Logger::log('db', "Fehler beim Speichern von TeamSeasonRankInTournament: " . $e->getMessage() . "\n" . $e->getTraceAsString());
+            $this->logger->error("Fehler beim Speichern von TeamSeasonRankInTournament: " . $e->getMessage() . "\n" . $e->getTraceAsString());
             $saveResult = ['result'=>SaveResult::FAILED];
         }
         $saveResult['teamSeasonRankInTournament'] = $this->findTeamSeasonRankInTournament($rank->team->id, $rank->tournament->id, $rank->rankedSplit);

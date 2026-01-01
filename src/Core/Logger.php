@@ -2,20 +2,56 @@
 
 namespace App\Core;
 
-class Logger {
-	private const array LOG_PATHS = [
-		'db' => BASE_PATH."/logs/db.log",
-		'default' => BASE_PATH."/logs/default.log",
-		'admin_update' => BASE_PATH."/logs/admin_update.log",
-        'user_update' => BASE_PATH."/logs/user_update.log",
-		'cron_update' => BASE_PATH."/logs/cron_update.log",
-		'ddragon_update' => BASE_PATH."/logs/ddragon_update.log",
-	];
+use App\Core\Enums\LogType;
 
-	public static function log(string $type, string $message):void {
+class Logger {
+	private LogType $type;
+
+	public function __construct(LogType $type = LogType::DEFAULT) {
+		$this->type = $type;
+	}
+
+	public function debug(string $message): void {
+		$this->writeLog('DEBUG', $message);
+	}
+
+	public function info(string $message): void {
+		$this->writeLog('INFO', $message);
+	}
+
+	public function warning(string $message): void {
+		$this->writeLog('WARNING', $message);
+	}
+
+	public function error(string $message): void {
+		$this->writeLog('ERROR', $message);
+	}
+
+	public static function debugStatic(LogType $type, string $message): void {
+		$logger = new self($type);
+		$logger->debug($message);
+	}
+
+	public static function infoStatic(LogType $type, string $message): void {
+		$logger = new self($type);
+		$logger->info($message);
+	}
+
+	public static function warningStatic(LogType $type, string $message): void {
+		$logger = new self($type);
+		$logger->warning($message);
+	}
+
+	public static function errorStatic(LogType $type, string $message): void {
+		$logger = new self($type);
+		$logger->error($message);
+	}
+
+	private function writeLog(string $level, string $message): void {
 		if (!file_exists(BASE_PATH."/logs")) mkdir(BASE_PATH."/logs");
-		$path = self::LOG_PATHS[$type] ?? self::LOG_PATHS['default'];
-		$entry = "[".date("Y-m-d H:i:s")."]: ".$message."\n";
+		$typeKey = $this->type->value;
+		$path = BASE_PATH . "/logs/{$typeKey}.log";
+		$entry = "[" . date("Y-m-d H:i:s") . "] {$level} [{$typeKey}]: {$message}\n";
 
         $fileExists = file_exists($path);
 		file_put_contents($path, $entry, FILE_APPEND);

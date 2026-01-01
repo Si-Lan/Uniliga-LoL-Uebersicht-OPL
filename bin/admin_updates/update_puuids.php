@@ -1,6 +1,7 @@
 <?php
 require_once dirname(__DIR__,2) . '/bootstrap.php';
 
+use App\Core\Enums\LogType;
 use App\Core\Logger;
 use App\Domain\Entities\Tournament;
 use App\Domain\Enums\Jobs\UpdateJobAction;
@@ -10,6 +11,8 @@ use App\Domain\Repositories\PlayerInTournamentRepository;
 use App\Domain\Repositories\PlayerRepository;
 use App\Domain\Repositories\UpdateJobRepository;
 use App\Service\Updater\PlayerUpdater;
+
+$logger = new Logger(LogType::ADMIN_UPDATE);
 
 $options = getopt('j:', ['without-puuid']);
 $jobId = $options['j'] ?? null;
@@ -24,25 +27,25 @@ $jobRepo = new UpdateJobRepository();
 $job = $jobRepo->findById($jobId);
 
 if ($job === null) {
-	Logger::log('admin_update',"Job $jobId not found");
+	$logger->warning("Job $jobId not found");
 	exit;
 }
 if ($job->status !== UpdateJobStatus::QUEUED) {
-	Logger::log('admin_update',"Job $jobId is not in queued state");
+	$logger->warning("Job $jobId is not in queued state");
 	exit;
 }
 if ($job->action !== UpdateJobAction::UPDATE_PUUIDS) {
-	Logger::log('admin_update',"Job $jobId is not an update puuids job");
+	$logger->warning("Job $jobId is not an update puuids job");
 	exit;
 }
 
 $job->startJob(getmypid());
 $jobRepo->save($job);
-Logger::log('admin_update',"Starting job $jobId");
+$logger->info("Starting job $jobId");
 
 $tournamentContext = $job->context;
 if ($tournamentContext !== null && !($tournamentContext instanceof Tournament)) {
-	Logger::log('admin_update',"Job $jobId has invalid context");
+	$logger->info("Job $jobId has invalid context");
 	exit;
 }
 
@@ -101,4 +104,4 @@ foreach ($batches as $i=>$batch) {
 
 $job->finishJob();
 $jobRepo->save($job);
-Logger::log('admin_update',"Finished job $jobId");
+$logger->info("Finished job $jobId");

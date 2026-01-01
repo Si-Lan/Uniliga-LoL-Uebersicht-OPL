@@ -1,6 +1,7 @@
 <?php
 require_once dirname(__DIR__,2).'/bootstrap.php';
 
+use App\Core\Enums\LogType;
 use App\Core\Logger;
 use App\Domain\Entities\Team;
 use App\Domain\Entities\Tournament;
@@ -21,6 +22,8 @@ use App\Service\Updater\PlayerUpdater;
 use App\Service\Updater\TeamUpdater;
 use App\Service\Updater\TournamentUpdater;
 
+$logger = new Logger(LogType::USER_UPDATE);
+
 $options = getopt('t:e:j:');
 $teamId = $options['t'] ?? null;
 $tournamentId = $options['e'] ?? null;
@@ -39,18 +42,18 @@ if ($teamId !== null && $tournamentId !== null) {
 
 	$team = $teamRepo->findById($teamId);
 	if ($team === null) {
-		Logger::log('user_update',"Team $teamId not found");
+		$logger->warning("Team $teamId not found");
 		echo "Team $teamId not found\n";
 		exit;
 	}
 	$tournament = $tournamentRepo->findById($tournamentId);
 	if ($tournament === null) {
-		Logger::log('user_update',"Event $tournamentId not found");
+		$logger->warning("Event $tournamentId not found");
 		echo "Event $tournamentId not found\n";
 		exit;
 	}
 	if ($tournament->eventType !== EventType::TOURNAMENT) {
-		Logger::log('user_update',"Event $tournamentId is not a tournament");
+		$logger->warning("Event $tournamentId is not a tournament");
 		echo "Event $tournamentId is not a tournament\n";
 		exit;
 	}
@@ -65,7 +68,7 @@ if ($teamId !== null && $tournamentId !== null) {
 	);
 
 	if ($runningJob !== null) {
-		Logger::log('user_update',"Team $teamId is already being updated by Job $runningJob->id");
+		$logger->warning("Team $teamId is already being updated by Job $runningJob->id");
 		echo "Team $teamId is already being updated by Job $runningJob->id\n";
 		exit;
 	}
@@ -81,29 +84,29 @@ if ($teamId !== null && $tournamentId !== null) {
 } else if ($jobId !== null) {
 	$job = $jobRepo->findById($jobId);
 	if ($job === null) {
-		Logger::log('user_update',"Job $jobId not found");
+		$logger->warning("Job $jobId not found");
 		echo "Job $jobId not found\n";
 		exit;
 	}
 	if ($job->status !== UpdateJobStatus::QUEUED) {
-		Logger::log('user_update',"Job $jobId is not queued");
+		$logger->warning("Job $jobId is not queued");
 		echo "Job $jobId is not queued\n";
 		exit;
 	}
 	if ($job->action !== UpdateJobAction::UPDATE_TEAM || $job->contextType !== UpdateJobContextType::TEAM) {
-		Logger::log('user_update',"Job $jobId is not an update team job");
+		$logger->warning("Job $jobId is not an update team job");
 		echo "Job $jobId is not an update team job\n";
 		exit;
 	}
 	$team = $job->context;
 	$tournament = $job->tournament;
 	if (!($team instanceof Team)) {
-		Logger::log('user_update',"Job $jobId has no Team as context");
+		$logger->warning("Job $jobId has no Team as context");
 		echo "Job $jobId has no Team as context\n";
 		exit;
 	}
 	if (!($tournament instanceof Tournament)) {
-		Logger::log('user_update',"Job $jobId has no Tournament as context");
+		$logger->warning("Job $jobId has no Tournament as context");
 		echo "Job $jobId has no Tournament as context\n";
 		exit;
 	}
@@ -115,7 +118,7 @@ if ($teamId !== null && $tournamentId !== null) {
 // Logic
 $job->startJob(getmypid());
 $jobRepo->save($job);
-Logger::log('user_update',"Starting job $job->id");
+$logger->info("Starting job $job->id");
 
 $teamUpdater = new TeamUpdater();
 $tournamentUpdater = new TournamentUpdater();
@@ -191,15 +194,15 @@ foreach ($teamInTournamentStages as $i=>$teamInTournamentStage) {
 
 $job->finishJob();
 $jobRepo->save($job);
-Logger::log('user_update',"Finished job $job->id");
+$logger->info("Finished job $job->id");
 
 
 function tryAndLog(callable $callback): mixed {
-	global $group;
+	global $logger, $group;
 	try {
 		return $callback();
 	} catch (Exception $e) {
-		Logger::log('user_update',"Error updating group $group->id: \n".$e->getMessage()."\n".$e->getTraceAsString());
+		$logger->error("Error updating group $group->id: \n".$e->getMessage()."\n".$e->getTraceAsString());
 		return false;
 	}
 }

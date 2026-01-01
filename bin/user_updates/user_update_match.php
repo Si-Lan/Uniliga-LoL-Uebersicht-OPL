@@ -1,6 +1,7 @@
 <?php
 require_once dirname(__DIR__,2).'/bootstrap.php';
 
+use App\Core\Enums\LogType;
 use App\Core\Logger;
 use App\Domain\Entities\Matchup;
 use App\Domain\Enums\Jobs\UpdateJobAction;
@@ -13,6 +14,8 @@ use App\Service\Updater\GameUpdater;
 use App\Service\Updater\MatchupUpdater;
 use App\Service\Updater\TeamUpdater;
 use App\Service\Updater\TournamentUpdater;
+
+$logger = new Logger(LogType::USER_UPDATE);
 
 $options = getopt('m:j:');
 $matchId = $options['m'] ?? null;
@@ -30,7 +33,7 @@ if ($matchId !== null) {
 	$matchRepo = new MatchupRepository();
 	$match = $matchRepo->findById($matchId);
 	if ($match === null) {
-		Logger::log('user_update',"Match $matchId not found");
+		$logger->warning("Match $matchId not found");
 		echo "Match $matchId not found\n";
 		exit;
 	}
@@ -42,7 +45,7 @@ if ($matchId !== null) {
 		$match->id
 	);
 	if ($runningJob !== null) {
-		Logger::log('user_update',"Match $matchId is already being updated by Job $runningJob->id");
+		$logger->warning("Match $matchId is already being updated by Job $runningJob->id");
 		echo "Match $matchId is already being updated by Job $runningJob->id\n";
 		exit;
 	}
@@ -57,23 +60,23 @@ if ($matchId !== null) {
 } elseif ($jobId !== null) {
 	$job = $jobRepo->findById($jobId);
 	if ($job === null) {
-		Logger::log('user_update',"Job $jobId not found");
+		$logger->warning("Job $jobId not found");
 		echo "Job $jobId not found\n";
 		exit;
 	}
 	if ($job->status !== UpdateJobStatus::QUEUED) {
-		Logger::log('user_update',"Job $jobId is not queued");
+		$logger->warning("Job $jobId is not queued");
 		echo "Job $jobId is not queued\n";
 		exit;
 	}
 	if ($job->action !== UpdateJobAction::UPDATE_MATCH || $job->contextType !== UpdateJobContextType::MATCHUP) {
-		Logger::log('user_update',"Job $jobId is not an update match job");
+		$logger->warning("Job $jobId is not an update match job");
 		echo "Job $jobId is not an update match job\n";
 		exit;
 	}
 	$match = $job->context;
 	if (!($match instanceof Matchup)) {
-		Logger::log('user_update',"Job $jobId has no Matchup as context");
+		$logger->warning("Job $jobId has no Matchup as context");
 		echo "Job $jobId has no Matchup as context\n";
 		exit;
 	}
@@ -89,7 +92,7 @@ if ($matchId !== null) {
 $job->startJob(getmypid());
 $job->progress = 10;
 $jobRepo->save($job);
-Logger::log('user_update',"Starting job $job->id");
+$logger->info("Starting job $job->id");
 
 $matchUpdater = new MatchupUpdater();
 
@@ -123,15 +126,15 @@ tryAndLog(fn() => $tournamentUpdater->calculateStandings($savedMatchup->tourname
 
 $job->finishJob();
 $jobRepo->save($job);
-Logger::log('user_update',"Finished job $job->id");
+$logger->info("Finished job $job->id");
 
 
 function tryAndLog(callable $callback): mixed {
-	global $group;
+	global $logger, $group;
 	try {
 		return $callback();
 	} catch (Exception $e) {
-		Logger::log('user_update',"Error updating group $group->id: \n".$e->getMessage()."\n".$e->getTraceAsString());
+		$logger->error("Error updating group $group->id: \n".$e->getMessage()."\n".$e->getTraceAsString());
 		return false;
 	}
 }

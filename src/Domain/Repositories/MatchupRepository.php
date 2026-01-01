@@ -2,7 +2,6 @@
 
 namespace App\Domain\Repositories;
 
-use App\Core\Logger;
 use App\Core\Utilities\DataParsingHelpers;
 use App\Domain\Entities\Matchup;
 use App\Domain\Entities\TeamInTournament;
@@ -224,7 +223,7 @@ class MatchupRepository extends AbstractRepository {
 				$saveResult = ['result'=>SaveResult::INSERTED];
 			}
 		} catch (\Throwable $e) {
-			Logger::log('db', "Fehler beim Speichern des Matchups: " . $e->getMessage().'\n'.$e->getTraceAsString());
+			$this->logger->error("Fehler beim Speichern des Matchups: " . $e->getMessage().'\n'.$e->getTraceAsString());
 			$saveResult = ['result'=>SaveResult::FAILED];
 		}
 		$saveResult['matchup'] = $this->findById($matchup->id);

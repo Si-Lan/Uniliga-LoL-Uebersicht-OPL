@@ -2,7 +2,6 @@
 
 namespace App\Domain\Repositories;
 
-use App\Core\Logger;
 use App\Core\Utilities\DataParsingHelpers;
 use App\Domain\Entities\Tournament;
 use App\Domain\Enums\EventType;
@@ -300,7 +299,7 @@ class TournamentRepository extends AbstractRepository {
 				return ['result'=>SaveResult::INSERTED];
 			}
 		} catch (\Throwable $e) {
-			Logger::log('db', "Fehler beim Speichern von Turnier $tournament->id: " . $e->getMessage() . $e->getTraceAsString());
+			$this->logger->error("Fehler beim Speichern von Turnier $tournament->id: " . $e->getMessage() . $e->getTraceAsString());
 			return ['result'=>SaveResult::FAILED];
 		}
 	}
