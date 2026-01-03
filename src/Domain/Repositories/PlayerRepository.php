@@ -6,6 +6,7 @@ use App\Core\Utilities\DataParsingHelpers;
 use App\Domain\Entities\Player;
 use App\Domain\Entities\ValueObjects\RankForPlayer;
 use App\Domain\Enums\SaveResult;
+use App\Domain\ValueObjects\RepositorySaveResult;
 
 class PlayerRepository extends AbstractRepository {
 	use DataParsingHelpers;
@@ -147,9 +148,9 @@ class PlayerRepository extends AbstractRepository {
 	/**
 	 * @param Player $player
 	 * @param bool $fromOplData
-	 * @return array{'result': SaveResult, 'changes': array<string, mixed>}
+	 * @return RepositorySaveResult
 	 */
-	public function update(Player $player, bool $fromOplData = false): array {
+	public function update(Player $player, bool $fromOplData = false): RepositorySaveResult {
 		$existingPlayer = $this->findById($player->id, ignoreCache: true);
 		$dataNew = $this->mapEntityToData($player);
 		$dataOld = $this->mapEntityToData($existingPlayer);
@@ -162,7 +163,7 @@ class PlayerRepository extends AbstractRepository {
 		$dataPrevious = array_diff_assoc($dataOld, $dataNew);
 
 		if (count($dataChanged) === 0) {
-			return ['result'=>SaveResult::NOT_CHANGED];
+			return new RepositorySaveResult(SaveResult::NOT_CHANGED);
 		}
 
 		$set = implode(",", array_map(fn($key) => "$key = ?", array_keys($dataChanged)));
@@ -172,28 +173,27 @@ class PlayerRepository extends AbstractRepository {
 		$this->dbcn->execute_query($query, [...$values, $player->id]);
 
 		unset($this->cache[$player->id]);
-		return ['result'=>SaveResult::UPDATED, 'changes'=>$dataChanged, 'previous'=>$dataPrevious];
+		return new RepositorySaveResult(SaveResult::UPDATED, changes: $dataChanged, previous: $dataPrevious);
 	}
 
 	/**
 	 * @param Player $player
 	 * @param bool $fromOplData
-	 * @return array{'result': SaveResult, 'changes': ?array<string, mixed>, 'player': ?Player}
+	 * @return RepositorySaveResult
 	 */
-	public function save(Player $player, bool $fromOplData = false): array {
-		$saveResult = [];
+	public function save(Player $player, bool $fromOplData = false): RepositorySaveResult {
 		try {
 			if ($this->playerExists($player->id)) {
 				$saveResult = $this->update($player, $fromOplData);
 			} else {
 				$this->insert($player, $fromOplData);
-				$saveResult = ['result'=>SaveResult::INSERTED];
+				$saveResult = new RepositorySaveResult(SaveResult::INSERTED);
 			}
 		} catch (\Throwable $e) {
 			$this->logger->error("Fehler beim Speichern von Spieler $player->id: ".$e->getMessage() . "\n" . $e->getTraceAsString());
-			$saveResult = ['result'=>SaveResult::FAILED];
+			$saveResult = new RepositorySaveResult(SaveResult::FAILED);
 		}
-		$saveResult['player'] = $this->findById($player->id);
+		$saveResult->entity = $this->findById($player->id, ignoreCache: true);
 		return $saveResult;
 	}
 

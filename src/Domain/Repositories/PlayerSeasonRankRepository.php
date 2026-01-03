@@ -8,6 +8,7 @@ use App\Domain\Entities\PlayerSeasonRank;
 use App\Domain\Entities\RankedSplit;
 use App\Domain\Entities\ValueObjects\RankForPlayer;
 use App\Domain\Enums\SaveResult;
+use App\Domain\ValueObjects\RepositorySaveResult;
 
 class PlayerSeasonRankRepository extends AbstractRepository {
 	use DataParsingHelpers;
@@ -118,11 +119,7 @@ class PlayerSeasonRankRepository extends AbstractRepository {
         unset($this->cache[$cacheKey]);
     }
 
-    /**
-     * @param PlayerSeasonRank $playerSeasonRank
-     * @return array{'result': SaveResult, 'changes': array<string, mixed>}
-     */
-    public function update(PlayerSeasonRank $playerSeasonRank): array {
+    public function update(PlayerSeasonRank $playerSeasonRank): RepositorySaveResult {
         $existingPlayerSeasonRank = $this->findPlayerSeasonRank($playerSeasonRank->player->id, $playerSeasonRank->rankedSplit, ignoreCache: true);
         $dataNew = $this->mapEntityToData($playerSeasonRank);
         $dataOld = $this->mapEntityToData($existingPlayerSeasonRank);
@@ -130,7 +127,7 @@ class PlayerSeasonRankRepository extends AbstractRepository {
         $dataPrevious = array_diff_assoc($dataOld, $dataNew);
 
         if (count($dataChanged) == 0) {
-            return ['result' => SaveResult::NOT_CHANGED];
+			return new RepositorySaveResult(SaveResult::NOT_CHANGED);
         }
         $set = implode(",", array_map(fn($key) => "$key = ?", array_keys($dataChanged)));
         $values = array_values($dataChanged);
@@ -139,23 +136,22 @@ class PlayerSeasonRankRepository extends AbstractRepository {
         $this->dbcn->execute_query($query, [...$values, $playerSeasonRank->player->id, $playerSeasonRank->rankedSplit->season, $playerSeasonRank->rankedSplit->split]);
 
         unset($this->cache[$playerSeasonRank->player->id."_".$playerSeasonRank->rankedSplit->season."_".$playerSeasonRank->rankedSplit->split]);
-        return ['result' => SaveResult::UPDATED, 'changes' => $dataChanged, 'previous' => $dataPrevious];
+		return new RepositorySaveResult(SaveResult::UPDATED, $dataChanged, $dataPrevious);
     }
 
-    public function save(PlayerSeasonRank $playerSeasonRank): array {
-        $saveResult = [];
+    public function save(PlayerSeasonRank $playerSeasonRank): RepositorySaveResult {
         try {
             if ($this->findPlayerSeasonRank($playerSeasonRank->player->id, $playerSeasonRank->rankedSplit)) {
                 $saveResult = $this->update($playerSeasonRank);
             } else {
                 $this->insert($playerSeasonRank);
-                $saveResult = ['result'=>SaveResult::INSERTED];
+				$saveResult = new RepositorySaveResult(SaveResult::INSERTED);
             }
         } catch (\Throwable $e) {
             $this->logger->error("Fehler beim Speichern von PlayerSeasonRank für {$playerSeasonRank->player->id} in {$playerSeasonRank->rankedSplit->getName()}: " . $e->getMessage() . "\n" . $e->getTraceAsString());
-            $saveResult = ['result'=>SaveResult::FAILED];
+			$saveResult = new RepositorySaveResult(SaveResult::FAILED);
         }
-        $saveResult['playerSeasonRank'] = $this->findPlayerSeasonRank($playerSeasonRank->player->id, $playerSeasonRank->rankedSplit, ignoreCache: true);
+        $saveResult->entity = $this->findPlayerSeasonRank($playerSeasonRank->player->id, $playerSeasonRank->rankedSplit, ignoreCache: true);
         return $saveResult;
     }
 }

@@ -9,6 +9,7 @@ use App\Domain\Entities\Team;
 use App\Domain\Entities\TeamInTournament;
 use App\Domain\Entities\TeamInTournamentStage;
 use App\Domain\Enums\SaveResult;
+use App\Domain\ValueObjects\RepositorySaveResult;
 
 class GameInMatchRepository extends AbstractRepository {
 	private GameRepository $gameRepo;
@@ -138,7 +139,7 @@ class GameInMatchRepository extends AbstractRepository {
 		$this->dbcn->execute_query($query, $values);
 	}
 
-	private function update(GameInMatch $gameInMatch): array {
+	private function update(GameInMatch $gameInMatch): RepositorySaveResult {
 		$existingGameInMatch = $this->findByGameIdAndMatchupId($gameInMatch->game->id, $gameInMatch->matchup->id);
 
 		$dataNew = $this->mapEntityToData($gameInMatch);
@@ -147,7 +148,7 @@ class GameInMatchRepository extends AbstractRepository {
 		$dataPrevious = array_diff_assoc($dataOld, $dataNew);
 
 		if (count($dataChanged) == 0) {
-			return ['result' => SaveResult::NOT_CHANGED];
+			return new RepositorySaveResult(SaveResult::NOT_CHANGED);
 		}
 
 		$set = implode(",", array_map(fn($key) => "$key = ?", array_keys($dataChanged)));
@@ -156,22 +157,22 @@ class GameInMatchRepository extends AbstractRepository {
 		$query = "UPDATE games_to_matches SET $set WHERE RIOT_matchID = ? AND OPL_ID_matches = ?";
 		$this->dbcn->execute_query($query, [...$values, $gameInMatch->game->id, $gameInMatch->matchup->id]);
 
-		return ['result' => SaveResult::UPDATED, 'changes' => $dataChanged, 'previous' => $dataPrevious];
+		return new RepositorySaveResult(SaveResult::UPDATED, $dataChanged, $dataPrevious);
 	}
 
-	public function save(GameInMatch $gameInMatch): array {
+	public function save(GameInMatch $gameInMatch): RepositorySaveResult {
 		try {
 			if ($this->gameIsInMatchup($gameInMatch->game->id, $gameInMatch->matchup->id)) {
 				$saveResult = $this->update($gameInMatch);
 			} else {
 				$this->insert($gameInMatch);
-				$saveResult = ['result'=>SaveResult::INSERTED];
+				$saveResult = new RepositorySaveResult(SaveResult::INSERTED);
 			}
 		} catch (\Throwable $e) {
 			$this->logger->error("Fehler beim Speichern von Spielen in Matchups: " . $e->getMessage() . "\n" . $e->getTraceAsString());
-			$saveResult = ['result'=>SaveResult::FAILED];
+			$saveResult = new RepositorySaveResult(SaveResult::FAILED);
 		}
-		$saveResult['gameInMatch'] = $this->findByGameIdAndMatchupId($gameInMatch->game->id, $gameInMatch->matchup->id);
+		$saveResult->entity = $this->findByGameIdAndMatchupId($gameInMatch->game->id, $gameInMatch->matchup->id);
 		return $saveResult;
 	}
 }

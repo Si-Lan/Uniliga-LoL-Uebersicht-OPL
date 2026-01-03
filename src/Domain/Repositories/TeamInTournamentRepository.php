@@ -7,6 +7,7 @@ use App\Domain\Entities\Team;
 use App\Domain\Entities\TeamInTournament;
 use App\Domain\Entities\Tournament;
 use App\Domain\Enums\SaveResult;
+use App\Domain\ValueObjects\RepositorySaveResult;
 
 class TeamInTournamentRepository extends AbstractRepository {
 	use DataParsingHelpers;
@@ -278,7 +279,7 @@ class TeamInTournamentRepository extends AbstractRepository {
         $this->dbcn->execute_query($query, $values);
         unset($this->cache[$teamInTournament->team->id."_".$teamInTournament->tournament->id]);
     }
-    private function updateStats(TeamInTournament $teamInTournament): array {
+    private function updateStats(TeamInTournament $teamInTournament): RepositorySaveResult {
         $existingTeamInTournament = $this->findByTeamAndTournament($teamInTournament->team, $teamInTournament->tournament, ignoreCache: true);
         $dataNew = $this->mapEntityToStatsData($teamInTournament);
         $dataOld = $this->mapEntityToStatsData($existingTeamInTournament);
@@ -286,7 +287,7 @@ class TeamInTournamentRepository extends AbstractRepository {
         $dataPrevious = array_diff_assoc($dataOld, $dataNew);
 
         if (count($dataChanged) == 0) {
-            return ['result' => SaveResult::NOT_CHANGED];
+			return new RepositorySaveResult(SaveResult::NOT_CHANGED);
         }
 
         $set = implode(", ", array_map(fn($key) => "$key = ?", array_keys($dataChanged)));
@@ -296,23 +297,23 @@ class TeamInTournamentRepository extends AbstractRepository {
         $this->dbcn->execute_query($query, [...$values, $teamInTournament->team->id, $teamInTournament->tournament->id]);
         unset($this->cache[$teamInTournament->team->id."_".$teamInTournament->tournament->id]);
 
-        return ['result' => SaveResult::UPDATED, 'changes' => $dataChanged, 'previous' => $dataPrevious];
+		return new RepositorySaveResult(SaveResult::UPDATED, $dataChanged, $dataPrevious);
     }
 
-    public function saveStats(TeamInTournament $teamInTournament): array {
+    public function saveStats(TeamInTournament $teamInTournament): RepositorySaveResult {
         try {
             if ($this->statsExist($teamInTournament)) {
                 $saveResult = $this->updateStats($teamInTournament);
             } else {
                 $this->insertStats($teamInTournament);
-                $saveResult = ['result' => SaveResult::INSERTED];
+				$saveResult = new RepositorySaveResult(SaveResult::INSERTED);
             }
         } catch (\Throwable $e) {
             $this->logger->error("Fehler beim Speichern von TeamInTournament-Statistiken: ".$e->getMessage()."\n".$e->getTraceAsString());
-            return ['result' => SaveResult::FAILED];
+			return new RepositorySaveResult(SaveResult::FAILED);
         }
 
-        $saveResult['teamInTournament'] = $this->findByTeamIdAndTournamentId($teamInTournament->team->id, $teamInTournament->tournament->id);
+        $saveResult->entity = $this->findByTeamIdAndTournamentId($teamInTournament->team->id, $teamInTournament->tournament->id);
         return $saveResult;
     }
 }

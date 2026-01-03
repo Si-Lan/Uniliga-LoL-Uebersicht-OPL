@@ -2,11 +2,13 @@
 
 namespace App\Service\Updater;
 
+use App\Domain\Entities\Matchup;
 use App\Domain\Entities\Team;
 use App\Domain\Repositories\MatchupRepository;
 use App\Domain\Repositories\TeamInTournamentStageRepository;
 use App\Domain\Repositories\TeamRepository;
 use App\Domain\Repositories\TournamentRepository;
+use App\Domain\ValueObjects\RepositorySaveResult;
 use App\Service\OplApiService;
 use App\Service\OplLogoService;
 
@@ -19,6 +21,7 @@ class TournamentUpdater {
 	}
 
 	/**
+	 * @return array{teams: array<RepositorySaveResult>, removedTeams: array<Team>, addedTeams: array<Team>}
 	 * @throws \Exception
 	 */
 	public function updateTeams(int $tournamentId): array {
@@ -48,20 +51,21 @@ class TournamentUpdater {
 		foreach ($oplTeams as $oplTeam) {
 			$teamEntity = $teamRepo->createFromOplData($oplTeam);
 			$saveResult = $teamRepo->save($teamEntity, fromOplData: true);
-			if (array_key_exists("team", $saveResult) && $saveResult["team"] instanceof Team && $saveResult["team"]->logoId !== null) {
-				$lastLogoUpdate = $saveResult["team"]->lastLogoDownload;
+
+			$logoDownload = null;
+			if ($saveResult->entity instanceof Team && $saveResult->entity->logoId !== null) {
+				$lastLogoUpdate = $saveResult->entity->lastLogoDownload;
 				$now = new \DateTimeImmutable();
 				if ($lastLogoUpdate === null || $now->diff($lastLogoUpdate)->days > 7) {
 					$logoDownload = $oplLogoService->downloadTeamLogo($teamEntity->id);
-					$saveResult["logoDownload"] = $logoDownload;
 				}
 			}
-			if (!array_key_exists("logoDownload", $saveResult)) $saveResult["logoDownload"] = null;
+			$saveResult->additionalData['logoDownload'] = $logoDownload;
 			$saveResults[] = $saveResult;
 
 			$addedToTournament = $teamInTournamentStageRepo->addTeamToTournamentStage($teamEntity->id, $tournament->id);
 			if ($addedToTournament) {
-				$addedTeams[] = $saveResult["team"];
+				$addedTeams[] = $saveResult->entity;
 			}
 		}
 
@@ -78,6 +82,7 @@ class TournamentUpdater {
 	}
 
 	/**
+	 * @return array{matchups: array<RepositorySaveResult>, removedMatchups: array<Matchup>}
 	 * @throws \Exception
 	 */
 	public function updateMatchups(int $tournamentId): array {
@@ -121,6 +126,7 @@ class TournamentUpdater {
 	}
 
 	/**
+	 * @return array<RepositorySaveResult>
 	 * @throws \Exception
 	 */
 	public function calculateStandings(int $tournamentId): array {

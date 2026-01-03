@@ -8,6 +8,7 @@ use App\Domain\Entities\TeamInTournament;
 use App\Domain\Entities\TeamInTournamentStage;
 use App\Domain\Entities\Tournament;
 use App\Domain\Enums\SaveResult;
+use App\Domain\ValueObjects\RepositorySaveResult;
 
 class TeamInTournamentStageRepository extends AbstractRepository {
 	use DataParsingHelpers;
@@ -253,7 +254,7 @@ class TeamInTournamentStageRepository extends AbstractRepository {
 		];
 	}
 
-	private function update(TeamInTournamentStage $teamInTournamentStage): array {
+	private function update(TeamInTournamentStage $teamInTournamentStage): RepositorySaveResult {
 		$existingTeamInTournamentStage = $this->findByTeamIdAndTournamentStageId($teamInTournamentStage->team->id, $teamInTournamentStage->tournamentStage->id);
 
 		$dataNew = $this->mapEntityToData($teamInTournamentStage);
@@ -262,7 +263,7 @@ class TeamInTournamentStageRepository extends AbstractRepository {
 		$dataPrevious = array_diff_assoc($dataOld, $dataNew);
 
 		if (count($dataChanged) == 0) {
-			return ['result' => SaveResult::NOT_CHANGED];
+			return new RepositorySaveResult(SaveResult::NOT_CHANGED);
 		}
 
 		$set = implode(",", array_map(fn($key) => "$key = ?", array_keys($dataChanged)));
@@ -273,10 +274,10 @@ class TeamInTournamentStageRepository extends AbstractRepository {
 		unset($this->cache[$teamInTournamentStage->team->id."_".$teamInTournamentStage->tournamentStage->id]);
 
 		$result = $updated ? SaveResult::UPDATED : SaveResult::FAILED;
-		return ['result' => $result, 'changes' => $dataChanged, 'previous' => $dataPrevious];
+		return new RepositorySaveResult($result, $dataChanged, $dataPrevious);
 	}
 
-	public function save(TeamInTournamentStage $teamInTournamentStage): array {
+	public function save(TeamInTournamentStage $teamInTournamentStage): RepositorySaveResult {
 		try {
 			if ($this->isTeaminTournamentStage($teamInTournamentStage->team->id, $teamInTournamentStage->tournamentStage->id)) {
 				$saveResult = $this->update($teamInTournamentStage);
@@ -285,9 +286,9 @@ class TeamInTournamentStageRepository extends AbstractRepository {
 			}
 		} catch (\Throwable $e) {
 			$this->logger->error("Fehler beim Speichern von TeamInTournamentStage: ".$e->getMessage()."\n".$e->getTraceAsString());
-			$saveResult = ['result' => SaveResult::FAILED];
+			$saveResult = new RepositorySaveResult(SaveResult::FAILED);
 		}
-		$saveResult['teamInTournamentStage'] = $this->findByTeamIdAndTournamentStageId($teamInTournamentStage->team->id, $teamInTournamentStage->tournamentStage->id);
+		$saveResult->entity = $this->findByTeamIdAndTournamentStageId($teamInTournamentStage->team->id, $teamInTournamentStage->tournamentStage->id);
 		return $saveResult;
 	}
 }

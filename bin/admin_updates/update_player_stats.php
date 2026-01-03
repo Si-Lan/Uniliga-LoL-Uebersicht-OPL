@@ -70,7 +70,7 @@ foreach ($players as $player) {
 
     try {
         $saveResult = $playerUpdater->updateStats($player->id, $tournamentContext->id);
-        switch ($saveResult['playerInTournament']['result']) {
+        switch ($saveResult['playerInTournament']->result) {
             case SaveResult::UPDATED:
                 $job->addMessage("Updated stats");
                 break;
@@ -86,7 +86,7 @@ foreach ($players as $player) {
         }
         if (count($saveResult['playerInTeamsInTournament']) > 0) {
             foreach ($saveResult['playerInTeamsInTournament'] as $playerInTeamInTournament) {
-                switch ($playerInTeamInTournament['result']) {
+                switch ($playerInTeamInTournament->result) {
                     case SaveResult::UPDATED:
                         $job->addMessage("Updated stats in a team");
                         break;

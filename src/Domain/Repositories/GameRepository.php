@@ -6,6 +6,7 @@ use App\Core\Utilities\DataParsingHelpers;
 use App\Domain\Entities\Game;
 use App\Domain\Entities\Tournament;
 use App\Domain\Enums\SaveResult;
+use App\Domain\ValueObjects\RepositorySaveResult;
 
 class GameRepository extends AbstractRepository {
 	use DataParsingHelpers;
@@ -98,7 +99,7 @@ class GameRepository extends AbstractRepository {
 		$this->dbcn->execute_query($query, $values);
 	}
 
-    private function update(Game $game, bool $dontOverwriteGameData = false): array {
+    private function update(Game $game, bool $dontOverwriteGameData = false): RepositorySaveResult {
         $existingGame = $this->findById($game->id);
 
         $dataNew = $this->mapEntityToData($game);
@@ -110,7 +111,7 @@ class GameRepository extends AbstractRepository {
 			unset($dataChanges['matchdata']);
 		}
         if (count($dataChanges) == 0) {
-            return ['result' => SaveResult::NOT_CHANGED];
+			return new RepositorySaveResult(SaveResult::NOT_CHANGED);
         }
 
         $set = implode(",", array_map(fn($key) => "$key = ?", array_keys($dataChanges)));
@@ -119,22 +120,22 @@ class GameRepository extends AbstractRepository {
         $query = "UPDATE games SET $set WHERE RIOT_matchID = ?";
         $this->dbcn->execute_query($query, [...$values, $game->id]);
 
-        return ['result' => SaveResult::UPDATED, 'changes' => $dataChanges, 'previous' => $dataPrevious];
+		return new RepositorySaveResult(SaveResult::UPDATED, $dataChanges, $dataPrevious);
     }
 
-	public function save(Game $game, bool $dontOverwriteGameData = false): array {
+	public function save(Game $game, bool $dontOverwriteGameData = false): RepositorySaveResult {
 		try {
             if ($this->gameExists($game->id)) {
                 $saveResult = $this->update($game, $dontOverwriteGameData);
             } else {
                 $this->insert($game);
-                $saveResult = ['result' => SaveResult::INSERTED];
+				$saveResult = new RepositorySaveResult(SaveResult::INSERTED);
             }
         } catch (\Throwable $e) {
             $this->logger->error("Fehler beim Speichern der Spieldaten: " . $e->getMessage(). "\n" . $e->getTraceAsString());
-            $saveResult['result'] = SaveResult::FAILED;
+			$saveResult = new RepositorySaveResult(SaveResult::FAILED);
         }
-		$saveResult['game'] = $this->findById($game->id);
+		$saveResult->entity = $this->findById($game->id);
 		return $saveResult;
 	}
 }

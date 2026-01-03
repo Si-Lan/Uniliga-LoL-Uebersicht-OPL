@@ -6,6 +6,7 @@ use App\Core\Utilities\DataParsingHelpers;
 use App\Domain\Entities\Team;
 use App\Domain\Entities\ValueObjects\RankAverage;
 use App\Domain\Enums\SaveResult;
+use App\Domain\ValueObjects\RepositorySaveResult;
 
 class TeamRepository extends AbstractRepository {
 	use DataParsingHelpers;
@@ -118,9 +119,9 @@ class TeamRepository extends AbstractRepository {
 	/**
 	 * @param Team $team
 	 * @param bool $fromOplData
-	 * @return array{'result': SaveResult, 'changes': array<string, mixed>}
+	 * @return RepositorySaveResult
 	 */
-	private function update(Team $team, bool $fromOplData = false):array {
+	private function update(Team $team, bool $fromOplData = false): RepositorySaveResult {
 		$existingTeam = $this->findById($team->id, ignoreCache: true);
 		$dataNew = $this->mapEntityToData($team);
 		$dataOld = $this->mapEntityToData($existingTeam);
@@ -133,7 +134,7 @@ class TeamRepository extends AbstractRepository {
 		$dataPrevious = array_diff_assoc($dataOld, $dataNew);
 
 		if (count($dataChanged) === 0) {
-			return ['result'=>SaveResult::NOT_CHANGED];
+			return new RepositorySaveResult(SaveResult::NOT_CHANGED);
 		}
 
 		$set = implode(",", array_map(fn($key) => "$key = ?", array_keys($dataChanged)));
@@ -146,28 +147,27 @@ class TeamRepository extends AbstractRepository {
 		}
 
 		unset($this->cache[$team->id]);
-		return ['result'=>SaveResult::UPDATED, 'changes'=>$dataChanged, 'previous'=>$dataPrevious];
+		return new RepositorySaveResult(SaveResult::UPDATED, changes: $dataChanged, previous: $dataPrevious);
 	}
 
 	/**
 	 * @param Team $team
 	 * @param bool $fromOplData
-	 * @return array{'result': SaveResult, 'changes': ?array<string, mixed>, 'team': ?Team}
+	 * @return RepositorySaveResult
 	 */
-	public function save(Team $team, bool $fromOplData = false): array {
-		$saveResult = [];
+	public function save(Team $team, bool $fromOplData = false): RepositorySaveResult {
 		try {
 			if ($this->teamExists($team->id)) {
 				$saveResult = $this->update($team, $fromOplData);
 			} else {
 				$this->insert($team, $fromOplData);
-				$saveResult = ['result'=>SaveResult::INSERTED];
+				$saveResult = new RepositorySaveResult(SaveResult::INSERTED);
 			}
 		} catch (\Throwable $e) {
 			$this->logger->error("Fehler beim Speichern von Team $team->id: ".$e->getMessage() . "\n" . $e->getTraceAsString());
-			$saveResult = ['result'=>SaveResult::FAILED];
+			$saveResult = new RepositorySaveResult(SaveResult::FAILED);
 		}
-		$saveResult['team'] = $this->findById($team->id);
+		$saveResult->entity = $this->findById($team->id);
 		return $saveResult;
 	}
 

@@ -10,6 +10,7 @@ use App\Domain\Enums\Jobs\UpdateJobContextType;
 use App\Domain\Enums\Jobs\UpdateJobStatus;
 use App\Domain\Enums\Jobs\UpdateJobType;
 use App\Domain\Enums\SaveResult;
+use App\Domain\ValueObjects\RepositorySaveResult;
 
 class UpdateJobRepository extends AbstractRepository {
 	use DataParsingHelpers;
@@ -202,7 +203,7 @@ class UpdateJobRepository extends AbstractRepository {
 		$id = $this->dbcn->insert_id;
 		return $this->findById($id);
 	}
-	public function save(UpdateJob $job): array {
+	public function save(UpdateJob $job): RepositorySaveResult {
 		$existingJob = $this->findById($job->id);
 		$dataNew = $this->mapEntityToData($job);
 		$dataOld = $this->mapEntityToData($existingJob);
@@ -210,7 +211,7 @@ class UpdateJobRepository extends AbstractRepository {
 		$dataPrevious = array_diff_assoc($dataOld, $dataNew);
 
 		if (count($dataChanged) === 0) {
-			return ['result' => SaveResult::NOT_CHANGED];
+			return new RepositorySaveResult(SaveResult::NOT_CHANGED);
 		}
 
 		$set = implode(", ", array_map(fn($key) => "$key = ?", array_keys($dataChanged)));
@@ -219,6 +220,6 @@ class UpdateJobRepository extends AbstractRepository {
 		$query = "UPDATE update_jobs SET $set WHERE id = ?";
 		$this->dbcn->execute_query($query, [...$values, $job->id]);
 
-		return ['result'=>SaveResult::UPDATED, 'changes'=>$dataChanged, 'previous'=>$dataPrevious];
+		return new RepositorySaveResult(SaveResult::UPDATED, $dataChanged, $dataPrevious);
 	}
 }

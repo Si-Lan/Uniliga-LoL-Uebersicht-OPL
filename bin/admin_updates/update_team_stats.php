@@ -70,7 +70,7 @@ foreach ($teams as $team) {
 
     try {
         $saveResult = $teamUpdater->updateStats($team->id, $tournamentContext->id);
-        switch ($saveResult['result']) {
+        switch ($saveResult->result) {
             case SaveResult::UPDATED:
                 $job->addMessage("Updated stats");
                 break;

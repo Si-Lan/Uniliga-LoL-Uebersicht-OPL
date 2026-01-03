@@ -2,9 +2,9 @@
 
 namespace App\Service\Updater;
 
-use App\Domain\Entities\Game;
 use App\Domain\Enums\SaveResult;
 use App\Domain\Repositories\GameRepository;
+use App\Domain\ValueObjects\RepositorySaveResult;
 use App\Service\RiotApiService;
 
 class GameUpdater {
@@ -17,10 +17,10 @@ class GameUpdater {
 
     /**
      * @param string $gameId
-     * @return array{'result': SaveResult, 'error': ?string, 'httpCode': int, 'changes': ?array<string, mixed>, 'previous': ?array<string,mixed>, 'game': ?Game}
+     * @return RepositorySaveResult
      * @throws \Exception
      */
-    public function updateGameData(string $gameId): array {
+    public function updateGameData(string $gameId): RepositorySaveResult {
         $game = $this->gameRepo->findById($gameId);
         if ($game === null) {
             throw new \Exception("Game not found", 404);
@@ -31,14 +31,17 @@ class GameUpdater {
 
         $riotApiResponse = $this->riotApiService->getMatchByMatchId($game->id);
         if (!$riotApiResponse->isSuccess()) {
-            return ['result'=>SaveResult::FAILED, 'error'=>$riotApiResponse->getError(), 'httpCode'=>$riotApiResponse->getStatusCode(), 'changes'=>null, 'previous'=>null, 'game'=>$game];
+			return new RepositorySaveResult(
+				SaveResult::FAILED,
+				entity: $game,
+				additionalData: ['error'=>$riotApiResponse->getError(), 'httpCode'=>$riotApiResponse->getStatusCode()]
+			);
         }
 
         $data = $riotApiResponse->getData();
         $data = $this->shortenMatchData($data);
         $game->rawMatchdata = $data;
-        $saveResult = $this->gameRepo->save($game);
-        return ['result'=>$saveResult['result'], 'changes'=>$saveResult['changes'], 'previous'=>$saveResult['previous'], 'game'=>$game];
+		return $this->gameRepo->save($game);
     }
 
     private function shortenMatchData(array $matchData): array {

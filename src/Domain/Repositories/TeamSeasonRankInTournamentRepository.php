@@ -9,6 +9,7 @@ use App\Domain\Entities\TeamSeasonRankInTournament;
 use App\Domain\Entities\Tournament;
 use App\Domain\Entities\ValueObjects\RankAverage;
 use App\Domain\Enums\SaveResult;
+use App\Domain\ValueObjects\RepositorySaveResult;
 
 class TeamSeasonRankInTournamentRepository extends AbstractRepository {
 	use DataParsingHelpers;
@@ -156,11 +157,7 @@ class TeamSeasonRankInTournamentRepository extends AbstractRepository {
         $this->dbcn->execute_query($query, $values);
     }
 
-    /**
-     * @param TeamSeasonRankInTournament $rank
-     * @return array{'result': SaveResult, 'changes': ?array<string, mixed>, 'previous': ?array<string, mixed>}}
-     */
-    public function update(TeamSeasonRankInTournament $rank): array {
+    public function update(TeamSeasonRankInTournament $rank): RepositorySaveResult {
         $existingRank = $this->findTeamSeasonRankInTournament($rank->team->id, $rank->tournament->id, $rank->rankedSplit);
         $dataNew = $this->mapEntityToData($rank);
         $dataOld = $this->mapEntityToData($existingRank);
@@ -168,7 +165,7 @@ class TeamSeasonRankInTournamentRepository extends AbstractRepository {
         $dataPrevious = array_diff_assoc($dataOld, $dataNew);
 
         if (count($dataChanged) == 0) {
-            return ['result' => SaveResult::NOT_CHANGED];
+			return new RepositorySaveResult(SaveResult::NOT_CHANGED);
         }
         $set = implode(",", array_map(fn($key) => "$key = ?", array_keys($dataChanged)));
         $values = array_values($dataChanged);
@@ -176,22 +173,22 @@ class TeamSeasonRankInTournamentRepository extends AbstractRepository {
         $query = "UPDATE teams_season_rank_in_tournament SET $set WHERE OPL_ID_team = ? AND OPL_ID_tournament = ? AND season = ? AND split = ?";
         $this->dbcn->execute_query($query, [...$values, $rank->team->id, $rank->tournament->id, $rank->rankedSplit->season, $rank->rankedSplit->split]);
 
-        return ['result' => SaveResult::UPDATED, 'changes' => $dataChanged, 'previous' => $dataPrevious];
+		return new RepositorySaveResult(SaveResult::UPDATED, $dataChanged, $dataPrevious);
     }
 
-    public function save(TeamSeasonRankInTournament $rank): array {
+    public function save(TeamSeasonRankInTournament $rank): RepositorySaveResult {
         try {
             if ($this->findTeamSeasonRankInTournament($rank->team->id, $rank->tournament->id, $rank->rankedSplit)) {
                 $saveResult = $this->update($rank);
             } else {
                 $this->insert($rank);
-                $saveResult = ['result'=>SaveResult::INSERTED];
+				$saveResult = new RepositorySaveResult(SaveResult::INSERTED);
             }
         } catch (\Throwable $e) {
             $this->logger->error("Fehler beim Speichern von TeamSeasonRankInTournament: " . $e->getMessage() . "\n" . $e->getTraceAsString());
-            $saveResult = ['result'=>SaveResult::FAILED];
+			$saveResult = new RepositorySaveResult(SaveResult::FAILED);
         }
-        $saveResult['teamSeasonRankInTournament'] = $this->findTeamSeasonRankInTournament($rank->team->id, $rank->tournament->id, $rank->rankedSplit);
+        $saveResult->entity = $this->findTeamSeasonRankInTournament($rank->team->id, $rank->tournament->id, $rank->rankedSplit);
         return $saveResult;
     }
 }

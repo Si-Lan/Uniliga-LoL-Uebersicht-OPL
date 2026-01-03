@@ -5,6 +5,7 @@ namespace App\Domain\Repositories;
 use App\Core\Utilities\DataParsingHelpers;
 use App\Domain\Entities\Patch;
 use App\Domain\Enums\SaveResult;
+use App\Domain\ValueObjects\RepositorySaveResult;
 
 class PatchRepository extends AbstractRepository {
 	use DataParsingHelpers;
@@ -113,7 +114,7 @@ class PatchRepository extends AbstractRepository {
 		$this->dbcn->execute_query($query, $values);
 	}
 
-	private function update(Patch $patch): array {
+	private function update(Patch $patch): RepositorySaveResult {
 		$existingPatch = $this->findByPatchNumber($patch->patchNumber);
 		$dataNew = $this->mapEntityToData($patch);
 		$dataOld = $this->mapEntityToData($existingPatch);
@@ -121,7 +122,7 @@ class PatchRepository extends AbstractRepository {
 		$dataPrevious = array_diff_assoc($dataOld, $dataNew);
 
 		if (count($dataChanged) == 0) {
-			return ['result' => SaveResult::NOT_CHANGED];
+			return new RepositorySaveResult(SaveResult::NOT_CHANGED);
 		}
 
 		$set = implode(",", array_map(fn($key) => "$key = ?", array_keys($dataChanged)));
@@ -129,22 +130,22 @@ class PatchRepository extends AbstractRepository {
 
 		$query = "UPDATE local_patches SET $set WHERE patch = ?";
 		$this->dbcn->execute_query($query, [...$values, $patch->patchNumber]);
-		return ['result' => SaveResult::UPDATED, 'changes' => $dataChanged, 'previous' => $dataPrevious];
+		return new RepositorySaveResult(SaveResult::UPDATED, $dataChanged, $dataPrevious);
 	}
 
-	public function save(Patch $patch): array {
+	public function save(Patch $patch): RepositorySaveResult {
 		try {
 			if ($this->patchExists($patch->patchNumber)) {
 				$saveResult = $this->update($patch);
 			} else {
 				$this->insert($patch);
-				$saveResult = ['result'=>SaveResult::INSERTED];
+				$saveResult = new RepositorySaveResult(SaveResult::INSERTED);
 			}
 		} catch (\Throwable $e) {
 			$this->logger->error("Fehler beim Speichern von Patches: " . $e->getMessage() . "\n" . $e->getTraceAsString());
-			$saveResult = ['result'=>SaveResult::FAILED];
+			$saveResult = new RepositorySaveResult(SaveResult::FAILED);
 		}
-		$saveResult['patch'] = $this->findByPatchNumber($patch->patchNumber);
+		$saveResult->entity = $this->findByPatchNumber($patch->patchNumber);
 		return $saveResult;
 	}
 

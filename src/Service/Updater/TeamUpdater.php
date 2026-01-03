@@ -2,6 +2,7 @@
 
 namespace App\Service\Updater;
 
+use App\Domain\Entities\Player;
 use App\Domain\Entities\TeamSeasonRankInTournament;
 use App\Domain\Entities\Tournament;
 use App\Domain\Entities\ValueObjects\RankAverage;
@@ -16,6 +17,7 @@ use App\Domain\Repositories\TeamInTournamentRepository;
 use App\Domain\Repositories\TeamRepository;
 use App\Domain\Repositories\TeamSeasonRankInTournamentRepository;
 use App\Domain\Repositories\TournamentRepository;
+use App\Domain\ValueObjects\RepositorySaveResult;
 use App\Service\OplApiService;
 use App\Service\OplLogoService;
 
@@ -32,6 +34,7 @@ class TeamUpdater {
 	}
 
 	/**
+	 * @return array{team: RepositorySaveResult, players: array, addedPlayers: array<Player>, removedPlayers: array<Player>}
 	 * @throws \Exception
 	 */
 	public function updateTeam(int $teamId): array {
@@ -48,22 +51,28 @@ class TeamUpdater {
 
 		$teamEntity = $this->teamRepo->createFromOplData($oplTeam);
 		$teamSaveResult = $this->teamRepo->save($teamEntity, fromOplData: true);
-		if ($teamSaveResult["team"]?->logoId !== null) {
-			$lastLogoUpdate = $teamSaveResult["team"]->lastLogoDownload;
+
+        $logoDownload = null;
+		if ($teamSaveResult->entity?->logoId !== null) {
+			$lastLogoUpdate = $teamSaveResult->entity->lastLogoDownload;
 			$now = new \DateTimeImmutable();
 			if ($lastLogoUpdate === null || $now->diff($lastLogoUpdate)->days > 7) {
 				$logoDownload = $this->oplLogoService->downloadTeamLogo($teamEntity->id);
-				$teamSaveResult["logoDownload"] = $logoDownload;
 			}
-			if (!array_key_exists("logoDownload", $teamSaveResult)) $teamSaveResult["logoDownload"] = null;
 		}
+		$teamSaveResult->additionalData['logoDownload'] = $logoDownload;
 
-		$playerSaveResults = $this->updatePlayers($teamId, $oplTeam);
+		$playerUpdateResults = $this->updatePlayers($teamId, $oplTeam);
 
-		return ["team"=>$teamSaveResult, "players"=>$playerSaveResults, "addedPlayers"=>$playerSaveResults['addedPlayers'], "removedPlayers"=>$playerSaveResults['removedPlayers']];
+		return ["team"=>$teamSaveResult, "players"=>$playerUpdateResults["players"], "addedPlayers"=>$playerUpdateResults['addedPlayers'], "removedPlayers"=>$playerUpdateResults['removedPlayers']];
 	}
 
 	/**
+	 * @return array{
+	 *     players: array<RepositorySaveResult>,
+	 *     addedPlayers: array<Player>,
+	 *     removedPlayers: array<Player>,
+	 *     tournamentChanges: array<int, array{tournament: Tournament, addedPlayers: array<Player>, removedPlayers: array<Player>}>}
 	 * @throws \Exception
 	 */
 	public function updatePlayers(int $teamId, ?array $teamData = null): array {
@@ -111,14 +120,14 @@ class TeamUpdater {
 			// Spieler in Team eintragen
 			$addedToTeam = $playerInTeamRepo->addPlayerToTeam($playerEntity->id, $team->id);
 			if ($addedToTeam) {
-				$addedPlayers[] = $saveResult["player"];
+				$addedPlayers[] = $saveResult->entity;
 			}
 
 			// Spieler in Team in aktive Turniere eintragen
 			foreach ($activeTournaments as $tournament) {
 				$addedToTeamInTournament = $playerinTeamInTournamentRepo->addPlayerToTeamInTournament($playerEntity->id, $team->id, $tournament->id);
 				if ($addedToTeamInTournament) {
-					$tournamentAdditions[$tournament->id]['addedPlayers'][] = $saveResult["player"];
+					$tournamentAdditions[$tournament->id]['addedPlayers'][] = $saveResult->entity;
 				}
 			}
 		}
@@ -149,7 +158,8 @@ class TeamUpdater {
 	}
 
     /**
-     * @throws \Exception
+	 * @return array{team: RepositorySaveResult, tournamentSeasonRanks: array<RepositorySaveResult>}
+	 * @throws \Exception
      */
     public function updateRank(int $teamId): array {
         $team = $this->teamRepo->findById($teamId);
@@ -227,10 +237,10 @@ class TeamUpdater {
     /**
      * @param int $teamId
      * @param int $tournamentId
-     * @return array
+     * @return RepositorySaveResult
      * @throws \Exception
      */
-    public function updateStats(int $teamId, int $tournamentId): array {
+    public function updateStats(int $teamId, int $tournamentId): RepositorySaveResult {
         $team = $this->teamRepo->findById($teamId);
         if ($team === null) {
             throw new \Exception("Team not found", 404);
@@ -346,15 +356,13 @@ class TeamUpdater {
         $teamInTournament->gamesWon = $gamesWon;
         $teamInTournament->avgWinTime = (int) $avgWinTime;
 
-        $saveResult = $teamInTournamentRepo->saveStats($teamInTournament);
-
-        return $saveResult;
+		return $teamInTournamentRepo->saveStats($teamInTournament);
     }
 
     /**
      * @param int $teamId
      * @param int $tournamentId
-     * @return array
+     * @return array<array{playerInTournament: RepositorySaveResult, playerInTeamsInTournament: array<RepositorySaveResult>}>
      * @throws \Exception
      */
     public function updatePlayerStats(int $teamId, int $tournamentId): array {

@@ -7,6 +7,7 @@ use App\Domain\Entities\Matchup;
 use App\Domain\Entities\TeamInTournament;
 use App\Domain\Entities\Tournament;
 use App\Domain\Enums\SaveResult;
+use App\Domain\ValueObjects\RepositorySaveResult;
 
 class MatchupRepository extends AbstractRepository {
 	use DataParsingHelpers;
@@ -189,7 +190,7 @@ class MatchupRepository extends AbstractRepository {
 		$this->dbcn->execute_query($query, $values);
 	}
 
-	private function update(Matchup $matchup, bool $fromOplData = false): array {
+	private function update(Matchup $matchup, bool $fromOplData = false): RepositorySaveResult {
 		$existingMatchup = $this->findById($matchup->id);
 
 		$dataNew = $this->mapEntityToData($matchup);
@@ -202,7 +203,7 @@ class MatchupRepository extends AbstractRepository {
 		$dataPrevious = array_diff_assoc($dataOld, $dataNew);
 
 		if (count($dataChanged) == 0) {
-			return ['result' => SaveResult::NOT_CHANGED];
+			return new RepositorySaveResult(SaveResult::NOT_CHANGED);
 		}
 
 		$set = implode(",", array_map(fn($key) => "$key = ?", array_keys($dataChanged)));
@@ -211,22 +212,22 @@ class MatchupRepository extends AbstractRepository {
 		$query = "UPDATE matchups SET $set WHERE OPL_ID = ?";
 		$this->dbcn->execute_query($query, [...$values, $matchup->id]);
 
-		return ['result' => SaveResult::UPDATED, 'changes'=>$dataChanged, 'previous'=>$dataPrevious];
+		return new RepositorySaveResult(SaveResult::UPDATED, $dataChanged, $dataPrevious);
 	}
 
-	public function save(Matchup $matchup, bool $fromOplData = false): array {
+	public function save(Matchup $matchup, bool $fromOplData = false): RepositorySaveResult {
 		try {
 			if ($this->matchupExists($matchup->id)) {
 				$saveResult = $this->update($matchup, $fromOplData);
 			} else {
 				$this->insert($matchup, $fromOplData);
-				$saveResult = ['result'=>SaveResult::INSERTED];
+				$saveResult = new RepositorySaveResult(SaveResult::INSERTED);
 			}
 		} catch (\Throwable $e) {
 			$this->logger->error("Fehler beim Speichern des Matchups: " . $e->getMessage().'\n'.$e->getTraceAsString());
-			$saveResult = ['result'=>SaveResult::FAILED];
+			$saveResult = new RepositorySaveResult(SaveResult::FAILED);
 		}
-		$saveResult['matchup'] = $this->findById($matchup->id);
+		$saveResult->entity = $this->findById($matchup->id);
 		return $saveResult;
 	}
 

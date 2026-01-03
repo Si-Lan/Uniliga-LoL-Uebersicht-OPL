@@ -79,7 +79,7 @@ foreach ($batches as $i=>$batch) {
 
         try {
             $saveResult = $playerUpdater->updateRank($player->id);
-            switch ($saveResult['player']['result']) {
+            switch ($saveResult['player']->result) {
                 case SaveResult::UPDATED:
                     $job->addMessage("Updated rank");
                     break;
@@ -91,7 +91,7 @@ foreach ($batches as $i=>$batch) {
                     break;
             }
             if ($saveResult['playerSeasonRank'] !== null) {
-                switch ($saveResult['playerSeasonRank']['result']) {
+                switch ($saveResult['playerSeasonRank']->result) {
                     case SaveResult::UPDATED:
                         $job->addMessage("Updated season rank");
                         break;

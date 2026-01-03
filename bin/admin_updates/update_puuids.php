@@ -79,7 +79,7 @@ foreach ($batches as $i=>$batch) {
 
 		try {
 			$saveResult = $playerUpdater->updatePuuidByRiotId($player->id);
-			switch ($saveResult['result']) {
+			switch ($saveResult->result) {
 				case SaveResult::UPDATED:
 					$job->addMessage("Updated puuid");
 					break;

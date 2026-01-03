@@ -76,7 +76,7 @@ foreach ($batches as $i=>$batch) {
 
         try {
             $saveResult = $gameUpdater->updateGameData($game->id);
-            switch ($saveResult['result']) {
+            switch ($saveResult->result) {
                 case SaveResult::UPDATED:
                     $job->addMessage("Updated gamedata");
                     break;

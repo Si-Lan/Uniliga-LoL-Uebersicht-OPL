@@ -2,10 +2,13 @@
 
 namespace App\Service\Updater;
 
+use App\Domain\Entities\GameInMatch;
+use App\Domain\Entities\Matchup;
 use App\Domain\Enums\SaveResult;
 use App\Domain\Repositories\GameInMatchRepository;
 use App\Domain\Repositories\GameRepository;
 use App\Domain\Repositories\MatchupRepository;
+use App\Domain\ValueObjects\RepositorySaveResult;
 use App\Service\OplApiService;
 
 class MatchupUpdater {
@@ -21,6 +24,7 @@ class MatchupUpdater {
 	}
 
 	/**
+	 * @return array{matchup: RepositorySaveResult, games: array<RepositorySaveResult>, gamesInMatchup: array<RepositorySaveResult>}
 	 * @throws \Exception
 	 */
 	public function updateMatchupResults(int $matchupId): array {
@@ -67,7 +71,7 @@ class MatchupUpdater {
 			$gameSaveResult = $gameRepo->save($gameEntity, dontOverwriteGameData: true);
 			$gameSaveResults[] = $gameSaveResult;
 
-			if ($gameSaveResult['result'] === SaveResult::FAILED) {
+			if ($gameSaveResult->result === SaveResult::FAILED) {
 				continue;
 			}
 
@@ -115,7 +119,8 @@ class MatchupUpdater {
 	}
 
     /**
-     * @throws \Exception
+	 * @return array{matchup: Matchup, gamesInMatch: array<GameInMatch>, gameResults: array<RepositorySaveResult>}
+	 * @throws \Exception
      */
     public function updateGameData(int $matchupId): array {
         $matchup = $this->matchupRepo->findById($matchupId);
@@ -130,7 +135,7 @@ class MatchupUpdater {
             try {
                 $gameResults[] = $this->gameUpdater->updateGameData($gameInMatch->game->id);
             } catch (\Exception $e) {
-                $gameResults[] = ['result'=>SaveResult::FAILED, 'error'=>$e->getMessage(), 'game'=>$gameInMatch->game];
+				$gameResults[] = new RepositorySaveResult(SaveResult::FAILED, entity: $gameInMatch->game, additionalData: ['error'=>$e->getMessage()]);
             }
         }
 

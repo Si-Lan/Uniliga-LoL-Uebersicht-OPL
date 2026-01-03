@@ -104,14 +104,14 @@ $gameUpdater = new GameUpdater();
 $gameAmount = count($matchResultSaveResult['games']);
 if ($gameAmount > 0) {
 	foreach ($matchResultSaveResult['games'] as $i=>$game) {
-		if ($game['game']->gameData === null) {
-			tryAndLog(fn() => $gameUpdater->updateGameData($game['game']->id));
+		if ($game->entity->gameData === null) {
+			tryAndLog(fn() => $gameUpdater->updateGameData($game->entity->id));
 		}
 		$job->progress = 40 + (($i+1)/$gameAmount) * 40;
 	}
 }
 
-$savedMatchup = $matchResultSaveResult['matchup']['matchup'];
+$savedMatchup = $matchResultSaveResult['matchup']->entity;
 $teams = [$savedMatchup->team1->team, $savedMatchup->team2->team];
 $teamUpdater = new TeamUpdater();
 foreach ($teams as $team) {

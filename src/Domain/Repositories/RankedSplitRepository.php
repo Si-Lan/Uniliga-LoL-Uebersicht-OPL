@@ -6,6 +6,7 @@ use App\Core\Utilities\DataParsingHelpers;
 use App\Domain\Entities\RankedSplit;
 use App\Domain\Entities\Tournament;
 use App\Domain\Enums\SaveResult;
+use App\Domain\ValueObjects\RepositorySaveResult;
 
 class RankedSplitRepository extends AbstractRepository {
 	use DataParsingHelpers;
@@ -145,7 +146,7 @@ class RankedSplitRepository extends AbstractRepository {
 		$cacheKey = $rankedSplit->season."_".$rankedSplit->split;
 		unset($this->cache[$cacheKey]);
 	}
-	private function update(RankedSplit $rankedSplit): array {
+	private function update(RankedSplit $rankedSplit): RepositorySaveResult {
 		$existingRankedSplit = $this->findBySeasonAndSplit($rankedSplit->season, $rankedSplit->split, ignoreCache: true);
 
 		$dataNew = $this->mapEntityToData($rankedSplit);
@@ -154,7 +155,7 @@ class RankedSplitRepository extends AbstractRepository {
 		$dataPrevious = array_diff_assoc($dataOld, $dataNew);
 
 		if (count($dataChanged) == 0) {
-			return ['result' => SaveResult::NOT_CHANGED];
+			return new RepositorySaveResult(SaveResult::NOT_CHANGED);
 		}
 
 		$set = implode(",", array_map(fn($key) => "$key = ?", array_keys($dataChanged)));
@@ -166,21 +167,21 @@ class RankedSplitRepository extends AbstractRepository {
 		$cacheKey = $rankedSplit->season."_".$rankedSplit->split;
 		unset($this->cache[$cacheKey]);
 
-		return ['result' => SaveResult::UPDATED, 'changes' => $dataChanged, 'previous' => $dataPrevious];
+		return new RepositorySaveResult(SaveResult::UPDATED, $dataChanged, $dataPrevious);
 	}
-	public function save(RankedSplit $rankedSplit): array {
+	public function save(RankedSplit $rankedSplit): RepositorySaveResult {
 		try {
 			if ($this->rankedSplitExists($rankedSplit->season, $rankedSplit->split)) {
 				$saveResult = $this->update($rankedSplit);
 			} else {
 				$this->insert($rankedSplit);
-				$saveResult = ['result'=>SaveResult::INSERTED];
+				$saveResult = new RepositorySaveResult(SaveResult::INSERTED);
 			}
 		} catch (\Throwable $e) {
 			$this->logger->error("Fehler beim Speichern von RankedSplits: " . $e->getMessage() . "\n" . $e->getTraceAsString());
-			$saveResult = ['result'=>SaveResult::FAILED];
+			$saveResult = new RepositorySaveResult(SaveResult::FAILED);
 		}
-		$saveResult['rankedSplit'] = $this->findBySeasonAndSplit($rankedSplit->season, $rankedSplit->split);
+		$saveResult->entity = $this->findBySeasonAndSplit($rankedSplit->season, $rankedSplit->split);
 		return $saveResult;
 	}
 	public function delete(RankedSplit $rankedSplit): bool {

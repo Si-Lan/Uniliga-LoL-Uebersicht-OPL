@@ -16,6 +16,7 @@ use App\Domain\Repositories\PlayerSeasonRankRepository;
 use App\Domain\Repositories\RankedSplitRepository;
 use App\Domain\Repositories\TeamRepository;
 use App\Domain\Repositories\TournamentRepository;
+use App\Domain\ValueObjects\RepositorySaveResult;
 use App\Service\OplApiService;
 use App\Service\RiotApiService;
 
@@ -33,10 +34,11 @@ class PlayerUpdater {
 	}
 
 	/**
-	 * @return array{'result': SaveResult, 'changes': ?array<string, mixed>, 'previous': ?array<string,mixed>, 'player': ?Player}
+	 * @param int $playerId
+	 * @return RepositorySaveResult
 	 * @throws \Exception
 	 */
-	public function updatePlayerAccount(int $playerId): array {
+	public function updatePlayerAccount(int $playerId): RepositorySaveResult {
 		$player = $this->playerRepo->findById($playerId);
 		if ($player === null) {
 			throw new \Exception("Player not found", 404);
@@ -59,7 +61,7 @@ class PlayerUpdater {
 	}
 
 	/**
-	 * @return array{'players': array{'result': SaveResult, 'changes': ?array<string, mixed>, 'previous': ?array<string,mixed>, 'player': ?Player}, 'errors': ?array{'player': Player, 'error': string}, 'team': Team}
+	 * @return array{'players': array<RepositorySaveResult>, 'errors': ?array{'player': Player, 'error': string}, 'team': Team}
 	 * @throws \Exception
 	 */
 	public function updatePlayerAccountsForTeam(int $teamId): array {
@@ -87,10 +89,11 @@ class PlayerUpdater {
 	}
 
 	/**
-	 * @return array{'result': SaveResult, 'changes': ?array<string, mixed>, 'previous': ?array<string,mixed>, 'player': ?Player}
+	 * @param int $playerId
+	 * @return RepositorySaveResult
 	 * @throws \Exception
 	 */
-	public function updatePuuidByRiotId(int $playerId): array {
+	public function updatePuuidByRiotId(int $playerId): RepositorySaveResult {
 		$player = $this->playerRepo->findById($playerId);
 		if ($player === null) {
 			throw new \Exception("Player not found", 404);
@@ -102,21 +105,23 @@ class PlayerUpdater {
 		$riotApiResponse = $this->riotApiService->getRiotAccountByRiotId($player->riotIdName, $player->riotIdTag);
 
 		if (!$riotApiResponse->isSuccess()) {
-			return ['result'=>SaveResult::FAILED, 'httpCode'=> $riotApiResponse->getStatusCode(), 'changes'=>null, 'previous'=>null, 'player'=>$player];
+			return new RepositorySaveResult(
+				SaveResult::FAILED,
+				entity: $player,
+				additionalData: ['error'=>$riotApiResponse->getError(), 'httpCode'=>$riotApiResponse->getStatusCode()]);
 		}
 
 		$puuid = $riotApiResponse->getData()['puuid'];
 		$player->puuid = $puuid;
-		$saveResult = $this->playerRepo->save($player);
-		return ['result'=>$saveResult['result'], 'changes'=>$saveResult['changes']??null, 'previous'=>$saveResult['previous']??null, 'player'=>$player];
+		return $this->playerRepo->save($player);
 	}
 
-    /**
-     * @param int $playerId
-     * @return array{'result': SaveResult, 'changes': ?array<string, mixed>, 'previous': ?array<string,mixed>, 'player': ?Player}
-     * @throws \Exception
-     */
-    public function updateRiotIdByPuuid(int $playerId): array {
+	/**
+	 * @param int $playerId
+	 * @return RepositorySaveResult
+	 * @throws \Exception
+	 */
+    public function updateRiotIdByPuuid(int $playerId): RepositorySaveResult {
         $player = $this->playerRepo->findById($playerId);
         if ($player === null) {
             throw new \Exception("Player not found", 404);
@@ -128,22 +133,25 @@ class PlayerUpdater {
         $riotApiResponse = $this->riotApiService->getRiotAccountByPuuid($player->puuid);
 
         if (!$riotApiResponse->isSuccess()) {
-            return ['result'=>SaveResult::FAILED, 'error'=>$riotApiResponse->getError(), 'httpCode'=>$riotApiResponse->getStatusCode(), 'changes'=>null, 'previous'=>null, 'player'=>$player];
+			return new RepositorySaveResult(
+				SaveResult::FAILED,
+				entity: $player,
+				additionalData: ['error'=>$riotApiResponse->getError(), 'httpCode'=>$riotApiResponse->getStatusCode()]
+			);
         }
 
         $gameName = $riotApiResponse->getData()['gameName'];
         $tagLine = $riotApiResponse->getData()['tagLine'];
         $player->riotIdName = $gameName;
         $player->riotIdTag = $tagLine;
-        $saveResult = $this->playerRepo->save($player);
-        return $saveResult;
+		return $this->playerRepo->save($player);
     }
 
     /**
      * @param int $playerId
      * @return array{
-     *     'player': array{'result': SaveResult, 'changes': ?array<string, mixed>, 'previous': ?array<string,mixed>, 'player': ?Player},
-     *     'playerSeasonRank': ?array{'result': SaveResult, 'changes': ?array<string, mixed>, 'previous': ?array<string,mixed>, 'playerSeasonRank': ?PlayerSeasonRank}
+     *     'player': RepositorySaveResult,
+     *     'playerSeasonRank': ?RepositorySaveResult
      *     }
      * @throws \Exception
      */
@@ -159,7 +167,10 @@ class PlayerUpdater {
         $riotApiResponse = $this->riotApiService->getRankByPuuid($player->puuid);
 
         if (!$riotApiResponse->isSuccess()) {
-            return ['player'=>['result'=>SaveResult::FAILED, 'error'=>$riotApiResponse->getError(), 'httpCode'=>$riotApiResponse->getStatusCode(), 'previous'=>null, 'player'=>$player], 'playerSeasonRank'=>null];
+            return [
+				'player' => new RepositorySaveResult(SaveResult::FAILED, entity: $player, additionalData: ['error'=>$riotApiResponse->getError(), 'httpCode'=>$riotApiResponse->getStatusCode()]),
+				'playerSeasonRank'=>null
+			];
         }
 
         $rankedQueues = array_column($riotApiResponse->getData(), null, 'queueType');
@@ -195,7 +206,7 @@ class PlayerUpdater {
     /**
      * @param int $playerId
      * @param int $tournamentId
-     * @return array{playerInTournament: array, playerInTeamsInTournament: array}
+     * @return array{playerInTournament: RepositorySaveResult, playerInTeamsInTournament: array<RepositorySaveResult>}
      * @throws \Exception
      */
     public function updateStats(int $playerId, int $tournamentId): array {

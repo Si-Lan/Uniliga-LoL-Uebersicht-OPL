@@ -170,8 +170,8 @@ foreach ($teamInTournamentStages as $i=>$teamInTournamentStage) {
 		$matchresultSaveResult = tryAndLog(fn() => $matchupUpdater->updateMatchupResults($matchup->id));
 		if (count($matchresultSaveResult['games']) > 0) {
 			foreach ($matchresultSaveResult['games'] as $game) {
-				if ($game['game']->gameData === null) {
-					tryAndLog(fn() => $gameUpdater->updateGameData($game['game']->id));
+				if ($game->entity->gameData === null) {
+					tryAndLog(fn() => $gameUpdater->updateGameData($game->entity->id));
 				}
 			}
 		}

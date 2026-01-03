@@ -7,6 +7,7 @@ use App\Domain\Entities\Tournament;
 use App\Domain\Enums\EventType;
 use App\Domain\Enums\SaveResult;
 use App\Domain\Factories\TournamentFactory;
+use App\Domain\ValueObjects\RepositorySaveResult;
 
 class TournamentRepository extends AbstractRepository {
 	use DataParsingHelpers;
@@ -280,27 +281,24 @@ class TournamentRepository extends AbstractRepository {
 
 		unset($this->cache[$tournament->id]);
 	}
-	/**
-	 * @param Tournament $tournament
-	 * @return array{'result': SaveResult, 'changes': array<string, mixed>}
-	 */
-	public function save(Tournament $tournament):array {
+
+	public function save(Tournament $tournament): RepositorySaveResult {
 		try {
 			$existingTournament = $this->findById($tournament->id);
 			if ($existingTournament) {
 				$changedData = $tournament->getDataDifference($existingTournament);
 				if (count($changedData)===0) {
-					return ['result'=>SaveResult::NOT_CHANGED];
+					return new RepositorySaveResult(SaveResult::NOT_CHANGED);
 				}
 				$this->update($tournament);
-				return ['result'=>SaveResult::UPDATED, 'changes'=>$changedData];
+				return new RepositorySaveResult(SaveResult::UPDATED, $changedData);
 			} else {
 				$this->insert($tournament);
-				return ['result'=>SaveResult::INSERTED];
+				return new RepositorySaveResult(SaveResult::INSERTED);
 			}
 		} catch (\Throwable $e) {
 			$this->logger->error("Fehler beim Speichern von Turnier $tournament->id: " . $e->getMessage() . $e->getTraceAsString());
-			return ['result'=>SaveResult::FAILED];
+			return new RepositorySaveResult(SaveResult::FAILED);
 		}
 	}
 

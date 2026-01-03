@@ -132,8 +132,8 @@ foreach ($matchups as $i=>$matchup) {
 
             if (count($resultSaveResult['games']) > 0) {
                 foreach ($resultSaveResult['games'] as $game) {
-                    if ($game['game']->gameData === null) {
-                        tryAndLog(fn() => $gameUpdater->updateGameData($game['game']->id));
+                    if ($game->entity?->gameData === null) {
+                        tryAndLog(fn() => $gameUpdater->updateGameData($game->entity->id));
                     }
                 }
 

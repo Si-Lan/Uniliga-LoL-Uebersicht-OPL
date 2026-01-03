@@ -70,7 +70,7 @@ foreach ($teams as $team) {
 
     try {
         $saveResult = $teamUpdater->updateRank($team->id);
-        switch ($saveResult['team']['result']) {
+        switch ($saveResult['team']->result) {
             case SaveResult::UPDATED:
                 $job->addMessage("Updated rank");
                 break;
@@ -83,7 +83,7 @@ foreach ($teams as $team) {
         }
         if ($saveResult['tournamentSeasonRanks'] !== null) {
             foreach ($saveResult['tournamentSeasonRanks'] as $tournamentSeasonRank) {
-                switch ($tournamentSeasonRank['result']) {
+                switch ($tournamentSeasonRank->result) {
                     case SaveResult::UPDATED:
                         $job->addMessage("Updated season rank in a tournament");
                         break;

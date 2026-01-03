@@ -38,16 +38,16 @@ async function update_team(teamId) {
 			let unchangedPlayers = [];
 			let addedPlayers = [];
 			let updatedPlayers = [];
-			for (const player of data.players) {
+			for (const player of data["players"] || []) {
 				switch (player.result) {
 					case "inserted":
-						addedPlayers.push(player.player?.name);
+						addedPlayers.push(player.entity?.name);
 						break;
 					case "updated":
-						updatedPlayers.push(player.player?.name);
+						updatedPlayers.push(player.entity?.name);
 						break;
 					case "not-changed":
-						unchangedPlayers.push(player.player?.name);
+						unchangedPlayers.push(player.entity?.name);
 						break;
 				}
 			}
@@ -61,7 +61,7 @@ async function update_team(teamId) {
 				addedPlayersToTeam.push(addedPlayer?.name);
 			}
 
-			return `Team ${data.team?.team?.name} (${data.team?.team?.id})<br>
+			return `Team ${data.team?.entity?.name} (${data.team?.entity?.id})<br>
 					- Team ${data.team?.result}<br>
 					- Spieler: ${playerCount}<br>
 					-- ${addedPlayersToTeam.length} Spieler zum Team hinzugefügt<br>

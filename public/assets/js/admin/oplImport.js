@@ -381,22 +381,22 @@ async function updateTeamsInTournament(tournamentId) {
 			for (const team of data.teams) {
 				switch (team.result) {
 					case "inserted":
-						addedTeams.push(team.team.name);
+						addedTeams.push(team?.entity?.name);
 						break;
 					case "updated":
-						updatedTeams.push(team.team.name);
+						updatedTeams.push(team?.entity?.name);
 						break;
 					case "not-changed":
-						unchangedTeams.push(team.team.name);
+						unchangedTeams.push(team?.entity?.name);
 						break;
 				}
 			}
 			for (const removedTeam of data.removedTeams) {
-				removedTeams.push(removedTeam.name);
+				removedTeams.push(removedTeam?.name);
 			}
 			let addedTeamsToTournament = [];
 			for (const addedTeam of data.addedTeams) {
-				addedTeamsToTournament.push(addedTeam.name);
+				addedTeamsToTournament.push(addedTeam?.name);
 			}
 			return `${teamCount} Teams im Event<br>
 						- ${unchangedTeams.length} allgemein unverändert<br>
@@ -461,13 +461,13 @@ async function updatePlayersInTeam(teamId) {
 			for (const player of data.players) {
 				switch (player.result) {
 					case "inserted":
-						addedPlayers.push(player.player?.name);
+						addedPlayers.push(player.entity?.name);
 						break;
 					case "updated":
-						updatedPlayers.push(player.player?.name);
+						updatedPlayers.push(player.entity?.name);
 						break;
 					case "not-changed":
-						unchangedPlayers.push(player.player?.name);
+						unchangedPlayers.push(player.entity?.name);
 						break;
 				}
 			}
@@ -557,10 +557,10 @@ async function updatePlayerAccountsInTeam(teamId) {
 			for (const player of data.players) {
 				switch (player.result) {
 					case "updated":
-						playersUpdated.push(player.player?.name);
+						playersUpdated.push(player.entity?.name);
 						break;
 					case "not-changed":
-						playersUnchanged.push(player.player?.name);
+						playersUnchanged.push(player.entity?.name);
 						break;
 				}
 			}
@@ -621,13 +621,13 @@ async function updateMatchupsInTournament(tournamentId) {
 			for (const matchup of data.matchups) {
 				switch (matchup.result) {
 					case "inserted":
-						addedMatchups.push(matchup.matchup?.id);
+						addedMatchups.push(matchup?.entity?.id);
 						break;
 					case "updated":
-						updatedMatchups.push(matchup.matchup?.id);
+						updatedMatchups.push(matchup?.entity?.id);
 						break;
 					case "not-changed":
-						unchangedMatchups.push(matchup.matchup?.id);
+						unchangedMatchups.push(matchup?.entity?.id);
 						break;
 				}
 			}
@@ -702,13 +702,13 @@ async function updateMatchresult(matchId) {
 			for (const game of data.games) {
 				switch (game.result) {
 					case "inserted":
-						addedGames.push(game.game?.id);
+						addedGames.push(game.entity?.id);
 						break;
 					case "updated":
-						updatedGames.push(game.game?.id);
+						updatedGames.push(game.entity?.id);
 						break;
 					case "not-changed":
-						unchangedGames.push(game.game?.id);
+						unchangedGames.push(game.entity?.id);
 						break;
 				}
 			}
@@ -718,13 +718,13 @@ async function updateMatchresult(matchId) {
 			for (const gameInMatchup of data.gamesInMatchup) {
 				switch (gameInMatchup.result) {
 					case "inserted":
-						addedGamesInMatchup.push(gameInMatchup.gameInMatch?.id);
+						addedGamesInMatchup.push(gameInMatchup.entity?.id);
 						break;
 					case "updated":
-						updatedGamesInMatchup.push(gameInMatchup.gameInMatch?.id);
+						updatedGamesInMatchup.push(gameInMatchup.entity?.id);
 						break;
 					case "not-changed":
-						unchangedGamesInMatchup.push(gameInMatchup.gameInMatch?.id);
+						unchangedGamesInMatchup.push(gameInMatchup.entity?.id);
 						break;
 				}
 			}
@@ -797,10 +797,10 @@ async function updateStandingsInTournament(tournamentId) {
 			for (const team of data) {
 				switch (team.result) {
 					case "updated":
-						updatedTeams.push(team.teamInTournamentStage?.team.name);
+						updatedTeams.push(team.entity?.team?.name);
 						break;
 					case "not-changed":
-						unchangedTeams.push(team.teamInTournamentStage?.team.name);
+						unchangedTeams.push(team.entity?.team?.name);
 						break;
 				}
 			}
