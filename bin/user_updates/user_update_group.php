@@ -68,7 +68,7 @@ if ($groupId !== null) {
 } elseif ($jobId !== null) {
 	$job = $jobRepo->findById($jobId);
 	if ($job === null) {
-		$logger->warning('user_update',"Job $jobId not found");
+		$logger->warning("Job $jobId not found");
 		echo "Job $jobId not found\n";
 		exit;
 	}
