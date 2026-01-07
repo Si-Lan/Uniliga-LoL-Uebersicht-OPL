@@ -92,11 +92,16 @@ $nonRootDisableAttribute = $tournament->eventType === EventType::TOURNAMENT ? ''
         $popupContent = <<<HTML
         <h2>{$tournament->getSplitAndSeason()} | {$tournament->getFullName()} ({$tournament->eventType->getPrettyName()})</h2>
         <button class="get-teams" data-id="$tournament->id"><span>Teams updaten (pro Gruppe)</span></button>
+        <div class="divider" style="margin: 4px 0"></div>
 		<button class="get-players" data-id="$tournament->id"><span>Spieler updaten (pro Team)</span></button>
+		<div class="divider" style="margin: 4px 0"></div>
 		<button class="get-riotids" data-id="$tournament->id"><span>Spieler-Accounts updaten (pro Team -> pro Spieler)</span></button>
+		<div class="divider" style="margin: 4px 0"></div>
 		<button class="get-matchups" data-id="$tournament->id"><span>Matches updaten (pro Gruppe)</span></button>
+		<div class="divider" style="margin: 4px 0"></div>
 		<button class="get-results" data-id="$tournament->id"><span>Match-Ergebnisse und LoL-Spiele updaten (pro Match)</span></button>
 		<button class="get-results-unplayed" data-id="$tournament->id"><span>Match-Ergebnisse und LoL-Spiele updaten (pro ungespieltem Match)</span></button>
+		<div class="divider" style="margin: 4px 0"></div>
 		<button class="calculate-standings" data-id="$tournament->id"><span>Tabelle aktualisieren (pro Gruppe) (Berechnung)</span></button>
 HTML;
         if ($tournament->eventType === EventType::TOURNAMENT) {
