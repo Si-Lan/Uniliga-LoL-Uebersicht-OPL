@@ -8,6 +8,7 @@ use App\Domain\Enums\EventFormat;
 use App\Domain\Enums\EventType;
 use App\Domain\Factories\TournamentFactory;
 use App\Domain\Repositories\TournamentRepository;
+use App\Service\ApiResponse;
 use App\Service\OplApiService;
 use App\Service\OplLogoService;
 use App\Service\Updater\TournamentUpdater;
@@ -27,11 +28,11 @@ class TournamentsHandler extends AbstractHandler{
 		if (!$id) $this->sendErrorResponse(400, "Missing tournament ID");
 
 		$oplApi = new OplApiService();
-		try {
-			$tournamentData = $oplApi->fetchFromEndpoint("tournament/$id");
-		} catch (\Exception $e) {
-			$this->sendErrorResponse(500, 'Failed to fetch data from OPL API: ' . $e->getMessage());
+		$oplApiResponse = $oplApi->fetchFromEndpoint("tournament/$id");
+		if (!$oplApiResponse->isSuccess()) {
+			$this->sendErrorResponse(500, 'Failed to fetch data from OPL API: ' . $oplApiResponse->getError());
 		}
+		$tournamentData = $oplApiResponse->getData();
 
 		$tournamentFactory = new TournamentFactory();
 		$tournamentRepo = new TournamentRepository();

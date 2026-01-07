@@ -9,6 +9,7 @@ use App\Domain\Repositories\GameInMatchRepository;
 use App\Domain\Repositories\GameRepository;
 use App\Domain\Repositories\MatchupRepository;
 use App\Domain\ValueObjects\RepositorySaveResult;
+use App\Service\ApiResponse;
 use App\Service\OplApiService;
 
 class MatchupUpdater {
@@ -33,11 +34,11 @@ class MatchupUpdater {
 			throw new \Exception("Matchup not found", 404);
 		}
 
-		try {
-			$matchupData = $this->oplApiService->fetchFromEndpoint("matchup/$matchupId/result,statistics");
-		} catch (\Exception $e) {
-			throw new \Exception("Failed to fetch data from OPL API: ".$e->getMessage(), 500);
+		$oplApiResponse = $this->oplApiService->fetchFromEndpoint("matchup/$matchupId/result,statistics");
+		if (!$oplApiResponse->isSuccess()) {
+			throw new \Exception("Failed to fetch data from OPL API: " . $oplApiResponse->getError(), 500);
 		}
+		$matchupData = $oplApiResponse->getData();
 
 		$oplMatchupResults = $matchupData['result'];
 		$scores = $oplMatchupResults['scores'];

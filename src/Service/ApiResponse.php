@@ -2,7 +2,7 @@
 
 namespace App\Service;
 
-class RiotApiResponse {
+class ApiResponse {
 
     public function __construct(
         private ?array $data,

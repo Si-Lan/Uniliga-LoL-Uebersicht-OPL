@@ -9,6 +9,7 @@ use App\Domain\Repositories\TeamInTournamentStageRepository;
 use App\Domain\Repositories\TeamRepository;
 use App\Domain\Repositories\TournamentRepository;
 use App\Domain\ValueObjects\RepositorySaveResult;
+use App\Service\ApiResponse;
 use App\Service\OplApiService;
 use App\Service\OplLogoService;
 
@@ -33,11 +34,11 @@ class TournamentUpdater {
 			throw new \Exception("Tournament is not a stage with Teams", 400);
 		}
 
-		try {
-			$tournamentData = $this->oplApiService->fetchFromEndpoint("tournament/$tournamentId/team_registrations");
-		} catch (\Exception $e) {
-			throw new \Exception("Failed to fetch data from OPL API: ".$e->getMessage(), 500);
+		$oplApiResponse = $this->oplApiService->fetchFromEndpoint("tournament/$tournamentId/team_registrations");
+		if (!$oplApiResponse->isSuccess()) {
+			throw new \Exception("Failed to fetch data from OPL API: " . $oplApiResponse->getError(), 500);
 		}
+		$tournamentData = $oplApiResponse->getData();
 
 		$oplTeams = $tournamentData['team_registrations'];
 		$ids = array_column($oplTeams, 'ID');
@@ -95,11 +96,11 @@ class TournamentUpdater {
 			throw new \Exception("Tournament is not a stage with Matchups", 400);
 		}
 
-		try {
-			$tournamentData = $this->oplApiService->fetchFromEndpoint("tournament/$tournamentId/matches");
-		} catch (\Exception $e) {
-			throw new \Exception("Failed to fetch data from OPL API: ".$e->getMessage(), 500);
+		$oplApiResponse = $this->oplApiService->fetchFromEndpoint("tournament/$tournamentId/matches");
+		if (!$oplApiResponse->isSuccess()) {
+			throw new \Exception("Failed to fetch data from OPL API: " . $oplApiResponse->getError(), 500);
 		}
+		$tournamentData = $oplApiResponse->getData();
 
 		$oplMatchups = $tournamentData['matches'];
 		$ids = array_column($oplMatchups, 'ID');

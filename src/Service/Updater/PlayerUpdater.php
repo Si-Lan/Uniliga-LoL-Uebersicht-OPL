@@ -17,6 +17,7 @@ use App\Domain\Repositories\RankedSplitRepository;
 use App\Domain\Repositories\TeamRepository;
 use App\Domain\Repositories\TournamentRepository;
 use App\Domain\ValueObjects\RepositorySaveResult;
+use App\Service\ApiResponse;
 use App\Service\OplApiService;
 use App\Service\RiotApiService;
 
@@ -44,11 +45,11 @@ class PlayerUpdater {
 			throw new \Exception("Player not found", 404);
 		}
 
-		try {
-			$playerData = $this->oplApiService->fetchFromEndpoint("user/$playerId/launcher");
-		} catch (\Exception $e) {
-			throw new \Exception("Failed to fetch data from OPL API: ".$e->getMessage(), 500);
+		$oplApiResponse = $this->oplApiService->fetchFromEndpoint("user/$playerId/launcher");
+		if (!$oplApiResponse->isSuccess()) {
+			throw new \Exception("Failed to fetch data from OPL API: " . $oplApiResponse->getError(), 500);
 		}
+		$playerData = $oplApiResponse->getData();
 
 		$oplPlayerAccounts = $playerData['launcher'];
 

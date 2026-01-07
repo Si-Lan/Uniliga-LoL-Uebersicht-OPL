@@ -18,6 +18,7 @@ use App\Domain\Repositories\TeamRepository;
 use App\Domain\Repositories\TeamSeasonRankInTournamentRepository;
 use App\Domain\Repositories\TournamentRepository;
 use App\Domain\ValueObjects\RepositorySaveResult;
+use App\Service\ApiResponse;
 use App\Service\OplApiService;
 use App\Service\OplLogoService;
 
@@ -43,11 +44,11 @@ class TeamUpdater {
 			throw new \Exception("Team not found", 404);
 		}
 
-		try {
-			$oplTeam = $this->oplApiService->fetchFromEndpoint("team/$teamId/users");
-		} catch (\Exception $e) {
-			throw new \Exception("Failed to fetch data from OPL API: ".$e->getMessage(), 500);
+		$oplApiResponse = $this->oplApiService->fetchFromEndpoint("team/$teamId/users");
+		if (!$oplApiResponse->isSuccess()) {
+			throw new \Exception("Failed to fetch data from OPL API: " . $oplApiResponse->getError(), 500);
 		}
+		$oplTeam = $oplApiResponse->getData();
 
 		$teamEntity = $this->teamRepo->createFromOplData($oplTeam);
 		$teamSaveResult = $this->teamRepo->save($teamEntity, fromOplData: true);

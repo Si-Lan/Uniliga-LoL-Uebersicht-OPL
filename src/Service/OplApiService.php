@@ -2,13 +2,14 @@
 
 namespace App\Service;
 
-class OplApiService {
+class OplApiService extends ApiService {
 	/**
-	 * @throws \Exception
+	 * @param string $endpoint
+	 * @return ApiResponse
 	 */
-	public function fetchFromEndpoint(string $endpoint): array {
+	public function fetchFromEndpoint(string $endpoint): ApiResponse {
         if (empty($_ENV['OPL_BEARER_TOKEN']) || empty($_ENV['USER_AGENT'])) {
-            throw new \Exception('Missing API credentials');
+            return ApiResponse::error('Missing API credentials');
         }
 
         $apiUrl = "https://www.opleague.pro/api/v4/$endpoint";
@@ -22,25 +23,29 @@ class OplApiService {
         $response = @file_get_contents($apiUrl, context: $context);
 
         if (!isset($http_response_header)) {
-            throw new \Exception('No response from OPL API');
+            return ApiResponse::error('No response from OPL API');
         }
 
-        $httpStatus = $http_response_header[0] ?? '';
-        if ($response === false || !str_contains($httpStatus, '200')) {
-            throw new \Exception("Error from OPL API: $httpStatus");
+		$statusCode = $this->parseStatusCode($http_response_header);
+		$headers = $this->parseHeaders($http_response_header);
+
+        if ($response === false || $statusCode !== 200) {
+            return ApiResponse::error("Error from OPL API: Code $statusCode", $statusCode, $headers);
         }
 
         $data = json_decode($response, true);
         if (json_last_error() !== JSON_ERROR_NONE) {
-            throw new \Exception('Invalid JSON received from OPL API');
+            return ApiResponse::error('Invalid JSON received from OPL API', $statusCode, $headers);
         }
         if (isset($data['error'])) {
-            throw new \Exception('API error: ' . $data['error']);
+            return ApiResponse::error('API error: ' . $data['error'], $statusCode, $headers);
         }
-        return $data['data'];
+        return ApiResponse::success($data['data'], $statusCode, $headers);
     }
 
 	/**
+	 * @param int $eventId
+	 * @return string|null
 	 * @throws \Exception
 	 */
 	public function getFormatByEventId(int $eventId): string|null {
