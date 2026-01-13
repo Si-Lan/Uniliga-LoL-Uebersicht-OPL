@@ -83,11 +83,11 @@ class TeamUpdater {
 		}
 
 		if ($teamData === null) {
-			try {
-				$teamData = $this->oplApiService->fetchFromEndpoint("team/$teamId/users");
-			} catch (\Exception $e) {
-				throw new \Exception("Failed to fetch data from OPL API: ".$e->getMessage(), 500);
-			}
+            $oplApiResponse = $this->oplApiService->fetchFromEndpoint("team/$teamId/users");
+            if (!$oplApiResponse->isSuccess()) {
+                throw new \Exception("Failed to fetch data from OPL API: " . $oplApiResponse->getError());
+            }
+            $teamData = $oplApiResponse->getData();
 		}
 
 		$oplPlayers = $teamData['users'];
