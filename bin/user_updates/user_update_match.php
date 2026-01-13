@@ -112,9 +112,10 @@ if ($gameAmount > 0) {
 }
 
 $savedMatchup = $matchResultSaveResult['matchup']->entity;
-$teams = [$savedMatchup->team1->team, $savedMatchup->team2->team];
+$teams = [$savedMatchup->team1?->team, $savedMatchup->team2?->team];
 $teamUpdater = new TeamUpdater();
 foreach ($teams as $team) {
+    if ($team === null) continue;
 	tryAndLog(fn() => $teamUpdater->updatePlayerStats($team->id, $savedMatchup->tournamentStage->getRootTournament()->id));
 	tryAndLog(fn() => $teamUpdater->updateStats($team->id, $savedMatchup->tournamentStage->getRootTournament()->id));
 }

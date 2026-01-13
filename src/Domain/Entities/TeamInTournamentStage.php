@@ -42,12 +42,12 @@ class TeamInTournamentStage {
 		if (!$matchup->played) return;
 
 		switch ($this->team->id) {
-			case $matchup->team1->team->id:
-				$enemyId = $matchup->team2->team->id;
+			case $matchup->team1?->team?->id:
+				$enemyId = $matchup->team2?->team?->id;
 				$currentTeam = 1;
 				break;
-			case $matchup->team2->team->id:
-				$enemyId = $matchup->team1->team->id;
+			case $matchup->team2?->team?->id:
+				$enemyId = $matchup->team1?->team?->id;
 				$currentTeam = 2;
 				break;
 			default:

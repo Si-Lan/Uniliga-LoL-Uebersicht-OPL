@@ -47,8 +47,10 @@ class MatchupUpdater {
 		$drawIDs = $oplMatchupResults['draw_IDs'];
 		$defWin = $oplMatchupResults['defwin'];
 
-		$matchup->team1Score = strval($scores[$matchup->team1?->team->id]) ?? null;
-		$matchup->team2Score = strval($scores[$matchup->team2?->team->id]) ?? null;
+        $team1Id = $matchup->team1?->team->id;
+		$matchup->team1Score = isset($scores[$team1Id]) ? strval($scores[$team1Id]) ?? null : null;
+		$team2Id = $matchup->team2?->team->id;
+        $matchup->team2Score = isset($scores[$team2Id]) ? strval($scores[$team2Id]) ?? null : null;
 		$matchup->played = $matchupData['state_key'] >= 4;
 		$matchup->winnerId = count($winIDs) > 0 ? $winIDs[0] : null;
 		$matchup->loserId = count($lossIDs) > 0 ? $lossIDs[0] : null;
