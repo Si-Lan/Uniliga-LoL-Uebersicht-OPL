@@ -4,6 +4,7 @@ namespace App\Service\Updater;
 
 use App\Domain\Entities\Matchup;
 use App\Domain\Entities\Team;
+use App\Domain\Factories\MatchupFactory;
 use App\Domain\Repositories\MatchupRepository;
 use App\Domain\Repositories\TeamInTournamentStageRepository;
 use App\Domain\Repositories\TeamRepository;
@@ -106,10 +107,11 @@ class TournamentUpdater {
 		$ids = array_column($oplMatchups, 'ID');
 
 		$matchupRepo = new MatchupRepository();
+		$matchupFactory = new MatchupFactory();
 
 		$saveResults = [];
 		foreach ($oplMatchups as $oplMatchup) {
-			$matchupEntity = $matchupRepo->createFromOplData($oplMatchup);
+			$matchupEntity = $matchupFactory->createFromOplData($oplMatchup);
 			$saveResult = $matchupRepo->save($matchupEntity, fromOplData: true);
 			$saveResults[] = $saveResult;
 		}

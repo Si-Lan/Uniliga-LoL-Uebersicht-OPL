@@ -7,50 +7,17 @@ use App\Domain\Entities\Matchup;
 use App\Domain\Entities\TeamInTournament;
 use App\Domain\Entities\Tournament;
 use App\Domain\Enums\SaveResult;
+use App\Domain\Factories\MatchupFactory;
 use App\Domain\ValueObjects\RepositorySaveResult;
 
 class MatchupRepository extends AbstractRepository {
 	use DataParsingHelpers;
-
-	private TournamentRepository $tournamentRepo;
-	private TeamInTournamentRepository $teamInTournamentRepo;
-	protected static array $ALL_DATA_KEYS = ["OPL_ID","OPL_ID_tournament","OPL_ID_team1","OPL_ID_team2","team1Score","team2Score","plannedDate","playday","bestOf","played","winner","loser","draw","def_win"];
-	protected static array $REQUIRED_DATA_KEYS = ["OPL_ID","OPL_ID_tournament","played"];
+	private MatchupFactory $factory;
 	protected static array $OPL_DATA_KEYS = ["OPL_ID","OPL_ID_tournament","OPL_ID_team1","OPL_ID_team2","plannedDate","playday","bestOf"];
 
 	public function __construct() {
 		parent::__construct();
-		$this->tournamentRepo = new TournamentRepository();
-		$this->teamInTournamentRepo = new TeamInTournamentRepository();
-	}
-
-	public function mapToEntity(array $data, ?Tournament $tournamentStage=null, ?TeamInTournament $team1=null, ?TeamInTournament $team2=null): Matchup {
-		$data = $this->normalizeData($data);
-		if (is_null($tournamentStage)) {
-			$tournamentStage = $this->tournamentRepo->findById($data['OPL_ID_tournament']);
-		}
-		if (is_null($team1) && !is_null($data["OPL_ID_team1"])) {
-			$team1 = $this->teamInTournamentRepo->findByTeamIdAndTournament($data['OPL_ID_team1'],$tournamentStage->rootTournament);
-		}
-		if (is_null($team2) && !is_null($data["OPL_ID_team2"])) {
-			$team2 = $this->teamInTournamentRepo->findByTeamIdAndTournament($data['OPL_ID_team2'],$tournamentStage->rootTournament);
-		}
-		return new Matchup(
-			id: (int) $data["OPL_ID"],
-			tournamentStage: $tournamentStage,
-			team1: $team1,
-			team2: $team2,
-			team1Score: $this->stringOrNull($data["team1Score"]),
-			team2Score: $this->stringOrNull($data["team2Score"]),
-			plannedDate: $this->DateTimeImmutableOrNull($data["plannedDate"]),
-			playday: $this->intOrNull($data["playday"]),
-			bestOf: $this->intOrNull($data["bestOf"]),
-			played: (bool) $data["played"],
-			winnerId: $this->intOrNull($data["winner"]),
-			loserId: $this->intOrNull($data["loser"]),
-			draw: (bool) $data["draw"] ?? false,
-			defWin: (bool) $data["def_win"] ?? false
-		);
+		$this->factory = new MatchupFactory();
 	}
 
 	public function findById(int $matchupId): ?Matchup {
@@ -58,7 +25,7 @@ class MatchupRepository extends AbstractRepository {
 		$result = $this->dbcn->execute_query($query,[$matchupId]);
 		$data = $result->fetch_assoc();
 
-		return $data ? $this->mapToEntity($data) : null;
+		return $data ? $this->factory->createFromDbData($data) : null;
 	}
 
 	/**
@@ -72,7 +39,7 @@ class MatchupRepository extends AbstractRepository {
 		foreach ($data as $matchupData) {
 			$team1 = ($teamInTournament?->team->id == $matchupData["OPL_ID_team1"]) ? $teamInTournament : null;
 			$team2 = ($teamInTournament?->team->id == $matchupData["OPL_ID_team2"]) ? $teamInTournament : null;
-			$matchups[] = $this->mapToEntity($matchupData, $tournamentStage, $team1, $team2);
+			$matchups[] = $this->factory->createFromDbData($matchupData, $tournamentStage, $team1, $team2);
 		}
 
 		return $matchups;
@@ -160,27 +127,8 @@ class MatchupRepository extends AbstractRepository {
 		return $result->num_rows > 0;
 	}
 
-	public function mapEntityToData(Matchup $matchup): array {
-		return [
-			"OPL_ID" => $matchup->id,
-			"OPL_ID_tournament" => $matchup->tournamentStage->id,
-			"OPL_ID_team1" => $matchup->team1?->team->id,
-			"OPL_ID_team2" => $matchup->team2?->team->id,
-			"team1Score" => $matchup->team1Score,
-			"team2Score" => $matchup->team2Score,
-			"plannedDate" => $matchup->plannedDate?->format("Y-m-d H:i:s") ?? null,
-			"playday" => $matchup->playday,
-			"bestOf" => $matchup->bestOf,
-			"played" => $this->intOrNull($matchup->played),
-			"winner" => $matchup->winnerId,
-			"loser" => $matchup->loserId,
-			"draw" => $this->intOrNull($matchup->draw),
-			"def_win" => $this->intOrNull($matchup->defWin),
-		];
-	}
-
 	private function insert(Matchup $matchup, bool $fromOplData = false): void {
-		$data = $this->mapEntityToData($matchup);
+		$data = $this->factory->mapEntityToDbData($matchup);
 		$columns = implode(",", array_keys($data));
 		$placeholders = implode(",", array_fill(0, count($data), "?"));
 		$values = array_values($data);
@@ -193,8 +141,8 @@ class MatchupRepository extends AbstractRepository {
 	private function update(Matchup $matchup, bool $fromOplData = false): RepositorySaveResult {
 		$existingMatchup = $this->findById($matchup->id);
 
-		$dataNew = $this->mapEntityToData($matchup);
-		$dataOld = $this->mapEntityToData($existingMatchup);
+		$dataNew = $this->factory->mapEntityToDbData($matchup);
+		$dataOld = $this->factory->mapEntityToDbData($existingMatchup);
 		if ($fromOplData) {
 			$dataNew = $this->filterKeysFromOpl($dataNew);
 			$dataOld = $this->filterKeysFromOpl($dataOld);
@@ -236,26 +184,5 @@ class MatchupRepository extends AbstractRepository {
 			return false;
 		}
 		return $this->dbcn->execute_query("DELETE FROM matchups WHERE OPL_ID = ?", [$matchup->id]);
-	}
-
-	public function createFromOplData(array $oplData): Matchup {
-		$teamIds = array_keys($oplData["teams"]);
-		$team1 = null;
-		$team2 = null;
-		if (count($teamIds) > 0) $team1 = $oplData["teams"][$teamIds[0]]["ID"];
-		if (count($teamIds) > 1) $team2 = $oplData["teams"][$teamIds[1]]["ID"];
-
-		$entityData = [
-			"OPL_ID" => $oplData["ID"],
-			"OPL_ID_tournament" => $oplData["tournament"]["ID"],
-			"OPL_ID_team1" => $team1,
-			"OPL_ID_team2" => $team2,
-			"plannedDate" => $oplData["to_be_played_on"],
-			"playday" => $oplData["playday"],
-			"bestOf" => $oplData["best_of"],
-			"played" => false,
-		];
-
-		return $this->mapToEntity($entityData);
 	}
 }
