@@ -5,6 +5,7 @@ namespace App\Service\Updater;
 use App\Domain\Entities\GameInMatch;
 use App\Domain\Entities\Matchup;
 use App\Domain\Enums\SaveResult;
+use App\Domain\Factories\MatchupFactory;
 use App\Domain\Repositories\GameInMatchRepository;
 use App\Domain\Repositories\GameRepository;
 use App\Domain\Repositories\MatchupRepository;
@@ -14,11 +15,13 @@ use App\Service\OplApiService;
 
 class MatchupUpdater {
 	private MatchupRepository $matchupRepo;
+	private MatchupFactory $matchupFactory;
     private GameInMatchRepository $gameInMatchRepo;
     private GameUpdater $gameUpdater;
 	private OplApiService $oplApiService;
 	public function __construct() {
 		$this->matchupRepo = new MatchupRepository();
+		$this->matchupFactory = new MatchupFactory();
         $this->gameInMatchRepo = new GameInMatchRepository();
         $this->gameUpdater = new GameUpdater();
 		$this->oplApiService = new OplApiService();
@@ -39,6 +42,8 @@ class MatchupUpdater {
 			throw new \Exception("Failed to fetch data from OPL API: " . $oplApiResponse->getError(), 500);
 		}
 		$matchupData = $oplApiResponse->getData();
+
+		$matchup = $this->matchupFactory->updateFromOplData($matchup, $matchupData);
 
 		$oplMatchupResults = $matchupData['result'];
 		$scores = $oplMatchupResults['scores'];
