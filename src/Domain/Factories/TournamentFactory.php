@@ -126,7 +126,8 @@ class TournamentFactory extends AbstractFactory {
 			'OPL_ID_logo' => $tournament->logoId,
 			'finished' => $tournament->finished ? 1 : 0,
 			'deactivated' => $tournament->deactivated ? 1 : 0,
-			'archived' => $tournament->archived ? 1 : 0
+			'archived' => $tournament->archived ? 1 : 0,
+			'last_cron_update' => $tournament->lastCronUpdate?->format('Y-m-d'),
 		];
 	}
 
