@@ -24,4 +24,12 @@ enum UpdateJobAction: string {
 	case DOWNLOAD_ITEM_IMAGES = 'download_item_images';
 	case DOWNLOAD_SPELL_IMAGES = 'download_spell_images';
 	case DOWNLOAD_RUNE_IMAGES = 'download_rune_images';
+
+	public function isDdragonDownload(): bool {
+		return
+			$this === self::DOWNLOAD_CHAMPION_IMAGES
+			|| $this === self::DOWNLOAD_ITEM_IMAGES
+			|| $this === self::DOWNLOAD_SPELL_IMAGES
+			|| $this === self::DOWNLOAD_RUNE_IMAGES;
+	}
 }

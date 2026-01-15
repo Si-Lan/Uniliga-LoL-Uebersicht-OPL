@@ -1,107 +1,62 @@
 <?php
 require_once dirname(__DIR__,2) . '/bootstrap.php';
 
-use App\Core\Enums\LogType;
-use App\Core\Logger;
-use App\Domain\Entities\Tournament;
 use App\Domain\Enums\Jobs\UpdateJobAction;
-use App\Domain\Enums\Jobs\UpdateJobStatus;
-use App\Domain\Enums\SaveResult;
+use App\Domain\Enums\Jobs\UpdateJobType;
 use App\Domain\Repositories\PlayerInTournamentRepository;
 use App\Domain\Repositories\PlayerRepository;
-use App\Domain\Repositories\UpdateJobRepository;
+use App\Service\JobHandler;
+use App\Service\ResultHandler;
 use App\Service\Updater\PlayerUpdater;
 
-$logger = new Logger(LogType::ADMIN_UPDATE);
+$handler = new JobHandler(UpdateJobType::ADMIN, UpdateJobAction::UPDATE_PUUIDS);
+$resultHandler = new ResultHandler($handler);
 
-$options = getopt('j:', ['without-puuid']);
-$jobId = $options['j'] ?? null;
-if ($jobId === null) {
-	echo "No job id given, use -j <jobid>";
-	exit;
-}
-$withoutid = isset($options['without-puuid']);
+$handler->run(function (JobHandler $handler) use ($resultHandler) {
+	if ($handler->tournamentContext !== null) {
+		$playerInTournamentRepo = new PlayerInTournamentRepository();
+		$players = $playerInTournamentRepo->findAllByTournament($handler->tournamentContext);
+		$players = array_map(fn($player) => $player->player, $players);
+	} else {
+		$playerRepo = new PlayerRepository();
+		$players = $playerRepo->findAll();
+	}
 
-$jobRepo = new UpdateJobRepository();
+	$options = getopt('j:', ['without-puuid']);
+	$withoutid = isset($options['without-puuid']);
+	if ($withoutid) {
+		$players = array_filter($players, fn($player) => $player->puuid === null);
+	}
 
-$job = $jobRepo->findById($jobId);
+	$playerUpdater = new PlayerUpdater();
 
-if ($job === null) {
-	$logger->warning("Job $jobId not found");
-	exit;
-}
-if ($job->status !== UpdateJobStatus::QUEUED) {
-	$logger->warning("Job $jobId is not in queued state");
-	exit;
-}
-if ($job->action !== UpdateJobAction::UPDATE_PUUIDS) {
-	$logger->warning("Job $jobId is not an update puuids job");
-	exit;
-}
+	$batchSize = 50;
+	$delay = 10;
 
-$job->startJob(getmypid());
-$jobRepo->save($job);
-$logger->info("Starting job $jobId");
+	$count = 0;
+	$total = count($players);
+	$batches = array_chunk($players, $batchSize);
+	$handler->addMessage("Updating $total players in ".count($batches)." Batches");
+	foreach ($batches as $i=>$batch) {
+		$batchNum = $i+1;
+		$handler->addMessage("Batch $batchNum:");
+		foreach ($batch as $player) {
+			$handler->addMessage("Updating ($player->id) $player->name");
 
-$tournamentContext = $job->context;
-if ($tournamentContext !== null && !($tournamentContext instanceof Tournament)) {
-	$logger->info("Job $jobId has invalid context");
-	exit;
-}
-
-if ($tournamentContext !== null) {
-	$playerInTournamentRepo = new PlayerInTournamentRepository();
-	$players = $playerInTournamentRepo->findAllByTournament($tournamentContext);
-	$players = array_map(fn($player) => $player->player, $players);
-} else {
-	$playerRepo = new PlayerRepository();
-	$players = $playerRepo->findAll();
-}
-
-if ($withoutid) {
-	$players = array_filter($players, fn($player) => $player->puuid === null);
-}
-
-$playerUpdater = new PlayerUpdater();
-
-$batchSize = 50;
-$delay = 10;
-
-$count = 0;
-$total = count($players);
-$batches = array_chunk($players, $batchSize);
-$job->addMessage("Updating $total players in ".count($batches)." Batches");
-foreach ($batches as $i=>$batch) {
-	$batchNum = $i+1;
-	$job->addMessage("Batch $batchNum:");
-	foreach ($batch as $player) {
-		$job->addMessage("Updating ($player->id) $player->name");
-
-		try {
-			$saveResult = $playerUpdater->updatePuuidByRiotId($player->id);
-			switch ($saveResult->result) {
-				case SaveResult::UPDATED:
-					$job->addMessage("Updated puuid");
-					break;
-				case SaveResult::NOT_CHANGED:
-					$job->addMessage("puuid not changed");
-					break;
+			try {
+				$saveResult = $playerUpdater->updatePuuidByRiotId($player->id);
+				$resultHandler->handleSaveResult($saveResult->result, "PUUID");
+			} catch (\Exception $e) {
+				$handler->addMessage("Error: ". $e->getMessage());
 			}
-		} catch (\Exception $e) {
-			$job->addMessage("Error: ". $e->getMessage());
+
+			$count++;
+			$handler->setProgress(($count / $total) * 100);
 		}
+		$handler->addMessage("finished batch $batchNum\n");
 
-		$count++;
-		$job->progress = ($count / $total) * 100;
-		$jobRepo->save($job);
+		if ($batchNum < count($batches)) {
+			sleep($delay);
+		}
 	}
-	$job->addMessage("finished batch $batchNum\n");
-
-	if ($batchNum < count($batches)) {
-		sleep($delay);
-	}
-}
-
-$job->finishJob();
-$jobRepo->save($job);
-$logger->info("Finished job $jobId");
+});
