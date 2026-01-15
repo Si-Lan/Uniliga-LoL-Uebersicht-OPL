@@ -263,7 +263,6 @@ async function updateButtonProgress(activeJobs) {
             let updatingButtons = 0;
             for (const type of allTypes) {
                 const button = $(`button.patch-update[data-patch="${patch}"][data-getimg="${type}"]`);
-                console.log(button);
                 if (button.hasClass("button-updating")) updatingButtons++;
             }
             if (updatingButtons === 0) {
