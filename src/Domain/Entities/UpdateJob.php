@@ -58,7 +58,8 @@ class UpdateJob {
 
 	public function addMessage(string $message): void {
 		$this->message = $this->message ?? "";
-		$this->message .= "\n".$message;
+		if ($this->message !== "") $this->message .= "\n";
+		$this->message .= $message;
 	}
 
 	public function getLastUpdateTime(): ?DateTimeImmutable {
