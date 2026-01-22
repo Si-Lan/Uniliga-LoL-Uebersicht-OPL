@@ -147,6 +147,15 @@ class JobHandler {
         $this->job->addMessage($message);
         $this->jobRepo->save($this->job);
     }
+	public function addResultMessage(string $result): void {
+		$this->job->addResultMessage($result);
+		$this->jobRepo->save($this->job);
+	}
+	public function addMessageAndResult(string $message): void {
+		$this->job->addMessage($message);
+		$this->job->addResultMessage($message);
+		$this->jobRepo->save($this->job);
+	}
 
     public function setProgress(float $percent): void {
         $this->job->progress = $percent;

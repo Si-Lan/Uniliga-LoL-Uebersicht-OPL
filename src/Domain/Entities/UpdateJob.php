@@ -22,6 +22,7 @@ class UpdateJob {
 		public ?DateTimeImmutable $startedAt,
 		public ?DateTimeImmutable $finishedAt,
 		public ?string $message,
+		public ?string $resultMessage,
 		public DateTimeImmutable $createdAt,
 		public DateTimeImmutable $updatedAt,
 		public ?int $pid
@@ -60,6 +61,11 @@ class UpdateJob {
 		$this->message = $this->message ?? "";
 		if ($this->message !== "") $this->message .= "\n";
 		$this->message .= $message;
+	}
+	public function addResultMessage(string $message): void {
+		$this->resultMessage = $this->resultMessage ?? "";
+		if ($this->resultMessage !== "") $this->resultMessage .= "\n";
+		$this->resultMessage .= $message;
 	}
 
 	public function getLastUpdateTime(): ?DateTimeImmutable {

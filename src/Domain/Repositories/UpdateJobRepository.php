@@ -18,7 +18,7 @@ class UpdateJobRepository extends AbstractRepository {
 	private TeamRepository $teamRepo;
 	private MatchupRepository $matchupRepo;
 	private PatchRepository $patchRepo;
-	protected static array $ALL_DATA_KEYS = ["id", "type", "action", "status", "progress", "context_type", "context_id", "tournament_id", "started_at", "finished_at", "message", "created_at", "updated_at", "pid"];
+	protected static array $ALL_DATA_KEYS = ["id", "type", "action", "status", "progress", "context_type", "context_id", "tournament_id", "started_at", "finished_at", "message", "result_message", "created_at", "updated_at", "pid"];
 	protected static array $REQUIRED_DATA_KEYS = ["id", "type", "action"];
 
 	public function __construct() {
@@ -70,6 +70,7 @@ class UpdateJobRepository extends AbstractRepository {
 			startedAt: $this->DateTimeImmutableOrNull($data['started_at']),
 			finishedAt: $this->DateTimeImmutableOrNull($data['finished_at']),
 			message: $this->stringOrNull($data['message']),
+			resultMessage: $this->stringOrNull($data['result_message']),
 			createdAt: $this->DateTimeImmutableOrNull($data['created_at']),
 			updatedAt: $this->DateTimeImmutableOrNull($data['updated_at']),
 			pid: $this->intOrNull($data['pid'])??null
@@ -97,6 +98,7 @@ class UpdateJobRepository extends AbstractRepository {
 		$data['status'] = $job->status->value;
 		$data['progress'] = $job->progress;
 		$data['message'] = $job->message;
+		$data['result_message'] = $job->resultMessage;
 		$data['pid'] = $job->pid;
 		return $data;
 	}
