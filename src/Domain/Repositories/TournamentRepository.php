@@ -82,7 +82,7 @@ class TournamentRepository extends AbstractRepository {
 
 		if (!$data) return null;
 
-		$tournament = $this->buildTournament($data);
+		$tournament = $this->buildTournament($data, $directParent, $rootParent);
 
 		if (!$ignoreCache) $this->cache[$tournamentId] = $tournament;
 
@@ -99,7 +99,7 @@ class TournamentRepository extends AbstractRepository {
 			return $this->cache[$tournamentId];
 		}
 
-		$tournament = $this->buildTournament($data);
+		$tournament = $this->buildTournament($data, $directParent, $rootParent);
 
 		$this->cache[$tournamentId] = $tournament;
 
