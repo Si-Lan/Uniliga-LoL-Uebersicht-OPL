@@ -242,16 +242,16 @@ CREATE TABLE update_jobs (
     status ENUM('queued','running','success','error','cancelled','abandoned') DEFAULT 'queued',
     progress FLOAT UNSIGNED DEFAULT 0,
 
-    context_type ENUM('tournament','team','group','matchup','patch') NULL,
-    context_id INT(11) NULL,
-    context_name VARCHAR(25) NULL,
+    context_type ENUM('tournament','team','group','matchup','patch') NULL DEFAULT NULL,
+    context_id INT(11) NULL DEFAULT NULL,
+    context_name VARCHAR(25) NULL DEFAULT NULL,
 
-    tournament_id INT(11) NULL,
+    tournament_id INT(11) NULL DEFAULT NULL,
 
-    started_at DATETIME NULL,
-    finished_at DATETIME NULL,
+    started_at DATETIME NULL DEFAULT NULL,
+    finished_at DATETIME NULL DEFAULT NULL,
 
-    message MEDIUMTEXT NULL,
+    message MEDIUMTEXT NULL DEFAULT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
