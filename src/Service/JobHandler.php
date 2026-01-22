@@ -126,9 +126,9 @@ class JobHandler {
             $this->finish();
             $this->logger->info("Finished job {$this->job->id}");
         } catch (\Exception $e) {
-            $this->addMessage("Fatal error: " . $e->getMessage());
-            $this->finish();
-            $this->logger->error("Job {$this->job->id} failed: " . $e->getMessage(), $e);
+			$this->logger->error("Job {$this->job->id} failed: {$e->getMessage()} in {$e->getFile()}:{$e->getLine()}");
+			$this->addMessage("Fatal error: " . $e->getMessage());
+			$this->finish();
         }
     }
 
