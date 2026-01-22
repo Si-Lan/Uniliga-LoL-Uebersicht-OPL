@@ -395,7 +395,8 @@ CREATE ALGORITHM=UNDEFINED SQL SECURITY DEFINER VIEW `events_groups` AS
            `tournaments`.`OPL_ID_logo` AS `OPL_ID_logo`,
            `tournaments`.`finished` AS `finished`,
            `tournaments`.`deactivated` AS `deactivated`,
-           `tournaments`.`archived` AS `archived`
+           `tournaments`.`archived` AS `archived`,
+           `tournaments`.`last_cron_update` AS `last_cron_update`
     FROM `tournaments`
     WHERE `tournaments`.`eventType` = 'group' ;
 
@@ -417,7 +418,8 @@ CREATE ALGORITHM=UNDEFINED SQL SECURITY DEFINER VIEW `events_in_groupstage` AS
            `tournaments`.`OPL_ID_logo` AS `OPL_ID_logo`,
            `tournaments`.`finished` AS `finished`,
            `tournaments`.`deactivated` AS `deactivated`,
-           `tournaments`.`archived` AS `archived`
+           `tournaments`.`archived` AS `archived`,
+           `tournaments`.`last_cron_update` AS `last_cron_update`
     FROM `tournaments`
     WHERE `tournaments`.`eventType` = 'group'
        OR (`tournaments`.`eventType` = 'league' AND `tournaments`.`format` = 'swiss');
@@ -440,7 +442,8 @@ CREATE ALGORITHM=UNDEFINED SQL SECURITY DEFINER VIEW `events_leagues` AS
            `tournaments`.`OPL_ID_logo` AS `OPL_ID_logo`,
            `tournaments`.`finished` AS `finished`,
            `tournaments`.`deactivated` AS `deactivated`,
-           `tournaments`.`archived` AS `archived`
+           `tournaments`.`archived` AS `archived`,
+           `tournaments`.`last_cron_update` AS `last_cron_update`
     FROM `tournaments`
     WHERE `tournaments`.`eventType` = 'league' ;
 
@@ -462,7 +465,8 @@ CREATE ALGORITHM=UNDEFINED SQL SECURITY DEFINER VIEW `events_playoffs` AS
            `tournaments`.`OPL_ID_logo` AS `OPL_ID_logo`,
            `tournaments`.`finished` AS `finished`,
            `tournaments`.`deactivated` AS `deactivated`,
-           `tournaments`.`archived` AS `archived`
+           `tournaments`.`archived` AS `archived`,
+           `tournaments`.`last_cron_update` AS `last_cron_update`
     FROM `tournaments`
     WHERE `tournaments`.`eventType` = 'playoffs' ;
 
@@ -484,7 +488,8 @@ CREATE ALGORITHM=UNDEFINED SQL SECURITY DEFINER VIEW `events_tournaments` AS
            `tournaments`.`OPL_ID_logo` AS `OPL_ID_logo`,
            `tournaments`.`finished` AS `finished`,
            `tournaments`.`deactivated` AS `deactivated`,
-           `tournaments`.`archived` AS `archived`
+           `tournaments`.`archived` AS `archived`,
+           `tournaments`.`last_cron_update` AS `last_cron_update`
     FROM `tournaments`
     WHERE `tournaments`.`eventType` = 'tournament' ;
 
@@ -506,7 +511,8 @@ CREATE ALGORITHM=UNDEFINED SQL SECURITY DEFINER VIEW `events_wildcards` AS
            `tournaments`.`OPL_ID_logo` AS `OPL_ID_logo`,
            `tournaments`.`finished` AS `finished`,
            `tournaments`.`deactivated` AS `deactivated`,
-           `tournaments`.`archived` AS `archived`
+           `tournaments`.`archived` AS `archived`,
+           `tournaments`.`last_cron_update` AS `last_cron_update`
     FROM `tournaments`
     WHERE `tournaments`.`eventType` = 'wildcard' ;
 
@@ -528,7 +534,8 @@ CREATE ALGORITHM=UNDEFINED SQL SECURITY DEFINER VIEW `events_with_standings` AS
            `tournaments`.`OPL_ID_logo` AS `OPL_ID_logo`,
            `tournaments`.`finished` AS `finished`,
            `tournaments`.`deactivated` AS `deactivated`,
-           `tournaments`.`archived` AS `archived`
+           `tournaments`.`archived` AS `archived`,
+           `tournaments`.`last_cron_update` AS `last_cron_update`
     FROM `tournaments`
     WHERE `tournaments`.`eventType` in ('group','playoffs','wildcard')
        OR (`tournaments`.`eventType` = 'league' AND `tournaments`.`format` = 'swiss');
