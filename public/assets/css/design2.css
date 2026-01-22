@@ -3630,6 +3630,22 @@ input[type=date] {
 }
 .write-result-popup {
 	text-align: left;
+	white-space: pre-line;
+
+	details {
+		margin: 16px 0;
+		border: 1px solid var(--accent);
+		border-radius: 8px;
+
+		summary {
+			padding: 8px;
+			cursor: pointer;
+		}
+		>span {
+			display: block;
+			padding: 8px;
+		}
+	}
 }
 
 .related-event-button-list {

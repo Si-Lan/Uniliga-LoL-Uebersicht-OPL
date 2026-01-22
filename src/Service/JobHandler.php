@@ -63,7 +63,8 @@ class JobHandler {
 			}
 			$this->patchContext = $context;
 		} elseif ($this->job->type === UpdateJobType::ADMIN) {
-			if ($context !== null && !($context instanceof Tournament)) {
+			if (($this->job->action->isOplApiUpdate() && $context === null)
+			|| ($context !== null && !($context instanceof Tournament))) {
 				$this->logger->warning("Job {$this->job->id} has invalid context");
 				echo "Job {$this->job->id} has invalid context\n";
 				exit(1);

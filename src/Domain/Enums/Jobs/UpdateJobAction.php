@@ -32,4 +32,20 @@ enum UpdateJobAction: string {
 			|| $this === self::DOWNLOAD_SPELL_IMAGES
 			|| $this === self::DOWNLOAD_RUNE_IMAGES;
 	}
+	public function isRiotApiUpdate(): bool {
+		return $this === self::UPDATE_PUUIDS
+			|| $this === self::UPDATE_RIOTIDS_PUUIDS
+			|| $this === self::UPDATE_PLAYER_RANKS
+			|| $this === self::UPDATE_TEAM_RANKS
+			|| $this === self::UPDATE_GAMEDATA
+			|| $this === self::UPDATE_PLAYER_STATS
+			|| $this === self::UPDATE_TEAM_STATS;
+	}
+	public function isOplApiUpdate(): bool {
+		return $this === self::UPDATE_TEAMS
+			|| $this === self::UPDATE_PLAYERS
+			|| $this === self::UPDATE_MATCHES
+			|| $this === self::UPDATE_RESULTS
+			|| $this === self::UPDATE_RIOTIDS_OPL;
+	}
 }

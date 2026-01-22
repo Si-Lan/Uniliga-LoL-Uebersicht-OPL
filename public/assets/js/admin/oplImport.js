@@ -304,6 +304,10 @@ function show_results_dialog_with_result(tournamentId, html) {
 	show_results_dialog(tournamentId);
 }
 
+function renderDetails(summary,text) {
+	return `<details><summary>${summary}</summary><span>${text}</span></details>`;
+}
+
 $(document).on("click", ".toggle-turnierselect-accordeon", function () {
 	toggle_turnier_select_accordeon(this.getAttribute("data-id"));
 });
@@ -334,82 +338,20 @@ function setButtonLoadingBarWidth(button, widthPercentage) {
 // Teams aktualisieren
 $(document).on("click", "button.get-teams", async function () {
 	const tournamentId = this.dataset.id;
-	setButtonUpdating($(this));
-	const childrenTournaments = await getStandingEventsInTournament(tournamentId);
-	if (childrenTournaments.error) {
-		show_results_dialog_with_result(tournamentId, "Fehler beim Prüfen des Turniers");
-		unsetButtonUpdating($(this));
+	const jqButton = $(this);
+	const jobResponse = await startJob(`/admin/api/opl/tournaments/${tournamentId}/teams`);
+	if (jobResponse.error) {
+		console.error(jobResponse.error);
 		return;
 	}
-	let result = "";
-	if (childrenTournaments.length === 0) {
-		result = await updateTeamsInTournament(tournamentId);
-	} else {
-		const total = childrenTournaments.length;
-		let donePercentage = 0;
-		for (const childTournament of childrenTournaments) {
-			const partialResult = await updateTeamsInTournament(childTournament.id);
-			result += `<br>(${childTournament.id}) ${childTournament.name}:<br> ${partialResult}<br>`;
-			donePercentage += 100/total;
-			setButtonLoadingBarWidth($(this), donePercentage);
-			if (donePercentage < 100) {
-				await new Promise(r => setTimeout(r, 1000));
-			}
-		}
+	const jobId = parseInt(jobResponse["job_id"]);
+	setButtonUpdating(jqButton);
+	const job = await checkJobStatusRepeatedly(jobId, 1000, jqButton);
+	if (job !== null) {
+		show_results_dialog_with_result(tournamentId, job?.resultMessage + renderDetails("Details", job?.message));
 	}
-	show_results_dialog_with_result(tournamentId, result);
-	unsetButtonUpdating($(this));
-});
-async function updateTeamsInTournament(tournamentId) {
-	return await fetch(`/admin/api/opl/tournaments/${tournamentId}/teams`, {method: 'POST'})
-		.then(res => {
-			if (res.ok) {
-				return res.json()
-			} else {
-				return {"error": "Fehler beim Aktualisieren der Teams"};
-			}
-		})
-		.then(data => {
-			if (data.error) {
-				return data.error;
-			}
-			let teamCount = data.teams.length;
-			let unchangedTeams = [];
-			let addedTeams = [];
-			let updatedTeams = [];
-			let removedTeams = [];
-			for (const team of data.teams) {
-				switch (team.result) {
-					case "inserted":
-						addedTeams.push(team?.entity?.name);
-						break;
-					case "updated":
-						updatedTeams.push(team?.entity?.name);
-						break;
-					case "not-changed":
-						unchangedTeams.push(team?.entity?.name);
-						break;
-				}
-			}
-			for (const removedTeam of data.removedTeams) {
-				removedTeams.push(removedTeam?.name);
-			}
-			let addedTeamsToTournament = [];
-			for (const addedTeam of data.addedTeams) {
-				addedTeamsToTournament.push(addedTeam?.name);
-			}
-			return `${teamCount} Teams im Event<br>
-						- ${unchangedTeams.length} allgemein unverändert<br>
-						- ${addedTeams.length} allgemein neu<br>
-						- ${updatedTeams.length} allgemein aktualisiert<br>
-						${addedTeamsToTournament.length} Teams zu Turnier hinzugefügt<br>
-						${removedTeams.length} Teams aus Turnier entfernt`;
-		})
-		.catch(error => {
-			console.error(error);
-			return "Fehler beim Aktualisieren der Teams";
-		})
-}
+	unsetButtonUpdating(jqButton);
+})
 
 // Spieler aktualisieren
 $(document).on("click", "button.get-players", async function () {
@@ -920,4 +862,50 @@ async function getMatchupsInTournament(tournamentId, onlyUnplayed = false) {
 			}
 			return data;
 		})
+}
+
+
+/* Background-Job Helfer */
+async function startJob(endpoint) {
+	return await fetch(endpoint, {method: 'POST'})
+		.then(res => {
+			if (res.ok) {
+				return res.json()
+			} else {
+				return {"error": "Fehler beim Starten des Jobs"};
+			}
+		})
+		.catch(e => console.error(e));
+}
+async function checkJobStatusRepeatedly(jobId, interval, button = null) {
+	let job = null;
+	while (true) {
+		job = await checkJobStatus(jobId);
+		if (job.error) {
+			if (button !== null) unsetButtonUpdating(button, true);
+			console.error(job.error);
+			return null;
+		}
+		if (job.status !== "running" && job.status !== "queued") {
+			if (button !== null) unsetButtonUpdating(button);
+			break;
+		}
+		if (button !== null) setButtonLoadingBarWidth(button, Math.round(job.progress));
+		await new Promise(r => setTimeout(r, interval));
+	}
+	return job;
+}
+async function checkJobStatus(jobId) {
+	return await fetch(`/api/jobs/${jobId}`)
+		.then(res => {
+			if (res.ok) {
+				return res.json()
+			} else {
+				return {"error": "Fehler beim Laden der Daten"};
+			}
+		})
+		.catch(e => {
+			console.error(e);
+			return {"error": "Fehler beim Laden der Daten"};
+		});
 }

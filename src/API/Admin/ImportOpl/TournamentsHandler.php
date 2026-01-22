@@ -6,8 +6,12 @@ use App\API\AbstractHandler;
 use App\Core\Utilities\DataParsingHelpers;
 use App\Domain\Enums\EventFormat;
 use App\Domain\Enums\EventType;
+use App\Domain\Enums\Jobs\UpdateJobAction;
+use App\Domain\Enums\Jobs\UpdateJobContextType;
+use App\Domain\Enums\Jobs\UpdateJobType;
 use App\Domain\Factories\TournamentFactory;
 use App\Domain\Repositories\TournamentRepository;
+use App\Domain\Repositories\UpdateJobRepository;
 use App\Service\ApiResponse;
 use App\Service\OplApiService;
 use App\Service\OplLogoService;
@@ -16,8 +20,12 @@ use App\Service\Updater\TournamentUpdater;
 class TournamentsHandler extends AbstractHandler{
 	use DataParsingHelpers;
 
+	private TournamentRepository $tournamentRepo;
+	private UpdateJobRepository $updateJobRepo;
 	private TournamentUpdater $tournamentUpdater;
 	public function __construct() {
+		$this->tournamentRepo = new TournamentRepository();
+		$this->updateJobRepo = new UpdateJobRepository();
 		$this->tournamentUpdater = new TournamentUpdater();
 	}
 
@@ -116,16 +124,26 @@ class TournamentsHandler extends AbstractHandler{
 		echo json_encode($logoDownload);
 	}
 
+	/**
+	 * Aktualisiert alle Teams in einem angegebenen Turnier
+	 */
 	public function postTournamentsTeams($id): void {
 		$this->checkRequestMethod('POST');
-
-		try {
-			$saveResult = $this->tournamentUpdater->updateTeams($id);
-		} catch (\Exception $e) {
-			$this->sendErrorResponse($e->getCode(), $e->getMessage());
+		if (!$this->tournamentRepo->tournamentExists($id)) {
+			$this->sendErrorResponse(404, "Tournament not found");
 		}
 
-		echo json_encode($saveResult);
+		$job = $this->updateJobRepo->createJob(
+			UpdateJobType::ADMIN,
+			UpdateJobAction::UPDATE_TEAMS,
+			UpdateJobContextType::TOURNAMENT,
+			$id
+		);
+
+		$optionsString = "-j $job->id";
+		exec("php ".BASE_PATH."/bin/admin_updates/update_teams.php $optionsString > ".BASE_PATH."/logs/dump.log 2>&1 &");
+
+		echo json_encode(['job_id'=>$job->id, "log"=>"php ".BASE_PATH."/bin/admin_updates/update_teams.php $optionsString > /dev/null 2>&1 &"]);
 	}
 
 	public function postTournamentsMatchups($tournamentId): void {
