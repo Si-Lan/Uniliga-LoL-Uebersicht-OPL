@@ -127,7 +127,7 @@ class TournamentFactory extends AbstractFactory {
 			'finished' => $tournament->finished ? 1 : 0,
 			'deactivated' => $tournament->deactivated ? 1 : 0,
 			'archived' => $tournament->archived ? 1 : 0,
-			'last_cron_update' => $tournament->lastCronUpdate?->format('Y-m-d'),
+			'last_cron_update' => $tournament->lastCronUpdate?->format('Y-m-d H:i:s'),
 		];
 	}
 

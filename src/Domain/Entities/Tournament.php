@@ -197,6 +197,7 @@ class Tournament {
 				}
 			}
 		}
+		if ($this->lastCronUpdate !== $tournament->lastCronUpdate) $diff['lastCronUpdate'] = $this->lastCronUpdate?->format('Y-m-d H:i:s');
 		return $diff;
 	}
 }
