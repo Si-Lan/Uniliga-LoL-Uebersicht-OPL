@@ -538,18 +538,34 @@ CREATE ALGORITHM=UNDEFINED SQL SECURITY DEFINER VIEW `latest_team_logo_in_tourna
            `tr`.`OPL_ID` AS `OPL_ID_tournament`,
            `tlh`.`dir_key` AS `dir_key`
     FROM (
-        `team_logo_history` `tlh`
-            JOIN `tournaments` `tr`
-            ON (
-                (`tlh`.`update_time` < `tr`.`dateEnd` OR `tr`.`dateEnd` IS NULL)
-                    AND `tr`.`eventType` = 'tournament'
-                )
+        `tournaments` `tr`
+            JOIN `team_logo_history` `tlh`
+            ON `tr`.`eventType` = 'tournament'
         )
     WHERE `tlh`.`update_time` = (
-        SELECT max(`tlh2`.`update_time`)
-        FROM `team_logo_history` `tlh2`
-        WHERE `tlh2`.`OPL_ID_team` = `tlh`.`OPL_ID_team`
-          AND (`tlh2`.`update_time` < `tr`.`dateEnd` OR `tr`.`dateEnd` IS NULL)
+        CASE
+            WHEN `tr`.`dateEnd` IS NULL THEN
+                (
+                    SELECT MAX(`tlh2`.`update_time`)
+                    FROM `team_logo_history` `tlh2`
+                    WHERE `tlh2`.`OPL_ID_team` = `tlh`.`OPL_ID_team`
+                )
+            ELSE
+                COALESCE(
+                        (
+                            SELECT MAX(`tlh2`.`update_time`)
+                            FROM `team_logo_history` `tlh2`
+                            WHERE `tlh2`.`OPL_ID_team` = `tlh`.`OPL_ID_team`
+                              AND `tlh2`.`update_time` <= `tr`.`dateEnd`
+                        ),
+                        (
+                            SELECT MIN(`tlh3`.`update_time`)
+                            FROM `team_logo_history` `tlh3`
+                            WHERE `tlh3`.`OPL_ID_team` = `tlh`.`OPL_ID_team`
+                              AND `tlh3`.`update_time` > `tr`.`dateEnd`
+                        )
+                )
+            END
         );
 
 DROP VIEW IF EXISTS `latest_team_name_in_tournament`;
@@ -558,19 +574,35 @@ CREATE ALGORITHM=UNDEFINED SQL SECURITY DEFINER VIEW `latest_team_name_in_tourna
            `tr`.`OPL_ID` AS `OPL_ID_tournament`,
            `tnh`.`name` AS `name`
     FROM (
-        `team_name_history` `tnh`
-            JOIN `tournaments` `tr`
-            ON (
-                (`tnh`.`update_time` < `tr`.`dateEnd` OR `tr`.`dateEnd` IS NULL)
-                    AND `tr`.`eventType` = 'tournament'
-                )
+        `tournaments` `tr`
+            JOIN `team_name_history` `tnh`
+            ON `tr`.`eventType` = 'tournament'
         )
     WHERE `tnh`.`update_time` = (
-        SELECT max(`tnh2`.`update_time`)
-        FROM `team_name_history` `tnh2`
-        WHERE `tnh2`.`OPL_ID_team` = `tnh`.`OPL_ID_team`
-          AND (`tnh2`.`update_time` < `tr`.`dateEnd` OR `tr`.`dateEnd` is null)
-        );
+        CASE
+        WHEN `tr`.`dateEnd` IS NULL THEN
+            (
+                SELECT MAX(`tnh2`.`update_time`)
+                FROM `team_name_history` `tnh2`
+                WHERE `tnh2`.`OPL_ID_team` = `tnh`.`OPL_ID_team`
+            )
+        ELSE
+            COALESCE(
+                    (
+                        SELECT MAX(`tnh2`.`update_time`)
+                        FROM `team_name_history` `tnh2`
+                        WHERE `tnh2`.`OPL_ID_team` = `tnh`.`OPL_ID_team`
+                          AND `tnh2`.`update_time` <= `tr`.`dateEnd`
+                    ),
+                    (
+                        SELECT MIN(`tnh3`.`update_time`)
+                        FROM `team_name_history` `tnh3`
+                        WHERE `tnh3`.`OPL_ID_team` = `tnh`.`OPL_ID_team`
+                          AND `tnh3`.`update_time` > `tr`.`dateEnd`
+                    )
+            )
+        END
+    );
 
 
 
