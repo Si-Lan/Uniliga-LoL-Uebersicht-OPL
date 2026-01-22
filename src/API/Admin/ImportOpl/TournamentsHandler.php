@@ -141,9 +141,9 @@ class TournamentsHandler extends AbstractHandler{
 		);
 
 		$optionsString = "-j $job->id";
-		exec("php ".BASE_PATH."/bin/admin_updates/update_teams.php $optionsString > ".BASE_PATH."/logs/dump.log 2>&1 &");
+		exec("php ".BASE_PATH."/bin/admin_updates/update_teams.php $optionsString > /dev/null 2>&1 &");
 
-		echo json_encode(['job_id'=>$job->id, "log"=>"php ".BASE_PATH."/bin/admin_updates/update_teams.php $optionsString > /dev/null 2>&1 &"]);
+		echo json_encode(['job_id'=>$job->id]);
 	}
 
 	public function postTournamentsMatchups($tournamentId): void {
