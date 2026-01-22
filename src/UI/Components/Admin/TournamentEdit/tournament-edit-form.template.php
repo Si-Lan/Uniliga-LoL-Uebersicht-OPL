@@ -49,6 +49,7 @@ $nonRootDisableAttribute = $tournament->eventType === EventType::TOURNAMENT ? ''
 			<label class="write_tournament_number2"><input type="text" name="numberRangeTo" value="<?=$tournament->numberRangeTo?>" placeholder="#"></label>
 			<label class="write_tournament_startdate">Zeitraum<input type="date" name="dateStart" value="<?=$tournament->dateStart?->format('Y-m-d')?>"></label>
 			<label class="write_tournament_enddate"><input type="date" name="dateEnd" value="<?=$tournament->dateEnd?->format('Y-m-d')?>"></label>
+            <?php if ($tournament->isEventWithStanding()) : ?>
 			<label class="write_tournament_format">
 				<span class="slct">
 					<select name="format">
@@ -60,6 +61,7 @@ $nonRootDisableAttribute = $tournament->eventType === EventType::TOURNAMENT ? ''
 					<?= IconRenderer::getMaterialIconSpan('arrow_drop_down')?>
 				</span>
 			</label>
+            <?php endif; ?>
 		</div>
 		<div class="write_tournament_row wtrow-3">
 			<label class="write_tournament_show">Anzeigen:<input type="checkbox" name="deactivated" value="false" <?=$tournament->deactivated ? '' : 'checked'?>></label>
