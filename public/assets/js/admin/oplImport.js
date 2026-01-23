@@ -372,66 +372,22 @@ $(document).on("click", "button.get-players", async function () {
 })
 
 // RiotIds aktualisieren
-$(document).on('click', 'button.get-riotids', async function () {
+$(document).on("click", "button.get-riotids", async function () {
 	const tournamentId = this.dataset.id;
-	setButtonUpdating($(this));
-	const teamsInTournaments = await getTeamsInTournament(tournamentId);
-	if (teamsInTournaments.error) {
-		show_results_dialog_with_result(tournamentId, "Fehler beim Holen der Teams");
-		unsetButtonUpdating($(this));
+	const jqButton = $(this);
+	const jobResponse = await startJob(`/admin/api/opl/tournaments/${tournamentId}/players/accounts`);
+	if (jobResponse.error) {
+		console.error(jobResponse.error);
 		return;
 	}
-	if (teamsInTournaments.length === 0) {
-		show_results_dialog_with_result(tournamentId, "Keine Teams im Turnier");
-		unsetButtonUpdating($(this));
+	const jobId = parseInt(jobResponse["job_id"]);
+	setButtonUpdating(jqButton);
+	const job = await checkJobStatusRepeatedly(jobId, 1000, jqButton);
+	if (job !== null) {
+		show_results_dialog_with_result(tournamentId, job?.resultMessage + renderDetails("Details", job?.message));
 	}
-	let result = "";
-	const totalTeams = teamsInTournaments.length;
-	let donePercentage = 0;
-	for (const teamInTournament of teamsInTournaments) {
-		const partialResult = await updatePlayerAccountsInTeam(teamInTournament.team.id);
-		result += `<br>(${teamInTournament.team.id}) ${teamInTournament.team.name}:<br> ${partialResult}<br>`;
-		donePercentage += 100/totalTeams;
-		setButtonLoadingBarWidth($(this), donePercentage);
-		if (donePercentage < 100) {
-			await new Promise(r => setTimeout(r, 1000));
-		}
-	}
-	show_results_dialog_with_result(tournamentId, result);
-	unsetButtonUpdating($(this));
+	unsetButtonUpdating(jqButton);
 })
-async function updatePlayerAccountsInTeam(teamId) {
-	return await fetch(`/admin/api/opl/teams/${teamId}/players/accounts`, {method: 'POST'})
-		.then(res => {
-			if (res.ok) {
-				return res.json()
-			} else {
-				return {"error": "Fehler beim Aktualisieren der RiotIds"};
-			}
-		})
-		.then(data => {
-			if (data.error) {
-				return data.error;
-			}
-			let playerCount = data.players.length + data.errors.length;
-			let playersUpdated = [];
-			let playersUnchanged = [];
-			for (const player of data.players) {
-				switch (player.result) {
-					case "updated":
-						playersUpdated.push(player.entity?.name);
-						break;
-					case "not-changed":
-						playersUnchanged.push(player.entity?.name);
-						break;
-				}
-			}
-			return `${playerCount} Spieler im Team<br>
-						- ${playersUpdated.length} RiotIds aktualisiert<br>
-						- ${playersUnchanged.length} Spieler unverändert<br>
-						- ${data.errors.length} Fehler beim Aktualisieren`;
-		})
-}
 
 // Matchups aktualisieren
 $(document).on('click', 'button.get-matchups', async function () {

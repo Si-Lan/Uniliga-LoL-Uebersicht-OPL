@@ -165,6 +165,25 @@ class TournamentsHandler extends AbstractHandler{
 		echo json_encode(['job_id'=>$job->id]);
 	}
 
+	public function postTournamentsPlayersAccounts($tournamentId): void {
+		$this->checkRequestMethod('POST');
+		if (!$this->tournamentRepo->tournamentExists($tournamentId)) {
+			$this->sendErrorResponse(404, "Tournament not found");
+		}
+
+		$job = $this->updateJobRepo->createJob(
+			UpdateJobType::ADMIN,
+			UpdateJobAction::UPDATE_RIOTIDS_OPL,
+			UpdateJobContextType::TOURNAMENT,
+			$tournamentId
+		);
+
+		$optionsString = "-j $job->id";
+		exec("php ".BASE_PATH."/bin/admin_updates/update_riotids_opl.php $optionsString > /dev/null 2>&1 &");
+
+		echo json_encode(['job_id'=>$job->id]);
+	}
+
 	public function postTournamentsMatchups($tournamentId): void {
 		$this->checkRequestMethod('POST');
 
