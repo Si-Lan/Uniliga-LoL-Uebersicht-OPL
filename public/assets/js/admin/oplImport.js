@@ -356,100 +356,20 @@ $(document).on("click", "button.get-teams", async function () {
 // Spieler aktualisieren
 $(document).on("click", "button.get-players", async function () {
 	const tournamentId = this.dataset.id;
-	setButtonUpdating($(this));
-	const teamsInTournaments = await getTeamsInTournament(tournamentId);
-	if (teamsInTournaments.error) {
-		show_results_dialog_with_result(tournamentId, "Fehler beim Holen der Teams");
-		unsetButtonUpdating($(this));
+	const jqButton = $(this);
+	const jobResponse = await startJob(`/admin/api/opl/tournaments/${tournamentId}/players`);
+	if (jobResponse.error) {
+		console.error(jobResponse.error);
 		return;
 	}
-	if (teamsInTournaments.length === 0) {
-		show_results_dialog_with_result(tournamentId, "Keine Teams im Turnier");
-		unsetButtonUpdating($(this));
-		return;
+	const jobId = parseInt(jobResponse["job_id"]);
+	setButtonUpdating(jqButton);
+	const job = await checkJobStatusRepeatedly(jobId, 1000, jqButton);
+	if (job !== null) {
+		show_results_dialog_with_result(tournamentId, job?.resultMessage + renderDetails("Details", job?.message));
 	}
-	let result = "";
-	const total = teamsInTournaments.length;
-	let donePercentage = 0;
-	for (const teamInTournament of teamsInTournaments) {
-		const partialResult = await updatePlayersInTeam(teamInTournament.team.id);
-		result += `<br>(${teamInTournament.team.id}) ${teamInTournament.team.name}:<br> ${partialResult}<br>`;
-		donePercentage += 100/total;
-		setButtonLoadingBarWidth($(this), donePercentage);
-		if (donePercentage < 100) {
-			await new Promise(r => setTimeout(r, 1000));
-		}
-	}
-	show_results_dialog_with_result(tournamentId, result);
-	unsetButtonUpdating($(this));
+	unsetButtonUpdating(jqButton);
 })
-async function updatePlayersInTeam(teamId) {
-	return await fetch(`/admin/api/opl/teams/${teamId}/players`, {method: 'POST'})
-		.then(res => {
-			if (res.ok) {
-				return res.json()
-			} else {
-				return {"error": "Fehler beim Aktualisieren der Spieler"};
-			}
-		})
-		.then(data => {
-			if (data.error) {
-				return data.error;
-			}
-			let playerCount = data.players.length;
-			let unchangedPlayers = [];
-			let addedPlayers = [];
-			let updatedPlayers = [];
-			for (const player of data.players) {
-				switch (player.result) {
-					case "inserted":
-						addedPlayers.push(player.entity?.name);
-						break;
-					case "updated":
-						updatedPlayers.push(player.entity?.name);
-						break;
-					case "not-changed":
-						unchangedPlayers.push(player.entity?.name);
-						break;
-				}
-			}
-			let removedPlayersFromTeam = [];
-			for (const removedPlayer of data.removedPlayers) {
-				removedPlayersFromTeam.push(removedPlayer?.name);
-			}
-			let addedPlayersToTeam = [];
-			for (const addedPlayer of data.addedPlayers) {
-				addedPlayersToTeam.push(addedPlayer?.name);
-			}
-			
-			let tournamentResults = "";
-			for (const tournamentChange of data.tournamentChanges) {
-				let removedPlayersFromTeamInTournament = [];
-				for (const removedPlayer of tournamentChange.removedPlayers) {
-					removedPlayersFromTeamInTournament.push(removedPlayer?.name);
-				}
-				let addedPlayersToTeamInTournament = [];
-				for (const addedPlayer of tournamentChange.addedPlayers) {
-					addedPlayersToTeamInTournament.push(addedPlayer?.name);
-				}
-				tournamentResults += `<br>In Turnier (${tournamentChange.tournament.id}) ${tournamentChange.tournament.name}:<br>
-										- ${addedPlayersToTeamInTournament.length} Spieler zum Team hinzugefügt<br>
-										- ${removedPlayersFromTeamInTournament.length} Spieler aus Team entfernt`;
-			}
-
-			return `${playerCount} Spieler im Team<br>
-						- ${unchangedPlayers.length} allgemein unverändert<br>
-						- ${addedPlayers.length} allgemein neu<br>
-						- ${updatedPlayers.length} allgemein aktualisiert<br>
-						${addedPlayersToTeam.length} Spieler zum Team hinzugefügt<br>
-						${removedPlayersFromTeam.length} Spieler aus Team entfernt
-						${tournamentResults}`;
-		})
-		.catch(error => {
-			console.error(error);
-			return "Fehler beim Aktualisieren der Spieler";
-		})
-}
 
 // RiotIds aktualisieren
 $(document).on('click', 'button.get-riotids', async function () {
