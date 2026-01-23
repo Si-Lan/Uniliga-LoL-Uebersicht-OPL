@@ -84,7 +84,8 @@ class PlayerInTeamRepository extends AbstractRepository {
 	 */
 	public function findAllByTeamAndActiveStatus(Team $team, bool $active): array {
 		$allPlayers = $this->findAllByTeam($team);
-		return array_filter($allPlayers, fn(PlayerInTeam $player) => $player->removed === !$active);
+		$filteredPlayers = array_filter($allPlayers, fn(PlayerInTeam $player) => $player->removed === !$active);
+		return array_values($filteredPlayers);
 	}
 
 	public function isPlayerInTeam(int $playerId, int $teamId, bool $onlyActive = false): bool {
