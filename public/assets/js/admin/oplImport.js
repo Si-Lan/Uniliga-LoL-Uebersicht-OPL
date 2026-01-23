@@ -390,79 +390,22 @@ $(document).on("click", "button.get-riotids", async function () {
 })
 
 // Matchups aktualisieren
-$(document).on('click', 'button.get-matchups', async function () {
+$(document).on("click", "button.get-matchups", async function () {
 	const tournamentId = this.dataset.id;
-	setButtonUpdating($(this));
-	const childrenTournaments = await getStandingEventsInTournament(tournamentId);
-	if (childrenTournaments.error) {
-		show_results_dialog_with_result(tournamentId, "Fehler beim Prüfen des Turniers");
-		unsetButtonUpdating($(this));
+	const jqButton = $(this);
+	const jobResponse = await startJob(`/admin/api/opl/tournaments/${tournamentId}/matchups`);
+	if (jobResponse.error) {
+		console.error(jobResponse.error);
 		return;
 	}
-	let result = "";
-	if (childrenTournaments.length === 0) {
-		result = await updateMatchupsInTournament(tournamentId);
-	} else {
-		const total = childrenTournaments.length;
-		let donePercentage = 0;
-		for (const childTournament of childrenTournaments) {
-			const partialResult = await updateMatchupsInTournament(childTournament.id);
-			result += `<br>(${childTournament.id}) ${childTournament.name}:<br> ${partialResult}<br>`;
-			donePercentage += 100/total;
-			setButtonLoadingBarWidth($(this), donePercentage);
-			if (donePercentage < 100) {
-				await new Promise(r => setTimeout(r, 1000));
-			}
-		}
+	const jobId = parseInt(jobResponse["job_id"]);
+	setButtonUpdating(jqButton);
+	const job = await checkJobStatusRepeatedly(jobId, 1000, jqButton);
+	if (job !== null) {
+		show_results_dialog_with_result(tournamentId, job?.resultMessage + renderDetails("Details", job?.message));
 	}
-	show_results_dialog_with_result(tournamentId, result);
-	unsetButtonUpdating($(this));
-});
-async function updateMatchupsInTournament(tournamentId) {
-	return await fetch(`/admin/api/opl/tournaments/${tournamentId}/matchups`, {method: 'POST'})
-		.then(res => {
-			if (res.ok) {
-				return res.json()
-			} else {
-				return {"error": "Fehler beim Aktualisieren der Matchups"};
-			}
-		})
-		.then(data => {
-			if (data.error) {
-				return data.error;
-			}
-			let matchupCount = data.matchups.length;
-			let unchangedMatchups = [];
-			let addedMatchups = [];
-			let updatedMatchups = [];
-			let removedMatchups = [];
-			for (const matchup of data.matchups) {
-				switch (matchup.result) {
-					case "inserted":
-						addedMatchups.push(matchup?.entity?.id);
-						break;
-					case "updated":
-						updatedMatchups.push(matchup?.entity?.id);
-						break;
-					case "not-changed":
-						unchangedMatchups.push(matchup?.entity?.id);
-						break;
-				}
-			}
-			for (const removedMatchup of data.removedMatchups) {
-				removedMatchups.push(removedMatchup?.id);
-			}
-			return `${matchupCount} Matchups im Event<br>
-					- ${unchangedMatchups.length} unverändert<br>
-					- ${addedMatchups.length} neu<br>
-					- ${updatedMatchups.length} aktualisiert<br>
-					- ${removedMatchups.length} entfernt`;
-		})
-		.catch(error => {
-			console.error(error);
-			return "Fehler beim Aktualisieren der Matchups";
-		})
-}
+	unsetButtonUpdating(jqButton);
+})
 
 // Matchresults aktualisieren und Spiel-Ids holen
 $(document).on('click', 'button.get-results', async function () {
