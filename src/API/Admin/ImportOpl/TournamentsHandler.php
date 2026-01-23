@@ -160,7 +160,7 @@ class TournamentsHandler extends AbstractHandler{
 		);
 
 		$optionsString = "-j $job->id";
-		exec("php ".BASE_PATH."/bin/admin_updates/update_players.php $optionsString > ".BASE_PATH."/logs/dump.log 2>&1 &");
+		exec("php ".BASE_PATH."/bin/admin_updates/update_players.php $optionsString > /dev/null 2>&1 &");
 
 		echo json_encode(['job_id'=>$job->id]);
 	}
