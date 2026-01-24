@@ -65,36 +65,29 @@ _Dockerfile_ mit benötigten Einstellungen
 ```
 FROM php:8.3-apache
 
+# apt package list aktualisieren
+RUN apt-get update
+
 # Install PHP extensions
 RUN docker-php-ext-install pdo pdo_mysql mysqli \
     && docker-php-ext-enable pdo_mysql mysqli
 
-RUN apt-get update && apt-get install -y \
+RUN apt-get install -y \
         libpng-dev \
         libjpeg62-turbo-dev \
         libwebp-dev \
-    && rm -rf /var/lib/apt/lists/* \
     && docker-php-ext-configure gd --with-jpeg --with-webp \
     && docker-php-ext-install -j$(nproc) gd
 
 # Activate Apache modules
 RUN a2enmod rewrite \
-    && a2enmod http2 \
     && a2enmod headers \
     && a2enmod socache_shmcb \
     && a2enmod ssl \
     && a2enmod proxy \
     && a2enmod proxy_http
 
-# VHosts kopieren
-COPY vhosts/*.conf /etc/apache2/sites-available/
-
-# VHost aktivieren
-RUN a2ensite uniliga_silence_lol.conf \
-    && a2dissite 000-default.conf \
-    && apache2ctl -k graceful
-
-# memory-limit.ini erstellen und ins Image kopieren
+# custom php.ini ins Image kopieren
 COPY php_ini/memory-limit.ini /usr/local/etc/php/conf.d/
 
 # Xdebug installieren (nur dev)
@@ -102,11 +95,13 @@ COPY php_ini/memory-limit.ini /usr/local/etc/php/conf.d/
 #    && docker-php-ext-enable xdebug
 
 # Cron installieren
-RUN apt-get update && apt-get install -y cron \
-    && rm -rf /var/lib/apt/lists/*
+RUN apt-get install -y cron
 RUN touch /var/log/cron.log \
     && chown www-data:www-data /var/log/cron.log \
     && chmod 0644 /var/log/cron.log
+    
+# apt cache löschen
+RUN rm -rf /var/lib/apt/lists/*
 
 # Start-Script kopieren und ausführbar machen
 COPY entrypoint.sh /entrypoint.sh
@@ -121,12 +116,25 @@ _entrypoint.sh_
 ```
 #!/bin/bash
 
+# VHost konfigurieren
+cat > /etc/apache2/sites-available/000-default.conf <<EOF
+<VirtualHost *:80>
+    ServerName ${SERVER_NAME}
+    ServerAdmin ${SERVER_ADMIN}
+    DocumentRoot /var/www/html/public
+    <Directory /var/www/html/public>
+        Options FollowSymLinks MultiViews
+        AllowOverride All
+    </Directory>
+</VirtualHost>
+EOF
+
 # Rechte setzen
-chown -R www-data:www-data /var/www/uniliga_silence_lol
+chown -R www-data:www-data /var/www/html
 
 # Cronjobs installieren
-chmod +x /var/www/uniliga_silence_lol/bin/setup/install-cronjobs.sh
-/var/www/uniliga_silence_lol/bin/setup/install-cronjobs.sh
+chmod +x /var/www/html/bin/setup/install-cronjobs.sh
+/var/www/html/bin/setup/install-cronjobs.sh
 
 # Prozesse starten
 cron
@@ -158,11 +166,14 @@ services:
     restart: always
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.web_silence_lol.rule=Host(`{YOUR_DOMAIN}`)"
+      - "traefik.http.routers.web_silence_lol.rule=Host(`${SERVER_NAME}`)"
       - "traefik.http.routers.web_silence_lol.entrypoints=websecure"
       - "traefik.http.routers.web_silence_lol.tls.certresolver=letsencrypt"
+    environment:
+      SERVER_NAME: ${SERVER_NAME}
+      SERVER_ADMIN: ${SERVER_ADMIN}
     volumes:
-      - ./src/uniliga_silence_lol:/var/www/uniliga_silence_lol
+      - ./src/uniliga_silence_lol:/var/www/html
     networks:
       - web_traefik
 
