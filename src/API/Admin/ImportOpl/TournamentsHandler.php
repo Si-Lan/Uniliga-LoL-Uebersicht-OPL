@@ -229,13 +229,20 @@ class TournamentsHandler extends AbstractHandler{
 
 	public function postTournamentsStandings($tournamentId): void {
 		$this->checkRequestMethod('POST');
-
-		try {
-			$standingResult = $this->tournamentUpdater->calculateStandings($tournamentId);
-		} catch (\Exception $e) {
-			$this->sendErrorResponse($e->getCode(), $e->getMessage());
+		if (!$this->tournamentRepo->tournamentExists($tournamentId)) {
+			$this->sendErrorResponse(404, "Tournament not found");
 		}
 
-		echo json_encode($standingResult);
+		$job = $this->updateJobRepo->createJob(
+			UpdateJobType::ADMIN,
+			UpdateJobAction::UPDATE_STANDINGS,
+			UpdateJobContextType::TOURNAMENT,
+			$tournamentId
+		);
+
+		$optionsString = "-j $job->id";
+		exec("php ".BASE_PATH."/bin/admin_updates/update_standings.php $optionsString > /dev/null 2>&1 &");
+
+		echo json_encode(['job_id'=>$job->id]);
 	}
 }

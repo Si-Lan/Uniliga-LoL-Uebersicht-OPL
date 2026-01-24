@@ -222,6 +222,7 @@ CREATE TABLE update_jobs (
         'update_matches',
         'update_results',
         'update_riotids_opl',
+        'update_standings',
         'update_puuids',
         'update_riotids_puuid',
         'update_player_ranks',

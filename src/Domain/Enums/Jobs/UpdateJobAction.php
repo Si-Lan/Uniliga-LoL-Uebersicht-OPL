@@ -8,6 +8,7 @@ enum UpdateJobAction: string {
 	case UPDATE_MATCHES = 'update_matches';
 	case UPDATE_RESULTS = 'update_results';
 	case UPDATE_RIOTIDS_OPL = 'update_riotids_opl';
+	case UPDATE_STANDINGS = 'update_standings';
 	case UPDATE_PUUIDS = 'update_puuids';
 	case UPDATE_RIOTIDS_PUUIDS = 'update_riotids_puuid';
 	case UPDATE_PLAYER_RANKS = 'update_player_ranks';
@@ -46,6 +47,7 @@ enum UpdateJobAction: string {
 			|| $this === self::UPDATE_PLAYERS
 			|| $this === self::UPDATE_MATCHES
 			|| $this === self::UPDATE_RESULTS
-			|| $this === self::UPDATE_RIOTIDS_OPL;
+			|| $this === self::UPDATE_RIOTIDS_OPL
+			|| $this === self::UPDATE_STANDINGS;
 	}
 }
