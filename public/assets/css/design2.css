@@ -3408,11 +3408,8 @@ button.toggle-turnierselect-accordeon.open .material-symbol {
 	transition: grid-template-rows 400ms ease-out;
 
 	& .turnierselect-accordeon {
-		margin-left: 28px;
-
-		& .turnierselect-accordeon {
-			margin-left: 56px;
-		}
+		padding-left: 28px;
+		border-left: var(--divider) solid 1px;
 	}
 }
 .turnierselect-accordeon.open {
