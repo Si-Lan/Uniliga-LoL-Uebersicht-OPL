@@ -338,107 +338,35 @@ function setButtonLoadingBarWidth(button, widthPercentage) {
 // Teams aktualisieren
 $(document).on("click", "button.get-teams", async function () {
 	const tournamentId = this.dataset.id;
-	const jqButton = $(this);
-	const jobResponse = await startJob(`/admin/api/opl/tournaments/${tournamentId}/teams`);
-	if (jobResponse.error) {
-		console.error(jobResponse.error);
-		return;
-	}
-	const jobId = parseInt(jobResponse["job_id"]);
-	setButtonUpdating(jqButton);
-	const job = await checkJobStatusRepeatedly(jobId, 1000, jqButton);
-	if (job !== null) {
-		show_results_dialog_with_result(tournamentId, job?.resultMessage + renderDetails("Details", job?.message));
-	}
-	unsetButtonUpdating(jqButton);
+	await handleUpdateButton(this,`/admin/api/opl/tournaments/${tournamentId}/teams`);
 })
 
 // Spieler aktualisieren
 $(document).on("click", "button.get-players", async function () {
 	const tournamentId = this.dataset.id;
-	const jqButton = $(this);
-	const jobResponse = await startJob(`/admin/api/opl/tournaments/${tournamentId}/players`);
-	if (jobResponse.error) {
-		console.error(jobResponse.error);
-		return;
-	}
-	const jobId = parseInt(jobResponse["job_id"]);
-	setButtonUpdating(jqButton);
-	const job = await checkJobStatusRepeatedly(jobId, 1000, jqButton);
-	if (job !== null) {
-		show_results_dialog_with_result(tournamentId, job?.resultMessage + renderDetails("Details", job?.message));
-	}
-	unsetButtonUpdating(jqButton);
+	await handleUpdateButton(this,`/admin/api/opl/tournaments/${tournamentId}/players`);
 })
 
 // RiotIds aktualisieren
 $(document).on("click", "button.get-riotids", async function () {
 	const tournamentId = this.dataset.id;
-	const jqButton = $(this);
-	const jobResponse = await startJob(`/admin/api/opl/tournaments/${tournamentId}/players/accounts`);
-	if (jobResponse.error) {
-		console.error(jobResponse.error);
-		return;
-	}
-	const jobId = parseInt(jobResponse["job_id"]);
-	setButtonUpdating(jqButton);
-	const job = await checkJobStatusRepeatedly(jobId, 1000, jqButton);
-	if (job !== null) {
-		show_results_dialog_with_result(tournamentId, job?.resultMessage + renderDetails("Details", job?.message));
-	}
-	unsetButtonUpdating(jqButton);
+	await handleUpdateButton(this,`/admin/api/opl/tournaments/${tournamentId}/players/accounts`);
 })
 
 // Matchups aktualisieren
 $(document).on("click", "button.get-matchups", async function () {
 	const tournamentId = this.dataset.id;
-	const jqButton = $(this);
-	const jobResponse = await startJob(`/admin/api/opl/tournaments/${tournamentId}/matchups`);
-	if (jobResponse.error) {
-		console.error(jobResponse.error);
-		return;
-	}
-	const jobId = parseInt(jobResponse["job_id"]);
-	setButtonUpdating(jqButton);
-	const job = await checkJobStatusRepeatedly(jobId, 1000, jqButton);
-	if (job !== null) {
-		show_results_dialog_with_result(tournamentId, job?.resultMessage + renderDetails("Details", job?.message));
-	}
-	unsetButtonUpdating(jqButton);
+	await handleUpdateButton(this,`/admin/api/opl/tournaments/${tournamentId}/matchups`);
 })
 
 // Matchresults aktualisieren und Spiel-Ids holen
 $(document).on("click", "button.get-results", async function () {
 	const tournamentId = this.dataset.id;
-	const jqButton = $(this);
-	const jobResponse = await startJob(`/admin/api/opl/tournaments/${tournamentId}/matchups/results`);
-	if (jobResponse.error) {
-		console.error(jobResponse.error);
-		return;
-	}
-	const jobId = parseInt(jobResponse["job_id"]);
-	setButtonUpdating(jqButton);
-	const job = await checkJobStatusRepeatedly(jobId, 1000, jqButton);
-	if (job !== null) {
-		show_results_dialog_with_result(tournamentId, job?.resultMessage + renderDetails("Details", job?.message));
-	}
-	unsetButtonUpdating(jqButton);
+	await handleUpdateButton(this,`/admin/api/opl/tournaments/${tournamentId}/matchups/results`);
 })
 $(document).on("click", "button.get-results-unplayed", async function () {
 	const tournamentId = this.dataset.id;
-	const jqButton = $(this);
-	const jobResponse = await startJob(`/admin/api/opl/tournaments/${tournamentId}/matchups/results?unplayed=true`);
-	if (jobResponse.error) {
-		console.error(jobResponse.error);
-		return;
-	}
-	const jobId = parseInt(jobResponse["job_id"]);
-	setButtonUpdating(jqButton);
-	const job = await checkJobStatusRepeatedly(jobId, 1000, jqButton);
-	if (job !== null) {
-		show_results_dialog_with_result(tournamentId, job?.resultMessage + renderDetails("Details", job?.message));
-	}
-	unsetButtonUpdating(jqButton);
+	await handleUpdateButton(this,`/admin/api/opl/tournaments/${tournamentId}/matchups/results?unplayed=true`);
 })
 
 $(document).on('click', 'button.calculate-standings', async function () {
@@ -656,4 +584,24 @@ async function checkJobStatus(jobId) {
 			console.error(e);
 			return {"error": "Fehler beim Laden der Daten"};
 		});
+}
+
+async function handleUpdateButton(button, endpoint) {
+	const tournamentId = button.dataset.id;
+	const jqButton = $(button);
+	const jobResponse = await startJob(endpoint);
+	if (jobResponse.error) {
+		console.error(jobResponse.error);
+		return;
+	}
+	const jobId = parseInt(jobResponse["job_id"]);
+	setButtonUpdating(jqButton);
+	const job = await checkJobStatusRepeatedly(jobId, 1000, jqButton);
+	if (job !== null) {
+		show_results_dialog_with_result(
+			tournamentId,
+			job?.resultMessage + renderDetails("Details", job?.message)
+		)
+	}
+	unsetButtonUpdating(jqButton);
 }
