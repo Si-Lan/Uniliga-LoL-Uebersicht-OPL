@@ -1,0 +1,120 @@
+<?php
+
+namespace App\UI\Components\Games;
+
+use App\Domain\Entities\Game;
+use App\Domain\Entities\GameInMatch;
+use App\Domain\Entities\LolGame\GamePlayerData;
+use App\Domain\Entities\Patch;
+use App\Domain\Entities\PlayerInTeamInTournament;
+use App\Domain\Entities\PlayerSeasonRank;
+use App\Domain\Entities\RankedSplit;
+use App\Domain\Entities\Team;
+use App\Domain\Repositories\GameInMatchRepository;
+use App\Domain\Repositories\PatchRepository;
+use App\Domain\Repositories\PlayerInTeamInTournamentRepository;
+use App\Domain\Repositories\PlayerSeasonRankRepository;
+use App\Domain\Repositories\RankedSplitRepository;
+use App\UI\Page\AssetManager;
+
+class GameDetails {
+	private bool $gameDataLoaded = false;
+	private GameInMatch $gameInMatch;
+	/**
+	 * @var array<string,PlayerInTeamInTournament>
+	 */
+	private array $indexedPlayersByPuuid = [];
+	/**
+	 * @var PlayerSeasonRank
+	 */
+	private array $indexedPlayerSeasonRanksByPuuid = [];
+	private ?RankedSplit $currentSplit;
+
+	private Patch $patch;
+	public function __construct(
+		private Game|GameInMatch $game,
+		private ?Team $currentTeam = null,
+		private ?PlayerInTeamInTournamentRepository $playerInTeamInTournamentRepo = null,
+		private ?PlayerSeasonRankRepository $playerSeasonRankRepo = null,
+	) {
+		if ($this->game instanceof GameInMatch) {
+			$this->gameInMatch = $this->game;
+			$this->game = $this->game->game;
+		} elseif ($this->game instanceof Game) {
+			$gameInMatchRepo = new GameInMatchRepository();
+			$this->gameInMatch = $gameInMatchRepo->findByGame($this->game);
+		} else {
+			return;
+		}
+
+		if (is_null($this->game->gameData)) {
+			return;
+		} else {
+			$this->gameDataLoaded = true;
+		}
+
+		$patchRepo = new PatchRepository();
+		$rankedSplitRepo = new RankedSplitRepository();
+		if (is_null($this->playerInTeamInTournamentRepo)) {
+			$this->playerInTeamInTournamentRepo = new PlayerInTeamInTournamentRepository();
+		}
+		if (is_null($this->playerSeasonRankRepo)) {
+			$this->playerSeasonRankRepo = new PlayerSeasonRankRepository();
+		}
+
+		$this->patch = $patchRepo->findLatestPatchByPatchString($this->game->gameData->gameVersion);
+
+		$rankedSplit1 = $this->gameInMatch->matchup->tournamentStage->rootTournament->rankedSplits[0] ?? null;
+		$rankedSplit2 = $rankedSplitRepo->findNextSplitForTournament($this->gameInMatch->matchup->tournamentStage->rootTournament);
+		$this->currentSplit = $this->gameInMatch->matchup->tournamentStage->rootTournament->userSelectedRankedSplit;
+
+		$playersInTeams = [];
+		if ($this->gameInMatch->blueTeam !== null) {
+			$playersInTeams = $this->playerInTeamInTournamentRepo->findAllByTeamInTournament($this->gameInMatch->blueTeam);
+		}
+		if ($this->gameInMatch->redTeam !== null) {
+			$playersInTeams = array_merge($playersInTeams, $this->playerInTeamInTournamentRepo->findAllByTeamInTournament($this->gameInMatch->redTeam));
+		}
+
+		foreach ($playersInTeams as $playerInTeam) {
+			$this->indexedPlayerSeasonRanksByPuuid[$playerInTeam->player->puuid] = array_filter([
+				$rankedSplit1 ? $this->playerSeasonRankRepo->findPlayerSeasonRank($playerInTeam->player,$rankedSplit1) : null,
+				$rankedSplit2 ? $this->playerSeasonRankRepo->findPlayerSeasonRank($playerInTeam->player,$rankedSplit2) : null,
+			]);
+			$this->indexedPlayersByPuuid[$playerInTeam->player->puuid] = $playerInTeam;
+		}
+
+		AssetManager::addCssAsset('game.css');;
+	}
+
+	private function findPlayersGameNameAndTag(GamePlayerData $gamePlayer):array {
+		if (($this->indexedPlayersByPuuid[$gamePlayer->puuid]->player->riotIdName ??'') !== '') {
+			return [$this->indexedPlayersByPuuid[$gamePlayer->puuid]->player->riotIdName,$this->indexedPlayersByPuuid[$gamePlayer->puuid]->player->riotIdTag];
+		}
+		if ($gamePlayer->riotIdName != '') {
+			return [$gamePlayer->riotIdName,$gamePlayer->riotIdTag];
+		}
+		return [$gamePlayer->summonerName,null];
+	}
+	private function findPlayersSeasonRanks(GamePlayerData $gamePlayer): array {
+		return $this->indexedPlayerSeasonRanksByPuuid[$gamePlayer->puuid] ?? [];
+	}
+
+	public function render(): string {
+		if (!$this->gameDataLoaded) {
+			return '<div class="game-placeholder"><div class="no-game-found">Spieldaten wurden noch nicht geladen</div></div>';
+		}
+		$gameData = $this->game->gameData;
+		$currentTeam = $this->currentTeam;
+		$gameInMatch = $this->gameInMatch;
+		$patch = $this->patch;
+		$currentSplit = $this->currentSplit;
+		ob_start();
+		include __DIR__.'/game-details.template.php';
+		return ob_get_clean();
+	}
+
+	public function __toString(): string {
+		return $this->render();
+	}
+}

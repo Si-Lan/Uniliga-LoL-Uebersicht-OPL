@@ -1,3 +1,5 @@
 /.idea/
 /.vscode/
-/setup/data.php
+/config/data.php
+/.env
+/logs/

@@ -1,0 +1,896 @@
+:root {
+	--game-sec-bg: #1f232a;
+	--game-team-hover: #232831;
+	--game-border-color: #324a55;
+	--text-secondary: #8aaeb2;
+	--victory-color: #19a300;
+	--defeat-color: #d50000;
+}
+body.light {
+	--game-sec-bg: #ced7e7;
+	--game-team-hover: #292f3a;
+	--text-secondary: #4c595b;
+}
+.game-placeholder {
+	width: 1010px;
+	height: 146px;
+	border: solid 2px var(--accent);
+	border-radius: 15px;
+	margin: auto;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+
+	@media screen and (max-width: 1185px) {
+		width: 900px;
+	}
+	@media screen and (max-width: 1020px) {
+		width: 750px;
+	}
+    @media screen and (max-width: 870px) {
+        width: 640px;
+		height: 136px;
+    }
+	@media screen and (max-width: 720px) {
+		width: 586px;
+		height: 116px;
+	}
+	@media screen and (max-width: 660px) {
+		width: 530px;
+		height: 107px;
+	}
+	@media screen and (max-width: 600px) {
+		width: 480px;
+		height: 106px;
+	}
+	@media screen and (max-width: 540px) {
+		width: 415px;
+		height: 191px;
+	}
+	@media screen and (max-width: 470px) {
+		width: 360px;
+		height: 191px;
+	}
+	@media screen and (max-width: 410px) {
+		width: 330px;
+		height: 191px;
+	}
+}
+.game-wrapper {
+	display: flex;
+	flex-direction: column;
+}
+.mh-popup .game-wrapper {
+	width: 100%;
+}
+@media screen and (max-width: 1160px) {
+	.game-wrapper {
+		overflow-x: auto;
+	}
+}
+.game-wrapper.collapsed .game-details {
+	display: none;
+}
+div.game-details {
+	align-self: center;
+	display: flex;
+	flex-direction: column;
+	border-color: var(--game-border-color);
+	border-style: solid;
+	border-width: 2px;
+	max-width: 1150px;
+	box-sizing: border-box;
+	border-radius: 15px;
+	/*overflow: hidden;*/
+	margin: 0 30px;
+	width: -moz-available;
+	/*noinspection CssInvalidPropertyValue*/
+	width: -webkit-fill-available;
+	min-width: 975px;
+	width: 1010px;
+	background-color: var(--main-bg-color);
+}
+.game-wrapper .game-details {
+	border-radius: 0 0 15px 15px;
+}
+div.game-details div {
+	display: flex;
+}
+div.game-details a {
+	display: flex;
+}
+div.game-details div.game-row {
+	flex-direction: row;
+	justify-content: center;
+	align-items: center;
+	box-sizing: border-box;
+	border-color: var(--game-border-color);
+	border-style: solid;
+	border-width: 0 0 2px 0;
+}
+div.game-row div.game-row-divider {
+	height: auto;
+	align-self: stretch;
+	width: 2px;
+	background-color: var(--game-border-color);
+}
+
+div.game-row.teams {
+	font-size: 18px;
+}
+div.game-row.teams div {
+	justify-content: center;
+	align-items: center;
+	text-align: center;
+}
+div.game-row.teams a {
+	justify-content: center;
+	align-items: center;
+	text-align: center;
+}
+div.game-row.teams .team {
+	box-sizing: border-box;
+	height: 55px;
+	flex: 4;
+	transition: background-color 0.3s;
+}
+div.game-row.teams .team:hover {
+	background-color: var(--game-team-hover);
+}
+div.game-row.teams .team.\31 {
+	padding-left: 10px;
+	flex: 4;
+}
+div.game-row.teams .team.\32 {
+	padding-right: 10px;
+	flex: 4;
+	flex-direction: row-reverse;
+
+	& .name {
+		flex-direction: row-reverse;
+	}
+}
+.game-wrapper div.game-row.teams .team.current {
+	border: none!important;
+	border-radius: 0!important;
+	z-index: 1;
+}
+.game-wrapper div.game-row.teams .team.win.current {
+	box-shadow: 0 0 0 2px var(--victory-color);
+}
+.game-wrapper div.game-row.teams .team.loss.current {
+	box-shadow: 0 0 0 2px var(--defeat-color);
+}
+div.game-row.teams .team.\32.current {
+	border-style: solid;
+	border-top-right-radius: 12px;
+	border-width: 3px 3px 0 0;
+}
+div.game-row.teams .team.\31.current {
+	border-style: solid;
+	border-top-left-radius: 12px;
+	border-width: 3px 0 0 3px;
+}
+div.game-row.teams .team.win.current {
+	border-color: #19a300;
+}
+div.game-row.teams .team.loss.current {
+	border-color: #d50000;
+}
+
+div.game-row.teams .team .name {
+	flex: 3;
+	gap: 10px;
+}
+div.game-row.teams .team .name img {
+	height: 40px;
+	aspect-ratio: 1/1;
+	object-fit: contain;
+	border-radius: 6px;
+}
+div.game-row.teams .team .score {
+	flex: 1;
+}
+div.game-row.teams .time {
+	box-sizing: border-box;
+	height: 55px;
+	border: var(--game-border-color) solid;
+	border-width: 0 2px;
+	flex: 1;
+	justify-content: center;
+}
+div.game-row.teams div.score.win {
+	color: #19a300;
+}
+div.game-row.teams div.score.loss {
+	color: #d50000;
+}
+
+div.game-details div.game-row.team-stats {
+	height: 35px;
+	background-color: var(--game-sec-bg);
+}
+div.game-row.team-stats div.stats-wrapper {
+	flex: 1;
+	align-items: center;
+	justify-content: center;
+	gap: 30px;
+}
+div.game-row.team-stats div.stats-wrapper span {
+	display: flex;
+	font-size: 14px;
+	align-items: center;
+	gap: 10px;
+}
+div.game-row.team-stats img.stats {
+	width: 20px;
+	aspect-ratio: 1 / 1;
+	object-fit: cover;
+}
+div.game-row.team-stats img.stats.gold {
+	aspect-ratio: 9 / 7;
+	object-position: 0 100%;
+}
+
+div.game-details div.game-row.objectives {
+	height: 35px;
+	background-color: var(--game-sec-bg);
+}
+div.game-row.objectives div.obj-wrapper {
+	flex: 1;
+	align-items: center;
+	justify-content: center;
+	gap: 10px;
+}
+div.game-row.objectives div.obj-wrapper span {
+	display: flex;
+	font-size: 14px;
+	align-items: center;
+	gap: 2px;
+}
+div.game-row.objectives img.obj {
+	width: 20px;
+	aspect-ratio: 1 / 1;
+	object-fit: cover;
+}
+div.game-row.objectives img.obj-tower {
+	object-position: 0 0;
+}
+div.game-row.objectives img.obj-inhib {
+	object-position: 0 20%;
+}
+div.game-row.objectives img.obj-herald {
+	object-position: 0 40%;
+}
+div.game-row.objectives img.obj-dragon {
+	object-position: 0 60%;
+}
+div.game-row.objectives img.obj-baron {
+	object-position: 0 80%;
+}
+
+div.game-details div.game-row.summoner-details {
+	border: none;
+}
+.game-item.team-summoners {
+	flex-direction: column;
+	flex: 1;
+
+	& .summoner {
+		height: 72px;
+		padding: 0 10px;
+		border-color: var(--game-border-color);
+		border-style: solid;
+		border-width: 0 0 2px 0;
+
+		&.blue {
+			flex-direction: row;
+		}
+		&.red {
+			flex-direction: row-reverse;
+		}
+
+		div.champ-lvl {
+			top: 40px;
+		}
+		img.sec-rune {
+			top: 36px;
+		}
+	}
+}
+
+div.game-details div.game-row.summoners {
+	height: 72px;
+}
+div.game-row.summoners div.summoner {
+	flex: 1;
+	margin: 0 10px;
+	min-width: 464px;
+}
+div.game-row.summoners div.summoner.blue{
+	flex-direction: row;
+	margin-left: 10px;
+}
+div.game-row.summoners div.summoner.red{
+	flex-direction: row-reverse;
+	margin-right: 10px;
+}
+
+div.game-item.summoner {
+	gap: 10px;
+}
+div.game-item.summoner>div {
+	justify-content: center;
+	align-items: center;
+}
+div.game-item.summoner div.runes {
+	position: relative;
+	padding-right: 7px;
+}
+div.game-item.summoner img.keystone {
+	height: 30px;
+	aspect-ratio: 1/1;
+	box-sizing: border-box;
+	border: #9a9a9a solid 1px;
+	border-radius: 50%;
+	padding: 2px;
+}
+div.game-item.summoner img.sec-rune {
+	background-color: #262626;
+	position: absolute;
+	left: 20px;
+	top: 28px;
+	height: 18px;
+	aspect-ratio: 1/1;
+	box-sizing: border-box;
+	border: #9a9a9a solid 1px;
+	border-radius: 50%;
+	padding: 2px;
+}
+div.game-item.summoner div.summoner-spells {
+	flex-direction: column;
+	gap: 2px;
+}
+div.game-item.summoner img.summ-spell {
+	height: 22px;
+	width: 22px;
+}
+div.game-item.summoner div.champion {
+	position: relative;
+	padding-right: 7px;
+}
+div.game-item.summoner img.champ {
+	height: 50px;
+	width: 50px;
+}
+div.game-item.summoner div.champ-lvl {
+	color: #efefef;
+	justify-content: center;
+	font-size: 14px;
+	background-color: #262626;
+	position: absolute;
+	left: 35px;
+	top: 32px;
+	box-sizing: border-box;
+	border: #9a9a9a solid 1px;
+	border-radius: 50%;
+	padding: 3px;
+	overflow: hidden;
+	width: 24px;
+	aspect-ratio: 1/1;
+}
+div.game-item.summoner div.summoner-name {
+	display: flex;
+	flex-direction: column;
+	flex: 3;
+	text-align: center;
+	word-break: break-word;
+}
+/*
+div.game-item.summoner.blue div.summoner-name {
+	text-align: start;
+}
+div.game-item.summoner.red div.summoner-name {
+	text-align: end;
+}
+*/
+div.game-item.summoner div.summoner-name .summ-rank {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	font-size: 12px;
+	color: var(--text-secondary);
+}
+div.game-item.summoner div.player-stats {
+	flex: 1;
+	justify-content: center;
+	align-items: center;
+	white-space: nowrap;
+}
+div.player-stats div.player-stats-wrapper {
+	flex-direction: column;
+	text-align: center;
+}
+div.game-item.summoner.blue div.player-stats-wrapper {
+	padding-right: 10px;
+}
+div.game-item.summoner.red div.player-stats-wrapper {
+	padding-left: 10px;
+}
+div.player-stats-wrapper span.kills{
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	gap: 8px;
+}
+div.player-stats-wrapper span.CS {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	font-size: 12px;
+	gap: 8px;
+}
+div.player-stats-wrapper span.gold {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	font-size: 12px;
+	gap: 8px;
+}
+div.player-stats-wrapper img.kills {
+	object-fit: cover;
+	height: 16px;
+	aspect-ratio: 1/1;
+}
+div.player-stats-wrapper img.cs {
+	object-fit: cover;
+	object-position: 0 100%;
+	height: 10px;
+	aspect-ratio: 13/14;
+}
+div.player-stats-wrapper img.gold {
+	object-fit: cover;
+	object-position: 0 100%;
+	height: 10px;
+	aspect-ratio: 9/7;
+}
+div.game-item.summoner div.items {
+	flex: 1;
+}
+div.items div.items-wrapper {
+	display: grid;
+	align-items: center;
+	grid-gap: 4px;
+}
+div.items div.items-wrapper img {
+	height: 25px;
+	aspect-ratio: 1/1;
+}
+div.items div.items-wrapper img:last-child {
+	grid-column: 4;
+	grid-row: 1 / 3;
+}
+div.summoner.red div.items div.items-wrapper {
+	direction: rtl;
+}
+
+div.game-details div.game-row.bans {
+	height: 45px;
+	border-width: 0;
+	background-color: var(--game-sec-bg);
+	border-radius: 0 0 14px 14px;
+}
+div.game-row.bans div.bans-wrapper {
+	flex: 1;
+	align-items: center;
+	justify-content: center;
+	gap: 10px;
+}
+div.game-row.bans span {
+	display: flex;
+	position: relative;
+	align-items: center;
+}
+div.game-row.bans img {
+	height: 30px;
+	aspect-ratio: 1/1;
+	border-radius: 50%;
+}
+.gg-block {
+	box-sizing: border-box;
+	position: absolute;
+	left: 7px;
+	display: block;
+	transform: scale(1.9);
+	width: 16px;
+	height: 16px;
+	border: 1px solid var(--game-border-color);
+	border-radius: 100%
+}
+.gg-block::before {
+	content: "";
+	display: block;
+	box-sizing: border-box;
+	position: absolute;
+	width: 12px;
+	height: 2px;
+	background: var(--game-border-color);
+	border-radius: 5px;
+	transform: rotate(-45deg);
+	top: 6px;
+	left: 1px
+}
+
+img.rank-emblem-mini {
+	width: 20px;
+	height: 20px;
+}
+
+.game-details-mini {
+	align-self: center;
+	display: flex;
+	flex-direction: row;
+	justify-content: space-between;
+	align-items: center;
+	gap: 10px;
+	padding: 10px;
+	border: 2px solid var(--game-border-color);
+	box-sizing: border-box;
+	border-radius: 15px 15px 0 0;
+	margin: 0 30px;
+	background-color: var(--main-bg-color);
+	width: -moz-available;
+	/*noinspection CssInvalidPropertyValue*/
+	width: -webkit-fill-available;
+	width: 1010px;
+}
+.game-wrapper.collapsed .game-details-mini {
+	border-radius: 15px;
+}
+.game-details-mini.loss {
+	border: solid 2px #d50000;
+}
+.game-details-mini.win {
+	border: solid 2px #19a300;
+}
+
+.game-details-mini .game-information {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 8px;
+	width: 100px;
+}
+.game-details-mini .game-information .game-result-text {
+	display: flex;
+	flex-direction: column;
+}
+.game-details-mini.general .game-information .game-result {
+	font-size: 1em;
+	color: var(--text-color);
+	display: block;
+	text-align: center;
+	max-width: 100px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	font-weight: bold;
+}
+.game-details-mini .game-information .game-result {
+	font-size: 1.4em;
+	text-align: center;
+	color: var(--victory-color);
+}
+.game-details-mini .game-information .game-result.win {
+	color: var(--victory-color);
+}
+.game-details-mini .game-information .game-result.loss {
+	color: var(--defeat-color);
+}
+
+.game-details-mini .team {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	gap: 5px;
+	padding: 14px;
+	border-radius: 12px;
+	transition: background-color 0.3s;
+	width: 200px;
+	box-sizing: content-box;
+}
+.game-details-mini .team span{
+	width: 200px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+.game-details-mini .team:hover {
+	background-color: var(--game-team-hover);
+}
+.game-details-mini.general .team.loss {
+	border: solid 2px #d50000;
+}
+.game-details-mini.general .team.win {
+	border: solid 2px #19a300;
+}
+.game-details-mini .team.current {
+	border: solid 2px var(--game-border-color);
+	font-weight: bold;
+}
+
+.game-details-mini .team img {
+	height: 56px;
+	aspect-ratio: 1/1;
+	object-fit: contain;
+	border-radius: 6px;
+}
+
+.game-details-mini .players {
+	display: flex;
+	flex-direction: column;
+	gap: 3px;
+	width: 160px;
+}
+.game-details-mini .players .player {
+	display: flex;
+	align-items: center;
+	gap: 5px;
+	padding: 0;
+}
+.game-details-mini .players .player .player-name {
+	display: block;
+	max-width: 130px;
+	font-size: 0.9em;
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+}
+.game-details-mini .players .player img {
+	height: 22px;
+	aspect-ratio: 1 / 1;
+	border-radius: 10px;
+}
+
+button.expand-game-details {
+	border: var(--game-border-color) solid 2px;
+	background-color: transparent;
+	padding: 0 8px;
+	align-self: stretch;
+	transition: background-color 200ms;
+}
+button.expand-game-details:hover {
+	background-color: var(--game-sec-bg);
+	border: var(--game-border-color) solid 2px;
+}
+.game-wrapper.collapsed button.expand-game-details .material-symbol {
+	transform: rotateX(180deg);
+}
+button.expand-game-details .material-symbol,
+button.expand-game-details .material-symbol svg {
+	height: 32px;
+	width: 32px;
+	transition: transform 200ms;
+}
+
+
+/* mobile/responsive Design */
+@media screen and (max-width: 1185px) {
+	.game-details-mini {
+		width: 900px;
+		margin: 0 10px;
+	}
+	div.game-details {
+		margin: 0 10px;
+		align-self: auto;
+	}
+	.game-details-mini .team,
+	.game-details-mini .team span {
+		width: 170px;
+	}
+
+	.game-details-mini .team img {
+		height: 48px;
+	}
+}
+@media screen and (max-width: 1020px) {
+	.game-details-mini {
+		width: 750px;
+		margin: 0 10px;
+	}
+	.game-details-mini .game-information {
+		width: 80px;
+		font-size: 0.75em;
+	}
+	.game-details-mini.general .game-information .game-result,
+	.game-details-mini .game-information .game-result {
+		max-width: 80px;
+	}
+	.game-details-mini .team {
+		flex-direction: column;
+		text-align: center;
+		width: 90px;
+		font-size: 0.85em;
+	}
+	.game-details-mini .team span {
+		width: 90px;
+	}
+
+	.game-details-mini .players .player img {
+		height: 20px;
+	}
+	.game-details-mini .players .player {
+		font-size: 0.85em;
+	}
+}
+
+@media screen and (max-width: 870px) {
+	.game-details-mini {
+		width: 640px;
+		margin: 0 10px;
+	}
+	.game-details-mini .team img {
+		height: 36px;
+	}
+}
+@media screen and (max-width: 720px) {
+	.game-details-mini {
+		width: 586px;
+		margin: 0 10px;
+	}
+
+	.game-details-mini .game-information {
+		width: 70px;
+		font-size: 0.7em;
+	}
+	.game-details-mini.general .game-information .game-result,
+	.game-details-mini .game-information .game-result {
+		max-width: 70px;
+	}
+
+	.game-details-mini .team {
+		padding: 8px;
+		width: 80px;
+		font-size: 0.7em;
+	}
+	.game-details-mini .team span {
+		width: 80px;
+	}
+
+	.game-details-mini .players {
+		width: 100px;
+	}
+	.game-details-mini .players .player .player-name {
+		max-width: 80px;
+	}
+	.game-details-mini .players .player {
+		font-size: 0.7em;
+	}
+	.game-details-mini .players .player .tooltip span.tooltiptext {
+		padding: 8px 12px;
+	}
+	.game-details-mini .players .player img {
+		height: 16px;
+	}
+
+	button.expand-game-details {
+		padding: 0 5px;
+	}
+
+	button.expand-game-details .material-symbol, button.expand-game-details .material-symbol svg {
+		height: 24px;
+		width: 24px;
+	}
+}
+
+@media screen and (max-width: 660px) {
+	.game-details-mini {
+		width: 530px;
+	}
+	.game-details-mini .game-information {
+		width: 60px;
+		font-size: 0.65em;
+	}
+	.game-details-mini.general .game-information .game-result,
+	.game-details-mini .game-information .game-result {
+		max-width: 60px;
+	}
+	.game-details-mini .players .player img {
+		height: 14px;
+	}
+	.game-details-mini .team img {
+		height: 28px;
+	}
+	.game-details-mini .team {
+		width: 70px;
+		font-size: 0.65em;
+	}
+	.game-details-mini .team span {
+		width: 70px;
+	}
+}
+
+@media screen and (max-width: 600px) {
+	.game-details-mini {
+		width: 480px;
+	}
+	.game-details-mini .game-information {
+		width: 50px;
+		font-size: 0.55em;
+	}
+	.game-details-mini.general .game-information .game-result,
+	.game-details-mini .game-information .game-result {
+		max-width: 50px;
+	}
+	.game-details-mini .team img {
+		height: 24px;
+	}
+	.game-details-mini .team {
+		width: 65px;
+		font-size: 0.6em;
+	}
+	.game-details-mini .team span {
+		width: 65px;
+	}
+
+	.game-details-mini .players .player {
+		font-size: 0.6em;
+	}
+	.game-details-mini .players .player .tooltip span.tooltiptext {
+		padding: 6px 8px;
+	}
+	.game-details-mini .players .player img {
+		height: 14px;
+	}
+}
+
+@media screen and (max-width: 540px) {
+	.game-details-mini {
+		width: 415px;
+		display: grid;
+		grid-template-columns: 50px 1fr 1fr 40px;
+		grid-template-rows: 75px 1fr;
+		justify-items: center;
+	}
+
+	.game-details-mini .game-information {
+		grid-column: 1;
+		grid-row: 1 / span 2;
+	}
+
+	.game-details-mini div:nth-of-type(2) {
+		grid-column: 2;
+		grid-row: 2;
+	}
+	.game-details-mini div:nth-of-type(3) {
+		grid-column: 3;
+		grid-row: 2;
+	}
+
+	button.expand-game-details {
+		grid-row: 1 / span 2;
+		grid-column: 4;
+	}
+}
+
+@media screen and (max-width: 470px) {
+	.game-details-mini {
+		width: 360px;
+	}
+
+}
+
+@media screen and (max-width: 410px) {
+	.game-details-mini {
+		width: 330px;
+		grid-template-columns: 40px 1fr 1fr 30px;
+	}
+
+	.game-details-mini .game-information {
+		width: 40px;
+		font-size: 0.55em;
+	}
+	.game-details-mini.general .game-information .game-result,
+	.game-details-mini .game-information .game-result {
+		max-width: 40px;
+	}
+}

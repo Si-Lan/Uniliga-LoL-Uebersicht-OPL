@@ -1,0 +1,48 @@
+<?php
+/** @var array<array<\App\Domain\Entities\Matchup>> $matchupRounds */
+/** @var \App\Domain\Entities\Tournament $tournamentStage */
+/** @var \App\Domain\Entities\TeamInTournament|null $teamInTournament */
+/** @var \App\Domain\Repositories\TeamInTournamentRepository $teamInTournamentRepository */
+
+use App\UI\Components\Matches\MatchButton;
+
+?>
+
+<div class="matches">
+    <div class="title"><h3>Spiele</h3></div>
+    <div class="match-content content">
+        <?php
+        $roundCounter = 1;
+        foreach ($matchupRounds as $matchupRound) {
+            if ($tournamentStage->isEventWithRounds()) $roundCounter = $matchupRound[0]->playday;
+
+            $currentMatchButtonHtml = '';
+            foreach ($matchupRound as $matchup) {
+				$currentMatchButtonHtml .= new MatchButton($matchup, $teamInTournament?->team, $teamInTournamentRepository);
+			}
+            ?>
+            <?php
+            if ($teamInTournament == null) {
+            ?>
+        <div class="match-round">
+            <h4>Runde <?= $roundCounter ?></h4>
+            <div class="divider"></div>
+            <div class="match-wrapper">
+            <?php
+			}
+
+            echo $currentMatchButtonHtml;
+
+			if ($teamInTournament == null) {
+			?>
+            </div>
+        </div>
+				<?php
+			}
+			?>
+        <?php
+            $roundCounter++;
+        }
+        ?>
+    </div>
+</div>

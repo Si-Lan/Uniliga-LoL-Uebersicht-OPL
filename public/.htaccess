@@ -1,0 +1,13 @@
+RewriteEngine On
+
+# enable opening php files without .php ending
+RewriteCond %{REQUEST_FILENAME}.php !-f
+RewriteRule ^([^.]+)$ $1.php [NC,L]
+
+# manage Pages
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*)$ index.php [QSA,L]
+
+
+ErrorDocument 404 /pages/error.php?error=404
