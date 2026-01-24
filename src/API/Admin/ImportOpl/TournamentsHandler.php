@@ -203,6 +203,30 @@ class TournamentsHandler extends AbstractHandler{
 		echo json_encode(['job_id'=>$job->id]);
 	}
 
+	public function postTournamentsMatchupsResults($tournamentId): void {
+		$this->checkRequestMethod('POST');
+		$unplayedOnly = isset($_GET['unplayed']) && $_GET['unplayed'] === 'true';
+
+		if (!$this->tournamentRepo->tournamentExists($tournamentId)) {
+			$this->sendErrorResponse(404, "Tournament not found");
+		}
+
+		$job = $this->updateJobRepo->createJob(
+			UpdateJobType::ADMIN,
+			UpdateJobAction::UPDATE_RESULTS,
+			UpdateJobContextType::TOURNAMENT,
+			$tournamentId
+		);
+
+		$commandOptions = ["-j $job->id"];
+		if ($unplayedOnly) $commandOptions[] = "--unplayed";
+
+		$optionsString = implode(" ", $commandOptions);
+		exec("php ".BASE_PATH."/bin/admin_updates/update_matchresults.php $optionsString > /dev/null 2>&1 &");
+
+		echo json_encode(['job_id'=>$job->id]);
+	}
+
 	public function postTournamentsStandings($tournamentId): void {
 		$this->checkRequestMethod('POST');
 

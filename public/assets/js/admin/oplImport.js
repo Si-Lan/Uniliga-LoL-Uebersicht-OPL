@@ -408,109 +408,38 @@ $(document).on("click", "button.get-matchups", async function () {
 })
 
 // Matchresults aktualisieren und Spiel-Ids holen
-$(document).on('click', 'button.get-results', async function () {
-	await buttonGetResultsClick(this);
-});
-$(document).on('click', 'button.get-results-unplayed', async function () {
-	await buttonGetResultsClick(this, true);
-});
-async function buttonGetResultsClick(button, unplayedOnly = false) {
-	const tournamentId = button.dataset.id;
-	setButtonUpdating($(button));
-	const matchupsInTournament = await getMatchupsInTournament(tournamentId, unplayedOnly);
-	if (matchupsInTournament.error) {
-		show_results_dialog_with_result(tournamentId, "Fehler beim Holen der Matchups");
-		unsetButtonUpdating($(button));
+$(document).on("click", "button.get-results", async function () {
+	const tournamentId = this.dataset.id;
+	const jqButton = $(this);
+	const jobResponse = await startJob(`/admin/api/opl/tournaments/${tournamentId}/matchups/results`);
+	if (jobResponse.error) {
+		console.error(jobResponse.error);
 		return;
 	}
-	if (matchupsInTournament.length === 0) {
-		show_results_dialog_with_result(tournamentId, "Keine Matchups im Turnier");
-		unsetButtonUpdating($(button));
+	const jobId = parseInt(jobResponse["job_id"]);
+	setButtonUpdating(jqButton);
+	const job = await checkJobStatusRepeatedly(jobId, 1000, jqButton);
+	if (job !== null) {
+		show_results_dialog_with_result(tournamentId, job?.resultMessage + renderDetails("Details", job?.message));
+	}
+	unsetButtonUpdating(jqButton);
+})
+$(document).on("click", "button.get-results-unplayed", async function () {
+	const tournamentId = this.dataset.id;
+	const jqButton = $(this);
+	const jobResponse = await startJob(`/admin/api/opl/tournaments/${tournamentId}/matchups/results?unplayed=true`);
+	if (jobResponse.error) {
+		console.error(jobResponse.error);
 		return;
 	}
-	let result = "";
-	const total = matchupsInTournament.length;
-	let donePercentage = 0;
-	for (const matchup of matchupsInTournament) {
-		const partialResult = await updateMatchresult(matchup.id);
-		result += `<br>(${matchup.id}):<br> ${partialResult}<br>`;
-		donePercentage += 100/total;
-		setButtonLoadingBarWidth($(button), donePercentage);
-		if (donePercentage < 100) {
-			await new Promise(r => setTimeout(r, 1000));
-		}
+	const jobId = parseInt(jobResponse["job_id"]);
+	setButtonUpdating(jqButton);
+	const job = await checkJobStatusRepeatedly(jobId, 1000, jqButton);
+	if (job !== null) {
+		show_results_dialog_with_result(tournamentId, job?.resultMessage + renderDetails("Details", job?.message));
 	}
-	show_results_dialog_with_result(tournamentId, result);
-	unsetButtonUpdating($(button));
-}
-async function updateMatchresult(matchId) {
-	return await fetch(`/admin/api/opl/matchups/${matchId}/results`, {method: 'POST'})
-		.then(res => {
-			if (res.ok) {
-				return res.json()
-			} else {
-				return {"error": "Fehler beim Aktualisieren der Matchresults"};
-			}
-		})
-		.then(data => {
-			if (data.error) {
-				return data.error;
-			}
-			let scoreUpdated = data.matchup?.changes && ("team1Score" in data.matchup.changes || "team2Score" in data.matchup.changes);
-			let addedGames = [];
-			let updatedGames = [];
-			let unchangedGames = [];
-			for (const game of data.games) {
-				switch (game.result) {
-					case "inserted":
-						addedGames.push(game.entity?.id);
-						break;
-					case "updated":
-						updatedGames.push(game.entity?.id);
-						break;
-					case "not-changed":
-						unchangedGames.push(game.entity?.id);
-						break;
-				}
-			}
-			let addedGamesInMatchup = [];
-			let updatedGamesInMatchup = [];
-			let unchangedGamesInMatchup = [];
-			for (const gameInMatchup of data.gamesInMatchup) {
-				switch (gameInMatchup.result) {
-					case "inserted":
-						addedGamesInMatchup.push(gameInMatchup.entity?.id);
-						break;
-					case "updated":
-						updatedGamesInMatchup.push(gameInMatchup.entity?.id);
-						break;
-					case "not-changed":
-						unchangedGamesInMatchup.push(gameInMatchup.entity?.id);
-						break;
-				}
-			}
-
-			let result = `Matchup ${data.matchup.result}<br>
-					${scoreUpdated ? "Score aktualisiert<br>" : ""}`;
-			if (data.games.length > 0) {
-				result += `
-					- ${unchangedGames.length} Spiele unverändert<br>
-					- ${addedGames.length} Spiele hinzugefügt<br>
-					- ${updatedGames.length} Spiele aktualisiert<br>`;
-			}
-			if (data.gamesInMatchup.length > 0) {
-				result += `
-					-- ${unchangedGamesInMatchup.length} Spiele für Match unverändert<br>
-					-- ${addedGamesInMatchup.length} Spiele für Match eingetragen<br>
-					-- ${updatedGamesInMatchup.length} Spiele für Match aktualisiert<br>`;
-			}
-			return result;
-		})
-		.catch(error => {
-			console.error(error);
-			return "Fehler beim Darstellen der aktualisierten Matchresults";
-		})
-}
+	unsetButtonUpdating(jqButton);
+})
 
 $(document).on('click', 'button.calculate-standings', async function () {
 	const tournamentId = this.dataset.id;
