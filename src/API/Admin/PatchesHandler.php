@@ -11,6 +11,7 @@ use App\Domain\Enums\Jobs\UpdateJobStatus;
 use App\Domain\Enums\Jobs\UpdateJobType;
 use App\Domain\Repositories\PatchRepository;
 use App\Domain\Repositories\UpdateJobRepository;
+use App\Service\JobLauncher;
 use App\Service\Updater\PatchUpdater;
 
 class PatchesHandler extends AbstractHandler {
@@ -141,12 +142,9 @@ class PatchesHandler extends AbstractHandler {
 		);
 
 		$overwrite = isset($_GET['overwrite']) && $_GET['overwrite'] === 'true';
-		$optionsString = "-j $job->id";
-		if ($overwrite) {
-			$optionsString .= " --overwrite";
-		}
+		$options = $overwrite ? "--overwrite" : "";
 
-		exec("php ".BASE_PATH."/bin/ddragon_updates/download_patch_imgs.php $optionsString > /dev/null 2>&1 &");
+		JobLauncher::launch($job, $options);
 
 		return $job;
 	}

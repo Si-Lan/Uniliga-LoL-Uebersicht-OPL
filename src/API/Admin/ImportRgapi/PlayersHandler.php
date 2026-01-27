@@ -6,6 +6,7 @@ use App\API\AbstractHandler;
 use App\Domain\Enums\Jobs\UpdateJobAction;
 use App\Domain\Enums\Jobs\UpdateJobType;
 use App\Domain\Repositories\UpdateJobRepository;
+use App\Service\JobLauncher;
 use App\Service\Updater\PlayerUpdater;
 
 class PlayersHandler extends AbstractHandler {
@@ -36,11 +37,8 @@ class PlayersHandler extends AbstractHandler {
 			UpdateJobAction::UPDATE_PUUIDS
 		);
 
-        $commandOptions = ["-j $job->id"];
-        if ($withoutPuuidOnly) $commandOptions[] = "--without-puuid";
-
-		$optionsString = implode(" ", $commandOptions);
-		exec("php ".BASE_PATH."/bin/admin_updates/update_puuids.php $optionsString > /dev/null 2>&1 &");
+		$options = $withoutPuuidOnly ? " --without-puuid" : "";
+		JobLauncher::launch($job, $options);
 
 		echo json_encode(['job_id' => $job->id]);
 	}
@@ -76,8 +74,8 @@ class PlayersHandler extends AbstractHandler {
 			UpdateJobType::ADMIN,
 			UpdateJobAction::UPDATE_PLAYER_RANKS
 		);
-		$optionsString = "-j $job->id";
-		exec("php ".BASE_PATH."/bin/admin_updates/update_player_ranks.php $optionsString > /dev/null 2>&1 &");
+
+		JobLauncher::launch($job);
 
 		echo json_encode(['job_id' => $job->id]);
 	}

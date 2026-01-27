@@ -10,6 +10,7 @@ use App\Domain\Repositories\MatchupRepository;
 use App\Domain\Repositories\TeamInTournamentRepository;
 use App\Domain\Repositories\TournamentRepository;
 use App\Domain\Repositories\UpdateJobRepository;
+use App\Service\JobLauncher;
 
 class JobsHandler extends AbstractHandler {
 	private UpdateJobRepository $jobRepo;
@@ -122,8 +123,7 @@ class JobsHandler extends AbstractHandler {
             $groupId
 		);
 
-		$optionsString = "-j $job->id";
-		exec("php ".BASE_PATH."/bin/user_updates/user_update_group.php $optionsString > /dev/null 2>&1 &");
+		JobLauncher::launch($job);
 
         echo json_encode($job->getApiOutput());
     }
@@ -192,8 +192,7 @@ class JobsHandler extends AbstractHandler {
 			tournamentId: $teamInTournament->tournament->id
 		);
 
-		$optionsString = "-j $job->id";
-		exec("php ".BASE_PATH."/bin/user_updates/user_update_team.php $optionsString > /dev/null 2>&1 &");
+		JobLauncher::launch($job);
 
 		echo json_encode($job->getApiOutput());
 	}
@@ -258,8 +257,7 @@ class JobsHandler extends AbstractHandler {
 			$matchup->id
 		);
 
-		$optionsString = "-j $job->id";
-		exec("php ".BASE_PATH."/bin/user_updates/user_update_match.php $optionsString > /dev/null 2>&1 &");
+		JobLauncher::launch($job);
 
 		echo json_encode($job->getApiOutput());
 	}
