@@ -19,7 +19,7 @@ $tournaments = EntitySorter::sortTournamentsByStartDate($tournamentRepo->findAll
 		<span class='tsl-heading'>
 			<h3><?=$tournament->name?></h3>
 			<?php $classes = implode(' ', array_filter(['toggle-turnierselect-accordeon', in_array($tournament->id, $openAccordeons) ? 'open':'']))?>
-			<button class='<?=$classes?>' type='button' data-id='<?=$tournament->id?>'><?= IconRenderer::getMaterialIconDiv('expand_more')?></button>
+			<button class='<?=$classes?>' type='button' data-id='<?=$tournament->id?>'><?= IconRenderer::getMaterialIconSpan('expand_more')?></button>
 		</span>
 
 		<?php $classes = implode(' ', array_filter(['turnierselect-accordeon', $tournament->id, in_array($tournament->id, $openAccordeons) ? 'open':'']))?>

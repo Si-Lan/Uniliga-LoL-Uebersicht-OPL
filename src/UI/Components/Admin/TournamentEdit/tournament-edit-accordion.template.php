@@ -16,7 +16,7 @@ use App\UI\Components\Helpers\IconRenderer;
         <?= $events[0]->eventType->getPrettyNamePlural() ?>
     </h4>
 	<?php $classes = implode(' ', array_filter(['toggle-turnierselect-accordeon', in_array("$tournament->id-{$events[0]->eventType->value}", $openAccordeons) ? 'open':'']))?>
-	<button class='<?=$classes?>' type='button' data-id='<?=$tournament->id?>-<?=$events[0]->eventType->value?>'><?= IconRenderer::getMaterialIconDiv('expand_more')?></button>
+	<button class='<?=$classes?>' type='button' data-id='<?=$tournament->id?>-<?=$events[0]->eventType->value?>'><?= IconRenderer::getMaterialIconSpan('expand_more')?></button>
 </span>
 
 <?php $classes = implode(' ', array_filter(['turnierselect-accordeon', "$tournament->id-{$events[0]->eventType->value}", in_array("$tournament->id-{$events[0]->eventType->value}", $openAccordeons) ? 'open':'']))?>

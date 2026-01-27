@@ -3615,7 +3615,8 @@ input[type=date] {
 .tournament-write-button-wrapper button.open-tournament-data-popup {
 	flex: 2;
 }
-.tournament-write-data-wrapper:has(>.tournament-data-popup button.button-updating)>.tournament-write-button-wrapper>.open-tournament-data-popup {
+.tournament-write-data-wrapper:has(>.tournament-data-popup button.button-updating)>.tournament-write-button-wrapper>.open-tournament-data-popup,
+.tsl-heading:has(~.turnierselect-accordeon button.button-updating) button.toggle-turnierselect-accordeon {
 	position: relative;
 	overflow: hidden;
 	--loading-bar-width: 0;
