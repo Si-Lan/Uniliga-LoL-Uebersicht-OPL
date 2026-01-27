@@ -211,7 +211,7 @@ async function syncDataForPatches(button = null) {
 			})
 			.catch(e => console.error(e));
 		if (!checkResult.error && checkResult.result === "updated") {
-			updatedPatches.push(checkResult.patch.patchNumber);
+			updatedPatches.push(checkResult.entity?.patchNumber);
 		}
 		counter++;
 		if (button !== null) setButtonLoadingBarWidth(button, Math.round(counter / patches.length * 100));
