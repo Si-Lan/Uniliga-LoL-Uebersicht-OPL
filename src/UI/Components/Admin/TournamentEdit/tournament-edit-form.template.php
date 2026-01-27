@@ -88,7 +88,7 @@ $nonRootDisableAttribute = $tournament->eventType === EventType::TOURNAMENT ? ''
 		<button class="update_tournament" type="button" data-id="<?=$tournament->id?>">Aktualisieren</button>
         <button class="get_related_events" type="button" data-relation="parents" data-id="<?=$tournament->id?>" data-dialog-id="<?=$parentsPopup->getId()?>">Eltern holen</button>
         <button class="get_related_events" type="button" data-relation="children" data-id="<?=$tournament->id?>" data-dialog-id="<?=$childrenPopup->getId()?>">Kinder holen</button>
-		<button class="open-tournament-data-popup" type="button" data-id="<?=$tournament->id?>" data-dialog-id="tournament-data-popup-<?=$tournament->id?>">weitere Daten holen</button>
+        <button class="open-tournament-data-popup" type="button" data-id="<?=$tournament->id?>" data-dialog-id="tournament-data-popup-<?=$tournament->id?>"><span>weitere Daten holen</span></button>
 	</div>
     <?php
         $popupContent = <<<HTML
