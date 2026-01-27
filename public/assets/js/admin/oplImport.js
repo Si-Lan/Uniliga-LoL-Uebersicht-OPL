@@ -311,6 +311,14 @@ function renderDetails(summary,text) {
 $(document).on("click", ".toggle-turnierselect-accordeon", function () {
 	toggle_turnier_select_accordeon(this.getAttribute("data-id"));
 });
+$(() => {
+	const open_accordeons = sessionStorage.getItem("open_admin_accordeons") ?? "[]";
+	const open_accordeon_ids = JSON.parse(open_accordeons);
+	open_accordeon_ids.forEach(id => {
+		$(`.toggle-turnierselect-accordeon[data-id=${id}]`).addClass("open");
+		$(".turnierselect-accordeon."+id).addClass("open");
+	})
+})
 function toggle_turnier_select_accordeon(tournamentID) {
 	$(".turnierselect-accordeon."+tournamentID).toggleClass("open");
 	$(`.toggle-turnierselect-accordeon[data-id=${tournamentID}]`).toggleClass("open");
