@@ -6,6 +6,7 @@ use App\Domain\Entities\Patch;
 use App\Domain\Entities\UpdateJob;
 use App\Domain\Repositories\PatchRepository;
 use App\Domain\Repositories\UpdateJobRepository;
+use App\Domain\ValueObjects\RepositorySaveResult;
 use FilesystemIterator;
 
 class PatchUpdater {
@@ -397,7 +398,7 @@ class PatchUpdater {
 		return ["added" => array_values(array_diff($directoryPatchNumbers, $databasePatchNumbers)), "patches" => array_reverse($this->patchRepo->findAll())];
 	}
 
-	public function checkExistingFilesForPatch(Patch $patch): array {
+	public function checkExistingFilesForPatch(Patch $patch): RepositorySaveResult {
 		$patchDir = self::LOCAL_DDRAGON_DIR."/".$patch->patchNumber;
 		$dataCheck = null;
 		$championCheck = null;

@@ -6,6 +6,7 @@ use App\API\AbstractHandler;
 use App\Domain\Enums\Jobs\UpdateJobAction;
 use App\Domain\Enums\Jobs\UpdateJobType;
 use App\Domain\Repositories\UpdateJobRepository;
+use App\Service\JobLauncher;
 use App\Service\Updater\TeamUpdater;
 
 class TeamsHandler extends AbstractHandler {
@@ -35,8 +36,7 @@ class TeamsHandler extends AbstractHandler {
 			UpdateJobAction::UPDATE_TEAM_RANKS
 		);
 
-		$optionsString = "-j $job->id";
-		exec("php ".BASE_PATH."/bin/admin_updates/update_team_ranks.php $optionsString > /dev/null 2>&1 &");
+		JobLauncher::launch($job);
 
 		echo json_encode(['job_id' => $job->id]);
 	}

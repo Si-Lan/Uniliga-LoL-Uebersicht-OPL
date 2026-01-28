@@ -88,23 +88,23 @@ $nonRootDisableAttribute = $tournament->eventType === EventType::TOURNAMENT ? ''
 		<button class="update_tournament" type="button" data-id="<?=$tournament->id?>">Aktualisieren</button>
         <button class="get_related_events" type="button" data-relation="parents" data-id="<?=$tournament->id?>" data-dialog-id="<?=$parentsPopup->getId()?>">Eltern holen</button>
         <button class="get_related_events" type="button" data-relation="children" data-id="<?=$tournament->id?>" data-dialog-id="<?=$childrenPopup->getId()?>">Kinder holen</button>
-		<button class="open-tournament-data-popup" type="button" data-id="<?=$tournament->id?>" data-dialog-id="tournament-data-popup-<?=$tournament->id?>">weitere Daten holen</button>
+        <button class="open-tournament-data-popup" type="button" data-id="<?=$tournament->id?>" data-dialog-id="tournament-data-popup-<?=$tournament->id?>"><span>weitere Daten holen</span></button>
 	</div>
     <?php
         $popupContent = <<<HTML
         <h2>{$tournament->getSplitAndSeason()} | {$tournament->getFullName()} ({$tournament->eventType->getPrettyName()})</h2>
-        <button class="get-teams" data-id="$tournament->id"><span>Teams updaten (pro Gruppe)</span></button>
+        <button class="get-teams" data-id="$tournament->id" data-action="update_teams"><span>Teams updaten (pro Gruppe)</span></button>
         <div class="divider" style="margin: 4px 0"></div>
-		<button class="get-players" data-id="$tournament->id"><span>Spieler updaten (pro Team)</span></button>
+		<button class="get-players" data-id="$tournament->id" data-action="update_players"><span>Spieler updaten (pro Team)</span></button>
 		<div class="divider" style="margin: 4px 0"></div>
-		<button class="get-riotids" data-id="$tournament->id"><span>Spieler-Accounts updaten (pro Team -> pro Spieler)</span></button>
+		<button class="get-riotids" data-id="$tournament->id" data-action="update_riotids_opl"><span>Spieler-Accounts updaten (pro Team -> pro Spieler)</span></button>
 		<div class="divider" style="margin: 4px 0"></div>
-		<button class="get-matchups" data-id="$tournament->id"><span>Matches updaten (pro Gruppe)</span></button>
+		<button class="get-matchups" data-id="$tournament->id" data-action="update_matches"><span>Matches updaten (pro Gruppe)</span></button>
 		<div class="divider" style="margin: 4px 0"></div>
-		<button class="get-results" data-id="$tournament->id"><span>Match-Ergebnisse und LoL-Spiele updaten (pro Match)</span></button>
-		<button class="get-results-unplayed" data-id="$tournament->id"><span>Match-Ergebnisse und LoL-Spiele updaten (pro ungespieltem Match)</span></button>
+		<button class="get-results" data-id="$tournament->id" data-action="update_results"><span>Match-Ergebnisse und LoL-Spiele updaten (pro Match)</span></button>
+		<button class="get-results-unplayed" data-id="$tournament->id" data-action="update_results"><span>Match-Ergebnisse und LoL-Spiele updaten (pro ungespieltem Match)</span></button>
 		<div class="divider" style="margin: 4px 0"></div>
-		<button class="calculate-standings" data-id="$tournament->id"><span>Tabelle aktualisieren (pro Gruppe) (Berechnung)</span></button>
+		<button class="calculate-standings" data-id="$tournament->id" data-action="update_standings"><span>Tabelle aktualisieren (pro Gruppe) (Berechnung)</span></button>
 HTML;
         if ($tournament->eventType === EventType::TOURNAMENT) {
             $popupContent .= <<<HTML

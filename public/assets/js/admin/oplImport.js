@@ -3,6 +3,38 @@ $(document).on("click", "button.write_tournament", function () {writeTournamentF
 $(document).on("click", "button.update_tournament", function () {writeTournamentFromForm(this)});
 $(document).on("click", "button.get_related_events", function () {openRelatedEventsPopup(this)});
 
+// Beim Start nach laufenden Jobs suchen und Buttons aktualisieren
+$(async function () {
+	// rufe alle Jobs ab
+	const runningJobs = await fetch(`/api/jobs/admin/running`)
+		.then(res => {
+			if (res.ok) {
+				return res.json()
+			} else {
+				console.error("Fehler beim Laden der laufenden Jobs");
+			}
+		})
+		.catch(error => console.error(error));
+	if (!runningJobs || runningJobs.error) return;
+
+	for (const job of runningJobs) {
+		// Für OPL-Updates sind nur Jobs mit korrektem Turnier-Kontext relevant
+		if (job['contextType'] !== 'tournament') continue;
+		if (!job['context'] || !job['context']['id']) continue;
+
+		// Suche passende Buttons
+		const tournamentId = job['context']['id'];
+		const action = job['action'];
+		const button = $(`button[data-id=${tournamentId}][data-action=${action}]`);
+		if (button.length === 0) continue;
+		setButtonUpdating(button);
+		checkJobStatusRepeatedly(job['id'], 1000, button)
+			.then(() => {
+				unsetButtonUpdating(button);
+			})
+			.catch(error => console.error(error))
+	}
+})
 function getTournamentAndShowForm() {
 	const dialog = $('dialog#tournament-add');
 	const dialogContent = dialog.find('.dialog-content');
@@ -311,6 +343,14 @@ function renderDetails(summary,text) {
 $(document).on("click", ".toggle-turnierselect-accordeon", function () {
 	toggle_turnier_select_accordeon(this.getAttribute("data-id"));
 });
+$(() => {
+	const open_accordeons = sessionStorage.getItem("open_admin_accordeons") ?? "[]";
+	const open_accordeon_ids = JSON.parse(open_accordeons);
+	open_accordeon_ids.forEach(id => {
+		$(`.toggle-turnierselect-accordeon[data-id=${id}]`).addClass("open");
+		$(".turnierselect-accordeon."+id).addClass("open");
+	})
+})
 function toggle_turnier_select_accordeon(tournamentID) {
 	$(".turnierselect-accordeon."+tournamentID).toggleClass("open");
 	$(`.toggle-turnierselect-accordeon[data-id=${tournamentID}]`).toggleClass("open");

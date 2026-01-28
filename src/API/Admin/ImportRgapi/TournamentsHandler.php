@@ -8,6 +8,7 @@ use App\Domain\Enums\Jobs\UpdateJobContextType;
 use App\Domain\Enums\Jobs\UpdateJobType;
 use App\Domain\Repositories\TournamentRepository;
 use App\Domain\Repositories\UpdateJobRepository;
+use App\Service\JobLauncher;
 
 class TournamentsHandler extends AbstractHandler {
 	private TournamentRepository $tournamentRepo;
@@ -28,11 +29,8 @@ class TournamentsHandler extends AbstractHandler {
 
 		$job = $this->updateJobRepo->createJob(UpdateJobType::ADMIN, UpdateJobAction::UPDATE_PUUIDS, UpdateJobContextType::TOURNAMENT, $tournamentId);
 
-		$commandOptions = ["-j $job->id"];
-		if ($withoutPuuidOnly) $commandOptions[] = "--without-puuid";
-
-		$optionString = implode(" ", $commandOptions);
-		exec("php ".BASE_PATH."/bin/admin_updates/update_puuids.php $optionString > /dev/null 2>&1 &");
+		$options = $withoutPuuidOnly ? " --without-puuid" : "";
+		JobLauncher::launch($job, $options);
 
 		echo json_encode(['job_id'=>$job->id]);
 	}
@@ -45,8 +43,7 @@ class TournamentsHandler extends AbstractHandler {
 
         $job = $this->updateJobRepo->createJob(UpdateJobType::ADMIN, UpdateJobAction::UPDATE_RIOTIDS_PUUIDS, UpdateJobContextType::TOURNAMENT, $tournamentId);
 
-        $optionsString = "-j $job->id";
-        exec("php ".BASE_PATH."/bin/admin_updates/update_riotids_by_puuid.php $optionsString > /dev/null 2>&1 &");
+		JobLauncher::launch($job);
 
         echo json_encode(['job_id'=>$job->id]);
     }
@@ -59,8 +56,7 @@ class TournamentsHandler extends AbstractHandler {
 
         $job = $this->updateJobRepo->createJob(UpdateJobType::ADMIN, UpdateJobAction::UPDATE_PLAYER_RANKS, UpdateJobContextType::TOURNAMENT, $tournamentId);
 
-        $optionsString = "-j $job->id";
-        exec("php ".BASE_PATH."/bin/admin_updates/update_player_ranks.php $optionsString > /dev/null 2>&1 &");
+		JobLauncher::launch($job);
 
         echo json_encode(['job_id'=>$job->id]);
     }
@@ -73,8 +69,7 @@ class TournamentsHandler extends AbstractHandler {
 
         $job = $this->updateJobRepo->createJob(UpdateJobType::ADMIN, UpdateJobAction::UPDATE_TEAM_RANKS, UpdateJobContextType::TOURNAMENT, $tournamentId);
 
-        $optionsString = "-j $job->id";
-        exec("php ".BASE_PATH."/bin/admin_updates/update_team_ranks.php $optionsString > /dev/null 2>&1 &");
+		JobLauncher::launch($job);
 
         echo json_encode(['job_id'=>$job->id]);
     }
@@ -87,8 +82,7 @@ class TournamentsHandler extends AbstractHandler {
 
         $job = $this->updateJobRepo->createJob(UpdateJobType::ADMIN, UpdateJobAction::UPDATE_GAMEDATA, UpdateJobContextType::TOURNAMENT, $tournamentId);
 
-        $optionsString = "-j $job->id";
-        exec("php ".BASE_PATH."/bin/admin_updates/update_gamedata.php $optionsString > /dev/null 2>&1 &");
+		JobLauncher::launch($job);
 
         echo json_encode(['job_id'=>$job->id]);
     }
@@ -101,8 +95,7 @@ class TournamentsHandler extends AbstractHandler {
 
         $job = $this->updateJobRepo->createJob(UpdateJobType::ADMIN, UpdateJobAction::UPDATE_PLAYER_STATS, UpdateJobContextType::TOURNAMENT, $tournamentId);
 
-        $optionsString = "-j $job->id";
-        exec("php ".BASE_PATH."/bin/admin_updates/update_player_stats.php $optionsString > /dev/null 2>&1 &");
+		JobLauncher::launch($job);
 
         echo json_encode(['job_id'=>$job->id]);
     }
@@ -115,8 +108,7 @@ class TournamentsHandler extends AbstractHandler {
 
         $job = $this->updateJobRepo->createJob(UpdateJobType::ADMIN, UpdateJobAction::UPDATE_TEAM_STATS, UpdateJobContextType::TOURNAMENT, $tournamentId);
 
-        $optionsString = "-j $job->id";
-        exec("php ".BASE_PATH."/bin/admin_updates/update_team_stats.php $optionsString > /dev/null 2>&1 &");
+		JobLauncher::launch($job);
 
         echo json_encode(['job_id'=>$job->id]);
     }

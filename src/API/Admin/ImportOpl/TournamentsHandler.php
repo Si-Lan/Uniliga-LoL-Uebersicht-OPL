@@ -13,6 +13,7 @@ use App\Domain\Factories\TournamentFactory;
 use App\Domain\Repositories\TournamentRepository;
 use App\Domain\Repositories\UpdateJobRepository;
 use App\Service\ApiResponse;
+use App\Service\JobLauncher;
 use App\Service\OplApiService;
 use App\Service\OplLogoService;
 use App\Service\Updater\TournamentUpdater;
@@ -140,8 +141,7 @@ class TournamentsHandler extends AbstractHandler{
 			$id
 		);
 
-		$optionsString = "-j $job->id";
-		exec("php ".BASE_PATH."/bin/admin_updates/update_teams.php $optionsString > /dev/null 2>&1 &");
+		JobLauncher::launch($job);
 
 		echo json_encode(['job_id'=>$job->id]);
 	}
@@ -159,8 +159,7 @@ class TournamentsHandler extends AbstractHandler{
 			$tournamentId
 		);
 
-		$optionsString = "-j $job->id";
-		exec("php ".BASE_PATH."/bin/admin_updates/update_players.php $optionsString > /dev/null 2>&1 &");
+		JobLauncher::launch($job);
 
 		echo json_encode(['job_id'=>$job->id]);
 	}
@@ -178,8 +177,7 @@ class TournamentsHandler extends AbstractHandler{
 			$tournamentId
 		);
 
-		$optionsString = "-j $job->id";
-		exec("php ".BASE_PATH."/bin/admin_updates/update_riotids_opl.php $optionsString > /dev/null 2>&1 &");
+		JobLauncher::launch($job);
 
 		echo json_encode(['job_id'=>$job->id]);
 	}
@@ -197,8 +195,7 @@ class TournamentsHandler extends AbstractHandler{
 			$tournamentId
 		);
 
-		$optionsString = "-j $job->id";
-		exec("php ".BASE_PATH."/bin/admin_updates/update_matches.php $optionsString > /dev/null 2>&1 &");
+		JobLauncher::launch($job);
 
 		echo json_encode(['job_id'=>$job->id]);
 	}
@@ -218,11 +215,8 @@ class TournamentsHandler extends AbstractHandler{
 			$tournamentId
 		);
 
-		$commandOptions = ["-j $job->id"];
-		if ($unplayedOnly) $commandOptions[] = "--unplayed";
-
-		$optionsString = implode(" ", $commandOptions);
-		exec("php ".BASE_PATH."/bin/admin_updates/update_matchresults.php $optionsString > /dev/null 2>&1 &");
+		$options = $unplayedOnly ? "--unplayed" : "";
+		JobLauncher::launch($job, $options);
 
 		echo json_encode(['job_id'=>$job->id]);
 	}
@@ -240,8 +234,7 @@ class TournamentsHandler extends AbstractHandler{
 			$tournamentId
 		);
 
-		$optionsString = "-j $job->id";
-		exec("php ".BASE_PATH."/bin/admin_updates/update_standings.php $optionsString > /dev/null 2>&1 &");
+		JobLauncher::launch($job);
 
 		echo json_encode(['job_id'=>$job->id]);
 	}
