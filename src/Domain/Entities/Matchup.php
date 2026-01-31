@@ -20,6 +20,32 @@ class Matchup {
 		public bool $defWin
 	) {}
 
+	public static function createEmpty(Tournament $tournamentStage): Matchup {
+		return self::createEmptyWithId(0, $tournamentStage);
+	}
+	public static function createEmptyWithId(int $id, Tournament $tournamentStage): Matchup {
+		return new Matchup(
+			id: $id,
+			tournamentStage: $tournamentStage,
+			team1: null,
+			team2: null,
+			team1Score: null,
+			team2Score: null,
+			plannedDate: null,
+			playday: null,
+			bestOf: null,
+			played: false,
+			winnerId: null,
+			loserId: null,
+			draw: false,
+			defWin: false
+		);
+	}
+
+	public int $bracketColumn = 0;
+	public array $bracketPrevMatchups = [];
+	public array $bracketNextMatchups = [];
+
 	public function getTeam1Result(): ?string {
 		if ($this->team1 === null || !$this->played) return null;
 		if ($this->draw) return 'draw';
