@@ -34,7 +34,7 @@ $matchPopup = new Popup(
 			<?php if ($matchup->played) {?>
 			<div class="<?=implode(" ", array_filter(["score", 2, $matchup->getTeam2Result(), (!is_null($currentTeam?->id) && $currentTeam?->id === $matchup->team2?->team->id) ? "current" : ""]))?>"><?=$matchup->team2Score?></div>
 			<?php } ?>
-			<?php if (!$matchup->played) {?>
+			<?php if (!$matchup->played && $matchup->plannedDate !== null) {?>
 			<div class="date"><?=date_format($matchup->plannedDate, 'd M')?><br><?=date_format($matchup->plannedDate, 'H:i')?></div>
 			<?php } ?>
 		</div>
