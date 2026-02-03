@@ -195,13 +195,10 @@ function setUserButtonLoadingBarWidth(button, widthPercentage) {
 
 
 function refreshTournamentStagePageContent(tournamentId) {
-    fragmentLoader(`standings-table?tournamentId=${tournamentId}`)
+    fragmentLoader(`event-stage-view?tournamentId=${tournamentId}`)
         .then(html => {
-            $("div.standings").replaceWith(html);
-        })
-    fragmentLoader(`match-button-list?tournamentId=${tournamentId}`)
-        .then(html => {
-            $("main .matches").replaceWith(html);
+            $("main").empty().append(html);
+            if (typeof drawAllBracketLines === "function") drawAllBracketLines();
         })
 }
 
@@ -221,21 +218,16 @@ function refreshTeamInTournamentPageContent(teamId, tournamentId) {
 
     stageButtons.prop("disabled", true);
 
-    let fetchArray = [];
-    fetchArray.push(
-        fragmentLoader(`standings-table?tournamentId=${activeStageId}&teamId=${teamId}`, null, null, true)
-            .then(html => {
-                $("div.standings").replaceWith(html);
-            })
-    )
-    fetchArray.push(
-        fragmentLoader(`match-button-list?tournamentId=${activeStageId}&teamId=${teamId}`, null, null, true)
-            .then(html => {
-                $("main .matches").replaceWith(html);
-            })
-    )
-    Promise.all(fetchArray)
-        .then(() => stageButtons.prop("disabled", false));
+    fragmentLoader(`event-stage-view?tournamentId=${activeStageId}&teamId=${teamId}`, null, null, true)
+        .then(html => {
+            $("main div.inner-content").empty().append(html);
+            if (typeof drawAllBracketLines === "function") drawAllBracketLines();
+            stageButtons.prop("disabled", false);
+        })
+        .catch(e => {
+            console.error(e);
+            stageButtons.prop("disabled", false);
+        });
 }
 
 function refreshMatchPopupContent(popupId, matchId, teamId = null) {
@@ -249,7 +241,7 @@ function refreshMatchPopupContent(popupId, matchId, teamId = null) {
     let activeStageId = null;
     let groupBody = $(`body.group`);
     if (groupBody.length > 0) {
-        activeStageId = groupBody.data("id");
+        activeStageId = groupBody.data("id")??null;
     }
     let stageButtons = null;
     let activeStageButton = null;
@@ -261,12 +253,14 @@ function refreshMatchPopupContent(popupId, matchId, teamId = null) {
     }
 
     let fetchArray = [];
-    fetchArray.push(
-        fragmentLoader(`standings-table?tournamentId=${activeStageId}${teamIdParam}`, null, null, true)
-            .then(html => {
-                $("div.standings").replaceWith(html);
-            })
-    )
+    if (activeStageId !== null)  {
+        fetchArray.push(
+            fragmentLoader(`standings-table?tournamentId=${activeStageId}${teamIdParam}`, null, null, true)
+                .then(html => {
+                    $("div.standings").replaceWith(html);
+                })
+        )
+    }
     fetchArray.push(
         fragmentLoader(`match-button?matchupId=${matchId}${teamIdParam}${popupIdParam}`, null, null, true)
             .then(html => {
