@@ -18,7 +18,9 @@ use App\UI\Components\UpdateButton;
 <span>Spieldatum: <?=$matchup->plannedDate?->format('d.m.Y, H:i') ?? "unbekannt"?></span>
 <?= new MatchRound($matchup) ?>
 
-<?php if (!count($gamesInMatch) && !$matchup->played): ?>
+<?php if (!count($gamesInMatch) && $matchup->isQualified()): ?>
+    <div class="no-game-found">Match wird nicht gespielt<br>Beide Teams sind qualifiziert</div>
+<?php elseif (!count($gamesInMatch) && !$matchup->played): ?>
     <div class="no-game-found">Spiel wurde noch nicht gespielt</div>
 <?php elseif (!count($gamesInMatch) && $matchup->defWin): ?>
     <div class="no-game-found">Keine Spiele vorhanden (Default Win)</div>

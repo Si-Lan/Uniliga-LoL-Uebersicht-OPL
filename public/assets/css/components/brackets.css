@@ -134,7 +134,8 @@
         width: 184px;
         &:has(.team.win.current),
         &:has(.team.loss.current),
-        &:has(.team.draw.current) {
+        &:has(.team.draw.current),
+        &:has(.team.qualified.current) {
             grid-template-columns: 178px 40px !important;
         }
         .match {

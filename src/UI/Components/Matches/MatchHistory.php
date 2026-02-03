@@ -38,7 +38,9 @@ class MatchHistory {
 			echo "<div id='$matchup->id' class='round-wrapper'>";
 			echo new MatchRound($matchup);
 			if (count($games) == 0) {
-				if ($matchup->defWin) {
+				if ($matchup->isQualified()) {
+					echo "<div class='no-game-found'>Match wird nicht gespielt (Beide Teams qualifiziert)</div>";
+				} elseif ($matchup->defWin) {
 					echo "<div class='no-game-found'>Keine Spieldaten vorhanden (Default Win)</div>";
 				} else {
 					echo "<div class='no-game-found'>Noch keine Spieldaten gefunden</div>";

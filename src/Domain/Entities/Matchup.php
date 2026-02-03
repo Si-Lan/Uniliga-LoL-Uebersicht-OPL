@@ -47,15 +47,21 @@ class Matchup {
 	public array $bracketNextMatchups = [];
 
 	public function getTeam1Result(): ?string {
+		if ($this->isQualified()) return 'qualified';
 		if ($this->team1 === null || !$this->played) return null;
 		if ($this->draw) return 'draw';
 		if ($this->winnerId === $this->team1->team->id) return 'win';
 		return 'loss';
 	}
 	public function getTeam2Result(): ?string {
+		if ($this->isQualified()) return 'qualified';
 		if ($this->team1 === null || !$this->played) return null;
 		if ($this->draw) return 'draw';
 		if ($this->winnerId === $this->team1->team->id) return 'loss';
 		return 'win';
+	}
+
+	public function isQualified(): bool {
+		return $this->team1Score === 'Q' || $this->team2Score === 'Q';
 	}
 }
