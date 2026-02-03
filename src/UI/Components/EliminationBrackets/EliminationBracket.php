@@ -253,8 +253,8 @@ class EliminationBracket {
 		if ($tournamentStage->format === EventFormat::SINGLE_ELIMINATION) {
 			include __DIR__.'/single-elimination-bracket.template.php';
 		} elseif ($tournamentStage->format === EventFormat::DOUBLE_ELIMINATION) {
-			$hiddenColumnsStart = $this->hiddenColumnsStart;
-			$hiddenColumnsEnd = $this->hiddenColumnsEnd;
+			$hiddenColumnsStart = $this->hiddenColumnsStart??0;
+			$hiddenColumnsEnd = $this->hiddenColumnsEnd??count($matchesByColumn);
 			include __DIR__.'/double-elimination-bracket.template.php';
 		} else {
 			?>
