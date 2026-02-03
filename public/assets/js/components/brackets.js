@@ -63,12 +63,13 @@ function drawPath(svg, from, to, fromId, toId) {
 }
 
 function getAnchor(el, side = "right") {
-    const r = el.getBoundingClientRect();
-    const p = el.offsetParent.getBoundingClientRect();
+    const rect = el.getBoundingClientRect();
+    const bracket = el.closest('.elimination-bracket');
+    const bracketRect = bracket.getBoundingClientRect();
 
     return {
-        x: side === "right" ? r.right - p.left : r.left - p.left,
-        y: r.top - p.top + r.height / 2
+        x: (side === "right" ? rect.right : rect.left) - bracketRect.left + bracket.scrollLeft,
+        y: rect.top - bracketRect.top + bracket.scrollTop + rect.height / 2
     };
 }
 
