@@ -199,6 +199,7 @@ class EliminationBracket {
 			$this->matchesByColumn[$match->bracketColumn]["lower"][] = $match;
 		}
 
+        // Standardmäßig eingeklappte Spalten festlegen
 		$this->hiddenColumnsStart = 0;
 		foreach ($this->matchesByColumn as $column) {
 			$columnVisible = false;
@@ -213,7 +214,7 @@ class EliminationBracket {
 				break;
 			}
 		}
-		$this->hiddenColumnsEnd = $numColumns;
+		$this->hiddenColumnsEnd = count($this->matchesByColumn);
 		for ($i = $numColumns - 1; $i > $this->hiddenColumnsStart; $i--) {
 			$columnVisible = false;
 			foreach ([...$this->matchesByColumn[$i]["upper"], ...$this->matchesByColumn[$i]["lower"]] as $match) {
@@ -227,6 +228,21 @@ class EliminationBracket {
 				break;
 			}
 		}
+
+        // Unnötige Spalten vom Ende entfernen
+        $lastRealColumnIndex = count($this->matchesByColumn) - 1;
+        $firstQualifiedFound = false;
+        foreach ($this->matchesByColumn as $columnIndex => $column) {
+            $matchesInColumn = [...$column["upper"], ...$column["lower"]];
+            foreach ($matchesInColumn as $match) {
+                if ($match->team1 !== null || $match->team2 !== null
+                        || ($match->isQualified() && !$firstQualifiedFound)) {
+                    $lastRealColumnIndex = $columnIndex;
+                    if ($match->isQualified()) $firstQualifiedFound = true;
+                }
+            }
+        }
+        $this->matchesByColumn = array_slice($this->matchesByColumn, 0, $lastRealColumnIndex + 1);
 	}
 
 	public function render(): string {
