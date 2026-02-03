@@ -132,7 +132,15 @@
         font-size: 0.8rem;
         grid-template-columns: 180px 0;
         width: 184px;
-
+        &:has(.team.win.current),
+        &:has(.team.loss.current),
+        &:has(.team.draw.current) {
+            grid-template-columns: 178px 40px !important;
+        }
+        .match {
+            border-top-right-radius: 4px;
+            border-bottom-right-radius: 4px;
+        }
         .teams {
             grid-auto-rows: 24px 24px;
             padding: 4px 4px 4px 8px;
@@ -141,6 +149,11 @@
             display: none;
         }
     }
+}
+
+body.team .inner-content:has(.elimination-bracket) {
+    margin-bottom: 20vh;
+    max-width: 1200px;
 }
 
 :root {

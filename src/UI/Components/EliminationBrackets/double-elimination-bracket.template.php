@@ -1,5 +1,6 @@
 <?php
 use App\Domain\Entities\Matchup;
+use App\Domain\Entities\Team;
 use App\Domain\Entities\Tournament;
 use App\UI\Components\Helpers\IconRenderer;
 use App\UI\Components\Matches\MatchButton;
@@ -7,6 +8,7 @@ use App\UI\Components\UI\PageLink;
 
 /** @var Tournament $tournamentStage */
 /** @var array<array<Matchup>> $matchesByColumn */
+/** @var Team|null $selectedTeam */
 /** @var int $hiddenColumnsStart */
 /** @var int $hiddenColumnsEnd */
 ?>
@@ -41,7 +43,7 @@ use App\UI\Components\UI\PageLink;
                                     data-next<?= $i ?>="<?= $nextMatchup?->id ?>"
                                 <?php endforeach; ?>
                         >
-                            <?= new MatchButton($match) ?>
+                            <?= new MatchButton($match, $selectedTeam) ?>
 
                         </div>
                     <?php endforeach; ?>
@@ -59,7 +61,7 @@ use App\UI\Components\UI\PageLink;
                                     data-next<?= $i ?>="<?= $nextMatchup?->id ?>"
                                 <?php endforeach; ?>
                         >
-                            <?= new MatchButton($match) ?>
+                            <?= new MatchButton($match, $selectedTeam) ?>
 
                         </div>
                     <?php endforeach; ?>

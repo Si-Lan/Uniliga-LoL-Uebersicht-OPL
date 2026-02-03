@@ -6,6 +6,7 @@ use App\Domain\Repositories\TeamInTournamentRepository;
 use App\Domain\Repositories\TeamInTournamentStageRepository;
 use App\Domain\Services\EntitySorter;
 use App\UI\Components\Cards\SummonerCardContainer;
+use App\UI\Components\EliminationBrackets\EliminationBracket;
 use App\UI\Components\Helpers\IconRenderer;
 use App\UI\Components\Matches\MatchButtonList;
 use App\UI\Components\MultiOpggButton;
@@ -73,8 +74,11 @@ $pageMeta = new PageMeta(
     <?= new SwitchTournamentStageButtons($teamInTournamentStages, $teamInTournamentStage) ?>
 
     <div class='inner-content'>
-        <?= new StandingsTable($teamInTournamentStage->tournamentStage,$teamInTournament->team) ?>
-
-        <?= new MatchButtonList($teamInTournamentStage->tournamentStage,$teamInTournament) ?>
+        <?php if ($teamInTournamentStage->tournamentStage->isEventWithEliminationBracket()): ?>
+            <?= new EliminationBracket($teamInTournamentStage->tournamentStage, $teamInTournament->team) ?>
+        <?php else: ?>
+            <?= new StandingsTable($teamInTournamentStage->tournamentStage, $teamInTournament->team) ?>
+            <?= new MatchButtonList($teamInTournamentStage->tournamentStage, $teamInTournament) ?>
+        <?php endif; ?>
     </div>
 </main>
