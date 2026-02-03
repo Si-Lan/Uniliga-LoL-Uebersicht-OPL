@@ -242,7 +242,9 @@ class EliminationBracket {
                 }
             }
         }
-        $this->matchesByColumn = array_slice($this->matchesByColumn, 0, $lastRealColumnIndex + 1);
+        if ($firstQualifiedFound) {
+            $this->matchesByColumn = array_slice($this->matchesByColumn, 0, $lastRealColumnIndex + 1);
+        }
 	}
 
 	public function render(): string {
