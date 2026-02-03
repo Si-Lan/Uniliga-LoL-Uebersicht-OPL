@@ -8,7 +8,7 @@
     foreach ($teamInTournamentStages as $teamInTournamentStage) {
         $classes = implode(' ', array_filter(['teampage_switch_group', $teamInTournamentStage->tournamentStage->id === $activeStage->tournamentStage->id ? "active" : ""]));
         ?>
-        <button type='button' class='<?=$classes?>' data-group='<?=$teamInTournamentStage->tournamentStage->id?>' data-team='<?=$teamInTournamentStage->team->id?>>'>
+        <button type='button' class='<?=$classes?>' data-group='<?=$teamInTournamentStage->tournamentStage->id?>' data-team='<?=$teamInTournamentStage->team->id?>'>
             <?= $teamInTournamentStage->tournamentStage->getFullName()?>
         </button>
     <?php
