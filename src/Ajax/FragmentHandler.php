@@ -361,10 +361,10 @@ class FragmentHandler {
 		$teamInTournament = $teamId ? $teamInTournamentRepo->findByTeamIdAndTournament($teamId,$tournamentStage->getRootTournament()) : null;
 
 		if ($tournamentStage->isEventWithEliminationBracket()) {
-			$eliminationBracket = new EliminationBracket($tournamentStage, $teamInTournament->team);
+			$eliminationBracket = new EliminationBracket($tournamentStage, $teamInTournament?->team);
 			$content = $eliminationBracket->render();
 		} else {
-			$standings = new StandingsTable($tournamentStage, $teamInTournament->team);
+			$standings = new StandingsTable($tournamentStage, $teamInTournament?->team);
 			$matchList = new MatchButtonList($tournamentStage, $teamInTournament);
 			$content = $standings->render() . $matchList->render();
 		}
