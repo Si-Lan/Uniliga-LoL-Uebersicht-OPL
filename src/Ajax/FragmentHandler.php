@@ -41,6 +41,7 @@ class FragmentHandler {
 	private function sendJsonError(string $message, int $code): void {
 		http_response_code($code);
 		echo json_encode(['error'=>$message]);
+		exit;
 	}
 	public function standingsTable(array $dataGet): void {
 		$tournamentId = $this->IntOrNull($dataGet['tournamentId'] ?? null);
