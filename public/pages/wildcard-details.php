@@ -17,7 +17,8 @@ $wildcard = $tournamentRepo->findStandingsEventById($_GET["wildcard"]);
 
 $pageMeta = new PageMeta(
         title: $wildcard->getFullName()." | ".$wildcard->rootTournament->getShortName(),
-        bodyClass: 'group'
+        bodyClass: 'group',
+        bodyDataId: $wildcard->id
 );
 
 ?>

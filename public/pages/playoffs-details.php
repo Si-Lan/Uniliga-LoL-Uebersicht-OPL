@@ -17,7 +17,8 @@ $playoffs = $tournamentRepo->findStandingsEventById($_GET["playoffs"]);
 
 $pageMeta = new PageMeta(
         title: $playoffs->getFullName()." | ".$playoffs->rootTournament->getShortName(),
-        bodyClass: 'group'
+        bodyClass: 'group',
+        bodyDataId: $playoffs->id
 );
 
 ?>
