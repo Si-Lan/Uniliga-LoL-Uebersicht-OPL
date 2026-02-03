@@ -1158,22 +1158,15 @@ function switch_team_event(page, event_id, team_id, playoff_id = null) {
 
 	if (page === "details") {
 		if ($('.content-loading-indicator').length === 0) $('body').append("<div class='content-loading-indicator'></div>");
-		let page_updates = [];
-		page_updates.push(
-			fragmentLoader(`standings-table?tournamentId=${event_id}&teamId=${team_id}`,team_event_switch_control.signal)
-				.then(content => {
-					$(".inner-content .standings").replaceWith(content);
-				})
-		);
-		page_updates.push(
-			fragmentLoader(`match-button-list?tournamentId=${event_id}&teamId=${team_id}&playoffId=${playoff_id}`, team_event_switch_control.signal)
-				.then(matchlist => {
-					$(".inner-content .matches").replaceWith(matchlist);
-				})
-		);
-		Promise.all(page_updates).then(()=>{
-			$('.content-loading-indicator').remove();
-		})
+		fragmentLoader(`event-stage-view?tournamentId=${event_id}&teamId=${team_id}`,team_event_switch_control.signal)
+			.then(content => {
+				$(".inner-content").empty().append(content);
+				$(".content-loading-indicator").remove();
+				if (typeof drawAllBracketLines === "function") drawAllBracketLines();
+			})
+			.catch(error => {
+				$(".content-loading-indicator").remove();
+			})
 	} else if (page === "matchhistory") {
 		if ($('.content-loading-indicator').length === 0) $('body').append("<div class='content-loading-indicator'></div>");
 		fragmentLoader(`match-history?teamId=${team_id}&tournamentStageId=${event_id}`, team_event_switch_control.signal)
