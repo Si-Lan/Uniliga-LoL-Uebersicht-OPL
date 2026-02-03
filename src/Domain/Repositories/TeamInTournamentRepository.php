@@ -6,6 +6,7 @@ use App\Core\Utilities\DataParsingHelpers;
 use App\Domain\Entities\Team;
 use App\Domain\Entities\TeamInTournament;
 use App\Domain\Entities\Tournament;
+use App\Domain\Enums\EventType;
 use App\Domain\Enums\SaveResult;
 use App\Domain\ValueObjects\RepositorySaveResult;
 
@@ -67,6 +68,11 @@ class TeamInTournamentRepository extends AbstractRepository {
 		$cacheKey = $teamId."_".$tournamentId;
 		if (isset($this->cache[$cacheKey]) && !$ignoreCache) {
 			return $this->cache[$cacheKey];
+		}
+
+		$tournament = $tournament ?? $this->tournamentRepo->findById($tournamentId);
+		if ($tournament->eventType !== EventType::TOURNAMENT) {
+			return null;
 		}
 
 		$query = '

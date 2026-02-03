@@ -1,6 +1,7 @@
 <?php
 
 namespace App\UI\Components;
+use App\Domain\Entities\Matchup;
 use App\Domain\Entities\Player;
 use App\Domain\Entities\Team;
 use App\Domain\Entities\Tournament;
@@ -9,7 +10,7 @@ class OplOutLink {
 	private string $oplUrl = '';
 	private string $entityId = '';
 	public function __construct(
-		Tournament|Team|Player $entity
+		Tournament|Team|Player|Matchup $entity
 	) {
 		$this->entityId = $entity->id;
 		if ($entity instanceof Tournament) {
@@ -20,6 +21,9 @@ class OplOutLink {
 		}
 		if ($entity instanceof Player) {
 			$this->oplUrl = 'https://www.opleague.pro/user/';
+		}
+		if ($entity instanceof Matchup) {
+			$this->oplUrl = 'https://www.opleague.pro/match/';
 		}
 	}
 

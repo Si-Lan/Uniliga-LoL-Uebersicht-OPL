@@ -77,6 +77,12 @@ class Tournament {
 		return false;
 	}
 
+	public function isEventWithEliminationBracket():bool {
+		if ($this->format === EventFormat::SINGLE_ELIMINATION) return true;
+		if ($this->format === EventFormat::DOUBLE_ELIMINATION) return true;
+		return false;
+	}
+
 	public function isRunning():bool {
 		$today = new \DateTimeImmutable();
 		return (is_null($this->dateEnd) || $this->dateEnd > $today);

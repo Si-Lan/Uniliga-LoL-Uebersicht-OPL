@@ -25,19 +25,22 @@ $matchPopup = new Popup(
             <?=(!is_null($currentTeam?->id) && ($currentTeam?->id === $matchup->team1?->team->id || $currentTeam?->id === $matchup->team2?->team->id)) ? "data-team-id='{$currentTeam->id}'" : ""?>
        data-dialog-id="<?= $injectedPopupId === null ? $matchPopup->getId() : $injectedPopupId ?>"
     >
-		<div class="<?=implode(" ", array_filter(["teams", ($matchup->played) ? "score" : ""]))?>">
-			<div class="<?=implode(" ", array_filter(["team", 1, $matchup->getTeam1Result(), (!is_null($currentTeam?->id) && $currentTeam?->id === $matchup->team1?->team->id) ? "current" : ""]))?>" title="<?=$team1Name?>"><?=$team1Name?></div>
-			<?php if ($matchup->played) {?>
-			<div class="<?=implode(" ", array_filter(["score", 1, $matchup->getTeam1Result(), (!is_null($currentTeam?->id) && $currentTeam?->id === $matchup->team1?->team->id) ? "current" : ""]))?>"><?=$matchup->team1Score?></div>
-			<?php } ?>
-			<div class="<?=implode(" ", array_filter(["team", 2, $matchup->getTeam2Result(), (!is_null($currentTeam?->id) && $currentTeam?->id === $matchup->team2?->team->id) ? "current" : ""]))?>" title="<?=$team2Name?>"><?=$team2Name?></div>
-			<?php if ($matchup->played) {?>
-			<div class="<?=implode(" ", array_filter(["score", 2, $matchup->getTeam2Result(), (!is_null($currentTeam?->id) && $currentTeam?->id === $matchup->team2?->team->id) ? "current" : ""]))?>"><?=$matchup->team2Score?></div>
-			<?php } ?>
-			<?php if (!$matchup->played) {?>
-			<div class="date"><?=date_format($matchup->plannedDate, 'd M')?><br><?=date_format($matchup->plannedDate, 'H:i')?></div>
-			<?php } ?>
-		</div>
+        <div class="<?= implode(" ", array_filter(["teams", ($matchup->played) ? "score" : ""])) ?>">
+            <div class="<?= implode(" ", array_filter(["team", 1, $matchup->getTeam1Result(), (!is_null($currentTeam?->id) && $currentTeam?->id === $matchup->team1?->team->id) ? "current" : ""])) ?>"
+                 title="<?= $team1Name ?>"><?= $team1Name ?></div>
+            <?php if ($matchup->played || $matchup->isQualified()): ?>
+                <div class="<?= implode(" ", array_filter(["score", 1, $matchup->getTeam1Result(), (!is_null($currentTeam?->id) && $currentTeam?->id === $matchup->team1?->team->id) ? "current" : ""])) ?>"><?= $matchup->team1Score ?></div>
+            <?php endif; ?>
+            <div class="<?= implode(" ", array_filter(["team", 2, $matchup->getTeam2Result(), (!is_null($currentTeam?->id) && $currentTeam?->id === $matchup->team2?->team->id) ? "current" : ""])) ?>"
+                 title="<?= $team2Name ?>"><?= $team2Name ?></div>
+            <?php if ($matchup->played || $matchup->isQualified()): ?>
+                <div class="<?= implode(" ", array_filter(["score", 2, $matchup->getTeam2Result(), (!is_null($currentTeam?->id) && $currentTeam?->id === $matchup->team2?->team->id) ? "current" : ""])) ?>"><?= $matchup->team2Score ?></div>
+            <?php endif; ?>
+            <?php if (!$matchup->played && !$matchup->isQualified() && $matchup->plannedDate !== null): ?>
+                <div class="date"><?= date_format($matchup->plannedDate, 'd M') ?>
+                    <br><?= date_format($matchup->plannedDate, 'H:i') ?></div>
+            <?php endif; ?>
+        </div>
 	</a>
 	<a class="sidebutton-match" href="https://www.opleague.pro/match/<?=$matchup->id?>" target="_blank">
 		<?= \App\UI\Components\Helpers\IconRenderer::getMaterialIconDiv("open_in_new")?>

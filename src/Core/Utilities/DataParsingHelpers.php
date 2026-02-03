@@ -30,7 +30,7 @@ trait DataParsingHelpers {
 		if (is_array($value) && array_key_exists('date', $value) && array_key_exists('timezone', $value)) {
 			return new \DateTimeImmutable($value['date'], new \DateTimeZone($value['timezone']));
 		}
-		return is_null($value) ? null : new \DateTimeImmutable($value);
+		return is_null($value) || $value === '' ? null : new \DateTimeImmutable($value);
 	}
 
 	protected function EventTypeEnumOrNull(mixed $value): ?EventType {

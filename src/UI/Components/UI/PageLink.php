@@ -12,6 +12,7 @@ class PageLink {
 		public string $linkIcon = 'chevron_right'
 	) {
 		$this->classes = implode(' ', array_filter(["page-link", ($this->materialIcon !== null)?'icon-link':'', ...$additionalClasses]));
+		if ($this->linkIcon === "open_in_new") $this->classes .= " external-link";
 	}
 
 	public function render(): string {

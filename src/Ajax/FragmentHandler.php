@@ -14,6 +14,7 @@ use App\Domain\Repositories\TeamRepository;
 use App\Domain\Repositories\TournamentRepository;
 use App\Domain\Services\EntitySorter;
 use App\UI\Components\Cards\SummonerCard;
+use App\UI\Components\EliminationBrackets\EliminationBracket;
 use App\UI\Components\EloList\EloLists;
 use App\UI\Components\Games\GameDetails;
 use App\UI\Components\Matches\MatchButton;
@@ -40,6 +41,7 @@ class FragmentHandler {
 	private function sendJsonError(string $message, int $code): void {
 		http_response_code($code);
 		echo json_encode(['error'=>$message]);
+		exit;
 	}
 	public function standingsTable(array $dataGet): void {
 		$tournamentId = $this->IntOrNull($dataGet['tournamentId'] ?? null);
@@ -337,5 +339,36 @@ class FragmentHandler {
 		$team = $teamId ? $teamRepo->findById($teamId) : null;
 
 		$this->sendJsonFragment(new MatchPopupContent($matchup, $team));
+	}
+
+	public function eventStageView(array $dataGet): void {
+		$tournamentId = $this->intOrNull($dataGet['tournamentId'] ?? null);
+		$teamId = $this->intOrNull($dataGet['teamId'] ?? null);
+
+		if (is_null($tournamentId)) {
+			$this->sendJsonError('missing tournamentId',400);
+			return;
+		}
+
+		$tournamentRepo = new TournamentRepository();
+		$tournamentStage = $tournamentRepo->findStandingsEventById($tournamentId);
+		if (is_null($tournamentStage)) {
+			$this->sendJsonError('Tournament not found',404);
+			return;
+		}
+
+		$teamInTournamentRepo = new TeamInTournamentRepository();
+		$teamInTournament = $teamId ? $teamInTournamentRepo->findByTeamIdAndTournament($teamId,$tournamentStage->getRootTournament()) : null;
+
+		if ($tournamentStage->isEventWithEliminationBracket()) {
+			$eliminationBracket = new EliminationBracket($tournamentStage, $teamInTournament?->team);
+			$content = $eliminationBracket->render();
+		} else {
+			$standings = new StandingsTable($tournamentStage, $teamInTournament?->team);
+			$matchList = new MatchButtonList($tournamentStage, $teamInTournament);
+			$content = $standings->render() . $matchList->render();
+		}
+
+		$this->sendJsonFragment($content);
 	}
 }

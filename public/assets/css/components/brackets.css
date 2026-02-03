@@ -1,0 +1,165 @@
+.bracket {
+    max-width: 100%;
+    margin: auto;
+}
+
+.elimination-bracket {
+    position: relative;
+    display: flex;
+    row-gap: 16px;
+    column-gap: 32px;
+    min-height: 280px;
+    height: min-content;
+    overflow: auto;
+
+    .bracket_column {
+        display: grid;
+        align-items: center;
+        gap: 16px;
+        grid-template-rows: auto;
+        grid-auto-rows: 1fr;
+
+        &.hidden {
+            display: none;
+        }
+
+        .bracket-match {
+            position: relative;
+            z-index: 1;
+        }
+    }
+
+    &.single-elimination-bracket {
+        .bracket_column:last-of-type {
+            grid-template-rows: auto 2fr 1fr;
+
+            .bracket-match:first-of-type {
+                grid-row: 2 / 4;
+                grid-column: 1;
+            }
+
+            .bracket-match:last-of-type {
+                grid-row: 3;
+                grid-column: 1;
+            }
+        }
+    }
+    &.double-elimination-bracket {
+        .bracket_column,
+        .bracket_column:last-of-type {
+            grid-template-rows: auto 1fr auto 1fr;
+        }
+        .column_matches {
+            display: grid;
+            row-gap: 12px;
+            align-items: center;
+            height: 100%;
+        }
+    }
+
+    .bracket-divider {
+        height: 2px;
+        width: 100%;
+        background-color: var(--divider);
+    }
+
+    .bracket-lines {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        overflow: visible;
+        pointer-events: none;
+        z-index: 0;
+
+
+        path {
+            stroke: var(--bracket-line);
+
+            &.highlighted {
+                stroke: var(--bracket-line-highlight);
+            }
+        }
+    }
+
+    /* show_column_left verstecken, wenn keine versteckte Spalte links von einer sichtbaren Spalte ist */
+    /* show_column_right verstecken, wenn keine versteckte Spalte rechts von einer sichtbaren Spalte ist */
+    .show_columns_left, .show_columns_right {
+        display: none;
+
+        padding: 8px;
+
+        svg {
+            height: 36px;
+            width: 36px;
+        }
+    }
+    &:has(.bracket_column:not(.hidden) + .bracket_column.hidden) {
+        .show_columns_right {
+            display: block;
+        }
+    }
+    &:has(.bracket_column.hidden + .bracket_column:not(.hidden)) {
+        .show_columns_left {
+            display: block;
+        }
+    }
+
+    /* hide_column Button verstecken, wenn seine Spalte nicht die erste oder letzte sichtbare Spalte ist */
+    .hide_column {
+        padding: 8px 16px;
+        visibility: hidden;
+    }
+    .bracket_column:first-of-type .hide_column,
+    .bracket_column:last-of-type .hide_column,
+    .bracket_column.hidden + .bracket_column:not(.hidden) .hide_column,
+    .bracket_column:not(.hidden):has(+ .bracket_column.hidden) .hide_column {
+        visibility: visible;
+    }
+
+    /* Wenn nur eine Spalten aktiv ist, soll hide_column unsichtbar sein */
+    .bracket_column:not(.hidden):not(:has(~ .bracket_column:not(.hidden))):not(.bracket_column:not(.hidden) + .bracket_column:not(.hidden)) {
+        .hide_column {
+            visibility: hidden;
+        }
+    }
+
+
+    .bracket-match .match-button-wrapper {
+        font-size: 0.8rem;
+        grid-template-columns: 180px 0;
+        width: 184px;
+        &:has(.team.win.current),
+        &:has(.team.loss.current),
+        &:has(.team.draw.current),
+        &:has(.team.qualified.current) {
+            grid-template-columns: 178px 40px !important;
+        }
+        .match {
+            border-top-right-radius: 4px;
+            border-bottom-right-radius: 4px;
+        }
+        .teams {
+            grid-auto-rows: 24px 24px;
+            padding: 4px 4px 4px 8px;
+        }
+        .sidebutton-match {
+            display: none;
+        }
+    }
+}
+
+body.team .inner-content:has(.elimination-bracket) {
+    margin-bottom: 20vh;
+    max-width: 1200px;
+}
+
+:root {
+    --bracket-line: var(--accent);
+    --bracket-line-highlight: #b9dfec;
+
+    body.light {
+        --bracket-line: var(--element-bg);
+        --bracket-line-highlight: var(--accent);
+    }
+}

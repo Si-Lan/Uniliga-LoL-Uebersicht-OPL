@@ -1,6 +1,7 @@
 <?php
 
 use App\Domain\Repositories\TournamentRepository;
+use App\UI\Components\EliminationBrackets\EliminationBracket;
 use App\UI\Components\Matches\MatchButtonList;
 use App\UI\Components\Navigation\Header;
 use App\UI\Components\Navigation\TournamentNav;
@@ -16,7 +17,8 @@ $playoffs = $tournamentRepo->findStandingsEventById($_GET["playoffs"]);
 
 $pageMeta = new PageMeta(
         title: $playoffs->getFullName()." | ".$playoffs->rootTournament->getShortName(),
-        bodyClass: 'group'
+        bodyClass: 'group',
+        bodyDataId: $playoffs->id
 );
 
 ?>
@@ -35,6 +37,10 @@ $pageMeta = new PageMeta(
     <?php endif; ?>
 </div>
 <main>
-    <?= new StandingsTable($playoffs) ?>
-    <?= new MatchButtonList($playoffs) ?>
+    <?php if ($playoffs->isEventWithEliminationBracket()): ?>
+        <?= new EliminationBracket($playoffs)?>
+    <?php else: ?>
+        <?= new StandingsTable($playoffs) ?>
+        <?= new MatchButtonList($playoffs) ?>
+    <?php endif; ?>
 </main>
