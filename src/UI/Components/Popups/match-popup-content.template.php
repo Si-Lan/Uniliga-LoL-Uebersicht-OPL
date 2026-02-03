@@ -15,7 +15,7 @@ use App\UI\Components\UpdateButton;
 <div class="mh-popup-buttons">
 	<?= new UpdateButton($matchup, teamContext: $team)?>
 </div>
-<span>Spieldatum: <?=$matchup->plannedDate->format('d.m.Y, H:i')?></span>
+<span>Spieldatum: <?=$matchup->plannedDate?->format('d.m.Y, H:i') ?? "unbekannt"?></span>
 <?= new MatchRound($matchup) ?>
 
 <?php if (!count($gamesInMatch) && !$matchup->played): ?>
