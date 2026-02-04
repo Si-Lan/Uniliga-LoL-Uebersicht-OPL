@@ -1,3 +1,4 @@
+import fragmentLoader from "../fragmentLoader";
 $(async function () {
     const updateButtonsWrapper = $(".updatebuttonwrapper");
     for (const updateButtonWrapper of updateButtonsWrapper) {

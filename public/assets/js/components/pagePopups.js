@@ -1,3 +1,4 @@
+import fragmentLoader from "../fragmentLoader";
 $(document).ready(() => {
 	$("dialog.modalopen_auto").get().forEach(element => element.showModal());
 	$("dialog.match-popup.modalopen_auto").get().forEach(element => current_matchpopups_loaded.push(element.id));

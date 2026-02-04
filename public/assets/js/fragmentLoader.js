@@ -1,4 +1,4 @@
-async function fragmentLoader(fragment, signal = null, onError = null, warnOnlyOnError = false){
+export default async function fragmentLoader(fragment, signal = null, onError = null, warnOnlyOnError = false){
 	let requestInit = {method: "GET"}
 	if (signal !== null) {
 		requestInit.signal = signal;
@@ -28,12 +28,7 @@ async function fragmentLoader(fragment, signal = null, onError = null, warnOnlyO
 				}
 			})
 			response.js.forEach(src => {
-				if (!document.querySelector(`script[src="${src}"]`)) {
-					const script = document.createElement('script');
-					script.src = src;
-					script.defer = true;
-					document.body.appendChild(script);
-				}
+				import(`./${src}`);
 			})
 			return response.html;
 		})

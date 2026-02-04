@@ -1,3 +1,4 @@
+import fragmentLoader from "./fragmentLoader";
 $(document).ready(() => {
 	$(".settings-option.login").on("click", () => {event.preventDefault(); document.getElementById("login-dialog").showModal(); toggle_settings_menu(false); document.getElementById("keypass").focus();});
 });

@@ -34,7 +34,7 @@ class FragmentHandler {
 	private function sendJsonFragment(string $html): void {
 		echo json_encode([
 			'html' => $html,
-			'js' => AssetManager::getJsFiles(),
+			'js' => AssetManager::getJsModules(),
 			'css' => AssetManager::getCssFiles()
 		]);
 	}
