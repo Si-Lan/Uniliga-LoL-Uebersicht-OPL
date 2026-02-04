@@ -18,7 +18,7 @@ class PageMeta {
 		}
 		AssetManager::addCssAsset('design2.css');
 		AssetManager::addJsAsset('jquery-3.7.1.min.js');
-		AssetManager::addJsAsset('main.js');
+		AssetManager::addJsAsset('old_main.js');
 		AssetManager::addJsAsset('fragmentLoader.js');
 		$this->bodyDataId = "data-id='{$this->bodyDataId}'";
 	}
