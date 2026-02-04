@@ -44,10 +44,10 @@ use App\UI\Components\UI\PageLink;
 
 <?php if (count($playerInTeamsInTournaments) >= 2): ?>
 	<div class="player-ov-buttons">
-		<button type='button' class='expand-pcards' title='Ausklappen' onclick='expand_all_playercards()'>
+		<button type='button' class='expand-pcards' title='Ausklappen' data-action="expand">
 			<?= IconRenderer::getMaterialIconDiv('unfold_more') ?>
 		</button>
-		<button type='button' class='expand-pcards' title='Einklappen' onclick='expand_all_playercards(true)'>
+		<button type='button' class='expand-pcards' title='Einklappen' data-action="collapse">
 			<?= IconRenderer::getMaterialIconDiv('unfold_less') ?>
 		</button>
 	</div>

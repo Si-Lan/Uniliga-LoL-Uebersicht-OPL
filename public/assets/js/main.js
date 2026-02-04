@@ -103,6 +103,13 @@ $(document).ready(function() {
 });
 
 // teamlist-filter
+$(document).on('keyup', 'input.search-teams', () => search_teams());
+$(document).on('change', '.div-select-wrap select.divisions', function () {
+	filter_teams_list_division(this.value);
+});
+$(document).on('change', '.groups-select-wrap select.groups', function () {
+	filter_teams_list_group(this.value);
+});
 function update_team_filter_groups(div_id) {
 	if (div_id === "all") {
 		$("select.groups").empty().append("<option value='all' selected='selected'>Alle Gruppen</option>");
@@ -213,8 +220,6 @@ function filter_teams_list_group(group) {
 		window.history.pushState({}, '', url);
 	}
 }
-
-
 // handle search
 function search_teams() {
 	const search_input = document.getElementsByClassName("search-teams")[0].value.toUpperCase();
@@ -245,6 +250,9 @@ function search_teams() {
 
 
 // OPGG on Summoner Cards
+$(document).on('click', '.summoner-card', function () {
+	player_to_opgg_link(this.dataset.id, this.dataset.riotid)
+});
 function player_to_opgg_link(player_id, player_name) {
 	let checkbox = $(`.summoner-card.${player_id} input.opgg-checkbox`);
 	let opgg_button = $('div.opgg-cards a.op-gg');
@@ -283,14 +291,18 @@ $(document).ready(function () {
 });
 
 // Elo Overview Swap Views
+$(document).on('click', '.filter-button-wrapper button.filterb', function () {
+	switch_elo_view(this.dataset.id, this.dataset.view);
+});
+$(document).on('click', '.settings-button-wrapper button.color-elo-list', () => color_elo_list());
 function switch_elo_view(tournamentID,view) {
 	event.preventDefault();
 	let url = new URL(window.location.href);
 	let area = $('.main-content');
 	let but = $('.filter-button-wrapper button');
-	let all_b = $('.filter-button-wrapper .all-teams');
-	let div_b = $('.filter-button-wrapper .div-teams');
-	let group_b = $('.filter-button-wrapper .group-teams');
+	let all_b = $('.filter-button-wrapper [data-view=all-teams]');
+	let div_b = $('.filter-button-wrapper [data-view=div-teams]');
+	let group_b = $('.filter-button-wrapper [data-view=group-teams]');
 	let color_b = $('.settings-button-wrapper button span');
 	let jump_b = $('.jump-button-wrapper');
 
@@ -342,7 +354,9 @@ function switch_elo_view(tournamentID,view) {
         color_b.text("Nach Rang einfärben");
     }
 }
-
+$(document).on('click', '.jump-button-wrapper button', function () {
+	jump_to_league_elo(this.dataset.league);
+})
 function jump_to_league_elo(div_num) {
 	event.preventDefault();
 	let league = $(`.teams-elo-list h3.liga${div_num}`);
@@ -384,6 +398,7 @@ function color_elo_list() {
 	}
 }
 
+$(document).on('input', '.search-teams-elo', () => search_teams_elo());
 let acCurrentFocus = 0;
 function search_teams_elo() {
 	let searchbar = $('body.elo-overview main .searchbar');
@@ -469,6 +484,7 @@ function search_teams_elo() {
 function to_top() {
 	$('html').stop().animate({scrollTop: 0}, 300, 'swing');
 }
+$(document).on('click', '.totop', to_top);
 
 // TO-DO: put this only on elo-overview
 async function hide_top_button() {
@@ -896,6 +912,9 @@ async function reload_recent_players(initial=false) {
 			}
 		})
 }
+$(document).on("click",".x-remove-recent-player", function() {
+	remove_recent_player(this.dataset.playerid)
+});
 function remove_recent_player(playerid) {
 	event.preventDefault();
 	let recents = JSON.parse(localStorage.getItem("searched_players_IDs"));
@@ -923,6 +942,9 @@ $(document).ready(function () {
 });
 
 
+$(document).on("click", ".player-card-div.player-card-more", function () {
+	expand_playercard(this);
+});
 function expand_playercard(card_button) {
 	event.preventDefault();
 	let card = card_button.parentNode;
@@ -932,6 +954,8 @@ function expand_playercard(card_button) {
 		card.classList.add("expanded-pcard");
 	}
 }
+$(document).on("click",".expand-pcards[data-action=expand]", () => expand_all_playercards());
+$(document).on("click",".expand-pcards[data-action=collapse]", () => expand_all_playercards(true));
 function expand_all_playercards(collapse=false) {
 	event.preventDefault();
 	let cards = document.getElementsByClassName("player-card");

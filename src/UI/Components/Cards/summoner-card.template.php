@@ -17,7 +17,7 @@ $playerPopup = new Popup($player->id, "player-popup", dismissable: true);
 	$removed = ($playerTT != null) ? $playerTT->removed : false;
 	$card_classes = implode(' ',array_filter(["summoner-card", $player->id, $collapsed?"collapsed":"", $removed?"player-removed":""]));
     ?>
-	<div class="<?=$card_classes?>" onclick="player_to_opgg_link('<?=$player->id?>','<?=$player->getFullRiotID()?>')">
+	<div class="<?=$card_classes?>" data-id="<?=$player->id?>" data-riotid="<?=$player->getFullRiotID()?>">
 		<input type='checkbox' name='OPGG' <?=$player->riotIdName==null ? "disabled":""?> class='opgg-checkbox' <?=($player->riotIdName!=null && !$removed)? "checked":"" ?>>
 		<span class="card-player"><?=$player->name?></span>
 		<div class='divider'></div>

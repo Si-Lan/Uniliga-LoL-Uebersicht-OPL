@@ -34,7 +34,7 @@ echo new Header(HeaderType::ADMIN);
             <span>Alle Teams aktualisieren<?=IconRenderer::getMaterialIconSpan('sync')?></span>
         </button>
         <div class="result-wrapper no-res gen-admin">
-            <div class="clear-button" onclick="clearGeneralResults()">Clear</div>
+            <div class="clear-button">Clear</div>
             <div class="result-content"></div>
         </div>
         <div class="divider" style="margin-bottom: 4px"></div>

@@ -52,24 +52,25 @@ $filtered = $_REQUEST['view'] ?? NULL;
 
     <div class='searchbar'>
         <span class='material-symbol search-icon' title='Suche'><?= IconRenderer::getMaterialIcon('search') ?></span>
-        <input class="search-teams-elo <?=$tournament->id?> deletable-search" oninput='search_teams_elo()' placeholder='Team suchen' type='search'>
+        <input class="search-teams-elo <?=$tournament->id?> deletable-search" placeholder='Team suchen' type='search'>
         <button type='button' class='material-symbol search-clear' title='Suche leeren'><?= IconRenderer::getMaterialIcon('close') ?></button>
     </div>
 
     <div class='filter-button-wrapper'>
-        <button class='filterb all-teams<?= ($filtered !== 'liga' && $filtered !== 'gruppe') ? ' active' : ''?>' onclick='switch_elo_view("<?= $tournament->id ?>","all-teams")'>Alle Ligen</button>
-        <button class='filterb div-teams<?= ($filtered === 'liga') ? ' active' : ''?>' onclick='switch_elo_view("<?= $tournament->id ?>","div-teams")'>Pro Liga</button>
-        <button class='filterb group-teams<?= ($filtered === 'gruppe') ? ' active' : ''?>' onclick='switch_elo_view("<?= $tournament->id ?>","group-teams")' <?= ($stage_loaded != "groups") ? "style='display: none'" : '' ?>>Pro Gruppe</button>
+        <button class='filterb<?= ($filtered !== 'liga' && $filtered !== 'gruppe') ? ' active' : ''?>' data-id="<?=$tournament->id?>" data-view="all-teams">Alle Ligen</button>
+        <button class='filterb<?= ($filtered === 'liga') ? ' active' : ''?>' data-id="<?=$tournament->id?>" data-view="div-teams">Pro Liga</button>
+        <?php $groupButtonStyleAttr = $stage_loaded !== "groups" ? "style='display: none;'" : ""; ?>
+        <button class='filterb<?= ($filtered === 'gruppe') ? ' active' : ''?>' data-id="<?= $tournament->id ?>" data-view="group-teams" <?=$groupButtonStyleAttr?>>Pro Gruppe</button>
     </div>
 
     <div class='settings-button-wrapper'>
 		<?php $colorByText = ($filtered === 'liga' || $filtered === 'gruppe') ? 'Rang' : 'Liga' ?>
-        <button onclick='color_elo_list()'><input type='checkbox' name='coloring' <?= $colored ? 'checked' : ''?> class='controlled color-checkbox'><span>Nach <?=$colorByText?> einfärben</span></button>
+        <button class="color-elo-list"><input type='checkbox' name='coloring' <?= $colored ? 'checked' : ''?> class='controlled color-checkbox'><span>Nach <?=$colorByText?> einfärben</span></button>
     </div>
 
     <div class='jump-button-wrapper'<?= (($filtered == "liga" || $filtered == "gruppe") && $stage_loaded == "groups") ? '' : ' style="display: none;"'?>>
         <?php foreach ($leagues as $league): ?>
-            <button onclick='jump_to_league_elo(<?=$league->number?>)'>Zu Liga <?=$league->number?></button>
+            <button data-league="<?=$league->number?>">Zu Liga <?=$league->number?></button>
         <?php endforeach; ?>
     </div>
     <div class='main-content<?= ($colored) ? " colored-list" : ""?>'>
@@ -97,5 +98,5 @@ $filtered = $_REQUEST['view'] ?? NULL;
         <?php endif; ?>
 
     </div>
-    <a class='button totop' onclick='to_top()' style='opacity: 0; pointer-events: none;'><?=IconRenderer::getMaterialIconDiv('expand_less')?></a>
+    <a class='button totop' style='opacity: 0; pointer-events: none;'><?=IconRenderer::getMaterialIconDiv('expand_less')?></a>
 </main>

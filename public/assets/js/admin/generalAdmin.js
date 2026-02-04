@@ -142,6 +142,7 @@ function addToGeneralResults(content) {
 		container.scrollTop(container.prop("scrollHeight"));
 	}
 }
+$(document).on("click", ".result-wrapper .clear-results", clearGeneralResults);
 function clearGeneralResults() {
 	const wrapper = $(".result-wrapper.gen-admin");
 	if (!wrapper.hasClass('no-res')) {
