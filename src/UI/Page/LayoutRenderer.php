@@ -16,15 +16,9 @@ class LayoutRenderer {
 			<title>
 				<?= $meta->title ?>
 			</title>
-            <?php foreach($meta->css as $css): ?>
-                <link rel="stylesheet" href="/assets/css/<?= $css ?>.css">
-        	<?php endforeach; ?>
             <?php foreach(AssetManager::getCssFiles() as $css): ?>
                 <link rel="stylesheet" href="<?= $css ?>">
             <?php endforeach; ?>
-			<?php foreach($meta->js as $js): ?>
-                <script src="/assets/js/<?= $js ?>.js"></script>
-			<?php endforeach; ?>
 			<?php foreach(AssetManager::getJsFiles() as $js): ?>
                 <script src="<?= $js ?>"></script>
 			<?php endforeach; ?>

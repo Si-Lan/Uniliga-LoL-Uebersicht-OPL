@@ -7,7 +7,7 @@ class AssetManager {
 	private static array $jsFiles = [];
 	private static string $jsAssetDirectory = "/assets/js/";
 	private static string $cssAssetDirectory = "/assets/css/";
-	public static function addCssFile(string $filepath): void {
+	private static function addCssFile(string $filepath): void {
 		if (!in_array($filepath, self::$cssFiles)) {
 			self::$cssFiles[] = $filepath;
 		}
@@ -16,7 +16,7 @@ class AssetManager {
 		$filepath = self::$cssAssetDirectory . $asset;
 		self::addCssFile($filepath);
 	}
-	public static function addJsFile(string $filepath): void {
+	private static function addJsFile(string $filepath): void {
 		if (!in_array($filepath, self::$jsFiles)) {
 			self::$jsFiles[] = $filepath;
 		}

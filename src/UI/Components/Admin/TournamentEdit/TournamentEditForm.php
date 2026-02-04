@@ -16,7 +16,7 @@ class TournamentEditForm {
 	) {
 		$rankedSplitRepo = new RankedSplitRepository();
 		$this->rankedSplits = $rankedSplitRepo->findAll();
-		AssetManager::addJsFile('/assets/js/admin/oplImport.js');
+		AssetManager::addJsAsset('admin/oplImport.js');
 	}
 
 	public function render(): string {

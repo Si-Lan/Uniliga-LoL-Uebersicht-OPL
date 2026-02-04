@@ -8,6 +8,7 @@ use App\UI\Components\Navigation\Header;
 use App\UI\Components\Navigation\TournamentNav;
 use App\UI\Enums\EloListView;
 use App\UI\Enums\HeaderType;
+use App\UI\Page\AssetManager;
 use App\UI\Page\PageMeta;
 
 $tournamentRepo = new TournamentRepository();
@@ -16,7 +17,8 @@ $tournament = $tournamentRepo->findById($_GET["tournament"]);
 $leagues = $tournamentRepo->findAllByRootTournamentAndType($tournament, EventType::LEAGUE);
 $wildcards = $tournamentRepo->findAllByRootTournamentAndType($tournament, EventType::WILDCARD);
 
-$pageMeta = new PageMeta("Elo-Übersicht - {$tournament->getShortName()}", css: ['elo-rank-colors'], bodyClass: 'elo-overview');
+$pageMeta = new PageMeta("Elo-Übersicht - {$tournament->getShortName()}", bodyClass: 'elo-overview');
+AssetManager::addCssAsset('elo-rank-colors.css');
 
 $colored = isset($_GET['colored']);
 
