@@ -22,6 +22,9 @@ class LayoutRenderer {
 			<?php foreach(AssetManager::getJsFiles() as $js): ?>
                 <script src="<?= $js ?>"></script>
 			<?php endforeach; ?>
+            <?php foreach(AssetManager::getJsModules() as $jsModule): ?>
+                <script type="module" src="<?= $jsModule ?>"></script>
+            <?php endforeach; ?>
             <meta property="og:site_name" content="Silence.lol | Uniliga LoL Übersicht">
             <meta property="og:title" content="<?= $meta->shortTitle ?>">
             <meta property="og:description" content="Turnierübersicht, Matchhistory und Statistiken zu Teams und Spielern für die League of Legends Uniliga">

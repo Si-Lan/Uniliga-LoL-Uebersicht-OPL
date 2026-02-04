@@ -5,6 +5,7 @@ namespace App\UI\Page;
 class AssetManager {
 	private static array $cssFiles = [];
 	private static array $jsFiles = [];
+	private static array $jsModules = [];
 	private static string $jsAssetDirectory = "/assets/js/";
 	private static string $cssAssetDirectory = "/assets/css/";
 	private static function addCssFile(string $filepath): void {
@@ -21,14 +22,26 @@ class AssetManager {
 			self::$jsFiles[] = $filepath;
 		}
 	}
+	private static function addJsModuleFile(string $filepath): void {
+		if (!in_array($filepath, self::$jsModules)) {
+			self::$jsModules[] = $filepath;
+		}
+	}
 	public static function addJsAsset(string $asset): void {
 		$filepath = self::$jsAssetDirectory . $asset;
 		self::addJsFile($filepath);
+	}
+	public static function addJsModuleAsset(string $asset): void {
+		$filepath = self::$jsAssetDirectory . $asset;
+		self::addJsModuleFile($filepath);
 	}
 	public static function getCssFiles(): array {
 		return self::$cssFiles;
 	}
 	public static function getJsFiles(): array {
 		return self::$jsFiles;
+	}
+	public static function getJsModules(): array {
+		return self::$jsModules;
 	}
 }
