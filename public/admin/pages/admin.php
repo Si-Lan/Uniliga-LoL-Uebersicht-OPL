@@ -11,9 +11,9 @@ use App\UI\Page\AssetManager;
 use App\UI\Page\PageMeta;
 
 $pageMeta = new PageMeta('Admin-Panel', bodyClass: 'admin opl');
-AssetManager::addJsAsset('admin/oplImport.js');
-AssetManager::addJsAsset('admin/rankedSplits.js');
-AssetManager::addJsAsset('admin/generalAdmin.js');
+AssetManager::addJsModule('admin/oplImport');
+AssetManager::addJsModule('admin/rankedSplits');
+AssetManager::addJsModule('admin/generalAdmin');
 
 echo new Header(HeaderType::ADMIN);
 

@@ -16,7 +16,7 @@ class AddPatchesView {
 	) {
 		$this->patchRepo = $this->patchRepo ?? new PatchRepository();
 		$this->patchUpdater = $this->patchUpdater ?? new PatchUpdater();
-		AssetManager::addJsAsset('admin/ddragonDownload.js');
+		AssetManager::addJsModule('admin/ddragonDownload');
 		if (!in_array($this->type, $this->types)) {
 			$this->type = 'new';
 		}

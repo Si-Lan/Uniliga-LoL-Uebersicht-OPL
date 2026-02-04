@@ -25,7 +25,7 @@ class UpdateButton {
 		public ?Team $teamContext = null
 	) {
 		$tournament = null;
-        AssetManager::addJsAsset("components/updateButton.js");
+        AssetManager::addJsModule("components/updateButton");
         $updateJobRepo = new UpdateJobRepository();
 		if ($this->entity instanceof Tournament) {
 			$this->htmlClassString = 'user_update_group';

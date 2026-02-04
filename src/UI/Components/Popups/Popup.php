@@ -20,7 +20,7 @@ class Popup {
 		} elseif ($this->uniqueId) {
 			$this->id = uniqid($this->id);
 		}
-		AssetManager::addJsAsset('components/popupDialogs.js');
+		AssetManager::addJsModule('components/popupDialogs');
 		AssetManager::addCssAsset('components/popupDialogs.css');
 	}
 

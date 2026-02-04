@@ -22,7 +22,10 @@ class LayoutRenderer {
 			<?php foreach(AssetManager::getJsFiles() as $js): ?>
                 <script src="<?= $js ?>"></script>
 			<?php endforeach; ?>
-            <?php foreach(AssetManager::getJsModules() as $jsModule): ?>
+            <script>
+                const loadedModules = <?= json_encode(AssetManager::getJsModules()) ?>
+            </script>
+            <?php foreach(AssetManager::getJsModuleFiles() as $jsModule): ?>
                 <script type="module" src="<?= $jsModule ?>"></script>
             <?php endforeach; ?>
             <meta property="og:site_name" content="Silence.lol | Uniliga LoL Übersicht">
