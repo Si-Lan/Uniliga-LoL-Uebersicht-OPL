@@ -1,5 +1,6 @@
 import {setButtonUpdating, finishButtonUpdating} from "../utils/updatingButton";
 import {startJob, checkJobStatusRepeatedly} from "../utils/updateJobs";
+import {add_popupLoadingIndicator, remove_popupLoadingIndicator, resetDialogProgressBar, addToDialogProgressBar} from "../components/popupDialogs";
 
 $(document).on("click", "button#turnier-button-get", getTournamentAndShowForm);
 $(document).on("click", "button.write_tournament", function () {writeTournamentFromForm(this)});
