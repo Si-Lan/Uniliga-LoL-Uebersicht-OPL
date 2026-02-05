@@ -1,3 +1,5 @@
+import {abortController} from "../utils/abortControllerManager";
+
 $(document).on('click', 'dialog.dismissable-popup', function (event) {
 	let rect = this.getBoundingClientRect();
 	let isInDialog = (rect.top <= event.clientY && event.clientY <= rect.bottom) && (rect.left <= event.clientX && event.clientX <= rect.right);
@@ -75,10 +77,8 @@ export function bindDialogCloseHandler(dialog) {
 	if (dialog.classList.contains('related-events-dialog')) {
 		bound = true;
 		dialog.addEventListener('close', () => {
-			if (typeof related_events_fetch_control !== 'undefined') {
-				resetDialogProgressBar($(dialog));
-				related_events_fetch_control.abort();
-			}
+			resetDialogProgressBar($(dialog));
+			abortController('relatedEventsPopup');
 		});
 	}
 

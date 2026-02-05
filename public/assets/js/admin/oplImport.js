@@ -1,6 +1,7 @@
 import {setButtonUpdating, finishButtonUpdating} from "../utils/updatingButton";
 import {startJob, checkJobStatusRepeatedly} from "../utils/updateJobs";
 import {add_popupLoadingIndicator, remove_popupLoadingIndicator, resetDialogProgressBar, addToDialogProgressBar} from "../components/popupDialogs";
+import {getControllerSignal, resetController} from "../utils/abortControllerManager";
 
 $(document).on("click", "button#turnier-button-get", getTournamentAndShowForm);
 $(document).on("click", "button.write_tournament", function () {writeTournamentFromForm(this)});
@@ -236,10 +237,8 @@ function refresh_tournament_edit_list(button) {
 		})
 }
 
-let related_events_fetch_control = null;
 async function openRelatedEventsPopup(button) {
-	if (related_events_fetch_control !== null) related_events_fetch_control.abort();
-	related_events_fetch_control = new AbortController();
+	resetController('relatedEventsPopup');
 
 	const tournamentId = button.dataset.id;
 	const dialogId = button.dataset.dialogId;
@@ -283,7 +282,7 @@ async function openRelatedEventsPopup(button) {
 	for (const tournamentId of tournamentIds) {
 		await fetch(`/admin/api/opl/tournaments/${tournamentId}`, {
 			method: 'GET',
-			signal: related_events_fetch_control.signal
+			signal: getControllerSignal("relatedEventsPopup")
 		})
 			.then(res => {
 				addToDialogProgressBar(dialog,100/tournamentIds.length)
@@ -305,7 +304,7 @@ async function openRelatedEventsPopup(button) {
 		method: 'POST',
 		headers: {'Content-Type': 'application/json'},
 		body: JSON.stringify(tournamentData),
-		signal: related_events_fetch_control.signal
+		signal: getControllerSignal("relatedEventsPopup")
 	})
 		.then(res => {
 			if (res.ok) {
