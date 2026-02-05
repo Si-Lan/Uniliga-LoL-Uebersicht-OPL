@@ -48,7 +48,7 @@ async function resetDialogProgressBar(dialog) {
 }
 
 
-function bindDialogCloseHandler(dialog) {
+export function bindDialogCloseHandler(dialog) {
 	if (dialog.hasAttribute('data-close-bound')) {
 		return;
 	}

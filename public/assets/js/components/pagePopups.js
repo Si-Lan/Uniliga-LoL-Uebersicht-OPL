@@ -1,3 +1,4 @@
+import {bindDialogCloseHandler} from "./popupDialogs";
 import fragmentLoader from "../fragmentLoader";
 $(document).ready(() => {
 	$("dialog.modalopen_auto").get().forEach(element => element.showModal());
