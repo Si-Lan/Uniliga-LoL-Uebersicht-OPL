@@ -18,15 +18,26 @@ export default async function fragmentLoader(fragment, signal = null, onError = 
 				}
 			}
 		})
-		.then(response => {
+		.then(async response => {
+			const cssLoadPromises = [];
+
 			response.css.forEach(href => {
 				if (!document.querySelector(`link[href="${href}"]`)) {
 					const link = document.createElement('link');
 					link.rel = 'stylesheet';
 					link.href = href;
+
+					cssLoadPromises.push(new Promise(resolve => {
+						link.addEventListener('load', resolve, {once: true});
+						link.addEventListener('error', resolve, {once: true});
+					}));
+
 					document.head.appendChild(link);
 				}
 			})
+			if (cssLoadPromises.length > 0) {
+				await Promise.all(cssLoadPromises);
+			}
 			response.js.forEach(src => {
 				import(`./${src}`);
 			})
