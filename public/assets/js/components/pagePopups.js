@@ -1,5 +1,7 @@
 import {bindDialogCloseHandler} from "./popupDialogs";
 import fragmentLoader from "../fragmentLoader";
+import {reload_recent_players} from "./playerSearch";
+
 $(document).ready(() => {
 	$("dialog.modalopen_auto").get().forEach(element => element.showModal());
 	$("dialog.match-popup.modalopen_auto").get().forEach(element => current_matchpopups_loaded.push(element.id));

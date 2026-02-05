@@ -3,9 +3,11 @@
 use App\UI\Components\Helpers\IconRenderer;
 use App\UI\Components\Navigation\Header;
 use App\UI\Enums\HeaderType;
+use App\UI\Page\AssetManager;
 use App\UI\Page\PageMeta;
 
 $pageMeta = new PageMeta('Spielersuche',bodyClass: 'players');
+AssetManager::addJsModule('components/playerSearch');
 
 ?>
 
