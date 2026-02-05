@@ -1,5 +1,6 @@
 // Turnier-Auswahl Dropdown
-import {finishButtonUpdating, unsetButtonUpdating, setButtonUpdating, setButtonLoadingBarWidth} from "../utils/updatingButton";
+import {finishButtonUpdating, setButtonUpdating} from "../utils/updatingButton";
+import {startJob, checkJobStatusRepeatedly} from "../utils/updateJobs";
 
 $(document).on("change", "select.tournament-selector", function () {
 	$("div.writing-wrapper").addClass("hidden");
@@ -222,47 +223,3 @@ $(document).on("click", ".general-administration button.update_all_team_ranks", 
     finishButtonUpdating(jqButton);
 })
 
-
-/* -------------- */
-
-async function startJob(endpoint) {
-	return await fetch(endpoint, {method: 'POST'})
-		.then(res => {
-			if (res.ok) {
-				return res.json()
-			} else {
-				return {"error": "Fehler beim Starten des Jobs"};
-			}
-		})
-		.catch(e => console.error(e));
-}
-async function checkJobStatusRepeatedly(jobId, interval, button = null) {
-	while (true) {
-		const job = await checkJobStatus(jobId);
-		if (job.error) {
-			if (button !== null) unsetButtonUpdating(button);
-			console.error(job.error);
-			return;
-		}
-		if (job.status !== "running" && job.status !== "queued") {
-			if (button !== null) unsetButtonUpdating(button);
-			break;
-		}
-		if (button !== null) setButtonLoadingBarWidth(button, Math.round(job.progress));
-		await new Promise(r => setTimeout(r, interval));
-	}
-}
-async function checkJobStatus(jobId) {
-	return await fetch(`/api/jobs/${jobId}`)
-		.then(res => {
-			if (res.ok) {
-				return res.json()
-			} else {
-				return {"error": "Fehler beim Laden der Daten"};
-			}
-		})
-		.catch(e => {
-			console.error(e);
-			return {"error": "Fehler beim Laden der Daten"};
-		});
-}

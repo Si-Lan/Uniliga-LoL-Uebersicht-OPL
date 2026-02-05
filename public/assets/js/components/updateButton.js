@@ -6,6 +6,7 @@ import {
     setUserButtonUpdating,
     unsetUserButtonUpdating
 } from "../utils/updatingButton";
+import {startJob} from "../utils/updateJobs";
 
 $(async function () {
     const updateButtonsWrapper = $(".updatebuttonwrapper");
@@ -168,20 +169,6 @@ async function startUserUpdateTeam(teamId, tournamentId) {
 }
 async function startUserUpdateMatch(matchId) {
     return await startJob(`/api/jobs/user/matchup/${matchId}`)
-}
-async function startJob(endpoint) {
-    return await fetch(endpoint, {method: "POST"})
-        .then(res => {
-            if (res.ok) {
-                return res.json()
-            } else {
-                if (res.status === 429) {
-                    return {"error": "Zu viele Anfragen", "data": res.json()};
-                }
-                return {"error": "Fehler beim Starten des Jobs"};
-            }
-        })
-        .catch(e => console.error(e));
 }
 
 

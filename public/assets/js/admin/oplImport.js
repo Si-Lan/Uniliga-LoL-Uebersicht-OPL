@@ -1,4 +1,5 @@
-import {setButtonUpdating, unsetButtonUpdating, setButtonLoadingBarWidth, finishButtonUpdating} from "../utils/updatingButton";
+import {setButtonUpdating, finishButtonUpdating} from "../utils/updatingButton";
+import {startJob, checkJobStatusRepeatedly} from "../utils/updateJobs";
 
 $(document).on("click", "button#turnier-button-get", getTournamentAndShowForm);
 $(document).on("click", "button.write_tournament", function () {writeTournamentFromForm(this)});
@@ -404,51 +405,6 @@ $(document).on("click", "button.calculate-standings", async function () {
 	await handleUpdateButton(this,`/admin/api/opl/tournaments/${tournamentId}/standings`);
 })
 
-
-/* Background-Job Helfer */
-async function startJob(endpoint) {
-	return await fetch(endpoint, {method: 'POST'})
-		.then(res => {
-			if (res.ok) {
-				return res.json()
-			} else {
-				return {"error": "Fehler beim Starten des Jobs"};
-			}
-		})
-		.catch(e => console.error(e));
-}
-async function checkJobStatusRepeatedly(jobId, interval, button = null) {
-	let job = null;
-	while (true) {
-		job = await checkJobStatus(jobId);
-		if (job.error) {
-			if (button !== null) unsetButtonUpdating(button, true);
-			console.error(job.error);
-			return null;
-		}
-		if (job.status !== "running" && job.status !== "queued") {
-			if (button !== null) unsetButtonUpdating(button);
-			break;
-		}
-		if (button !== null) setButtonLoadingBarWidth(button, Math.round(job.progress));
-		await new Promise(r => setTimeout(r, interval));
-	}
-	return job;
-}
-async function checkJobStatus(jobId) {
-	return await fetch(`/api/jobs/${jobId}`)
-		.then(res => {
-			if (res.ok) {
-				return res.json()
-			} else {
-				return {"error": "Fehler beim Laden der Daten"};
-			}
-		})
-		.catch(e => {
-			console.error(e);
-			return {"error": "Fehler beim Laden der Daten"};
-		});
-}
 
 async function handleUpdateButton(button, endpoint) {
 	const tournamentId = button.dataset.id;
