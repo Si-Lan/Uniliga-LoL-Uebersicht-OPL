@@ -3,7 +3,7 @@ $(()=> {
     window.addEventListener("resize", drawAllBracketLines);
 })
 
-function drawAllBracketLines() {
+export function drawAllBracketLines() {
     document.querySelectorAll('.elimination-bracket').forEach(bracket => {
         drawBracketLines(bracket);
     })

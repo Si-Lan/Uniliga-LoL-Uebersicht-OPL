@@ -1,4 +1,5 @@
 import fragmentLoader from "../fragmentLoader";
+import {drawAllBracketLines} from "./brackets";
 $(async function () {
     const updateButtonsWrapper = $(".updatebuttonwrapper");
     for (const updateButtonWrapper of updateButtonsWrapper) {
@@ -199,7 +200,7 @@ function refreshTournamentStagePageContent(tournamentId) {
     fragmentLoader(`event-stage-view?tournamentId=${tournamentId}`)
         .then(html => {
             $("main").empty().append(html);
-            if (typeof drawAllBracketLines === "function") drawAllBracketLines();
+            drawAllBracketLines();
         })
 }
 
@@ -222,7 +223,7 @@ function refreshTeamInTournamentPageContent(teamId, tournamentId) {
     fragmentLoader(`event-stage-view?tournamentId=${activeStageId}&teamId=${teamId}`, null, null, true)
         .then(html => {
             $("main div.inner-content").empty().append(html);
-            if (typeof drawAllBracketLines === "function") drawAllBracketLines();
+            drawAllBracketLines();
             stageButtons.prop("disabled", false);
         })
         .catch(e => {

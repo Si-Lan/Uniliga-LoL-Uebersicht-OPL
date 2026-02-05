@@ -1,4 +1,5 @@
 import fragmentLoader from "./fragmentLoader";
+import {drawAllBracketLines} from "./components/brackets";
 $(document).ready(() => {
 	$(".settings-option.login").on("click", () => {event.preventDefault(); document.getElementById("login-dialog").showModal(); toggle_settings_menu(false); document.getElementById("keypass").focus();});
 });
@@ -1187,7 +1188,7 @@ function switch_team_event(page, event_id, team_id, playoff_id = null) {
 			.then(content => {
 				$(".inner-content").empty().append(content);
 				$(".content-loading-indicator").remove();
-				if (typeof drawAllBracketLines === "function") drawAllBracketLines();
+				drawAllBracketLines();
 			})
 			.catch(error => {
 				$(".content-loading-indicator").remove();
