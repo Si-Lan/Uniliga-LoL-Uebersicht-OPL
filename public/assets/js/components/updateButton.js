@@ -1,5 +1,12 @@
 import fragmentLoader from "../fragmentLoader";
 import {drawAllBracketLines} from "./brackets";
+import {
+    finishUserButtonUpdating,
+    setUserButtonLoadingBarWidth,
+    setUserButtonUpdating,
+    unsetUserButtonUpdating
+} from "../utils/updatingButton";
+
 $(async function () {
     const updateButtonsWrapper = $(".updatebuttonwrapper");
     for (const updateButtonWrapper of updateButtonsWrapper) {
@@ -19,7 +26,7 @@ $(async function () {
             setUserButtonUpdating(button);
             checkUserUpdateStatusRepeatedly(runningUpdate.id, 1000, button)
                 .then(() => {
-                    unsetUserButtonUpdating(button);
+                    finishUserButtonUpdating(button);
                     if (type === "group") refreshTournamentStagePageContent(button.data("group"));
                     if (type === "team") refreshTeamInTournamentPageContent(button.data("team"), button.data("tournament"));
                     if (type === "match") {
@@ -59,13 +66,13 @@ $(document).on("click", "button.user_update", async function () {
     }
     if (jobResponse === null || jobResponse.error) {
         console.error(jobResponse?.error ?? "Fehler beim Starten des Jobs");
-        unsetUserButtonUpdating(button, true);
+        unsetUserButtonUpdating(button);
         return;
     }
     const jobId = parseInt(jobResponse["id"]);
     checkUserUpdateStatusRepeatedly(jobId, 1000, button)
         .then(() => {
-            unsetUserButtonUpdating(button);
+            finishUserButtonUpdating(button);
             if (type === "group") refreshTournamentStagePageContent(button.data("group"));
             if (type === "team") refreshTeamInTournamentPageContent(button.data("team"), button.data("tournament"));
             if (type === "match") {
@@ -126,13 +133,13 @@ async function checkUserUpdateStatusRepeatedly(jobId, interval, button = null) {
     while (true) {
         const job = await checkUserUpdateStatus(jobId);
         if (job.error) {
-            if (button !== null) unsetUserButtonUpdating(button, true);
+            if (button !== null) unsetUserButtonUpdating(button);
             console.error(job.error);
             return;
         }
         if (updateTime !== null) updateTime.html(job.lastUpdate);
         if (job.status !== "running" && job.status !== "queued") {
-            if (button !== null) unsetUserButtonUpdating(button);
+            if (button !== null) finishUserButtonUpdating(button);
             break;
         }
         if (button !== null) setUserButtonLoadingBarWidth(button, Math.round(job.progress));
@@ -175,24 +182,6 @@ async function startJob(endpoint) {
             }
         })
         .catch(e => console.error(e));
-}
-
-function setUserButtonUpdating(button) {
-    setUserButtonLoadingBarWidth(button, 0);
-    button.addClass("user_updating");
-    button.prop("disabled", true);
-}
-async function unsetUserButtonUpdating(button, skipFinish = false) {
-    if (!skipFinish) {
-        setUserButtonLoadingBarWidth(button, 100);
-        await new Promise(r => setTimeout(r, 100));
-    }
-    button.removeClass("user_updating");
-    button.prop("disabled", false);
-    setUserButtonLoadingBarWidth(button, 0);
-}
-function setUserButtonLoadingBarWidth(button, widthPercentage) {
-    button.attr("style", `--update-loading-bar-width: ${widthPercentage}%`);
 }
 
 

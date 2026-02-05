@@ -1,3 +1,5 @@
+import {setButtonUpdating, unsetButtonUpdating, setButtonLoadingBarWidth, finishButtonUpdating} from "../utils/updatingButton";
+
 $(document).on("click", "button#turnier-button-get", getTournamentAndShowForm);
 $(document).on("click", "button.write_tournament", function () {writeTournamentFromForm(this)});
 $(document).on("click", "button.update_tournament", function () {writeTournamentFromForm(this)});
@@ -30,7 +32,7 @@ $(async function () {
 		setButtonUpdating(button);
 		checkJobStatusRepeatedly(job['id'], 1000, button)
 			.then(() => {
-				unsetButtonUpdating(button);
+				finishButtonUpdating(button);
 			})
 			.catch(error => console.error(error))
 	}
@@ -190,7 +192,7 @@ $(document).on("click", "button.get-tournament-logo", async function () {
 	}
 
 	show_results_dialog_with_result(tournamentId, resultText);
-	unsetButtonUpdating($(this));
+	finishButtonUpdating($(this));
 })
 async function downloadTournamentLogos(tournamentId) {
 	return await fetch(`/admin/api/opl/tournaments/${tournamentId}/logos`, {method: 'POST'})
@@ -361,19 +363,6 @@ function toggle_turnier_select_accordeon(tournamentID) {
 	sessionStorage.setItem("open_admin_accordeons",JSON.stringify(open_accordeon_ids));
 }
 
-function setButtonUpdating(button) {
-	setButtonLoadingBarWidth(button, 0);
-	button.addClass("button-updating");
-	button.prop("disabled",true);
-}
-function unsetButtonUpdating(button) {
-	button.removeClass("button-updating");
-	button.prop("disabled",false);
-	setButtonLoadingBarWidth(button, 0);
-}
-function setButtonLoadingBarWidth(button, widthPercentage) {
-	button.attr("style", `--loading-bar-width: ${widthPercentage}%`);
-}
 
 // Teams aktualisieren
 $(document).on("click", "button.get-teams", async function () {
@@ -478,5 +467,5 @@ async function handleUpdateButton(button, endpoint) {
 			job?.resultMessage + renderDetails("Details", job?.message)
 		)
 	}
-	unsetButtonUpdating(jqButton);
+	finishButtonUpdating(jqButton);
 }
