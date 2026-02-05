@@ -10,6 +10,7 @@ use App\Domain\Repositories\TeamSeasonRankInTournamentRepository;
 use App\Domain\Repositories\TournamentRepository;
 use App\Domain\Services\EntitySorter;
 use App\UI\Enums\EloListView;
+use App\UI\Page\AssetManager;
 
 class EloList {
 	private array $teamsInTournamentStages = [];
@@ -58,6 +59,8 @@ class EloList {
 			}
 			return $bRank->rank->getRankNum() <=> $aRank->rank->getRankNum();
 		});
+
+		AssetManager::addJsModule('components/eloList');
 	}
 
 	public function render(): string {

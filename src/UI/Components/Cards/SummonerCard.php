@@ -48,6 +48,7 @@ class SummonerCard {
 		}
 
 		AssetManager::addJsModule('components/pagePopups');
+		AssetManager::addJsModule('components/summonerCard');
 	}
 
 	public function render(): string

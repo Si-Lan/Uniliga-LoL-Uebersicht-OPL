@@ -5,6 +5,7 @@ namespace App\UI\Components\Navigation;
 use App\Domain\Entities\RankedSplit;
 use App\Domain\Entities\Tournament;
 use App\Domain\Repositories\RankedSplitRepository;
+use App\UI\Page\AssetManager;
 
 class TournamentNav {
 
@@ -15,7 +16,9 @@ class TournamentNav {
 	public function __construct(
 		private Tournament $tournament,
 		private string $activeTab = ''
-	) {}
+	) {
+		AssetManager::addJsModule('components/tournamentNav');
+	}
 
 	public function render(): string {
 		$tournament = $this->tournament;

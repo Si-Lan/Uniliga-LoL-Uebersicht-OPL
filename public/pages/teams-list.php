@@ -12,6 +12,7 @@ use App\UI\Components\Navigation\TournamentNav;
 use App\UI\Components\Popups\Popup;
 use App\UI\Components\UI\PageLink;
 use App\UI\Enums\HeaderType;
+use App\UI\Page\AssetManager;
 use App\UI\Page\PageMeta;
 
 $tournamentRepo = new TournamentRepository();
@@ -20,6 +21,7 @@ $teamInTournamentStageRepo = new TeamInTournamentStageRepository();
 $tournament = $tournamentRepo->findById($_GET['tournament']);
 
 $pageMeta = new PageMeta("Team-Liste - {$tournament->getShortName()}", bodyClass: 'teamlist');
+AssetManager::addJsModule('components/teamsList');
 
 echo new Header(HeaderType::TOURNAMENT, $tournament);
 
@@ -164,7 +166,7 @@ $filteredGroupIsLeague = array_key_exists($filteredLeagueId??'', $indexedGroups)
                     pagePopupType: 'team-popup',
                     dismissable: true
             );
-            \App\UI\Page\AssetManager::addJsModule('components/pagePopups');
+            AssetManager::addJsModule('components/pagePopups');
             ?>
 
             <?php $classes = implode(' ', array_filter(['team-button', ($filteredByLeague && !in_array($filteredLeagueId, $leagueIds)) ? "filterD-off" : "", ($filteredByGroup && !in_array($filteredGroupId, $groupIds)) ? "filterG-off" : ""])); ?>

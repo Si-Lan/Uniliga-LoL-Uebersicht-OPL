@@ -11,6 +11,7 @@ use App\Domain\Repositories\PlayerInTeamInTournamentRepository;
 use App\Domain\Repositories\TeamInTournamentStageRepository;
 use App\Domain\Repositories\TeamSeasonRankInTournamentRepository;
 use App\Domain\Services\EntitySorter;
+use App\UI\Page\AssetManager;
 
 class TeamInTournamentCard {
 	private TeamInTournamentStage $TeamInTournamentStage;
@@ -39,6 +40,7 @@ class TeamInTournamentCard {
 		$this->playersInTeamInTournament = EntitySorter::sortPlayersByMostPlayedRoles($this->playersInTeamInTournament);
 
 		$this->teamSeasonRankInTournament = $teamSeasonRankRepo->findTeamSeasonRankInTournament($teamInTournament->team, $teamInTournament->tournament, $teamInTournament->tournament->userSelectedRankedSplit);
+		AssetManager::addJsModule('components/teamCard');
 	}
 
 	public function render(): string {

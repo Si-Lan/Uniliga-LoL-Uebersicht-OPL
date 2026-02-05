@@ -7,6 +7,7 @@ use App\UI\Components\Navigation\Header;
 use App\UI\Components\Navigation\TournamentNav;
 use App\UI\Components\UI\PageLink;
 use App\UI\Enums\HeaderType;
+use App\UI\Page\AssetManager;
 use App\UI\Page\PageMeta;
 
 $tournamentRepo = new TournamentRepository();
@@ -14,6 +15,7 @@ $tournamentRepo = new TournamentRepository();
 $tournament = $tournamentRepo->findById($_GET['tournament']);
 
 $pageMeta = new PageMeta($tournament->getShortName(),bodyClass: 'tournament');
+AssetManager::addJsModule('components/switchTournamentEvents');
 
 ?>
 

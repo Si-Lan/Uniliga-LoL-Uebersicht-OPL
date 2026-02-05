@@ -84,7 +84,8 @@ class GameDetails {
 			$this->indexedPlayersByPuuid[$playerInTeam->player->puuid] = $playerInTeam;
 		}
 
-		AssetManager::addCssAsset('game.css');;
+		AssetManager::addCssAsset('game.css');
+		AssetManager::addJsModule('components/gameDetails');
 	}
 
 	private function findPlayersGameNameAndTag(GamePlayerData $gamePlayer):array {

@@ -11,6 +11,7 @@ use App\UI\Components\Navigation\TeamHeaderNav;
 use App\UI\Components\Navigation\TournamentNav;
 use App\UI\Components\UI\DropdownCustom;
 use App\UI\Enums\HeaderType;
+use App\UI\Page\AssetManager;
 use App\UI\Page\PageMeta;
 
 $teamInTournamentRepo = new TeamInTournamentRepository();
@@ -35,6 +36,7 @@ $pageMeta = new PageMeta(
 	title: "$teamInTournament->nameInTournament - Statistiken | ".$teamInTournament->tournament->getShortName(),
 	bodyClass: 'statistics'
 );
+AssetManager::addJsModule('components/statistics');
 
 echo new Header(HeaderType::TOURNAMENT, $teamInTournament->tournament);
 echo new TournamentNav($teamInTournament->tournament);
