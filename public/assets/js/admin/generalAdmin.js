@@ -1,3 +1,4 @@
+import {setButtonUpdating, unsetButtonUpdating, setButtonLoadingBarWidth, finishButtonUpdating} from "../utils/updatingButton";
 function toggle_maintenance_mode(turn_on = true) {
 	const confirmtext = turn_on ? "Wartungsmodus aktivieren?" : "Wartungsmodus deaktivieren?";
 	let continu = confirm(confirmtext);
@@ -93,7 +94,7 @@ $(document).on("click", "button.update_all_teams", async function () {
 		setButtonLoadingBarWidth(jqButton, Math.round(count / teams.length * 100));
 		await new Promise(r => setTimeout(r, 1000));
 	}
-	unsetButtonUpdating(jqButton);
+	finishButtonUpdating(jqButton);
 })
 
 async function getAllTeams() {
@@ -120,19 +121,6 @@ async function getAllTeams() {
 
 
 /* --------------------------------------------------- */
-function setButtonUpdating(button) {
-	setButtonLoadingBarWidth(button, 0);
-	button.addClass("button-updating");
-	button.prop("disabled",true);
-}
-function unsetButtonUpdating(button) {
-	button.removeClass("button-updating");
-	button.prop("disabled",false);
-	setButtonLoadingBarWidth(button, 0);
-}
-function setButtonLoadingBarWidth(button, widthPercentage) {
-	button.attr("style", `--loading-bar-width: ${widthPercentage}%`);
-}
 
 function addToGeneralResults(content) {
 	$(".result-wrapper.gen-admin").removeClass('no-res');
@@ -142,6 +130,7 @@ function addToGeneralResults(content) {
 		container.scrollTop(container.prop("scrollHeight"));
 	}
 }
+$(document).on("click", ".result-wrapper .clear-results", clearGeneralResults);
 function clearGeneralResults() {
 	const wrapper = $(".result-wrapper.gen-admin");
 	if (!wrapper.hasClass('no-res')) {

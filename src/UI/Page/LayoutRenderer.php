@@ -16,18 +16,18 @@ class LayoutRenderer {
 			<title>
 				<?= $meta->title ?>
 			</title>
-            <?php foreach($meta->css as $css): ?>
-                <link rel="stylesheet" href="/assets/css/<?= $css ?>.css">
-        	<?php endforeach; ?>
             <?php foreach(AssetManager::getCssFiles() as $css): ?>
                 <link rel="stylesheet" href="<?= $css ?>">
             <?php endforeach; ?>
-			<?php foreach($meta->js as $js): ?>
-                <script src="/assets/js/<?= $js ?>.js"></script>
-			<?php endforeach; ?>
 			<?php foreach(AssetManager::getJsFiles() as $js): ?>
                 <script src="<?= $js ?>"></script>
 			<?php endforeach; ?>
+            <script>
+                const loadedModules = <?= json_encode(AssetManager::getJsModules()) ?>
+            </script>
+            <?php foreach(AssetManager::getJsModuleFiles() as $jsModule): ?>
+                <script type="module" src="<?= $jsModule ?>"></script>
+            <?php endforeach; ?>
             <meta property="og:site_name" content="Silence.lol | Uniliga LoL Übersicht">
             <meta property="og:title" content="<?= $meta->shortTitle ?>">
             <meta property="og:description" content="Turnierübersicht, Matchhistory und Statistiken zu Teams und Spielern für die League of Legends Uniliga">

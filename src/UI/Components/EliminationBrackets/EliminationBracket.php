@@ -23,7 +23,7 @@ class EliminationBracket {
 		private ?Team $selectedTeam = null
 	) {
 		AssetManager::addCssAsset("components/brackets.css");
-		AssetManager::addJsAsset("components/brackets.js");
+		AssetManager::addJsModule("components/brackets");
 		$matchupRepo = new MatchupRepository();
 		$this->matchups = $matchupRepo->findAllByTournamentStage($this->tournamentStage);
 		if ($this->tournamentStage->format === EventFormat::SINGLE_ELIMINATION) {

@@ -1,3 +1,8 @@
+import {setButtonUpdating, finishButtonUpdating} from "../utils/updatingButton";
+import {startJob, checkJobStatusRepeatedly} from "../utils/updateJobs";
+import {add_popupLoadingIndicator, remove_popupLoadingIndicator, resetDialogProgressBar, addToDialogProgressBar} from "../components/popupDialogs";
+import {getControllerSignal, resetController} from "../utils/abortControllerManager";
+
 $(document).on("click", "button#turnier-button-get", getTournamentAndShowForm);
 $(document).on("click", "button.write_tournament", function () {writeTournamentFromForm(this)});
 $(document).on("click", "button.update_tournament", function () {writeTournamentFromForm(this)});
@@ -30,7 +35,7 @@ $(async function () {
 		setButtonUpdating(button);
 		checkJobStatusRepeatedly(job['id'], 1000, button)
 			.then(() => {
-				unsetButtonUpdating(button);
+				finishButtonUpdating(button);
 			})
 			.catch(error => console.error(error))
 	}
@@ -190,7 +195,7 @@ $(document).on("click", "button.get-tournament-logo", async function () {
 	}
 
 	show_results_dialog_with_result(tournamentId, resultText);
-	unsetButtonUpdating($(this));
+	finishButtonUpdating($(this));
 })
 async function downloadTournamentLogos(tournamentId) {
 	return await fetch(`/admin/api/opl/tournaments/${tournamentId}/logos`, {method: 'POST'})
@@ -232,10 +237,8 @@ function refresh_tournament_edit_list(button) {
 		})
 }
 
-let related_events_fetch_control = null;
 async function openRelatedEventsPopup(button) {
-	if (related_events_fetch_control !== null) related_events_fetch_control.abort();
-	related_events_fetch_control = new AbortController();
+	resetController('relatedEventsPopup');
 
 	const tournamentId = button.dataset.id;
 	const dialogId = button.dataset.dialogId;
@@ -279,7 +282,7 @@ async function openRelatedEventsPopup(button) {
 	for (const tournamentId of tournamentIds) {
 		await fetch(`/admin/api/opl/tournaments/${tournamentId}`, {
 			method: 'GET',
-			signal: related_events_fetch_control.signal
+			signal: getControllerSignal("relatedEventsPopup")
 		})
 			.then(res => {
 				addToDialogProgressBar(dialog,100/tournamentIds.length)
@@ -301,7 +304,7 @@ async function openRelatedEventsPopup(button) {
 		method: 'POST',
 		headers: {'Content-Type': 'application/json'},
 		body: JSON.stringify(tournamentData),
-		signal: related_events_fetch_control.signal
+		signal: getControllerSignal("relatedEventsPopup")
 	})
 		.then(res => {
 			if (res.ok) {
@@ -361,19 +364,6 @@ function toggle_turnier_select_accordeon(tournamentID) {
 	sessionStorage.setItem("open_admin_accordeons",JSON.stringify(open_accordeon_ids));
 }
 
-function setButtonUpdating(button) {
-	setButtonLoadingBarWidth(button, 0);
-	button.addClass("button-updating");
-	button.prop("disabled",true);
-}
-function unsetButtonUpdating(button) {
-	button.removeClass("button-updating");
-	button.prop("disabled",false);
-	setButtonLoadingBarWidth(button, 0);
-}
-function setButtonLoadingBarWidth(button, widthPercentage) {
-	button.attr("style", `--loading-bar-width: ${widthPercentage}%`);
-}
 
 // Teams aktualisieren
 $(document).on("click", "button.get-teams", async function () {
@@ -416,51 +406,6 @@ $(document).on("click", "button.calculate-standings", async function () {
 })
 
 
-/* Background-Job Helfer */
-async function startJob(endpoint) {
-	return await fetch(endpoint, {method: 'POST'})
-		.then(res => {
-			if (res.ok) {
-				return res.json()
-			} else {
-				return {"error": "Fehler beim Starten des Jobs"};
-			}
-		})
-		.catch(e => console.error(e));
-}
-async function checkJobStatusRepeatedly(jobId, interval, button = null) {
-	let job = null;
-	while (true) {
-		job = await checkJobStatus(jobId);
-		if (job.error) {
-			if (button !== null) unsetButtonUpdating(button, true);
-			console.error(job.error);
-			return null;
-		}
-		if (job.status !== "running" && job.status !== "queued") {
-			if (button !== null) unsetButtonUpdating(button);
-			break;
-		}
-		if (button !== null) setButtonLoadingBarWidth(button, Math.round(job.progress));
-		await new Promise(r => setTimeout(r, interval));
-	}
-	return job;
-}
-async function checkJobStatus(jobId) {
-	return await fetch(`/api/jobs/${jobId}`)
-		.then(res => {
-			if (res.ok) {
-				return res.json()
-			} else {
-				return {"error": "Fehler beim Laden der Daten"};
-			}
-		})
-		.catch(e => {
-			console.error(e);
-			return {"error": "Fehler beim Laden der Daten"};
-		});
-}
-
 async function handleUpdateButton(button, endpoint) {
 	const tournamentId = button.dataset.id;
 	const jqButton = $(button);
@@ -478,5 +423,5 @@ async function handleUpdateButton(button, endpoint) {
 			job?.resultMessage + renderDetails("Details", job?.message)
 		)
 	}
-	unsetButtonUpdating(jqButton);
+	finishButtonUpdating(jqButton);
 }

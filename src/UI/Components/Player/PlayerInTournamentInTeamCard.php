@@ -11,6 +11,7 @@ use App\Domain\Repositories\PlayerSeasonRankRepository;
 use App\Domain\Repositories\RankedSplitRepository;
 use App\Domain\Repositories\TeamInTournamentStageRepository;
 use App\Domain\Services\EntitySorter;
+use App\UI\Page\AssetManager;
 
 class PlayerInTournamentInTeamCard {
 	private TeamInTournamentStageRepository $teamInTournamentStageRepo;
@@ -27,6 +28,8 @@ class PlayerInTournamentInTeamCard {
 
 		$patchRepo = new PatchRepository();
 		$this->latestPatch = $patchRepo->findLatestPatchWithAllData();
+
+		AssetManager::addJsModule('components/playerCard');
 	}
 
 	public function render(): string {

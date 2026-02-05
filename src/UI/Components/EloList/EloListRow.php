@@ -14,7 +14,7 @@ class EloListRow {
 		private TeamSeasonRankInTournament $teamSeasonRankInTournament,
 		private EloListView $view
 	) {
-		AssetManager::addJsFile('/assets/js/components/pagePopups.js');
+		AssetManager::addJsModule('components/pagePopups');
 	}
 
 	public function render(): string {

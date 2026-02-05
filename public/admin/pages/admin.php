@@ -11,9 +11,9 @@ use App\UI\Page\AssetManager;
 use App\UI\Page\PageMeta;
 
 $pageMeta = new PageMeta('Admin-Panel', bodyClass: 'admin opl');
-AssetManager::addJsAsset('admin/oplImport.js');
-AssetManager::addJsAsset('admin/rankedSplits.js');
-AssetManager::addJsAsset('admin/generalAdmin.js');
+AssetManager::addJsModule('admin/oplImport');
+AssetManager::addJsModule('admin/rankedSplits');
+AssetManager::addJsModule('admin/generalAdmin');
 
 echo new Header(HeaderType::ADMIN);
 
@@ -34,7 +34,7 @@ echo new Header(HeaderType::ADMIN);
             <span>Alle Teams aktualisieren<?=IconRenderer::getMaterialIconSpan('sync')?></span>
         </button>
         <div class="result-wrapper no-res gen-admin">
-            <div class="clear-button" onclick="clearGeneralResults()">Clear</div>
+            <div class="clear-button">Clear</div>
             <div class="result-content"></div>
         </div>
         <div class="divider" style="margin-bottom: 4px"></div>

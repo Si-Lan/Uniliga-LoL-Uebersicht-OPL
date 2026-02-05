@@ -1,3 +1,5 @@
+import {setButtonUpdating, unsetButtonUpdating, setButtonLoadingBarWidth, finishButtonUpdating} from "../utils/updatingButton";
+
 $(document).on('click', '#add-patch-popup button.add_patch', async function() {
 	const patchNumber = this.dataset.patch;
 	this.classList.add('button-updating');
@@ -175,7 +177,7 @@ $(document).on("click", ".patch-header button.sync_patches", async function () {
 	const jqButton = $(this);
 	setButtonUpdating(jqButton);
 	await syncDataForPatches(jqButton);
-	unsetButtonUpdating(jqButton);
+	finishButtonUpdating(jqButton);
 })
 async function syncDataForPatches(button = null) {
 	const syncResult = await fetch(`/admin/api/patches/sync`, {method: 'GET'})
@@ -340,19 +342,4 @@ async function getRunningDdragonJobs() {
             console.error(e);
             return {'error': 'Fehler beim Laden der Daten'};
         });
-}
-
-
-function setButtonUpdating(button) {
-	setButtonLoadingBarWidth(button, 0);
-	button.addClass("button-updating");
-	button.prop("disabled",true);
-}
-function unsetButtonUpdating(button) {
-	button.removeClass("button-updating");
-	button.prop("disabled",false);
-	setButtonLoadingBarWidth(button, 0);
-}
-function setButtonLoadingBarWidth(button, widthPercentage) {
-	button.attr("style", `--loading-bar-width: ${widthPercentage}%`);
 }

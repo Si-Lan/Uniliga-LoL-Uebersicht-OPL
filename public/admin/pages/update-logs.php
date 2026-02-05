@@ -6,7 +6,7 @@ use App\UI\Page\AssetManager;
 use App\UI\Page\PageMeta;
 
 $pageMeta = new PageMeta('Update Log', bodyClass: 'admin admin-logs');
-AssetManager::addJsFile('/admin/scripts/main.js');
+//AssetManager::addJsFile('/admin/scripts/main.js');
 
 echo new Header(HeaderType::ADMIN_LOG);
 

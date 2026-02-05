@@ -10,7 +10,7 @@ class PlayerSearchCard {
 		private Player $player,
 		private bool $removeFromRecents = false
 	) {
-		AssetManager::addJsFile('/assets/js/components/pagePopups.js');
+		AssetManager::addJsModule('components/pagePopups');
 	}
 
 	public function render(): string {

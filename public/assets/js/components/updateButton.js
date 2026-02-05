@@ -1,3 +1,13 @@
+import fragmentLoader from "../fragmentLoader";
+import {drawAllBracketLines} from "./brackets";
+import {
+    finishUserButtonUpdating,
+    setUserButtonLoadingBarWidth,
+    setUserButtonUpdating,
+    unsetUserButtonUpdating
+} from "../utils/updatingButton";
+import {startJob} from "../utils/updateJobs";
+
 $(async function () {
     const updateButtonsWrapper = $(".updatebuttonwrapper");
     for (const updateButtonWrapper of updateButtonsWrapper) {
@@ -17,7 +27,7 @@ $(async function () {
             setUserButtonUpdating(button);
             checkUserUpdateStatusRepeatedly(runningUpdate.id, 1000, button)
                 .then(() => {
-                    unsetUserButtonUpdating(button);
+                    finishUserButtonUpdating(button);
                     if (type === "group") refreshTournamentStagePageContent(button.data("group"));
                     if (type === "team") refreshTeamInTournamentPageContent(button.data("team"), button.data("tournament"));
                     if (type === "match") {
@@ -57,13 +67,13 @@ $(document).on("click", "button.user_update", async function () {
     }
     if (jobResponse === null || jobResponse.error) {
         console.error(jobResponse?.error ?? "Fehler beim Starten des Jobs");
-        unsetUserButtonUpdating(button, true);
+        unsetUserButtonUpdating(button);
         return;
     }
     const jobId = parseInt(jobResponse["id"]);
     checkUserUpdateStatusRepeatedly(jobId, 1000, button)
         .then(() => {
-            unsetUserButtonUpdating(button);
+            finishUserButtonUpdating(button);
             if (type === "group") refreshTournamentStagePageContent(button.data("group"));
             if (type === "team") refreshTeamInTournamentPageContent(button.data("team"), button.data("tournament"));
             if (type === "match") {
@@ -124,13 +134,13 @@ async function checkUserUpdateStatusRepeatedly(jobId, interval, button = null) {
     while (true) {
         const job = await checkUserUpdateStatus(jobId);
         if (job.error) {
-            if (button !== null) unsetUserButtonUpdating(button, true);
+            if (button !== null) unsetUserButtonUpdating(button);
             console.error(job.error);
             return;
         }
         if (updateTime !== null) updateTime.html(job.lastUpdate);
         if (job.status !== "running" && job.status !== "queued") {
-            if (button !== null) unsetUserButtonUpdating(button);
+            if (button !== null) finishUserButtonUpdating(button);
             break;
         }
         if (button !== null) setUserButtonLoadingBarWidth(button, Math.round(job.progress));
@@ -160,45 +170,13 @@ async function startUserUpdateTeam(teamId, tournamentId) {
 async function startUserUpdateMatch(matchId) {
     return await startJob(`/api/jobs/user/matchup/${matchId}`)
 }
-async function startJob(endpoint) {
-    return await fetch(endpoint, {method: "POST"})
-        .then(res => {
-            if (res.ok) {
-                return res.json()
-            } else {
-                if (res.status === 429) {
-                    return {"error": "Zu viele Anfragen", "data": res.json()};
-                }
-                return {"error": "Fehler beim Starten des Jobs"};
-            }
-        })
-        .catch(e => console.error(e));
-}
-
-function setUserButtonUpdating(button) {
-    setUserButtonLoadingBarWidth(button, 0);
-    button.addClass("user_updating");
-    button.prop("disabled", true);
-}
-async function unsetUserButtonUpdating(button, skipFinish = false) {
-    if (!skipFinish) {
-        setUserButtonLoadingBarWidth(button, 100);
-        await new Promise(r => setTimeout(r, 100));
-    }
-    button.removeClass("user_updating");
-    button.prop("disabled", false);
-    setUserButtonLoadingBarWidth(button, 0);
-}
-function setUserButtonLoadingBarWidth(button, widthPercentage) {
-    button.attr("style", `--update-loading-bar-width: ${widthPercentage}%`);
-}
 
 
 function refreshTournamentStagePageContent(tournamentId) {
     fragmentLoader(`event-stage-view?tournamentId=${tournamentId}`)
         .then(html => {
             $("main").empty().append(html);
-            if (typeof drawAllBracketLines === "function") drawAllBracketLines();
+            drawAllBracketLines();
         })
 }
 
@@ -221,7 +199,7 @@ function refreshTeamInTournamentPageContent(teamId, tournamentId) {
     fragmentLoader(`event-stage-view?tournamentId=${activeStageId}&teamId=${teamId}`, null, null, true)
         .then(html => {
             $("main div.inner-content").empty().append(html);
-            if (typeof drawAllBracketLines === "function") drawAllBracketLines();
+            drawAllBracketLines();
             stageButtons.prop("disabled", false);
         })
         .catch(e => {

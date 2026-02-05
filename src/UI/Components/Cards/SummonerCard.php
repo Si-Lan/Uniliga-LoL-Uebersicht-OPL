@@ -47,7 +47,8 @@ class SummonerCard {
 			$this->collapsed = true;
 		}
 
-		AssetManager::addJsFile('/assets/js/components/pagePopups.js');
+		AssetManager::addJsModule('components/pagePopups');
+		AssetManager::addJsModule('components/summonerCard');
 	}
 
 	public function render(): string

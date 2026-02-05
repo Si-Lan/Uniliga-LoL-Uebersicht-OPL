@@ -21,7 +21,7 @@ $playerPopup = new Popup($player->id, "player-popup", dismissable: true);
 		<?php endif; ?>
 	</button>
 	<?php if ($removeFromRecents): ?>
-		<a class="x-remove-recent-player" href="/spieler" onclick="remove_recent_player('<?=$player->id?>')">
+		<a class="x-remove-recent-player" href="/spieler" data-playerid="<?=$player->id?>">
 			<?= IconRenderer::getMaterialIconDiv('close') ?>
 		</a>
 	<?php endif; ?>

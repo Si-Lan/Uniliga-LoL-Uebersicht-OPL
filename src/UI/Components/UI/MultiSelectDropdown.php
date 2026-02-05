@@ -10,7 +10,7 @@ class MultiSelectDropdown {
 		private array $options,
 		private array $selectedOptions = []
 	) {
-		AssetManager::addJsAsset('components/multiSelectDropdown.js');
+		AssetManager::addJsModule('components/multiSelectDropdown');
 		AssetManager::addCssAsset('components/multiSelectDropdown.css');
 	}
 

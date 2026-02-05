@@ -1,3 +1,7 @@
+import {add_popupLoadingIndicator, remove_popupLoadingIndicator, bindDialogCloseHandler} from "./popupDialogs";
+import fragmentLoader from "../fragmentLoader";
+import {reload_recent_players} from "./playerSearch";
+
 $(document).ready(() => {
 	$("dialog.modalopen_auto").get().forEach(element => element.showModal());
 	$("dialog.match-popup.modalopen_auto").get().forEach(element => current_matchpopups_loaded.push(element.id));
@@ -39,15 +43,6 @@ async function open_popup_player(button,add_to_recents=false) {
 		})
 
 	dialog[0].showModal();
-}
-async function remove_popupLoadingIndicator(popup) {
-	let popup_loader = popup.find('.popup-loading-indicator');
-	popup_loader.css("opacity","0");
-	await new Promise(r => setTimeout(r, 210));
-	popup_loader.remove();
-}
-function add_popupLoadingIndicator(popup) {
-	popup.prepend("<div class='popup-loading-indicator'></div>");
 }
 function addPlayerToRecents(playerId, reload_recents=true) {
 	let recents = JSON.parse(localStorage.getItem("searched_players_IDs"));

@@ -1,4 +1,7 @@
 // Turnier-Auswahl Dropdown
+import {finishButtonUpdating, setButtonUpdating} from "../utils/updatingButton";
+import {startJob, checkJobStatusRepeatedly} from "../utils/updateJobs";
+
 $(document).on("change", "select.tournament-selector", function () {
 	$("div.writing-wrapper").addClass("hidden");
 	$(`div.writing-wrapper[data-id=${this.value}]`).removeClass("hidden");
@@ -34,7 +37,7 @@ $(async function () {
             setButtonUpdating(jqButton);
             checkJobStatusRepeatedly(job['id'], 1000, jqButton)
                 .then(() => {
-                    unsetButtonUpdating(jqButton);
+                    finishButtonUpdating(jqButton);
                 })
                 .catch(e => console.error(e));
             continue;
@@ -58,7 +61,7 @@ $(async function () {
         setButtonUpdating(jqButton);
         checkJobStatusRepeatedly(job['id'], 1000, jqButton)
             .then(() => {
-                unsetButtonUpdating(jqButton);
+                finishButtonUpdating(jqButton);
             })
             .catch(e => console.error(e));
     }
@@ -76,7 +79,7 @@ $(document).on("click", "button.write.puuids", async function () {
 	const jobId = parseInt(jobResponse["job_id"]);
 	setButtonUpdating(jqButton);
 	await checkJobStatusRepeatedly(jobId, 1000, jqButton);
-	unsetButtonUpdating(jqButton);
+    finishButtonUpdating(jqButton);
 })
 $(document).on("click", "button.write.puuids-all", async function () {
 	const tournamentId = this.dataset.id;
@@ -89,7 +92,7 @@ $(document).on("click", "button.write.puuids-all", async function () {
 	const jobId = parseInt(jobResponse["job_id"]);
 	setButtonUpdating(jqButton);
 	await checkJobStatusRepeatedly(jobId, 1000, jqButton);
-	unsetButtonUpdating(jqButton);
+    finishButtonUpdating(jqButton);
 })
 
 // RiotIDs im Turnier schreiben
@@ -104,7 +107,7 @@ $(document).on("click", "button.write.riotids-puuids", async function () {
     const jobId = parseInt(jobResponse["job_id"]);
     setButtonUpdating(jqButton);
     await checkJobStatusRepeatedly(jobId, 1000, jqButton);
-    unsetButtonUpdating(jqButton);
+    finishButtonUpdating(jqButton);
 })
 
 // Player-Ranks im Turnier schreiben
@@ -119,7 +122,7 @@ $(document).on("click", "button.write.get-ranks", async function () {
     }
     const jobId = parseInt(jobResponse["job_id"]);
     await checkJobStatusRepeatedly(jobId, 1000, jqButton);
-    unsetButtonUpdating(jqButton);
+    finishButtonUpdating(jqButton);
 })
 
 // Team-Ranks im Turnier schreiben
@@ -134,7 +137,7 @@ $(document).on("click", "button.write.calc-team-rank", async function () {
     }
     const jobId = parseInt(jobResponse["job_id"]);
     await checkJobStatusRepeatedly(jobId, 1000, jqButton);
-    unsetButtonUpdating(jqButton);
+    finishButtonUpdating(jqButton);
 })
 
 // Spieldaten im Turnier schreiben
@@ -149,7 +152,7 @@ $(document).on("click", "button.write.gamedata", async function () {
     }
     const jobId = parseInt(jobResponse["job_id"]);
     await checkJobStatusRepeatedly(jobId, 1000, jqButton);
-    unsetButtonUpdating(jqButton);
+    finishButtonUpdating(jqButton);
 })
 
 // Stats im Turnier schreiben
@@ -164,7 +167,7 @@ $(document).on("click", "button.write.playerstats", async function () {
     }
     const jobId = parseInt(jobResponse["job_id"]);
     await checkJobStatusRepeatedly(jobId, 1000, jqButton);
-    unsetButtonUpdating(jqButton);
+    finishButtonUpdating(jqButton);
 })
 $(document).on("click", "button.write.teamstats", async function () {
     const tournamentId = this.dataset.id;
@@ -177,7 +180,7 @@ $(document).on("click", "button.write.teamstats", async function () {
     }
     const jobId = parseInt(jobResponse["job_id"]);
     await checkJobStatusRepeatedly(jobId, 1000, jqButton);
-    unsetButtonUpdating(jqButton);
+    finishButtonUpdating(jqButton);
 })
 
 // PUUIDs aller Spieler schreiben
@@ -191,7 +194,7 @@ $(document).on("click", ".general-administration button.get_all_player_puuids", 
     }
     const jobId = parseInt(jobResponse["job_id"]);
     await checkJobStatusRepeatedly(jobId, 1000, jqButton);
-    unsetButtonUpdating(jqButton);
+    finishButtonUpdating(jqButton);
 })
 // Ränge aller Spieler schreiben
 $(document).on("click", ".general-administration button.update_all_player_ranks", async function () {
@@ -204,7 +207,7 @@ $(document).on("click", ".general-administration button.update_all_player_ranks"
     }
     const jobId = parseInt(jobResponse["job_id"]);
     await checkJobStatusRepeatedly(jobId, 1000, jqButton);
-    unsetButtonUpdating(jqButton);
+    finishButtonUpdating(jqButton);
 })
 // Ränge aller Teams schreiben
 $(document).on("click", ".general-administration button.update_all_team_ranks", async function () {
@@ -217,69 +220,6 @@ $(document).on("click", ".general-administration button.update_all_team_ranks", 
     }
     const jobId = parseInt(jobResponse["job_id"]);
     await checkJobStatusRepeatedly(jobId, 1000, jqButton);
-    unsetButtonUpdating(jqButton);
+    finishButtonUpdating(jqButton);
 })
 
-
-/* -------------- */
-
-async function startJob(endpoint) {
-	return await fetch(endpoint, {method: 'POST'})
-		.then(res => {
-			if (res.ok) {
-				return res.json()
-			} else {
-				return {"error": "Fehler beim Starten des Jobs"};
-			}
-		})
-		.catch(e => console.error(e));
-}
-async function checkJobStatusRepeatedly(jobId, interval, button = null) {
-	while (true) {
-		const job = await checkJobStatus(jobId);
-		if (job.error) {
-			if (button !== null) unsetButtonUpdating(button, true);
-			console.error(job.error);
-			return;
-		}
-		if (job.status !== "running" && job.status !== "queued") {
-			if (button !== null) unsetButtonUpdating(button);
-			break;
-		}
-		if (button !== null) setButtonLoadingBarWidth(button, Math.round(job.progress));
-		await new Promise(r => setTimeout(r, interval));
-	}
-}
-async function checkJobStatus(jobId) {
-	return await fetch(`/api/jobs/${jobId}`)
-		.then(res => {
-			if (res.ok) {
-				return res.json()
-			} else {
-				return {"error": "Fehler beim Laden der Daten"};
-			}
-		})
-		.catch(e => {
-			console.error(e);
-			return {"error": "Fehler beim Laden der Daten"};
-		});
-}
-
-
-function setButtonUpdating(button) {
-	setButtonLoadingBarWidth(button, 0);
-	button.addClass("button-updating");
-	button.prop("disabled",true);
-}
-async function unsetButtonUpdating(button, skipFinish = false) {
-	if (!skipFinish) {
-		setButtonLoadingBarWidth(button, 100);
-		await new Promise(r => setTimeout(r, 100));
-	}
-	button.removeClass("button-updating");
-	button.prop("disabled",false);
-	setButtonLoadingBarWidth(button, 0);
-}
-function setButtonLoadingBarWidth(button, widthPercentage) {
-	button.attr("style", `--loading-bar-width: ${widthPercentage}%`);
-}

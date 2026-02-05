@@ -10,7 +10,7 @@ use App\UI\Page\AssetManager;
 use App\UI\Page\PageMeta;
 
 $pageMeta = new PageMeta('Riot-API-Daten', bodyClass: 'admin');
-AssetManager::addJsAsset('admin/rgapiImport.js');
+AssetManager::addJsModule('admin/rgapiImport');
 
 echo new Header(HeaderType::ADMIN_RGAPI);
 

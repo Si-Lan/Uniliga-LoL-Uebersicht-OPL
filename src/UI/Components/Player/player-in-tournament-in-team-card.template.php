@@ -85,7 +85,7 @@ $classes = implode(' ', array_filter(['player-card', $tournament->isRunning() ? 
         </div>
     <?php endif; ?>
 
-	<button type="button" class="player-card-div player-card-more" onclick="expand_playercard(this)">
+	<button type="button" class="player-card-div player-card-more">
 		<?= IconRenderer::getMaterialIconDiv('expand_more') ?>
 		mehr Infos
 	</button>

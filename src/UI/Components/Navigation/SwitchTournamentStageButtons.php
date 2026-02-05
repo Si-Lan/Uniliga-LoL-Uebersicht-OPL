@@ -3,6 +3,7 @@
 namespace App\UI\Components\Navigation;
 
 use App\Domain\Entities\TeamInTournamentStage;
+use App\UI\Page\AssetManager;
 
 class SwitchTournamentStageButtons {
 	/**
@@ -11,7 +12,9 @@ class SwitchTournamentStageButtons {
 	public function __construct(
 		private array $teamInTournamentStages,
 		private TeamInTournamentStage $activeStage
-	) {}
+	) {
+		AssetManager::addJsModule('components/switchTeamEvents');
+	}
 
 	public function render(): string {
 		$teamInTournamentStages = $this->teamInTournamentStages;

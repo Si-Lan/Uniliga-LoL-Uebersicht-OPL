@@ -3,12 +3,15 @@
 namespace App\UI\Components\Navigation;
 
 use App\Domain\Entities\TeamInTournament;
+use App\UI\Page\AssetManager;
 
 class TeamHeaderNav {
 	public function __construct(
 		private TeamInTournament $teamInTournament,
 		private string $activeTab = ''
-	) {}
+	) {
+		AssetManager::addJsModule('components/teamHeaderNav');
+	}
 
 	public function render(): string {
 		$teamInTournament = $this->teamInTournament;

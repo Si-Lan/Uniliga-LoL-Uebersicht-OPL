@@ -10,7 +10,7 @@ class PatchDataRow {
 	public function __construct(
 		private Patch $patch
 	) {
-		AssetManager::addJsAsset('admin/ddragonDownload.js');
+		AssetManager::addJsModule('admin/ddragonDownload');
 	}
 	public function render(): string {
 		$patch = $this->patch;

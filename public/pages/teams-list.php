@@ -12,6 +12,7 @@ use App\UI\Components\Navigation\TournamentNav;
 use App\UI\Components\Popups\Popup;
 use App\UI\Components\UI\PageLink;
 use App\UI\Enums\HeaderType;
+use App\UI\Page\AssetManager;
 use App\UI\Page\PageMeta;
 
 $tournamentRepo = new TournamentRepository();
@@ -20,6 +21,7 @@ $teamInTournamentStageRepo = new TeamInTournamentStageRepository();
 $tournament = $tournamentRepo->findById($_GET['tournament']);
 
 $pageMeta = new PageMeta("Team-Liste - {$tournament->getShortName()}", bodyClass: 'teamlist');
+AssetManager::addJsModule('components/teamsList');
 
 echo new Header(HeaderType::TOURNAMENT, $tournament);
 
@@ -64,7 +66,7 @@ $filteredGroupIsLeague = array_key_exists($filteredLeagueId??'', $indexedGroups)
 		<span class="material-symbol search-icon" title="Suche">
             <?= IconRenderer::getMaterialIcon('search') ?>
 		</span>
-        <input class="search-teams deletable-search" onkeyup='search_teams()' placeholder="Teams durchsuchen" type="search">
+        <input class="search-teams deletable-search" placeholder="Teams durchsuchen" type="search">
         <button class="material-symbol search-clear" title="Suche leeren">
 			<?= IconRenderer::getMaterialIcon('close') ?>
         </button>
@@ -73,7 +75,7 @@ $filteredGroupIsLeague = array_key_exists($filteredLeagueId??'', $indexedGroups)
     <div class="team-filter-wrap">
         <h3>Filter</h3>
         <div class="slct div-select-wrap">
-            <select name='Ligen' class='divisions' onchange='filter_teams_list_division(this.value)'>
+            <select name='Ligen' class='divisions'>
                 <option value='all' <?= $filteredByLeague ? '' : 'selected="selected"' ?>>Alle Ligen</option>
                 <?php foreach ([...$leagues,...$wildcards] as $league): ?>
                     <option value="<?=$league->id?>" <?= $filteredLeagueId === $league->id ? 'selected="selected"' : '' ?> <?=$league->isEventWithStanding() ? 'class="standings_league"' : ''?>><?=$league->getShortName()?></option>
@@ -82,7 +84,7 @@ $filteredGroupIsLeague = array_key_exists($filteredLeagueId??'', $indexedGroups)
             <?= IconRenderer::getMaterialIconSpan('arrow_drop_down')?>
         </div>
         <div class='slct groups-select-wrap'>
-            <select name='Gruppen' class='groups' onchange='filter_teams_list_group(this.value)'>
+            <select name='Gruppen' class='groups'>
                 <option value='all' <?= ($filteredByGroup && !$filteredGroupIsLeague) ? '' : 'selected="selected"' ?>>Alle Gruppen</option>
                 <?php if ($filteredByLeague): ?>
                     <?php foreach ($groups as $group): ?>
@@ -164,7 +166,7 @@ $filteredGroupIsLeague = array_key_exists($filteredLeagueId??'', $indexedGroups)
                     pagePopupType: 'team-popup',
                     dismissable: true
             );
-            \App\UI\Page\AssetManager::addJsFile('/assets/js/components/pagePopups.js');
+            AssetManager::addJsModule('components/pagePopups');
             ?>
 
             <?php $classes = implode(' ', array_filter(['team-button', ($filteredByLeague && !in_array($filteredLeagueId, $leagueIds)) ? "filterD-off" : "", ($filteredByGroup && !in_array($filteredGroupId, $groupIds)) ? "filterG-off" : ""])); ?>

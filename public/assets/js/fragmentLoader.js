@@ -1,4 +1,4 @@
-async function fragmentLoader(fragment, signal = null, onError = null, warnOnlyOnError = false){
+export default async function fragmentLoader(fragment, signal = null, onError = null, warnOnlyOnError = false){
 	let requestInit = {method: "GET"}
 	if (signal !== null) {
 		requestInit.signal = signal;
@@ -18,22 +18,28 @@ async function fragmentLoader(fragment, signal = null, onError = null, warnOnlyO
 				}
 			}
 		})
-		.then(response => {
+		.then(async response => {
+			const cssLoadPromises = [];
+
 			response.css.forEach(href => {
 				if (!document.querySelector(`link[href="${href}"]`)) {
 					const link = document.createElement('link');
 					link.rel = 'stylesheet';
 					link.href = href;
+
+					cssLoadPromises.push(new Promise(resolve => {
+						link.addEventListener('load', resolve, {once: true});
+						link.addEventListener('error', resolve, {once: true});
+					}));
+
 					document.head.appendChild(link);
 				}
 			})
+			if (cssLoadPromises.length > 0) {
+				await Promise.all(cssLoadPromises);
+			}
 			response.js.forEach(src => {
-				if (!document.querySelector(`script[src="${src}"]`)) {
-					const script = document.createElement('script');
-					script.src = src;
-					script.defer = true;
-					document.body.appendChild(script);
-				}
+				import(`./${src}`);
 			})
 			return response.html;
 		})
