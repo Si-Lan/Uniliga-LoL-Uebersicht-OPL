@@ -44,4 +44,8 @@ class MatchupChangeSuggestions {
 	public function removeGame(Game $game): void {
 		$this->removedGames[] = $game;
 	}
+
+	public function hasScoreChange(): bool {
+		return $this->customTeam1Score !== null || $this->customTeam2Score !== null;
+	}
 }
