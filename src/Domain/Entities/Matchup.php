@@ -17,7 +17,9 @@ class Matchup {
 		public ?int $winnerId,
 		public ?int $loserId,
 		public bool $draw,
-		public bool $defWin
+		public bool $defWin,
+		public bool $hasCustomScore,
+		public bool $hasCustomGames
 	) {}
 
 	public static function createEmpty(Tournament $tournamentStage): Matchup {
@@ -38,7 +40,9 @@ class Matchup {
 			winnerId: null,
 			loserId: null,
 			draw: false,
-			defWin: false
+			defWin: false,
+			hasCustomScore: false,
+			hasCustomGames: false
 		);
 	}
 

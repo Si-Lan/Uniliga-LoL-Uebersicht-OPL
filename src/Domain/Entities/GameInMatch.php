@@ -8,7 +8,9 @@ class GameInMatch {
 		public Matchup $matchup,
 		public ?TeamInTournament $blueTeam,
 		public ?TeamInTournament $redTeam,
-		public bool $oplConfirmed
+		public bool $oplConfirmed,
+		public bool $customAdded,
+		public bool $customRemoved
 	) {}
 
 	public function getWinningTeam(): ?TeamInTournament {

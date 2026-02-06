@@ -15,7 +15,14 @@ class GameInMatchRepository extends AbstractRepository {
 	private GameRepository $gameRepo;
 	private MatchupRepository $matchupRepo;
 	private TeamInTournamentRepository $teamInTournamentRepo;
-	protected static array $ALL_DATA_KEYS = ["RIOT_matchID","OPL_ID_matches","OPL_ID_blueTeam","OPL_ID_redTeam","opl_confirmed"];
+	protected static array $ALL_DATA_KEYS = [
+		"RIOT_matchID",
+		"OPL_ID_matches",
+		"OPL_ID_blueTeam",
+		"OPL_ID_redTeam",
+		"opl_confirmed",
+		"custom_added",
+		"custom_removed"];
 	protected static array $REQUIRED_DATA_KEYS = ["RIOT_matchID","OPL_ID_matches"];
 
 	public function __construct() {
@@ -44,11 +51,21 @@ class GameInMatchRepository extends AbstractRepository {
 			matchup: $matchup,
 			blueTeam: $blueTeam,
 			redTeam: $redTeam,
-			oplConfirmed: (bool) $data['opl_confirmed']??false
+			oplConfirmed: (bool) $data['opl_confirmed']??false,
+			customAdded: (bool) $data['custom_added']??false,
+			customRemoved: (bool) $data['custom_removed']??false
 		);
 	}
 
-	public function createFromEntities(Game $game, Matchup $matchup, TeamInTournamentStage|Team|null $blueTeam, TeamInTournamentStage|Team|null $redTeam, bool $oplConfirmed = false): GameInMatch {
+	public function createFromEntities(
+		Game $game,
+		Matchup $matchup,
+		TeamInTournamentStage|Team|null $blueTeam,
+		TeamInTournamentStage|Team|null $redTeam,
+		bool $oplConfirmed = false,
+		bool $customAdded = false,
+		bool $customRemoved = false
+	): GameInMatch {
 		$blueTeam = !($blueTeam instanceof Team) ? $blueTeam : $this->teamInTournamentRepo->findByTeamAndTournament($blueTeam, $matchup->tournamentStage->rootTournament);
 		$redTeam = !($redTeam instanceof Team) ? $redTeam : $this->teamInTournamentRepo->findByTeamAndTournament($redTeam, $matchup->tournamentStage->rootTournament);
 		return new GameInMatch(
@@ -56,7 +73,9 @@ class GameInMatchRepository extends AbstractRepository {
 			matchup: $matchup,
 			blueTeam: $blueTeam,
 			redTeam: $redTeam,
-			oplConfirmed: $oplConfirmed
+			oplConfirmed: $oplConfirmed,
+			customAdded: $customAdded,
+			customRemoved: $customRemoved
 		);
 	}
 
