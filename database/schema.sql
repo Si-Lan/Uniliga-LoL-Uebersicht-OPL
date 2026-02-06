@@ -56,7 +56,9 @@ CREATE TABLE `matchup_change_suggestions` (
   `customTeam2Score` varchar(2) DEFAULT NULL,
   `addedGames` longtext NOT NULL DEFAULT '[]' CHECK (json_valid(`addedGames`)),
   `removedGames` longtext NOT NULL DEFAULT '[]' CHECK (json_valid(`removedGames`)),
-  `status` ENUM('pending','accepted','rejected') NOT NULL DEFAULT 'pending'
+  `status` ENUM('pending','accepted','rejected') NOT NULL DEFAULT 'pending',
+  `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+  `finished_at` DATETIME NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE TABLE `players` (

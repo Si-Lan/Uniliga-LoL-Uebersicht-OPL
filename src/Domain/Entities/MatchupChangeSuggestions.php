@@ -13,6 +13,8 @@ class MatchupChangeSuggestions {
 	 * @param array<Game> $addedGames
 	 * @param array<Game> $removedGames
 	 * @param SuggestionStatus $status
+	 * @param \DateTimeImmutable|null $createdAt
+	 * @param \DateTimeImmutable|null $finishedAt
 	 */
 	public function __construct(
 		public ?int $id,
@@ -21,15 +23,19 @@ class MatchupChangeSuggestions {
 		public ?string $customTeam2Score,
 		public array $addedGames,
 		public array $removedGames,
-		public SuggestionStatus $status
+		public SuggestionStatus $status,
+		public readonly ?\DateTimeImmutable $createdAt,
+		public ?\DateTimeImmutable $finishedAt,
 	) {}
 
 	public function accept(): void {
 		$this->status = SuggestionStatus::ACCEPTED;
+		$this->finishedAt = new \DateTimeImmutable();
 	}
 
 	public function reject(): void {
 		$this->status = SuggestionStatus::REJECTED;
+		$this->finishedAt = new \DateTimeImmutable();
 	}
 
 	public function addGame(Game $game): void {
