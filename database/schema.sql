@@ -46,6 +46,8 @@ CREATE TABLE `matchups` (
   `draw` tinyint(1) NOT NULL DEFAULT 0,
   `def_win` tinyint(1) NOT NULL DEFAULT 0,
   `has_custom_score` tinyint(1) NOT NULL DEFAULT 0,
+  `customTeam1Score` varchar(2) DEFAULT NULL,
+  `customTeam2Score` varchar(2) DEFAULT NULL,
   `has_custom_games` tinyint(1) NOT NULL DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 

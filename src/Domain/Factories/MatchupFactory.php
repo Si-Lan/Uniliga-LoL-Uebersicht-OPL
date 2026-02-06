@@ -29,6 +29,8 @@ class MatchupFactory extends AbstractFactory {
 		'draw',
 		'def_win',
 		'has_custom_score',
+		'customTeam1Score',
+		'customTeam2Score',
 		'has_custom_games'
 	];
 	protected static array $REQUIRED_DB_DATA_KEYS = [
@@ -77,6 +79,8 @@ class MatchupFactory extends AbstractFactory {
 			draw: (bool) $data['draw'] ?? false,
 			defWin: (bool) $data['def_win'] ?? false,
 			hasCustomScore: (bool) $data['has_custom_score'] ?? false,
+			customTeam1Score: $this->stringOrNull($data['customTeam1Score']),
+			customTeam2Score: $this->stringOrNull($data['customTeam2Score']),
 			hasCustomGames: (bool) $data['has_custom_games'] ?? false
 		);
 	}
@@ -98,6 +102,8 @@ class MatchupFactory extends AbstractFactory {
 			"draw" => $this->intOrNull($matchup->draw),
 			"def_win" => $this->intOrNull($matchup->defWin),
 			"has_custom_score" => (int) $matchup->hasCustomScore,
+			"customTeam1Score" => $matchup->customTeam1Score,
+			"customTeam2Score" => $matchup->customTeam2Score,
 			"has_custom_games" => (int) $matchup->hasCustomGames
 		];
 	}
