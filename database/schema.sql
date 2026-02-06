@@ -9,7 +9,9 @@ CREATE TABLE `games_to_matches` (
   `OPL_ID_matches` int(11) NOT NULL,
   `OPL_ID_blueTeam` int(11) DEFAULT NULL,
   `OPL_ID_redTeam` int(11) DEFAULT NULL,
-  `opl_confirmed` tinyint(1) NOT NULL DEFAULT 0
+  `opl_confirmed` tinyint(1) NOT NULL DEFAULT 0,
+  `custom_added` tinyint(1) NOT NULL DEFAULT 0,
+  `custom_removed` tinyint(1) NOT NULL DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE TABLE `local_patches` (
@@ -42,7 +44,19 @@ CREATE TABLE `matchups` (
   `winner` int(11) DEFAULT NULL,
   `loser` int(11) DEFAULT NULL,
   `draw` tinyint(1) NOT NULL DEFAULT 0,
-  `def_win` tinyint(1) NOT NULL DEFAULT 0
+  `def_win` tinyint(1) NOT NULL DEFAULT 0,
+  `has_custom_score` tinyint(1) NOT NULL DEFAULT 0,
+  `has_custom_games` tinyint(1) NOT NULL DEFAULT 0
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+CREATE TABLE `matchup_change_suggestions` (
+  `id` BIGINT AUTO_INCREMENT PRIMARY KEY,
+  `OPL_ID_matchup` int(11) NOT NULL,
+  `customTeam1Score` varchar(2) DEFAULT NULL,
+  `customTeam2Score` varchar(2) DEFAULT NULL,
+  `addedGames` longtext NOT NULL DEFAULT '[]' CHECK (json_valid(`addedGames`)),
+  `removedGames` longtext NOT NULL DEFAULT '[]' CHECK (json_valid(`removedGames`)),
+  `status` ENUM('pending','accepted','rejected') NOT NULL DEFAULT 'pending'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE TABLE `players` (
@@ -286,6 +300,9 @@ ALTER TABLE `matchups`
   ADD KEY `OPL_ID_team2` (`OPL_ID_team2`),
   ADD KEY `loser` (`loser`),
   ADD KEY `winner` (`winner`);
+
+ALTER TABLE `matchup_change_suggestions`
+  ADD KEY `OPL_ID_matchup` (`OPL_ID_matchup`);
 
 ALTER TABLE `players`
   ADD PRIMARY KEY (`OPL_ID`);
@@ -629,6 +646,9 @@ ALTER TABLE `matchups`
   ADD CONSTRAINT `matchups_ibfk_3` FOREIGN KEY (`OPL_ID_team2`) REFERENCES `teams` (`OPL_ID`) ON DELETE SET NULL ON UPDATE CASCADE,
   ADD CONSTRAINT `matchups_ibfk_4` FOREIGN KEY (`winner`) REFERENCES `teams` (`OPL_ID`) ON DELETE SET NULL ON UPDATE CASCADE,
   ADD CONSTRAINT `matchups_ibfk_5` FOREIGN KEY (`loser`) REFERENCES `teams` (`OPL_ID`) ON DELETE SET NULL ON UPDATE CASCADE;
+
+ALTER TABLE `matchup_change_suggestions`
+  ADD CONSTRAINT `matchup_change_suggestions_ibfk_1` FOREIGN KEY (`OPL_ID_matchup`) REFERENCES `matchups` (`OPL_ID`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 ALTER TABLE `players_in_teams`
   ADD CONSTRAINT `players_in_teams_ibfk_1` FOREIGN KEY (`OPL_ID_player`) REFERENCES `players` (`OPL_ID`) ON DELETE CASCADE ON UPDATE CASCADE,
