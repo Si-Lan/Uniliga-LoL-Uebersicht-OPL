@@ -20,7 +20,9 @@ class MatchupChangeSuggestionFactory extends AbstractFactory {
 		'customTeam2Score',
 		'addedGames',
 		'removedGames',
-		'status'
+		'status',
+		'created_at',
+		'finished_at'
 	];
 	protected static array $REQUIRED_DB_DATA_KEYS = [
 		'id',
@@ -63,7 +65,9 @@ class MatchupChangeSuggestionFactory extends AbstractFactory {
 			customTeam2Score: $this->stringOrNull($data['customTeam2Score']),
 			addedGames: $addedGames,
 			removedGames: $removedGames,
-			status: SuggestionStatus::tryFrom($data['status']??'')
+			status: SuggestionStatus::tryFrom($data['status']??''),
+			createdAt: $this->DateTimeImmutableOrNull($data['createdAt']??''),
+			finishedAt: $this->DateTimeImmutableOrNull($data['finished_at']??'')
 		);
 	}
 
@@ -77,7 +81,8 @@ class MatchupChangeSuggestionFactory extends AbstractFactory {
 			"customTeam2Score" => $matchupChangeSuggestion->customTeam2Score,
 			"addedGames" => json_encode($addedGameIds),
 			"removedGames" => json_encode($removedGameIds),
-			"status" => $matchupChangeSuggestion->status->value
+			"status" => $matchupChangeSuggestion->status->value,
+			"finished_at" => $matchupChangeSuggestion->finishedAt?->format("Y-m-d H:i:s"),
 		];
 	}
 
@@ -95,7 +100,9 @@ class MatchupChangeSuggestionFactory extends AbstractFactory {
 			customTeam2Score: $customTeam2Score,
 			addedGames: $addedGames,
 			removedGames: $removedGames,
-			status: SuggestionStatus::PENDING
+			status: SuggestionStatus::PENDING,
+			createdAt: null,
+			finishedAt: null,
 		);
 	}
 }

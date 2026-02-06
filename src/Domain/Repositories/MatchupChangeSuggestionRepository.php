@@ -135,8 +135,8 @@ class MatchupChangeSuggestionRepository extends AbstractRepository {
 				throw new \Exception("Trying to save a suggestion with an invalid id: ".var_export($suggestion, true));
 			}
 		} catch (\Throwable $e) {
-			$this->logger->error("Fehler beim Speicher von MatchupChangeSuggestion: ".$e->getMessage()."\n".$e->getTraceAsString());
-			$saveResult = new RepositorySaveResult(SaveResult::FAILED);
+			$this->logger->error("Fehler beim Speicher von MatchupChangeSuggestion: ".$e->getMessage()." in ".$e->getFile()." on Line ".$e->getLine()."\n".$e->getTraceAsString());
+			return new RepositorySaveResult(SaveResult::FAILED);
 		}
 		$saveResult->entity = $this->findById($suggestion->id);
 		return $saveResult;
