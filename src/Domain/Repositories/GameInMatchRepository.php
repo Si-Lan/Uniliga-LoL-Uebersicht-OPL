@@ -196,4 +196,12 @@ class GameInMatchRepository extends AbstractRepository {
 		$saveResult->entity = $this->findByGameIdAndMatchupId($gameInMatch->game->id, $gameInMatch->matchup->id);
 		return $saveResult;
 	}
+
+	public function delete(GameInMatch $gameInMatch): bool {
+		if (!$this->gameIsInMatchup($gameInMatch->game->id, $gameInMatch->matchup->id)) {
+			return false;
+		}
+		$query = "DELETE FROM games_to_matches WHERE RIOT_matchID = ? AND OPL_ID_matches = ?";
+		return $this->dbcn->execute_query($query, [$gameInMatch->game->id, $gameInMatch->matchup->id]);
+	}
 }
