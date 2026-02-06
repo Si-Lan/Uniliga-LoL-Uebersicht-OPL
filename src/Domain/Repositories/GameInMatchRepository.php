@@ -144,6 +144,8 @@ class GameInMatchRepository extends AbstractRepository {
 			"OPL_ID_blueTeam" => $gameInMatch->blueTeam?->team->id,
 			"OPL_ID_redTeam" => $gameInMatch->redTeam?->team->id,
 			"opl_confirmed" => (int) $gameInMatch->oplConfirmed,
+			"custom_added" => (int) $gameInMatch->customAdded,
+			"custom_removed" => (int) $gameInMatch->customRemoved
 		];
 	}
 
