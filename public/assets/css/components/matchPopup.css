@@ -1,0 +1,70 @@
+
+
+button.open-add-suggestion-form {
+    svg {
+        transition: transform 180ms ease-out;
+    }
+    &:has(~.add-suggestion-form.open) svg {
+        transform: rotateZ(45deg);
+    }
+}
+
+.add-suggestion-form {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 180ms ease-out, margin 180ms ease-out;
+    margin-bottom: 80px;
+
+    &.open {
+        grid-template-rows: 1fr;
+        margin-bottom: 0;
+    }
+
+
+    .add-suggestion-games-list {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+}
+.divider {
+    &:has(+.add-suggestion-form) {
+        min-height: 0;
+        height: 0;
+        transition: min-height 180ms ease-out;
+    }
+    &:has(+.add-suggestion-form.open) {
+        min-height: 1px;
+    }
+}
+
+.game-suggestion-details {
+    display: grid;
+    gap: 8px;
+    grid-template-columns: 1fr 1fr;
+    grid-auto-columns: 40px;
+    border: 2px solid var(--accent);
+    border-radius: 8px;
+    padding: 8px 12px;
+
+    .team1,
+    .team2 {
+        .team-name {
+            text-align: center;
+
+            &.existing-team {
+                font-weight: bold;
+                text-decoration: underline;
+            }
+            &.unidentified-team {
+                color: var(--text-sec);
+            }
+        }
+    }
+
+    label {
+        display: flex;
+        justify-content: center;
+        grid-column: 3;
+    }
+}

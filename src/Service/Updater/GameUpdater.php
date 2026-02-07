@@ -44,7 +44,7 @@ class GameUpdater {
 		return $this->gameRepo->save($game);
     }
 
-    private function shortenMatchData(array $matchData): array {
+    public static function shortenMatchData(array $matchData): array {
         $save_values = [
             "assists",
             "champLevel",

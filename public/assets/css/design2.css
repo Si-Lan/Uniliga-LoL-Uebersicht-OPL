@@ -392,8 +392,10 @@ dialog {
 }
 .mh-popup-buttons {
 	display: flex;
-	flex-direction: column;
+	flex-direction: row;
+	flex-wrap: wrap;
 	align-items: center;
+	justify-content: center;
 	gap: 12px;
 	margin-bottom: 16px;
 }

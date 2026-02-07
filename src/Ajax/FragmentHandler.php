@@ -3,6 +3,7 @@
 namespace App\Ajax;
 
 use App\Core\Utilities\DataParsingHelpers;
+use App\Domain\Entities\Game;
 use App\Domain\Repositories\GameInMatchRepository;
 use App\Domain\Repositories\GameRepository;
 use App\Domain\Repositories\MatchupRepository;
@@ -13,10 +14,13 @@ use App\Domain\Repositories\TeamInTournamentRepository;
 use App\Domain\Repositories\TeamRepository;
 use App\Domain\Repositories\TournamentRepository;
 use App\Domain\Services\EntitySorter;
+use App\Service\RiotApiService;
+use App\Service\Updater\GameUpdater;
 use App\UI\Components\Cards\SummonerCard;
 use App\UI\Components\EliminationBrackets\EliminationBracket;
 use App\UI\Components\EloList\EloLists;
 use App\UI\Components\Games\GameDetails;
+use App\UI\Components\Matches\ChangeSuggestions\GameSuggestionDetails;
 use App\UI\Components\Matches\MatchButton;
 use App\UI\Components\Matches\MatchButtonList;
 use App\UI\Components\Matches\MatchHistory;
@@ -370,5 +374,78 @@ class FragmentHandler {
 		}
 
 		$this->sendJsonFragment($content);
+	}
+
+	public function gameSuggestions(array $dataGet): void {
+		$matchupId = $this->stringOrNull($dataGet['matchupId'] ?? null);
+		$playerId = $this->intOrNull($dataGet['playerId'] ?? null);
+
+		if (is_null($matchupId)) {
+			$this->sendJsonError('missing matchupId',400);
+			return;
+		}
+		if (is_null($playerId)) {
+			$this->sendJsonError('missing playerId',400);
+			return;
+		}
+
+		$matchupRepo = new MatchupRepository();
+		$playerRepo = new PlayerRepository();
+		$matchup = $matchupRepo->findById($matchupId);
+		$player = $playerRepo->findById($playerId);
+		if (is_null($matchup) || is_null($player)) {
+			$this->sendJsonError('Matchup or Player not found',404);
+		}
+
+		$riotApiService = new RiotApiService();
+		$apiResult = $riotApiService->getMatchIdsByPuuidAndDatetimeForTourneyGames($player->puuid, $matchup->plannedDate);
+
+		if (!$apiResult->isSuccess()) {
+			$this->sendJsonError('Anfrage an Riot API fehlgeschlagen',500);
+			return;
+		}
+
+		$gameRepo = new GameRepository();
+		$gameInMatchRepo = new GameInMatchRepository();
+
+		$gameIds = $apiResult->getData();
+
+		$htmlContent = "";
+		foreach ($gameIds as $gameId) {
+			$game = $gameRepo->findById($gameId);
+			if ($game !== null) {
+				$gameInMatch = $gameInMatchRepo->findByGameIdAndMatchupId($gameId, $matchupId);
+				if ($gameInMatch === null) {
+					$gameInMatch = $gameInMatchRepo->createFromEntitiesAndImplyTeams($game, $matchup);
+				}
+				if ($game->gameData !== null) {
+					$htmlContent .= new GameSuggestionDetails($gameInMatch);
+					continue;
+				}
+			}
+			$gameApiResult = $riotApiService->getMatchByMatchId($gameId);
+			if ($gameApiResult->isRateLimitExceeded()) {
+				$htmlContent .= new GameSuggestionDetails(errorMessage: "Riot API Rate Limit - versuche es später noch einmal");
+				continue;
+			}
+			if (!$gameApiResult->isSuccess()) {
+				$htmlContent .= new GameSuggestionDetails(errorMessage: "Fehler beim Abrufen der Spieldaten von Riot API");
+				continue;
+			}
+
+			$rawMatchData = $gameApiResult->getData();
+			$matchData = GameUpdater::shortenMatchData($rawMatchData);
+			$game = new Game($gameId, $matchData, null);
+			$gameRepo->save($game);
+
+			$gameInMatch = $gameInMatchRepo->createFromEntitiesAndImplyTeams($game, $matchup);
+			$htmlContent .= new GameSuggestionDetails($gameInMatch);
+		}
+
+		if (empty($htmlContent)) {
+			$htmlContent = "<span> Keine Spiele gefunden </span>";
+		}
+
+		$this->sendJsonFragment($htmlContent);
 	}
 }
