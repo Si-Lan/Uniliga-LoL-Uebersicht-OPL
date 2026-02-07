@@ -3,7 +3,7 @@
 namespace App\UI\Components\Matches\ChangeSuggestions;
 
 use App\Domain\Entities\Matchup;
-use App\Domain\Entities\MatchupChangeSuggestions;
+use App\Domain\Entities\MatchupChangeSuggestion;
 use App\Domain\Entities\PlayerInTeamInTournament;
 use App\Domain\Enums\SuggestionStatus;
 use App\Domain\Repositories\MatchupChangeSuggestionRepository;
@@ -12,7 +12,7 @@ use App\Domain\Repositories\PlayerInTeamInTournamentRepository;
 class AddSuggestionPopupContent {
 	private MatchupChangeSuggestionRepository $matchupChangeSuggestionRepo;
 	private PlayerInTeamInTournamentRepository $playerInTeamInTournamentRepo;
-	/** @var array<MatchupChangeSuggestions> */
+	/** @var array<MatchupChangeSuggestion> */
 	private array $suggestions = [];
 	/** @var array<PlayerInTeamInTournament> */
 	private array $team1Players = [];

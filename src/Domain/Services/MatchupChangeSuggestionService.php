@@ -4,7 +4,7 @@ namespace App\Domain\Services;
 
 use App\Domain\Entities\Game;
 use App\Domain\Entities\LolGame\GamePlayerData;
-use App\Domain\Entities\MatchupChangeSuggestions;
+use App\Domain\Entities\MatchupChangeSuggestion;
 use App\Domain\Entities\TeamInTournament;
 use App\Domain\Repositories\GameInMatchRepository;
 use App\Domain\Repositories\MatchupChangeSuggestionRepository;
@@ -21,7 +21,7 @@ class MatchupChangeSuggestionService {
 		$this->gameInMatchRepo = new GameInMatchRepository();
 	}
 
-	public function acceptSuggestion(MatchupChangeSuggestions $suggestion): void {
+	public function acceptSuggestion(MatchupChangeSuggestion $suggestion): void {
 		$suggestion->accept();
 
 		if ($suggestion->hasScoreChange()) {
@@ -57,7 +57,7 @@ class MatchupChangeSuggestionService {
 		$this->matchupRepo->save($suggestion->matchup);
 	}
 
-	public function rejectSuggestion(MatchupChangeSuggestions $suggestion): void {
+	public function rejectSuggestion(MatchupChangeSuggestion $suggestion): void {
 		$suggestion->reject();
 		$this->suggestionRepo->save($suggestion);
 	}

@@ -4,7 +4,7 @@ namespace App\Domain\Entities;
 
 use App\Domain\Enums\SuggestionStatus;
 
-class MatchupChangeSuggestions {
+class MatchupChangeSuggestion {
 	/**
 	 * @param int|null $id
 	 * @param Matchup $matchup

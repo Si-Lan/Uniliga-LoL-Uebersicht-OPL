@@ -5,7 +5,7 @@ namespace App\Domain\Factories;
 use App\Core\Utilities\DataParsingHelpers;
 use App\Domain\Entities\Game;
 use App\Domain\Entities\Matchup;
-use App\Domain\Entities\MatchupChangeSuggestions;
+use App\Domain\Entities\MatchupChangeSuggestion;
 use App\Domain\Enums\SuggestionStatus;
 use App\Domain\Repositories\GameRepository;
 use App\Domain\Repositories\GameInMatchRepository;
@@ -46,7 +46,7 @@ class MatchupChangeSuggestionFactory extends AbstractFactory {
 	public function createFromDbData(
 		array $data,
 		?Matchup $matchup = null
-	): MatchupChangeSuggestions	{
+	): MatchupChangeSuggestion	{
 		$data = $this->normalizeDbData($data);
 		if ($matchup === null) {
 			$matchup = $this->matchupRepo->findById($data['OPL_ID_matchup']);
@@ -74,7 +74,7 @@ class MatchupChangeSuggestionFactory extends AbstractFactory {
 			$removedGames[] = $gameInMatch;
 		}
 
-		return new MatchupChangeSuggestions(
+		return new MatchupChangeSuggestion(
 			id: (int) $data['id'],
 			matchup: $matchup,
 			customTeam1Score: $this->stringOrNull($data['customTeam1Score']),
@@ -87,7 +87,7 @@ class MatchupChangeSuggestionFactory extends AbstractFactory {
 		);
 	}
 
-	public function mapEntityToDbData(MatchupChangeSuggestions $matchupChangeSuggestion): array {
+	public function mapEntityToDbData(MatchupChangeSuggestion $matchupChangeSuggestion): array {
 		$addedGameIds = array_map(fn(Game $game) => $game->id, $matchupChangeSuggestion->addedGames ?? []);
 		$removedGameIds = array_map(fn(Game $game) => $game->id, $matchupChangeSuggestion->removedGames ?? []);
 		return [
@@ -108,8 +108,8 @@ class MatchupChangeSuggestionFactory extends AbstractFactory {
 		?string $customTeam2Score = null,
 		?array $addedGames = [],
 		?array $removedGames = []
-	): MatchupChangeSuggestions {
-		return new MatchupChangeSuggestions(
+	): MatchupChangeSuggestion {
+		return new MatchupChangeSuggestion(
 			id: null,
 			matchup: $matchup,
 			customTeam1Score: $customTeam1Score,

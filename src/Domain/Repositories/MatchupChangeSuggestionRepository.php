@@ -2,7 +2,7 @@
 
 namespace App\Domain\Repositories;
 
-use App\Domain\Entities\MatchupChangeSuggestions;
+use App\Domain\Entities\MatchupChangeSuggestion;
 use App\Domain\Enums\SaveResult;
 use App\Domain\Enums\SuggestionStatus;
 use App\Domain\Factories\MatchupChangeSuggestionFactory;
@@ -17,7 +17,7 @@ class MatchupChangeSuggestionRepository extends AbstractRepository {
 		$this->factory = new MatchupChangeSuggestionFactory();
 	}
 
-	public function findById(int $id): ?MatchupChangeSuggestions {
+	public function findById(int $id): ?MatchupChangeSuggestion {
 		$query = "SELECT * FROM matchup_change_suggestions WHERE id = ?";
 		$result = $this->dbcn->execute_query($query,[$id]);
 		$data = $result->fetch_assoc();
@@ -27,7 +27,7 @@ class MatchupChangeSuggestionRepository extends AbstractRepository {
 
 	/**
 	 * @param int $matchupId
-	 * @return array<MatchupChangeSuggestions>
+	 * @return array<MatchupChangeSuggestion>
 	 */
 	public function findAllByMatchupId(int $matchupId): array {
 		$query = "SELECT * FROM matchup_change_suggestions WHERE OPL_ID_matchup = ?";
@@ -43,7 +43,7 @@ class MatchupChangeSuggestionRepository extends AbstractRepository {
 
 	/**
 	 * @param SuggestionStatus $status
-	 * @return array<MatchupChangeSuggestions>
+	 * @return array<MatchupChangeSuggestion>
 	 */
 	public function findAllByStatus(SuggestionStatus $status): array {
 		$query = "SELECT * FROM matchup_change_suggestions WHERE status = ?";
@@ -80,7 +80,7 @@ class MatchupChangeSuggestionRepository extends AbstractRepository {
 	/**
 	 * @throws \Exception
 	 */
-	private function insert(MatchupChangeSuggestions $suggestion): RepositorySaveResult {
+	private function insert(MatchupChangeSuggestion $suggestion): RepositorySaveResult {
 		$data = $this->factory->mapEntityToDbData($suggestion);
 		if ($data['id'] !== null) {
 			throw new \Exception("Trying to insert a suggestion with an existing id: ".var_export($suggestion, true));
@@ -100,7 +100,7 @@ class MatchupChangeSuggestionRepository extends AbstractRepository {
 	/**
 	 * @throws \Exception
 	 */
-	private function update(MatchupChangeSuggestions $suggestion): RepositorySaveResult {
+	private function update(MatchupChangeSuggestion $suggestion): RepositorySaveResult {
 		if ($suggestion->id === null) {
 			throw new \Exception("Trying to update a suggestion without an id: ".var_export($suggestion, true));
 		}
@@ -124,7 +124,7 @@ class MatchupChangeSuggestionRepository extends AbstractRepository {
 		return new RepositorySaveResult(SaveResult::UPDATED, $dataChanged, $dataPrevious);
 	}
 
-	public function save(MatchupChangeSuggestions $suggestion): RepositorySaveResult {
+	public function save(MatchupChangeSuggestion $suggestion): RepositorySaveResult {
 		try {
 			if ($suggestion->id && $this->suggestionExists($suggestion->id)) {
 				$saveResult = $this->update($suggestion);

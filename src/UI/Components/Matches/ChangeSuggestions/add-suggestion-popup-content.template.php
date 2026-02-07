@@ -1,11 +1,11 @@
 <?php
 /** @var Matchup $matchup */
-/** @var array<MatchupChangeSuggestions> $suggestions */
+/** @var array<MatchupChangeSuggestion> $suggestions */
 /** @var array<PlayerInTeamInTournament> $team1Players */
 /** @var array<PlayerInTeamInTournament> $team2Players */
 
 use App\Domain\Entities\Matchup;
-use App\Domain\Entities\MatchupChangeSuggestions;
+use App\Domain\Entities\MatchupChangeSuggestion;
 use App\Domain\Entities\PlayerInTeamInTournament;
 use App\UI\Components\Helpers\IconRenderer;
 use App\UI\Components\Matches\ChangeSuggestions\GameSuggestionDetails;
