@@ -387,7 +387,6 @@ dialog {
 	.match-popup .game {
 		align-self: normal;
 		margin-right: inherit;
-		justify-content: normal;
 	}
 }
 .mh-popup-buttons {
