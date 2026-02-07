@@ -34,11 +34,13 @@ class MatchupChangeSuggestionFactory extends AbstractFactory {
 	public function __construct(
 		private ?MatchupRepository $matchupRepo = null,
 		private ?GameRepository $gameRepo = null,
-		private ?GameInMatchRepository $gameInMatchRepo = null
+		private ?GameInMatchRepository $gameInMatchRepo = null,
+		private GameInMatchFactory $gameInMatchFactory = new GameInMatchFactory()
 	) {
 		if ($this->matchupRepo === null) $this->matchupRepo = new MatchupRepository();
 		if ($this->gameRepo === null) $this->gameRepo = new GameRepository();
 		if ($this->gameInMatchRepo === null) $this->gameInMatchRepo = new GameInMatchRepository();
+		if ($this->gameInMatchFactory === null) $this->gameInMatchFactory = new GameInMatchFactory();
 	}
 
 	public function createFromDbData(
@@ -57,7 +59,7 @@ class MatchupChangeSuggestionFactory extends AbstractFactory {
 			if ($gameInMatch === null) {
 				$game = $this->gameRepo->findById($addedGameId);
 				if ($game === null) continue;
-				$gameInMatch = $this->gameInMatchRepo->createFromEntitiesAndImplyTeams(
+				$gameInMatch = $this->gameInMatchFactory->createFromEntitiesAndImplyTeams(
 					$game,
 					$matchup
 				);

@@ -10,137 +10,15 @@ use App\Domain\Entities\Team;
 use App\Domain\Entities\TeamInTournament;
 use App\Domain\Entities\TeamInTournamentStage;
 use App\Domain\Enums\SaveResult;
+use App\Domain\Factories\GameInMatchFactory;
 use App\Domain\ValueObjects\RepositorySaveResult;
 
 class GameInMatchRepository extends AbstractRepository {
-	private GameRepository $gameRepo;
-	private MatchupRepository $matchupRepo;
-	private TeamInTournamentRepository $teamInTournamentRepo;
-	private PlayerInTeamInTournamentRepository $playerInTeamInTournamentRepo;
-	protected static array $ALL_DATA_KEYS = [
-		"RIOT_matchID",
-		"OPL_ID_matches",
-		"OPL_ID_blueTeam",
-		"OPL_ID_redTeam",
-		"opl_confirmed",
-		"custom_added",
-		"custom_removed"];
-	protected static array $REQUIRED_DATA_KEYS = ["RIOT_matchID","OPL_ID_matches"];
+	private GameInMatchFactory $factory;
 
 	public function __construct() {
 		parent::__construct();
-		$this->gameRepo = new GameRepository();
-		$this->matchupRepo = new MatchupRepository();
-		$this->teamInTournamentRepo = new TeamInTournamentRepository();
-		$this->playerInTeamInTournamentRepo = new PlayerInTeamInTournamentRepository();
-	}
-
-	public function mapToEntity(array $data, ?Game $game=null, ?Matchup $matchup=null, ?TeamInTournamentStage $blueTeam=null, ?TeamInTournamentStage $redTeam=null): GameInMatch {
-		$data = $this->normalizeData($data);
-		if (is_null($game)) {
-			$game = $this->gameRepo->findById($data['RIOT_matchID']);
-		}
-		if (is_null($matchup)) {
-			$matchup = $this->matchupRepo->findById($data['OPL_ID_matches']);
-		}
-		if (is_null($blueTeam) && !is_null($data['OPL_ID_blueTeam'])) {
-			$blueTeam = $this->teamInTournamentRepo->findByTeamIdAndTournament($data['OPL_ID_blueTeam'],$matchup->tournamentStage->rootTournament);
-		}
-		if (is_null($redTeam) && !is_null($data['OPL_ID_redTeam'])) {
-			$redTeam = $this->teamInTournamentRepo->findByTeamIdAndTournament($data['OPL_ID_redTeam'],$matchup->tournamentStage->rootTournament);
-		}
-		return new GameInMatch(
-			game: $game,
-			matchup: $matchup,
-			blueTeam: $blueTeam,
-			redTeam: $redTeam,
-			oplConfirmed: (bool) $data['opl_confirmed']??false,
-			customAdded: (bool) $data['custom_added']??false,
-			customRemoved: (bool) $data['custom_removed']??false
-		);
-	}
-
-	public function createFromEntities(
-		Game $game,
-		Matchup $matchup,
-		TeamInTournament|Team|null $blueTeam,
-		TeamInTournament|Team|null $redTeam,
-		bool $oplConfirmed = false,
-		bool $customAdded = false,
-		bool $customRemoved = false
-	): GameInMatch {
-		$blueTeam = !($blueTeam instanceof Team) ? $blueTeam : $this->teamInTournamentRepo->findByTeamAndTournament($blueTeam, $matchup->tournamentStage->rootTournament);
-		$redTeam = !($redTeam instanceof Team) ? $redTeam : $this->teamInTournamentRepo->findByTeamAndTournament($redTeam, $matchup->tournamentStage->rootTournament);
-		return new GameInMatch(
-			game: $game,
-			matchup: $matchup,
-			blueTeam: $blueTeam,
-			redTeam: $redTeam,
-			oplConfirmed: $oplConfirmed,
-			customAdded: $customAdded,
-			customRemoved: $customRemoved
-		);
-	}
-	public function createFromEntitiesAndImplyTeams(
-		Game $game,
-		Matchup $matchup,
-		bool $oplConfirmed = false,
-		bool $customAdded = false,
-		bool $customRemoved = false
-	): GameInMatch
-	{
-		$teams = $this->matchTeamsToSide($game, $matchup->team1, $matchup->team2);
-		return $this->createFromEntities($game, $matchup, $teams["blueTeam"], $teams["redTeam"], $oplConfirmed, $customAdded, $customRemoved);
-	}
-
-	/**
-	 * @param Game $game
-	 * @param TeamInTournament $team1
-	 * @param TeamInTournament $team2
-	 * @return array{blueTeam: ?TeamInTournament, redTeam: ?TeamInTournament}
-	 */
-	public function matchTeamsToSide(Game $game, TeamInTournament $team1, TeamInTournament $team2): array {
-		$bluePlayers = $game->gameData->blueTeamPlayers;
-		$redPlayers = $game->gameData->redTeamPlayers;
-		$bluePuuids = array_flip(array_map(fn(GamePlayerData $player) => $player->puuid, $bluePlayers));
-		$redPuuids = array_flip(array_map(fn(GamePlayerData $player) => $player->puuid, $redPlayers));
-
-		$team1Players = $this->playerInTeamInTournamentRepo->findAllByTeamInTournament($team1);
-		$team2Players = $this->playerInTeamInTournamentRepo->findAllByTeamInTournament($team2);
-
-		$team1Counter = ["blue" => 0, "red" => 0];
-		foreach ($team1Players as $player) {
-			if (isset($bluePuuids[$player->player->puuid])) {
-				$team1Counter["blue"]++;
-			}
-			if (isset($redPuuids[$player->player->puuid])) {
-				$team1Counter["red"]++;
-			}
-		}
-
-		$team2Counter = ["blue" => 0, "red" => 0];
-		foreach ($team2Players as $player) {
-			if (isset($bluePuuids[$player->player->puuid])) {
-				$team2Counter["blue"]++;
-			}
-			if (isset($redPuuids[$player->player->puuid])) {
-				$team2Counter["red"]++;
-			}
-		}
-
-		$result = ['blueTeam' => null, 'redTeam' => null];
-		if ($team1Counter["blue"] > $team2Counter["blue"]) {
-			$result["blueTeam"] = $team1;
-		} elseif ($team1Counter["blue"] < $team2Counter["blue"]) {
-			$result["blueTeam"] = $team2;
-		}
-		if ($team1Counter["red"] > $team2Counter["red"]) {
-			$result["redTeam"] = $team1;
-		} elseif ($team1Counter["red"] < $team2Counter["red"]) {
-			$result["redTeam"] = $team2;
-		}
-
-		return $result;
+		$this->factory = new GameInMatchFactory();
 	}
 
 	public function findByGameIdAndMatchupId(string $gameId, int $matchupId): ?GameInMatch {
@@ -148,21 +26,21 @@ class GameInMatchRepository extends AbstractRepository {
 		$result = $this->dbcn->execute_query($query, [$gameId, $matchupId]);
 		$data = $result->fetch_assoc();
 
-		return $data ? $this->mapToEntity($data) : null;
+		return $data ? $this->factory->createFromDbData($data) : null;
 	}
 	public function findByGameIdAndMatchup(string $gameId, Matchup $matchup): ?GameInMatch {
 		$query = 'SELECT * FROM games_to_matches WHERE RIOT_matchID = ? AND OPL_ID_matches = ?';
 		$result = $this->dbcn->execute_query($query, [$gameId, $matchup->id]);
 		$data = $result->fetch_assoc();
 
-		return $data ? $this->mapToEntity($data, matchup: $matchup) : null;
+		return $data ? $this->factory->createFromDbData($data, matchup: $matchup) : null;
 	}
 	public function findByGame(Game $game): ?GameInMatch {
 		$query = 'SELECT * FROM games_to_matches WHERE RIOT_matchID = ?';
 		$result = $this->dbcn->execute_query($query, [$game->id]);
 		$data = $result->fetch_assoc();
 
-		return $data ? $this->mapToEntity($data, game: $game) : null;
+		return $data ? $this->factory->createFromDbData($data, game: $game) : null;
 	}
 
 	/**
@@ -176,7 +54,7 @@ class GameInMatchRepository extends AbstractRepository {
 
 		$gamesInMatchup = [];
 		foreach ($data as $gameData) {
-			$gamesInMatchup[] = $this->mapToEntity($gameData, matchup: $matchup);
+			$gamesInMatchup[] = $this->factory->createFromDbData($gameData, matchup: $matchup);
 		}
 		return $gamesInMatchup;
 	}
@@ -197,7 +75,7 @@ class GameInMatchRepository extends AbstractRepository {
 
         $gamesInMatchup = [];
         foreach ($data as $gameData) {
-            $gamesInMatchup[] = $this->mapToEntity($gameData);
+            $gamesInMatchup[] = $this->factory->createFromDbData($gameData);
         }
         return $gamesInMatchup;
     }
@@ -208,20 +86,8 @@ class GameInMatchRepository extends AbstractRepository {
 		return $result->num_rows > 0;
 	}
 
-	public function mapEntityToData(GameInMatch $gameInMatch): array {
-		return [
-			"RIOT_matchID" => $gameInMatch->game->id,
-			"OPL_ID_matches" => $gameInMatch->matchup->id,
-			"OPL_ID_blueTeam" => $gameInMatch->blueTeam?->team->id,
-			"OPL_ID_redTeam" => $gameInMatch->redTeam?->team->id,
-			"opl_confirmed" => (int) $gameInMatch->oplConfirmed,
-			"custom_added" => (int) $gameInMatch->customAdded,
-			"custom_removed" => (int) $gameInMatch->customRemoved
-		];
-	}
-
 	private function insert(GameInMatch $gameInMatch): void {
-		$data = $this->mapEntityToData($gameInMatch);
+		$data = $this->factory->mapEntityToDBData($gameInMatch);
 		$columns = implode(",", array_keys($data));
 		$placeholders = implode(",", array_fill(0, count($data), "?"));
 		$values = array_values($data);
@@ -234,8 +100,8 @@ class GameInMatchRepository extends AbstractRepository {
 	private function update(GameInMatch $gameInMatch): RepositorySaveResult {
 		$existingGameInMatch = $this->findByGameIdAndMatchupId($gameInMatch->game->id, $gameInMatch->matchup->id);
 
-		$dataNew = $this->mapEntityToData($gameInMatch);
-		$dataOld = $this->mapEntityToData($existingGameInMatch);
+		$dataNew = $this->factory->mapEntityToDBData($gameInMatch);
+		$dataOld = $this->factory->mapEntityToDBData($existingGameInMatch);
 		$dataChanged = array_diff_assoc($dataNew, $dataOld);
 		$dataPrevious = array_diff_assoc($dataOld, $dataNew);
 

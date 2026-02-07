@@ -5,6 +5,7 @@ namespace App\Service\Updater;
 use App\Domain\Entities\GameInMatch;
 use App\Domain\Entities\Matchup;
 use App\Domain\Enums\SaveResult;
+use App\Domain\Factories\GameInMatchFactory;
 use App\Domain\Factories\MatchupFactory;
 use App\Domain\Repositories\GameInMatchRepository;
 use App\Domain\Repositories\GameRepository;
@@ -17,12 +18,14 @@ class MatchupUpdater {
 	private MatchupRepository $matchupRepo;
 	private MatchupFactory $matchupFactory;
     private GameInMatchRepository $gameInMatchRepo;
+	private GameInMatchFactory $gameInMatchFactory;
     private GameUpdater $gameUpdater;
 	private OplApiService $oplApiService;
 	public function __construct() {
 		$this->matchupRepo = new MatchupRepository();
 		$this->matchupFactory = new MatchupFactory();
         $this->gameInMatchRepo = new GameInMatchRepository();
+		$this->gameInMatchFactory = new GameInMatchFactory();
         $this->gameUpdater = new GameUpdater();
 		$this->oplApiService = new OplApiService();
 	}
@@ -73,7 +76,7 @@ class MatchupUpdater {
 		$gameSaveResults = [];
 		$gameToMatchResults = [];
 		$gameRepo = new GameRepository();
-		$gameInMatchRepo = new GameInMatchRepository();
+
 		foreach ($oplGames as $i=>$oplGame) {
 			$gameEntity = $gameRepo->createEmptyFromId($oplGame['metadata']['matchId']);
 			$gameSaveResult = $gameRepo->save($gameEntity, dontOverwriteGameData: true);
@@ -118,8 +121,8 @@ class MatchupUpdater {
 				default => null,
 			};
 
-			$gameInMatchEntity = $gameInMatchRepo->createFromEntities($gameEntity, $matchup, $blueTeam, $redTeam, oplConfirmed: true);
-			$gameToMatchResult = $gameInMatchRepo->save($gameInMatchEntity);
+			$gameInMatchEntity = $this->gameInMatchFactory->createFromEntities($gameEntity, $matchup, $blueTeam, $redTeam, oplConfirmed: true);
+			$gameToMatchResult = $this->gameInMatchRepo->save($gameInMatchEntity);
 			$gameToMatchResults[] = $gameToMatchResult;
 		}
 

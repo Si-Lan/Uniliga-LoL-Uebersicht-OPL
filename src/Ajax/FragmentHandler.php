@@ -4,6 +4,7 @@ namespace App\Ajax;
 
 use App\Core\Utilities\DataParsingHelpers;
 use App\Domain\Entities\Game;
+use App\Domain\Factories\GameInMatchFactory;
 use App\Domain\Repositories\GameInMatchRepository;
 use App\Domain\Repositories\GameRepository;
 use App\Domain\Repositories\MatchupRepository;
@@ -407,6 +408,7 @@ class FragmentHandler {
 
 		$gameRepo = new GameRepository();
 		$gameInMatchRepo = new GameInMatchRepository();
+		$gameInMatchFactory = new GameInMatchFactory();
 
 		$gameIds = $apiResult->getData();
 
@@ -416,7 +418,7 @@ class FragmentHandler {
 			if ($game !== null) {
 				$gameInMatch = $gameInMatchRepo->findByGameIdAndMatchupId($gameId, $matchupId);
 				if ($gameInMatch === null) {
-					$gameInMatch = $gameInMatchRepo->createFromEntitiesAndImplyTeams($game, $matchup);
+					$gameInMatch = $gameInMatchFactory->createFromEntitiesAndImplyTeams($game, $matchup);
 				}
 				if ($game->gameData !== null) {
 					$htmlContent .= new GameSuggestionDetails($gameInMatch);
@@ -438,7 +440,7 @@ class FragmentHandler {
 			$game = new Game($gameId, $matchData, null);
 			$gameRepo->save($game);
 
-			$gameInMatch = $gameInMatchRepo->createFromEntitiesAndImplyTeams($game, $matchup);
+			$gameInMatch = $gameInMatchFactory->createFromEntitiesAndImplyTeams($game, $matchup);
 			$htmlContent .= new GameSuggestionDetails($gameInMatch);
 		}
 
