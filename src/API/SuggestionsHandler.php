@@ -31,6 +31,13 @@ class SuggestionsHandler extends AbstractHandler {
 		$this->checkRequestMethod('POST');
 		$data = $this->parseRequestData();
 		$this->validateRequestData($data, ['matchupId', 'team1Score', 'team2Score','gameIds']);
+		if (!is_array($data['gameIds'])) {
+			$this->sendErrorResponse(400, "gameIds must be an array");
+		}
+
+		if ($data['team1Score'] === null && $data['team2Score'] === null && count($data['gameIds']) === 0) {
+			$this->sendErrorResponse(400, "At least one of team1Score, team2Score or gameIds must be set");
+		}
 
 		$matchup = $this->matchupRepo->findById($data['matchupId']);
 		if ($matchup === null) {
@@ -53,9 +60,6 @@ class SuggestionsHandler extends AbstractHandler {
 		$team1Score = $data['team1Score'] ?? null;
 		$team2Score = $data['team2Score'] ?? null;
 
-		if (!is_array($data['gameIds'])) {
-			$this->sendErrorResponse(400, "gameIds must be an array");
-		}
 		$games = [];
 		foreach ($data['gameIds'] as $gameId) {
 			$game = $this->gameRepo->findById($gameId);
