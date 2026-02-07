@@ -25,6 +25,7 @@ button.open-add-suggestion-form {
         display: flex;
         flex-direction: column;
         gap: 4px;
+        min-height: 120px;
     }
 }
 .divider {

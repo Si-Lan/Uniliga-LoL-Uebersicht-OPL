@@ -39,19 +39,24 @@ use App\UI\Components\Matches\ChangeSuggestions\GameSuggestionDetails;
 <div class="add-suggestion-form">
     <div style="display: flex; flex-direction: column; align-items: center; gap: 8px; overflow: hidden">
 
-    <button type="button" class="send-suggestion" style="display: flex; align-items: center; gap: 4px"><?=IconRenderer::getMaterialIconSpan("publish")?>Vorschlag absenden</button>
+    <button type="button" class="send-suggestion" data-matchup-id="<?=$matchup->id?>" style="display: flex; align-items: center; gap: 4px"><?=IconRenderer::getMaterialIconSpan("publish")?>Vorschlag absenden</button>
 
-    <div style="display: flex; flex-direction: row; align-items: center">
+    <div style="display: flex; flex-direction: column; align-items: center">
         <span style="margin-right: 12px">Score:</span>
-        <label style="max-width: 40px">
-            <input type="text" placeholder="<?= $matchup->getTeam1Score() ?? '' ?>" maxlength="2"
-                   style="padding: 0 8px; text-align: center">
-        </label>
-        :
-        <label style="max-width: 40px">
-            <input type="text" placeholder="<?= $matchup->getTeam2Score() ?? '' ?>" maxlength="2"
-                   style="padding: 0 8px; text-align: center">
-        </label>
+        <div style="display: flex; flex-direction: row; align-items: center; gap: 4px">
+            <label>
+                <?=$matchup->team1->nameInTournament?>
+                <input type="text" name="team1Score" placeholder="<?= $matchup->getTeam1Score() ?? '' ?>" maxlength="2"
+                       style="padding: 0 8px; text-align: center; max-width: 40px; margin-left: 4px">
+            </label>
+            :
+            <label>
+                <input type="text" name="team2Score" placeholder="<?= $matchup->getTeam2Score() ?? '' ?>" maxlength="2"
+                       style="padding: 0 8px; text-align: center; max-width: 40px; margin-right: 4px">
+                <?=$matchup->team2->nameInTournament?>
+
+            </label>
+        </div>
     </div>
 
     <div style="display: flex; flex-direction: column; gap: 4px">

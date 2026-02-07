@@ -22,8 +22,8 @@ class MatchupChangeSuggestionService {
 		$suggestion->accept();
 
 		if ($suggestion->hasScoreChange()) {
-			$suggestion->matchup->customTeam1Score = $suggestion->customTeam1Score !== null ? $suggestion->customTeam1Score : $suggestion->matchup->team1Score;
-			$suggestion->matchup->customTeam2Score = $suggestion->customTeam2Score !== null ? $suggestion->customTeam2Score : $suggestion->matchup->team2Score;
+			$suggestion->matchup->customTeam1Score = $suggestion->customTeam1Score !== null ? $suggestion->customTeam1Score : $suggestion->matchup->getTeam1Score();
+			$suggestion->matchup->customTeam2Score = $suggestion->customTeam2Score !== null ? $suggestion->customTeam2Score : $suggestion->matchup->getTeam2Score();
 			$suggestion->matchup->hasCustomScore = true;
 		}
 

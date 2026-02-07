@@ -12,7 +12,6 @@ $(document).on('click', 'button.add-suggestion-get-games', function(){
 
     fragmentLoader(`game-suggestions?matchupId=${matchupId}&playerId=${playerId}`)
         .then(content => {
-            console.log(container[0]);
             container.empty().append(content);
         })
         .catch(error => console.error(error))
@@ -20,4 +19,51 @@ $(document).on('click', 'button.add-suggestion-get-games', function(){
 
 $(document).on('click', 'button.open-add-suggestion-form', function(){
     $(this).siblings('.add-suggestion-form').toggleClass('open');
+})
+
+
+$(document).on('click', 'button.send-suggestion', function(){
+    const form = $(this).closest('.add-suggestion-form');
+    const matchupId = this.dataset.matchupId;
+    const team1Score = form.find('input[name="team1Score"]').val();
+    const team2Score = form.find('input[name="team2Score"]').val();
+    const games = [];
+    form.find('.add-suggestion-games-list .game-suggestion-details').each(function(index, element){
+        const checkbox = $(this).find('input[type="checkbox"]');
+        if (checkbox.is(':checked')) games.push(element.dataset.gameId);
+    });
+
+    const array = {
+        "matchupId": matchupId,
+        "team1Score": team1Score,
+        "team2Score": team2Score,
+        "gameIds": games
+    }
+
+    if (team1Score === "" && team2Score === "" && games.length === 0) {
+        alert("Keine Änderungen angegeben!");
+        return;
+    }
+
+    fetch('/api/suggestions', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(array)
+    })
+        .then(res => {
+            if (res.ok) {
+                return res.json();
+            } else {
+                return {"error": "Fehler beim Laden der Daten"};
+            }
+        })
+        .then(response => {
+            if (response.error) {alert(response.error); return;}
+            alert(response.message);
+
+            // TODO: Reload Suggestion-Popup
+        })
+        .catch(e => console.error(e))
 })
