@@ -8,6 +8,7 @@ use App\Domain\Entities\Matchup;
 use App\Domain\Entities\MatchupChangeSuggestions;
 use App\Domain\Enums\SuggestionStatus;
 use App\Domain\Repositories\GameRepository;
+use App\Domain\Repositories\GameInMatchRepository;
 use App\Domain\Repositories\MatchupRepository;
 
 class MatchupChangeSuggestionFactory extends AbstractFactory {
@@ -32,10 +33,12 @@ class MatchupChangeSuggestionFactory extends AbstractFactory {
 
 	public function __construct(
 		private ?MatchupRepository $matchupRepo = null,
-		private ?GameRepository $gameRepo = null
+		private ?GameRepository $gameRepo = null,
+		private ?GameInMatchRepository $gameInMatchRepo = null
 	) {
 		if ($this->matchupRepo === null) $this->matchupRepo = new MatchupRepository();
 		if ($this->gameRepo === null) $this->gameRepo = new GameRepository();
+		if ($this->gameInMatchRepo === null) $this->gameInMatchRepo = new GameInMatchRepository();
 	}
 
 	public function createFromDbData(
@@ -50,12 +53,23 @@ class MatchupChangeSuggestionFactory extends AbstractFactory {
 		$addedGameIds = $this->decodeJsonOrDefault($data['addedGames']);
 		$addedGames = [];
 		foreach ($addedGameIds as $addedGameId) {
-			$addedGames[] = $this->gameRepo->findById($addedGameId);
+			$gameInMatch = $this->gameInMatchRepo->findByGameIdAndMatchup($addedGameId, $matchup);
+			if ($gameInMatch === null) {
+				$game = $this->gameRepo->findById($addedGameId);
+				if ($game === null) continue;
+				$gameInMatch = $this->gameInMatchRepo->createFromEntitiesAndImplyTeams(
+					$game,
+					$matchup
+				);
+			}
+			$addedGames[] = $gameInMatch;
 		}
 		$removedGameIds = $this->decodeJsonOrDefault($data['removedGames']);
 		$removedGames = [];
 		foreach ($removedGameIds as $removedGameId) {
-			$removedGames[] = $this->gameRepo->findById($removedGameId);
+			$gameInMatch = $this->gameInMatchRepo->findByGameIdAndMatchup($removedGameId, $matchup);
+			if ($gameInMatch === null) continue;
+			$removedGames[] = $gameInMatch;
 		}
 
 		return new MatchupChangeSuggestions(

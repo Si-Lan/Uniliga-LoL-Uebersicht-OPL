@@ -35,37 +35,22 @@ class MatchupChangeSuggestionService {
 		if (count($suggestion->addedGames) > 0) {
 			$suggestion->matchup->hasCustomGames = true;
 			foreach ($suggestion->addedGames as $addedGame) {
-				$gameInMatch = $this->gameInMatchRepo->findByGameIdAndMatchupId($addedGame->id, $suggestion->matchup->id);
-				if ($gameInMatch === null) {
-					$gameInMatch = $this->gameInMatchRepo->createFromEntities(
-						$addedGame,
-						$suggestion->matchup,
-						null,
-						null,
-					);
-				}
+				$addedGame->customAdded = true;
+				$addedGame->customRemoved = false;
 
-				$teamsToSide = $this->matchTeamsToSide($addedGame, $suggestion->matchup->team1, $suggestion->matchup->team2);
-
-				$gameInMatch->blueTeam = $teamsToSide["blueTeam"];
-				$gameInMatch->redTeam = $teamsToSide["redTeam"];
-				$gameInMatch->customAdded = true;
-				$gameInMatch->customRemoved = false;
-
-				$this->gameInMatchRepo->save($gameInMatch);
+				$this->gameInMatchRepo->save($addedGame);
 			}
 		}
 
 		if (count($suggestion->removedGames) > 0) {
 			$suggestion->matchup->hasCustomGames = true;
 			foreach ($suggestion->removedGames as $removedGame) {
-				$gameInMatch = $this->gameInMatchRepo->findByGameIdAndMatchupId($removedGame->id, $suggestion->matchup->id);
-				if ($gameInMatch->oplConfirmed) {
-					$gameInMatch->customAdded = false;
-					$gameInMatch->customRemoved = true;
-					$this->gameInMatchRepo->save($gameInMatch);
+				if ($removedGame->oplConfirmed) {
+					$removedGame->customAdded = false;
+					$removedGame->customRemoved = true;
+					$this->gameInMatchRepo->save($removedGame);
 				} else {
-					$this->gameInMatchRepo->delete($gameInMatch);
+					$this->gameInMatchRepo->delete($removedGame);
 				}
 			}
 		}
