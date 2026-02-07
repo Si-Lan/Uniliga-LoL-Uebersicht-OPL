@@ -137,6 +137,7 @@ class GameInMatchFactory extends AbstractFactory {
 	 * @return array{blueTeam: ?TeamInTournament, redTeam: ?TeamInTournament}
 	 */
 	private function matchTeamsToSide(Game $game, TeamInTournament $team1, TeamInTournament $team2): array {
+		if ($game->gameData === null) return ['blueTeam' => null, 'redTeam' => null];
 		$bluePlayers = $game->gameData->blueTeamPlayers;
 		$redPlayers = $game->gameData->redTeamPlayers;
 		$bluePuuids = array_flip(array_map(fn(GamePlayerData $player) => $player->puuid, $bluePlayers));
