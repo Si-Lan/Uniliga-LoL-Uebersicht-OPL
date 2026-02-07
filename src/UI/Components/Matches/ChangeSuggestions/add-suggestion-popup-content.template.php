@@ -17,7 +17,7 @@ use App\UI\Components\Matches\ChangeSuggestions\GameSuggestionDetails;
 <?php foreach ($suggestions as $suggestion): ?>
 	<?= $suggestion->customTeam1Score ?>:<?= $suggestion->customTeam2Score ?>
     <div style="display: flex; flex-direction: column;">
-        <?php foreach ($suggestion->addedGames as $game): ?>
+        <?php foreach ($suggestion->games as $game): ?>
             <?= new GameSuggestionDetails($game, false)?>
         <?php endforeach; ?>
     </div>

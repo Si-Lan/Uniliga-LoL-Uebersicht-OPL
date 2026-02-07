@@ -59,6 +59,22 @@ class GameInMatchRepository extends AbstractRepository {
 		return $gamesInMatchup;
 	}
 
+	/**
+	 * @param Matchup $matchup
+	 * @return array<GameInMatch>
+	 */
+	public function findAllActiveByMatchup(Matchup $matchup): array {
+		$query = 'SELECT * FROM games_to_matches WHERE OPL_ID_matches = ? AND custom_removed = 0';
+		$result = $this->dbcn->execute_query($query, [$matchup->id]);
+		$data = $result->fetch_all(MYSQLI_ASSOC);
+
+		$gamesInMatchup = [];
+		foreach ($data as $gameData) {
+			$gamesInMatchup[] = $this->factory->createFromDbData($gameData, matchup: $matchup);
+		}
+		return $gamesInMatchup;
+	}
+
     /**
      * @param TeamInTournament $teamInTournament
      * @return array<GameInMatch>

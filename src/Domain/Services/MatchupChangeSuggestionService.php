@@ -2,14 +2,11 @@
 
 namespace App\Domain\Services;
 
-use App\Domain\Entities\Game;
-use App\Domain\Entities\LolGame\GamePlayerData;
+use App\Domain\Entities\Matchup;
 use App\Domain\Entities\MatchupChangeSuggestion;
-use App\Domain\Entities\TeamInTournament;
 use App\Domain\Repositories\GameInMatchRepository;
 use App\Domain\Repositories\MatchupChangeSuggestionRepository;
 use App\Domain\Repositories\MatchupRepository;
-use App\Domain\Repositories\PlayerInTeamInTournamentRepository;
 
 class MatchupChangeSuggestionService {
 	private MatchupChangeSuggestionRepository $suggestionRepo;
@@ -30,27 +27,28 @@ class MatchupChangeSuggestionService {
 			$suggestion->matchup->hasCustomScore = true;
 		}
 
-		if (count($suggestion->addedGames) > 0) {
-			$suggestion->matchup->hasCustomGames = true;
-			foreach ($suggestion->addedGames as $addedGame) {
-				$addedGame->customAdded = true;
-				$addedGame->customRemoved = false;
+		if (count($suggestion->games) > 0) {
 
-				$this->gameInMatchRepo->save($addedGame);
-			}
-		}
-
-		if (count($suggestion->removedGames) > 0) {
-			$suggestion->matchup->hasCustomGames = true;
-			foreach ($suggestion->removedGames as $removedGame) {
-				if ($removedGame->oplConfirmed) {
-					$removedGame->customAdded = false;
-					$removedGame->customRemoved = true;
-					$this->gameInMatchRepo->save($removedGame);
-				} else {
-					$this->gameInMatchRepo->delete($removedGame);
+			$gamesToRemove = $this->gameInMatchRepo->findAllActiveByMatchup($suggestion->matchup);
+			if (count($gamesToRemove) > 0) {
+				foreach ($gamesToRemove as $gameToRemove) {
+					if ($gameToRemove->oplConfirmed) {
+						$gameToRemove->customAdded = false;
+						$gameToRemove->customRemoved = true;
+						$this->gameInMatchRepo->save($gameToRemove);
+					} else {
+						$this->gameInMatchRepo->delete($gameToRemove);
+					}
 				}
 			}
+
+			foreach ($suggestion->games as $game) {
+				$game->customAdded = true;
+				$game->customRemoved = false;
+
+				$this->gameInMatchRepo->save($game);
+			}
+			$suggestion->matchup->hasCustomGames = true;
 		}
 
 		$this->suggestionRepo->save($suggestion);
@@ -60,5 +58,18 @@ class MatchupChangeSuggestionService {
 	public function rejectSuggestion(MatchupChangeSuggestion $suggestion): void {
 		$suggestion->reject();
 		$this->suggestionRepo->save($suggestion);
+	}
+
+	public function revertSuggestionsForMatchup(Matchup $matchup): void {
+		$games = $this->gameInMatchRepo->findAllByMatchup($matchup);
+		foreach ($games as $game) {
+			if ($game->oplConfirmed) {
+				$game->customAdded = false;
+				$game->customRemoved = false;
+				$this->gameInMatchRepo->save($game);
+			} else {
+				$this->gameInMatchRepo->delete($game);
+			}
+		}
 	}
 }

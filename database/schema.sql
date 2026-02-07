@@ -56,8 +56,7 @@ CREATE TABLE `matchup_change_suggestions` (
   `OPL_ID_matchup` int(11) NOT NULL,
   `customTeam1Score` varchar(2) DEFAULT NULL,
   `customTeam2Score` varchar(2) DEFAULT NULL,
-  `addedGames` longtext NOT NULL DEFAULT '[]' CHECK (json_valid(`addedGames`)),
-  `removedGames` longtext NOT NULL DEFAULT '[]' CHECK (json_valid(`removedGames`)),
+  `games` longtext NOT NULL DEFAULT '[]' CHECK (json_valid(`games`)),
   `status` ENUM('pending','accepted','rejected') NOT NULL DEFAULT 'pending',
   `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
   `finished_at` DATETIME NULL DEFAULT NULL

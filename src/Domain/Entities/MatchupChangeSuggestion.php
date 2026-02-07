@@ -10,8 +10,7 @@ class MatchupChangeSuggestion {
 	 * @param Matchup $matchup
 	 * @param string|null $customTeam1Score
 	 * @param string|null $customTeam2Score
-	 * @param array<GameInMatch> $addedGames
-	 * @param array<GameInMatch> $removedGames
+	 * @param array<GameInMatch> $games
 	 * @param SuggestionStatus $status
 	 * @param \DateTimeImmutable|null $createdAt
 	 * @param \DateTimeImmutable|null $finishedAt
@@ -21,8 +20,7 @@ class MatchupChangeSuggestion {
 		public Matchup $matchup,
 		public ?string $customTeam1Score,
 		public ?string $customTeam2Score,
-		public array $addedGames,
-		public array $removedGames,
+		public array $games,
 		public SuggestionStatus $status,
 		public readonly ?\DateTimeImmutable $createdAt,
 		public ?\DateTimeImmutable $finishedAt,
@@ -39,10 +37,7 @@ class MatchupChangeSuggestion {
 	}
 
 	public function addGame(GameInMatch $game): void {
-		$this->addedGames[] = $game;
-	}
-	public function removeGame(GameInMatch $game): void {
-		$this->removedGames[] = $game;
+		$this->games[] = $game;
 	}
 
 	public function hasScoreChange(): bool {
