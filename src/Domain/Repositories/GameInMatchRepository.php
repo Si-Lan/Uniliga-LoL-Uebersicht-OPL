@@ -4,6 +4,7 @@ namespace App\Domain\Repositories;
 
 use App\Domain\Entities\Game;
 use App\Domain\Entities\GameInMatch;
+use App\Domain\Entities\LolGame\GamePlayerData;
 use App\Domain\Entities\Matchup;
 use App\Domain\Entities\Team;
 use App\Domain\Entities\TeamInTournament;
@@ -15,6 +16,7 @@ class GameInMatchRepository extends AbstractRepository {
 	private GameRepository $gameRepo;
 	private MatchupRepository $matchupRepo;
 	private TeamInTournamentRepository $teamInTournamentRepo;
+	private PlayerInTeamInTournamentRepository $playerInTeamInTournamentRepo;
 	protected static array $ALL_DATA_KEYS = [
 		"RIOT_matchID",
 		"OPL_ID_matches",
@@ -30,6 +32,7 @@ class GameInMatchRepository extends AbstractRepository {
 		$this->gameRepo = new GameRepository();
 		$this->matchupRepo = new MatchupRepository();
 		$this->teamInTournamentRepo = new TeamInTournamentRepository();
+		$this->playerInTeamInTournamentRepo = new PlayerInTeamInTournamentRepository();
 	}
 
 	public function mapToEntity(array $data, ?Game $game=null, ?Matchup $matchup=null, ?TeamInTournamentStage $blueTeam=null, ?TeamInTournamentStage $redTeam=null): GameInMatch {
@@ -60,8 +63,8 @@ class GameInMatchRepository extends AbstractRepository {
 	public function createFromEntities(
 		Game $game,
 		Matchup $matchup,
-		TeamInTournamentStage|Team|null $blueTeam,
-		TeamInTournamentStage|Team|null $redTeam,
+		TeamInTournament|Team|null $blueTeam,
+		TeamInTournament|Team|null $redTeam,
 		bool $oplConfirmed = false,
 		bool $customAdded = false,
 		bool $customRemoved = false
@@ -77,6 +80,67 @@ class GameInMatchRepository extends AbstractRepository {
 			customAdded: $customAdded,
 			customRemoved: $customRemoved
 		);
+	}
+	public function createFromEntitiesAndImplyTeams(
+		Game $game,
+		Matchup $matchup,
+		bool $oplConfirmed = false,
+		bool $customAdded = false,
+		bool $customRemoved = false
+	): GameInMatch
+	{
+		$teams = $this->matchTeamsToSide($game, $matchup->team1, $matchup->team2);
+		return $this->createFromEntities($game, $matchup, $teams["blueTeam"], $teams["redTeam"], $oplConfirmed, $customAdded, $customRemoved);
+	}
+
+	/**
+	 * @param Game $game
+	 * @param TeamInTournament $team1
+	 * @param TeamInTournament $team2
+	 * @return array{blueTeam: ?TeamInTournament, redTeam: ?TeamInTournament}
+	 */
+	public function matchTeamsToSide(Game $game, TeamInTournament $team1, TeamInTournament $team2): array {
+		$bluePlayers = $game->gameData->blueTeamPlayers;
+		$redPlayers = $game->gameData->redTeamPlayers;
+		$bluePuuids = array_flip(array_map(fn(GamePlayerData $player) => $player->puuid, $bluePlayers));
+		$redPuuids = array_flip(array_map(fn(GamePlayerData $player) => $player->puuid, $redPlayers));
+
+		$team1Players = $this->playerInTeamInTournamentRepo->findAllByTeamInTournament($team1);
+		$team2Players = $this->playerInTeamInTournamentRepo->findAllByTeamInTournament($team2);
+
+		$team1Counter = ["blue" => 0, "red" => 0];
+		foreach ($team1Players as $player) {
+			if (isset($bluePuuids[$player->player->puuid])) {
+				$team1Counter["blue"]++;
+			}
+			if (isset($redPuuids[$player->player->puuid])) {
+				$team1Counter["red"]++;
+			}
+		}
+
+		$team2Counter = ["blue" => 0, "red" => 0];
+		foreach ($team2Players as $player) {
+			if (isset($bluePuuids[$player->player->puuid])) {
+				$team2Counter["blue"]++;
+			}
+			if (isset($redPuuids[$player->player->puuid])) {
+				$team2Counter["red"]++;
+			}
+		}
+
+		$result = ['blueTeam' => null, 'redTeam' => null];
+		if ($team1Counter["blue"] > $team2Counter["blue"]) {
+			$result["blueTeam"] = $team1;
+		} elseif ($team1Counter["blue"] < $team2Counter["blue"]) {
+			$result["blueTeam"] = $team2;
+		}
+		if ($team1Counter["red"] > $team2Counter["red"]) {
+			$result["redTeam"] = $team1;
+		} elseif ($team1Counter["red"] < $team2Counter["red"]) {
+			$result["redTeam"] = $team2;
+		}
+
+		return $result;
 	}
 
 	public function findByGameIdAndMatchupId(string $gameId, int $matchupId): ?GameInMatch {

@@ -15,12 +15,10 @@ class MatchupChangeSuggestionService {
 	private MatchupChangeSuggestionRepository $suggestionRepo;
 	private MatchupRepository $matchupRepo;
 	private GameInMatchRepository $gameInMatchRepo;
-	private PlayerInTeamInTournamentRepository $playerInTeamInTournamentRepo;
 	public function __construct() {
 		$this->suggestionRepo = new MatchupChangeSuggestionRepository();
 		$this->matchupRepo = new MatchupRepository();
 		$this->gameInMatchRepo = new GameInMatchRepository();
-		$this->playerInTeamInTournamentRepo = new PlayerInTeamInTournamentRepository();
 	}
 
 	public function acceptSuggestion(MatchupChangeSuggestions $suggestion): void {
@@ -57,56 +55,6 @@ class MatchupChangeSuggestionService {
 
 		$this->suggestionRepo->save($suggestion);
 		$this->matchupRepo->save($suggestion->matchup);
-	}
-
-	/**
-	 * @param Game $game
-	 * @param TeamInTournament $team1
-	 * @param TeamInTournament $team2
-	 * @return array{blueTeam: ?TeamInTournament, redTeam: ?TeamInTournament}
-	 */
-	private function matchTeamsToSide(Game $game, TeamInTournament $team1, TeamInTournament $team2): array {
-		$bluePlayers = $game->gameData->blueTeamPlayers;
-		$redPlayers = $game->gameData->redTeamPlayers;
-		$bluePuuids = array_flip(array_map(fn(GamePlayerData $player) => $player->puuid, $bluePlayers));
-		$redPuuids = array_flip(array_map(fn(GamePlayerData $player) => $player->puuid, $redPlayers));
-
-		$team1Players = $this->playerInTeamInTournamentRepo->findAllByTeamInTournament($team1);
-		$team2Players = $this->playerInTeamInTournamentRepo->findAllByTeamInTournament($team2);
-
-		$team1Counter = ["blue" => 0, "red" => 0];
-		foreach ($team1Players as $player) {
-			if (isset($bluePuuids[$player->player->puuid])) {
-				$team1Counter["blue"]++;
-			}
-			if (isset($redPuuids[$player->player->puuid])) {
-				$team1Counter["red"]++;
-			}
-		}
-
-		$team2Counter = ["blue" => 0, "red" => 0];
-		foreach ($team2Players as $player) {
-			if (isset($bluePuuids[$player->player->puuid])) {
-				$team2Counter["blue"]++;
-			}
-			if (isset($redPuuids[$player->player->puuid])) {
-				$team2Counter["red"]++;
-			}
-		}
-
-		$result = ['blueTeam' => null, 'redTeam' => null];
-		if ($team1Counter["blue"] > $team2Counter["blue"]) {
-			$result["blueTeam"] = $team1;
-		} elseif ($team1Counter["blue"] < $team2Counter["blue"]) {
-			$result["blueTeam"] = $team2;
-		}
-		if ($team1Counter["red"] > $team2Counter["red"]) {
-			$result["redTeam"] = $team1;
-		} elseif ($team1Counter["red"] < $team2Counter["red"]) {
-			$result["redTeam"] = $team2;
-		}
-
-		return $result;
 	}
 
 	public function rejectSuggestion(MatchupChangeSuggestions $suggestion): void {
