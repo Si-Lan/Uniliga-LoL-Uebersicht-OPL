@@ -21,6 +21,7 @@ use App\UI\Components\Cards\SummonerCard;
 use App\UI\Components\EliminationBrackets\EliminationBracket;
 use App\UI\Components\EloList\EloLists;
 use App\UI\Components\Games\GameDetails;
+use App\UI\Components\Matches\ChangeSuggestions\AddSuggestionPopupContent;
 use App\UI\Components\Matches\ChangeSuggestions\GameSuggestionDetails;
 use App\UI\Components\Matches\MatchButton;
 use App\UI\Components\Matches\MatchButtonList;
@@ -449,5 +450,22 @@ class FragmentHandler {
 		}
 
 		$this->sendJsonFragment($htmlContent);
+	}
+
+	public function addSuggestionPopupContent(array $dataGet): void {
+		$matchupId = $this->stringOrNull($dataGet['matchupId'] ?? null);
+		if ($matchupId === null) {
+			$this->sendJsonError('missing matchupId',400);
+			return;
+		}
+
+		$matchupRepo = new MatchupRepository();
+		$matchup = $matchupRepo->findById($matchupId);
+		if (is_null($matchup)) {
+			$this->sendJsonError('Matchup not found',404);
+			return;
+		}
+
+		$this->sendJsonFragment(new AddSuggestionPopupContent($matchup));
 	}
 }

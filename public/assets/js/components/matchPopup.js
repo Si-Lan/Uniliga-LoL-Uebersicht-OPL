@@ -59,11 +59,22 @@ $(document).on('click', 'button.send-suggestion', function(){
                 return {"error": "Fehler beim Laden der Daten"};
             }
         })
-        .then(response => {
-            if (response.error) {alert(response.error); return;}
-            alert(response.message);
+        .then(async response => {
+            if (response.error) {
+                alert(response.error);
+                return;
+            }
+            if (response.created === false) {
+                alert(response.message);
+                return;
+            }
 
-            // TODO: Reload Suggestion-Popup
+            await fragmentLoader(`add-suggestion-popup-content?matchupId=${matchupId}`)
+                .then(content => {
+                    form.closest('dialog').find('.dialog-content').empty().append(content);
+                });
+            await new Promise(r => setTimeout(r, 100));
+            alert(response.message);
         })
         .catch(e => console.error(e))
 })
