@@ -40,6 +40,10 @@ class MatchupUpdater {
 			throw new \Exception("Matchup not found", 404);
 		}
 
+		if ($matchup->hasCustomChanges()) {
+			return ['matchup' => new RepositorySaveResult(SaveResult::NOT_CHANGED), 'games' => [], 'gamesInMatchup' => []];
+		}
+
 		$oplApiResponse = $this->oplApiService->fetchFromEndpoint("matchup/$matchupId/result,statistics");
 		if (!$oplApiResponse->isSuccess()) {
 			throw new \Exception("Failed to fetch data from OPL API: " . $oplApiResponse->getError(), 500);
