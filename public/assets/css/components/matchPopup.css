@@ -52,12 +52,16 @@ button.open-add-suggestion-form {
 
 .game-suggestion-details {
     display: grid;
-    gap: 8px;
-    grid-template-columns: 1fr 1fr;
-    grid-auto-columns: 40px;
+    gap: 12px;
+    grid-template-columns: 1fr 1px 1fr;
+    grid-auto-columns: 42px;
     border: 2px solid var(--accent);
     border-radius: 8px;
     padding: 8px 12px;
+
+    &:has(input[type=checkbox]) {
+        padding-right: 4px;
+    }
 
     .team1,
     .team2 {
@@ -74,9 +78,27 @@ button.open-add-suggestion-form {
         }
     }
 
+    .game-suggestion-details_player {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 4px;
+
+        .player-kda {
+            color: var(--text-sec);
+            margin-left: auto;
+        }
+    }
+
     label {
         display: flex;
         justify-content: center;
-        grid-column: 3;
+        grid-column: 4;
+        padding-left: 2px;
+        border-left: 1px solid var(--divider);
+
+        input {
+            width: 24px;
+        }
     }
 }

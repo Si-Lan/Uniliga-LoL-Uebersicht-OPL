@@ -15,13 +15,14 @@ use App\Domain\Entities\Patch;
             <?= $gameInMatch->game->gameData->blueTeamWin ? "Win" : "Loss"?>
         </span>
         <?php foreach ($gameInMatch->game->gameData->blueTeamPlayers as $player): ?>
-            <span>
+            <span class="game-suggestion-details_player">
                 <img style="height: 20px; width: 20px" loading="lazy" alt="" title="<?=$player->championName?>" src="/assets/ddragon/<?=$patch->patchNumber?>/img/champion/<?=$player->championName?>.webp" class="champ">
                 <span class="player-name"><?=$player->riotIdName?>#<?=$player->riotIdTag?></span>
                 <span class="player-kda"><?=$player->kills?>/<?=$player->deaths?>/<?=$player->deaths?></span>
             </span>
         <?php endforeach; ?>
     </div>
+    <div class="divider-vert"></div>
     <div class="team2" style="display: flex; flex-direction: column;">
         <span class="team-name<?=$gameInMatch->redTeam ? " existing-team" : " unidentified-team"?>">
             <?= $gameInMatch->redTeam?->nameInTournament ?? "unidentifiziert"?>
@@ -30,7 +31,7 @@ use App\Domain\Entities\Patch;
             <?= $gameInMatch->game->gameData->redTeamWin ? "Win" : "Loss"?>
         </span>
         <?php foreach ($gameInMatch->game->gameData->redTeamPlayers as $player): ?>
-            <span>
+            <span class="game-suggestion-details_player">
                 <img style="height: 20px; width: 20px" loading="lazy" alt="" title="<?=$player->championName?>" src="/assets/ddragon/<?=$patch->patchNumber?>/img/champion/<?=$player->championName?>.webp" class="champ">
                 <span class="player-name"><?=$player->riotIdName?>#<?=$player->riotIdTag?></span>
                 <span class="player-kda"><?=$player->kills?>/<?=$player->deaths?>/<?=$player->deaths?></span>
