@@ -8,15 +8,18 @@ use App\Domain\Enums\SuggestionStatus;
 use App\Domain\Repositories\GameInMatchRepository;
 use App\Domain\Repositories\MatchupChangeSuggestionRepository;
 use App\Domain\Repositories\MatchupRepository;
+use App\Service\Updater\TeamUpdater;
 
 class MatchupChangeSuggestionService {
 	private MatchupChangeSuggestionRepository $suggestionRepo;
 	private MatchupRepository $matchupRepo;
 	private GameInMatchRepository $gameInMatchRepo;
+	private TeamUpdater $teamUpdater;
 	public function __construct() {
 		$this->suggestionRepo = new MatchupChangeSuggestionRepository();
 		$this->matchupRepo = new MatchupRepository();
 		$this->gameInMatchRepo = new GameInMatchRepository();
+		$this->teamUpdater = new TeamUpdater();
 	}
 
 	public function acceptSuggestion(MatchupChangeSuggestion $suggestion): array {
@@ -63,6 +66,13 @@ class MatchupChangeSuggestionService {
 		$suggestionResult = $this->suggestionRepo->save($suggestion);
 		$matchupResult = $this->matchupRepo->save($suggestion->matchup);
 
+		try {
+			$this->teamUpdater->updatePlayerStats($suggestion->matchup->team1->team->id, $suggestion->matchup->tournamentStage->getRootTournament()->id);
+			$this->teamUpdater->updatePlayerStats($suggestion->matchup->team2->team->id, $suggestion->matchup->tournamentStage->getRootTournament()->id);
+			$this->teamUpdater->updateStats($suggestion->matchup->team1->team->id, $suggestion->matchup->tournamentStage->getRootTournament()->id);
+			$this->teamUpdater->updateStats($suggestion->matchup->team2->team->id, $suggestion->matchup->tournamentStage->getRootTournament()->id);
+		} catch (\Exception $e) {}
+
 		$return["accepted"] = $suggestionResult->isSuccessful() && $matchupResult->isSuccessful();
 		return $return;
 	}
@@ -104,6 +114,13 @@ class MatchupChangeSuggestionService {
 				$this->gameInMatchRepo->delete($game);
 			}
 		}
+
+		try {
+			$this->teamUpdater->updatePlayerStats($matchup->team1->team->id, $matchup->tournamentStage->getRootTournament()->id);
+			$this->teamUpdater->updatePlayerStats($matchup->team2->team->id, $matchup->tournamentStage->getRootTournament()->id);
+			$this->teamUpdater->updateStats($matchup->team1->team->id, $matchup->tournamentStage->getRootTournament()->id);
+			$this->teamUpdater->updateStats($matchup->team2->team->id, $matchup->tournamentStage->getRootTournament()->id);
+		} catch (\Exception $e) {}
 
 		$return["reverted"] = $result->isSuccessful();
 		return $return;
