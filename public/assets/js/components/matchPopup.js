@@ -1,6 +1,7 @@
 import fragmentLoader from "../fragmentLoader";
 
 $(document).on('click', 'button.add-suggestion-get-games', function(){
+    const form = $(this).closest('.add-suggestion-form');
     const matchupId = $(this).data('matchup-id');
     if (matchupId === "") return;
 
@@ -8,13 +9,20 @@ $(document).on('click', 'button.add-suggestion-get-games', function(){
     const playerId = select.val();
     if (playerId === "") return;
 
-    const container = $(this).closest('.add-suggestion-form').find('.add-suggestion-games-list');
+    const container = form.find('.add-suggestion-games-list');
+
+    let loadingIndicator = form.find('.content-loading-indicator');
+    if (loadingIndicator.length === 0) form.append('<div class="content-loading-indicator"></div>');
 
     fragmentLoader(`game-suggestions?matchupId=${matchupId}&playerId=${playerId}`)
         .then(content => {
             container.empty().append(content);
+            form.find('.content-loading-indicator').remove();
         })
-        .catch(error => console.error(error))
+        .catch(error => {
+            console.error(error);
+            form.find('.content-loading-indicator').remove();
+        })
 });
 
 $(document).on('click', 'button.open-add-suggestion-form', function(){
@@ -45,6 +53,9 @@ $(document).on('click', 'button.send-suggestion', function(){
         return;
     }
 
+    let loadingIndicator = form.find('.content-loading-indicator');
+    if (loadingIndicator.length === 0) form.append('<div class="content-loading-indicator"></div>');
+
     fetch('/api/suggestions', {
         method: 'POST',
         headers: {
@@ -62,10 +73,12 @@ $(document).on('click', 'button.send-suggestion', function(){
         .then(async response => {
             if (response.error) {
                 alert(response.error);
+                form.find('.content-loading-indicator').remove();
                 return;
             }
             if (response.created === false) {
                 alert(response.message);
+                form.find('.content-loading-indicator').remove();
                 return;
             }
 
@@ -75,6 +88,7 @@ $(document).on('click', 'button.send-suggestion', function(){
                 });
             await new Promise(r => setTimeout(r, 100));
             alert(response.message);
+            form.find('.content-loading-indicator').remove();
         })
         .catch(e => console.error(e))
 })

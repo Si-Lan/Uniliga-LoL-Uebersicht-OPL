@@ -20,6 +20,11 @@ button.open-add-suggestion-form {
         margin-bottom: 0;
     }
 
+    &:has(.content-loading-indicator)>div:not(.content-loading-indicator) {
+        pointer-events: none;
+        filter: opacity(0.4);
+    }
+
 
     .add-suggestion-games-list {
         display: flex;
