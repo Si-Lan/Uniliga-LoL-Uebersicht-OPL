@@ -273,7 +273,7 @@ class TeamUpdater {
         $avgWinTime = 0;
 
         $gameInMatchRepo = new GameInMatchRepository();
-        $gamesInMatches = $gameInMatchRepo->findAllByTeamInTournament($teamInTournament);
+        $gamesInMatches = $gameInMatchRepo->findAllActiveByTeamInTournament($teamInTournament);
 		$checkedGameIds = [];
         foreach ($gamesInMatches as $gameInMatch) {
             $game = $gameInMatch->game;

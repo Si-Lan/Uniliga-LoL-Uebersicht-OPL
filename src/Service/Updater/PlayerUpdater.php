@@ -240,7 +240,7 @@ class PlayerUpdater {
             $rolesInTeam = ["top"=>0,"jungle"=>0,"middle"=>0,"bottom"=>0,"utility"=>0];
             $championsInTeam = [];
 
-            $gamesInMatches = $gameInMatchRepo->findAllByTeamInTournament($playerInTeamInTournament->teamInTournament);
+            $gamesInMatches = $gameInMatchRepo->findAllActiveByTeamInTournament($playerInTeamInTournament->teamInTournament);
 			$checkedGameIds = [];
             foreach ($gamesInMatches as $gameInMatch) {
                 $game = $gameInMatch->game;
