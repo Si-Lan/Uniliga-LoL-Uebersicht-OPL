@@ -4,6 +4,7 @@
 /** @var array<PlayerInTeamInTournament> $team1Players */
 /** @var array<PlayerInTeamInTournament> $team2Players */
 
+use App\Core\Utilities\UserContext;
 use App\Domain\Entities\Matchup;
 use App\Domain\Entities\MatchupChangeSuggestion;
 use App\Domain\Entities\PlayerInTeamInTournament;
@@ -13,15 +14,38 @@ use App\UI\Components\Matches\ChangeSuggestions\GameSuggestionDetails;
 ?>
 
 <div><?= count($suggestions) ?: "keine" ?> <?= count($suggestions) === 1 ? "Vorschlag wartet":"Vorschläge warten"?> auf eine Bestätigung</div>
-
+<div class="existing-suggestions">
 <?php foreach ($suggestions as $suggestion): ?>
-	<?= $suggestion->customTeam1Score ?>:<?= $suggestion->customTeam2Score ?>
+<div style="display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 4px; border-radius: 8px; border: solid 2px var(--game-border-color);">
+    <div style="display: flex; flex-direction: row; align-items: center; gap: 8px; font-size: 1.2em;">
+        <?=$matchup->team1->nameInTournament?>
+        <span style="font-weight: bold">
+            <?= $suggestion->customTeam1Score ?? $matchup->getTeam1Score() ?>
+            :
+            <?= $suggestion->customTeam2Score ?? $matchup->getTeam2Score() ?>
+        </span>
+        <?=$matchup->team2->nameInTournament?>
+    </div>
     <div style="display: flex; flex-direction: column;">
         <?php foreach ($suggestion->games as $game): ?>
             <?= new GameSuggestionDetails($game, false)?>
         <?php endforeach; ?>
     </div>
+    <?php if (UserContext::isLoggedIn()): ?>
+        <div>
+            <button class="accept-suggestion" data-suggestion-id="<?= $suggestion->id ?>" data-matchup-id="<?= $matchup->id ?>">
+                <?= IconRenderer::getMaterialIconSpan("check") ?>
+                Akzeptieren
+            </button>
+            <button class="reject-suggestion" data-suggestion-id="<?= $suggestion->id ?>" data-matchup-id="<?= $matchup->id ?>">
+                <?= IconRenderer::getMaterialIconSpan("close") ?>
+                Ablehnen
+            </button>
+        </div>
+    <?php endif; ?>
+</div>
 <?php endforeach; ?>
+</div>
 
 <div class="divider"></div>
 

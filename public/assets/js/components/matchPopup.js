@@ -90,5 +90,85 @@ $(document).on('click', 'button.send-suggestion', function(){
             alert(response.message);
             form.find('.content-loading-indicator').remove();
         })
-        .catch(e => console.error(e))
+        .catch(e => {
+            console.error(e);
+            form.find('.content-loading-indicator').remove();
+        })
+})
+
+$(document).on('click', 'button.accept-suggestion', function(){
+    const suggestionId = this.dataset.suggestionId;
+    const matchupId = this.dataset.matchupId;
+    const existingSuggestions = $(this).closest('.existing-suggestions');
+    const matchPopup = existingSuggestions.closest('dialog.match-popup');
+    const matchPopupContent = matchPopup.find('.dialog-content');
+    const openSuggestionsButton = matchPopup.find('button.suggest-match-changes');
+    let teamParam = "";
+    if (openSuggestionsButton.data('team-id')) {
+        teamParam = `&teamId=${openSuggestionsButton.data('team-id')}`;
+    }
+
+    let loadingIndicator = existingSuggestions.find('.content-loading-indicator');
+    if (loadingIndicator.length === 0) existingSuggestions.append('<div class="content-loading-indicator"></div>');
+
+    fetch(`/admin/api/suggestions/${suggestionId}/accept`, {method: 'POST'})
+        .then(res => {
+            if (res.ok) {
+                return res.json()
+            } else {
+                return {"error": "Fehler beim Laden der Daten"};
+            }
+        })
+        .then(async response => {
+            if (response.error) {
+                alert(response.error);
+                existingSuggestions.find('.content-loading-indicator').remove();
+                return;
+            }
+
+            await fragmentLoader(`match-popup?matchId=${matchupId}${teamParam}`)
+                .then(content => {
+                    matchPopupContent.empty().append(content);
+                });
+            existingSuggestions.find('.content-loading-indicator').remove();
+        })
+        .catch(e =>  {
+            console.error(e);
+            existingSuggestions.find('.content-loading-indicator').remove();
+        });
+})
+
+$(document).on('click', 'button.reject-suggestion', function(){
+    const suggestionId = this.dataset.suggestionId;
+    const matchupId = this.dataset.matchupId;
+    const existingSuggestions = $(this).closest('.existing-suggestions');
+
+    let loadingIndicator = existingSuggestions.find('.content-loading-indicator');
+    if (loadingIndicator.length === 0) existingSuggestions.append('<div class="content-loading-indicator"></div>');
+
+    fetch(`/admin/api/suggestions/${suggestionId}/reject`, {method: 'POST'})
+        .then(res => {
+            if (res.ok) {
+                return res.json()
+            } else {
+                return {"error": "Fehler beim Laden der Daten"};
+            }
+        })
+        .then(async response => {
+            if (response.error) {
+                alert(response.error);
+                existingSuggestions.find('.content-loading-indicator').remove();
+                return;
+            }
+
+            await fragmentLoader(`add-suggestion-popup-content?matchupId=${matchupId}`)
+                .then(content => {
+                    existingSuggestions.closest('.dialog-content').empty().append(content);
+                });
+            existingSuggestions.find('.content-loading-indicator').remove();
+        })
+        .catch(e => {
+            console.error(e);
+            existingSuggestions.find('.content-loading-indicator').remove();
+        });
 })

@@ -11,7 +11,7 @@ use App\Domain\Entities\Patch;
 <div class="game-suggestion-details" data-game-id="<?=$gameInMatch->game->id?>">
     <div class="team1" style="display: flex; flex-direction: column;">
         <span class="team-name<?=$gameInMatch->blueTeam ? " existing-team" : " unidentified-team"?>"><?= $gameInMatch->blueTeam?->nameInTournament ?? "unidentifiziert"?></span>
-        <span style="text-align: center">
+        <span style="text-align: center; color: <?=$gameInMatch->game->gameData->blueTeamWin ? "var(--match-win-green)" : "var(--match-loss-red)"?>;">
             <?= $gameInMatch->game->gameData->blueTeamWin ? "Win" : "Loss"?>
         </span>
         <?php foreach ($gameInMatch->game->gameData->blueTeamPlayers as $player): ?>
@@ -26,7 +26,9 @@ use App\Domain\Entities\Patch;
         <span class="team-name<?=$gameInMatch->redTeam ? " existing-team" : " unidentified-team"?>">
             <?= $gameInMatch->redTeam?->nameInTournament ?? "unidentifiziert"?>
         </span>
-        <span style="text-align: center"><?= $gameInMatch->game->gameData->redTeamWin ? "Win" : "Loss"?></span>
+        <span style="text-align: center; color: <?=$gameInMatch->game->gameData->redTeamWin ? "var(--match-win-green)" : "var(--match-loss-red)"?>;">
+            <?= $gameInMatch->game->gameData->redTeamWin ? "Win" : "Loss"?>
+        </span>
         <?php foreach ($gameInMatch->game->gameData->redTeamPlayers as $player): ?>
             <span>
                 <img style="height: 20px; width: 20px" loading="lazy" alt="" title="<?=$player->championName?>" src="/assets/ddragon/<?=$patch->patchNumber?>/img/champion/<?=$player->championName?>.webp" class="champ">

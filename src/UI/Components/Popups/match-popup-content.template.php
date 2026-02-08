@@ -23,7 +23,7 @@ $changePopup = new Popup(
 <div class="mh-popup-buttons">
     <?php if ($matchup->played): ?>
     <div style="display: flex;flex-direction: column; align-items: center;:">
-        <button class="suggest-match-changes" data-dialog-id="<?=$changePopup->getId()?>" type="button" style="display: flex;flex-direction: row; align-items: center; gap: 8px"><?= IconRenderer::getMaterialIconSpan("edit_square")?><span>Änderungen vorschlagen</span></button>
+        <button class="suggest-match-changes" data-dialog-id="<?=$changePopup->getId()?>" data-team-id="<?=$team?->id?>" type="button" style="display: flex;flex-direction: row; align-items: center; gap: 8px"><?= IconRenderer::getMaterialIconSpan("edit_square")?><span>Änderungen vorschlagen</span></button>
         <?php if ($matchup->hasCustomChanges()): ?>
             <span style="font-size: 0.8em">Match hat Änderungen eingetragen</span>
         <?php endif; ?>

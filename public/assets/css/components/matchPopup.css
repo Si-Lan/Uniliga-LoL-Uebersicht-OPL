@@ -1,4 +1,10 @@
 
+.existing-suggestions {
+    &:has(.content-loading-indicator)>div:not(.content-loading-indicator) {
+        pointer-events: none;
+        filter: opacity(0.4);
+    }
+}
 
 button.open-add-suggestion-form {
     svg {
