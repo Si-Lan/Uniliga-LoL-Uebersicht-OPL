@@ -19,7 +19,7 @@ $team2Name = (is_null($matchup->team2)) ? "TBD" : $matchup->team2->nameInTournam
     )?>
     <?php if ($matchup->played): ?>
 	<span class="score">
-        <span class="<?=$matchup->getTeam1Result()?>"><?=$matchup->team1Score?></span>:<span class="<?=$matchup->getTeam2Result()?>"><?=$matchup->team2Score?></span>
+        <span class="<?=$matchup->getTeam1Result()?>"><?=$matchup->getTeam1Score()?></span>:<span class="<?=$matchup->getTeam2Result()?>"><?=$matchup->getTeam2Score()?></span>
     </span>
     <?php else: ?>
         <span class="score">vs.</span>
