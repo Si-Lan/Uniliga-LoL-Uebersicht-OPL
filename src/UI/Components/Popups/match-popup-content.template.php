@@ -24,14 +24,16 @@ $changePopup = new Popup(
     <?php if ($matchup->played): ?>
     <div style="display: flex;flex-direction: column; align-items: center;:">
         <button class="suggest-match-changes" data-dialog-id="<?=$changePopup->getId()?>" type="button" style="display: flex;flex-direction: row; align-items: center; gap: 8px"><?= IconRenderer::getMaterialIconSpan("edit_square")?><span>Änderungen vorschlagen</span></button>
-        <?php if ($matchup->hasCustomGames || $matchup->hasCustomScore): ?>
+        <?php if ($matchup->hasCustomChanges()): ?>
             <span style="font-size: 0.8em">Match hat Änderungen eingetragen</span>
         <?php endif; ?>
     </div>
     <?= $changePopup->render() ?>
     <?php endif; ?>
 
-    <?= new UpdateButton($matchup, teamContext: $team)?>
+    <?php if (!$matchup->hasCustomChanges()): ?>
+        <?= new UpdateButton($matchup, teamContext: $team)?>
+    <?php endif; ?>
 </div>
 <span>Spieldatum: <?=$matchup->plannedDate?->format('d.m.Y, H:i') ?? "unbekannt"?></span>
 <?= new MatchRound($matchup) ?>

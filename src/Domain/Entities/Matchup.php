@@ -79,4 +79,8 @@ class Matchup {
 	public function isQualified(): bool {
 		return $this->getTeam1Score() === 'Q' || $this->getTeam2Score() === 'Q';
 	}
+
+	public function hasCustomChanges(): bool {
+		return $this->hasCustomScore || $this->hasCustomGames;
+	}
 }
