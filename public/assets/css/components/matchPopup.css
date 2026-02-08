@@ -1,0 +1,104 @@
+
+.existing-suggestions {
+    &:has(.content-loading-indicator)>div:not(.content-loading-indicator) {
+        pointer-events: none;
+        filter: opacity(0.4);
+    }
+}
+
+button.open-add-suggestion-form {
+    svg {
+        transition: transform 180ms ease-out;
+    }
+    &:has(~.add-suggestion-form.open) svg {
+        transform: rotateZ(45deg);
+    }
+}
+
+.add-suggestion-form {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 180ms ease-out, margin 180ms ease-out;
+    margin-bottom: 80px;
+
+    &.open {
+        grid-template-rows: 1fr;
+        margin-bottom: 0;
+    }
+
+    &:has(.content-loading-indicator)>div:not(.content-loading-indicator) {
+        pointer-events: none;
+        filter: opacity(0.4);
+    }
+
+
+    .add-suggestion-games-list {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        min-height: 120px;
+    }
+}
+.divider {
+    &:has(+.add-suggestion-form) {
+        min-height: 0;
+        height: 0;
+        transition: min-height 180ms ease-out;
+    }
+    &:has(+.add-suggestion-form.open) {
+        min-height: 1px;
+    }
+}
+
+.game-suggestion-details {
+    display: grid;
+    gap: 12px;
+    grid-template-columns: 1fr 1px 1fr;
+    grid-auto-columns: 42px;
+    border: 2px solid var(--accent);
+    border-radius: 8px;
+    padding: 8px 12px;
+
+    &:has(input[type=checkbox]) {
+        padding-right: 4px;
+    }
+
+    .team1,
+    .team2 {
+        .team-name {
+            text-align: center;
+
+            &.existing-team {
+                font-weight: bold;
+                text-decoration: underline;
+            }
+            &.unidentified-team {
+                color: var(--text-sec);
+            }
+        }
+    }
+
+    .game-suggestion-details_player {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 4px;
+
+        .player-kda {
+            color: var(--text-sec);
+            margin-left: auto;
+        }
+    }
+
+    label {
+        display: flex;
+        justify-content: center;
+        grid-column: 4;
+        padding-left: 2px;
+        border-left: 1px solid var(--divider);
+
+        input {
+            width: 24px;
+        }
+    }
+}

@@ -1,0 +1,111 @@
+<?php
+
+namespace App\Domain\Factories;
+
+use App\Core\Utilities\DataParsingHelpers;
+use App\Domain\Entities\GameInMatch;
+use App\Domain\Entities\Matchup;
+use App\Domain\Entities\MatchupChangeSuggestion;
+use App\Domain\Enums\SuggestionStatus;
+use App\Domain\Repositories\GameRepository;
+use App\Domain\Repositories\GameInMatchRepository;
+use App\Domain\Repositories\MatchupRepository;
+
+class MatchupChangeSuggestionFactory extends AbstractFactory {
+	use DataParsingHelpers;
+
+	protected static array $DB_DATA_KEYS = [
+		'id',
+		'OPL_ID_matchup',
+		'customTeam1Score',
+		'customTeam2Score',
+		'games',
+		'status',
+		'created_at',
+		'finished_at'
+	];
+	protected static array $REQUIRED_DB_DATA_KEYS = [
+		'id',
+		'OPL_ID_matchup',
+		'status'
+	];
+
+	public function __construct(
+		private ?MatchupRepository $matchupRepo = null,
+		private ?GameRepository $gameRepo = null,
+		private ?GameInMatchRepository $gameInMatchRepo = null,
+		private GameInMatchFactory $gameInMatchFactory = new GameInMatchFactory()
+	) {
+		if ($this->matchupRepo === null) $this->matchupRepo = new MatchupRepository();
+		if ($this->gameRepo === null) $this->gameRepo = new GameRepository();
+		if ($this->gameInMatchRepo === null) $this->gameInMatchRepo = new GameInMatchRepository();
+		if ($this->gameInMatchFactory === null) $this->gameInMatchFactory = new GameInMatchFactory();
+	}
+
+	public function createFromDbData(
+		array $data,
+		?Matchup $matchup = null
+	): MatchupChangeSuggestion	{
+		$data = $this->normalizeDbData($data);
+		if ($matchup === null) {
+			$matchup = $this->matchupRepo->findById($data['OPL_ID_matchup']);
+		}
+
+		$gameIds = $this->decodeJsonOrDefault($data['games']);
+		$games = [];
+		foreach ($gameIds as $gameId) {
+			$gameInMatch = $this->gameInMatchRepo->findByGameIdAndMatchup($gameId, $matchup);
+			if ($gameInMatch === null) {
+				$game = $this->gameRepo->findById($gameId);
+				if ($game === null) continue;
+				$gameInMatch = $this->gameInMatchFactory->createFromEntitiesAndImplyTeams(
+					$game,
+					$matchup
+				);
+			}
+			$games[] = $gameInMatch;
+		}
+
+		return new MatchupChangeSuggestion(
+			id: (int) $data['id'],
+			matchup: $matchup,
+			customTeam1Score: $this->stringOrNull($data['customTeam1Score']),
+			customTeam2Score: $this->stringOrNull($data['customTeam2Score']),
+			games: $games,
+			status: SuggestionStatus::tryFrom($data['status']??''),
+			createdAt: $this->DateTimeImmutableOrNull($data['createdAt']??''),
+			finishedAt: $this->DateTimeImmutableOrNull($data['finished_at']??'')
+		);
+	}
+
+	public function mapEntityToDbData(MatchupChangeSuggestion $matchupChangeSuggestion): array {
+		$gameIds = array_map(fn(GameInMatch $gameInMatch) => $gameInMatch->game->id, $matchupChangeSuggestion->games ?? []);
+		return [
+			"id" => $matchupChangeSuggestion->id,
+			"OPL_ID_matchup" => $matchupChangeSuggestion->matchup->id,
+			"customTeam1Score" => $matchupChangeSuggestion->customTeam1Score,
+			"customTeam2Score" => $matchupChangeSuggestion->customTeam2Score,
+			"games" => json_encode($gameIds),
+			"status" => $matchupChangeSuggestion->status->value,
+			"finished_at" => $matchupChangeSuggestion->finishedAt?->format("Y-m-d H:i:s"),
+		];
+	}
+
+	public function createNew(
+		Matchup $matchup,
+		?string $customTeam1Score = null,
+		?string $customTeam2Score = null,
+		?array $games = []
+	): MatchupChangeSuggestion {
+		return new MatchupChangeSuggestion(
+			id: null,
+			matchup: $matchup,
+			customTeam1Score: $customTeam1Score,
+			customTeam2Score: $customTeam2Score,
+			games: $games,
+			status: SuggestionStatus::PENDING,
+			createdAt: null,
+			finishedAt: null,
+		);
+	}
+}

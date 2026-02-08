@@ -387,13 +387,14 @@ dialog {
 	.match-popup .game {
 		align-self: normal;
 		margin-right: inherit;
-		justify-content: normal;
 	}
 }
 .mh-popup-buttons {
 	display: flex;
-	flex-direction: column;
+	flex-direction: row;
+	flex-wrap: wrap;
 	align-items: center;
+	justify-content: center;
 	gap: 12px;
 	margin-bottom: 16px;
 }

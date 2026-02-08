@@ -31,7 +31,7 @@ class MatchHistory {
 		ob_start();
 		foreach ($this->matchups as $index=>$matchup) {
 			if (!$matchup->played) continue;
-			$games = $this->gameInMatchRepo->findAllByMatchup($matchup);
+			$games = $this->gameInMatchRepo->findAllActiveByMatchup($matchup);
 			if ($index != 0) {
 				echo "<div class='divider rounds'></div>";
 			}

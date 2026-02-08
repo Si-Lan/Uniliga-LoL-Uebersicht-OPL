@@ -1,7 +1,7 @@
 <?php
 /** @var \App\UI\Components\UI\PageLink $this */
 ?>
-<a href="<?=$this->href?>" class="<?=$this->classes?>">
+<a href="<?=$this->href?>" class="<?=$this->classes?>" <?= $this->newTab ? 'target="_blank"' : ''?>>
 	<?php if($this->materialIcon !== null): ?>
 		<?= \App\UI\Components\Helpers\IconRenderer::getMaterialIconSpan($this->materialIcon,['icon-link-icon']) ?>
 	<?php endif; ?>

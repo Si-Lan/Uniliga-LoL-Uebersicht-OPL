@@ -59,4 +59,19 @@ class RiotApiService extends ApiService {
         $endpoint = "lol/match/v5/matches/$matchId";
         return $this->fetchFromEndpoint($endpoint);
     }
+
+	public function getMatchIdsByPuuidAndDatetimeForTourneyGames(string $puuid, \DateTimeImmutable $dateTime): ApiResponse {
+		$startTime = $dateTime->modify('-5 days')->getTimestamp();
+		$endTime = $dateTime->modify('+5 days')->getTimestamp();
+		
+		$endpoint = "lol/match/v5/matches/by-puuid/$puuid/ids?startTime=$startTime&endTime=$endTime&type=tourney";
+		return $this->fetchFromEndpoint($endpoint);
+	}
+	public function getMatchIdsByPuuidAndDatetimeForCustomGames(string $puuid, \DateTimeImmutable $dateTime): ApiResponse {
+		$startTime = $dateTime->modify('-5 days')->getTimestamp();
+		$endTime = $dateTime->modify('+5 days')->getTimestamp();
+
+		$endpoint = "lol/match/v5/matches/by-puuid/$puuid/ids?startTime=$startTime&endTime=$endTime&queue=0";
+		return $this->fetchFromEndpoint($endpoint);
+	}
 }

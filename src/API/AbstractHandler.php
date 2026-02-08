@@ -22,4 +22,12 @@ abstract class AbstractHandler {
 		}
 		return $requestData;
 	}
+
+	protected function validateRequestData(array $data, array $requiredKeys): void {
+		foreach ($requiredKeys as $key) {
+			if (!array_key_exists($key, $data)) {
+				$this->sendErrorResponse(400, "Missing Key '$key' in JSON");
+			}
+		}
+	}
 }

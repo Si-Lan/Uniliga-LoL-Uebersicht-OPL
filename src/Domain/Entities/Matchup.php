@@ -17,7 +17,11 @@ class Matchup {
 		public ?int $winnerId,
 		public ?int $loserId,
 		public bool $draw,
-		public bool $defWin
+		public bool $defWin,
+		public bool $hasCustomScore,
+		public ?string $customTeam1Score,
+		public ?string $customTeam2Score,
+		public bool $hasCustomGames
 	) {}
 
 	public static function createEmpty(Tournament $tournamentStage): Matchup {
@@ -38,13 +42,24 @@ class Matchup {
 			winnerId: null,
 			loserId: null,
 			draw: false,
-			defWin: false
+			defWin: false,
+			hasCustomScore: false,
+			customTeam1Score: null,
+			customTeam2Score: null,
+			hasCustomGames: false
 		);
 	}
 
 	public int $bracketColumn = 0;
 	public array $bracketPrevMatchups = [];
 	public array $bracketNextMatchups = [];
+
+	public function getTeam1Score(): ?string {
+		return $this->hasCustomScore ? $this->customTeam1Score : $this->team1Score;
+	}
+	public function getTeam2Score(): ?string {
+		return $this->hasCustomScore ? $this->customTeam2Score : $this->team2Score;
+	}
 
 	public function getTeam1Result(): ?string {
 		if ($this->isQualified()) return 'qualified';
@@ -62,6 +77,10 @@ class Matchup {
 	}
 
 	public function isQualified(): bool {
-		return $this->team1Score === 'Q' || $this->team2Score === 'Q';
+		return $this->getTeam1Score() === 'Q' || $this->getTeam2Score() === 'Q';
+	}
+
+	public function hasCustomChanges(): bool {
+		return $this->hasCustomScore || $this->hasCustomGames;
 	}
 }
