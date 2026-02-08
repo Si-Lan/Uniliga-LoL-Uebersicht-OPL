@@ -4,6 +4,7 @@ namespace App\Domain\Services;
 
 use App\Domain\Entities\Matchup;
 use App\Domain\Entities\MatchupChangeSuggestion;
+use App\Domain\Enums\SuggestionStatus;
 use App\Domain\Repositories\GameInMatchRepository;
 use App\Domain\Repositories\MatchupChangeSuggestionRepository;
 use App\Domain\Repositories\MatchupRepository;
@@ -18,7 +19,15 @@ class MatchupChangeSuggestionService {
 		$this->gameInMatchRepo = new GameInMatchRepository();
 	}
 
-	public function acceptSuggestion(MatchupChangeSuggestion $suggestion): void {
+	public function acceptSuggestion(MatchupChangeSuggestion $suggestion): array {
+		$return = [
+			"accepted" => false,
+			"alreadyAccepted" => false
+		];
+		if ($suggestion->status === SuggestionStatus::ACCEPTED) {
+			$return["alreadyAccepted"] = true;
+			return $return;
+		}
 		$suggestion->accept();
 
 		if ($suggestion->hasScoreChange()) {
@@ -51,19 +60,40 @@ class MatchupChangeSuggestionService {
 			$suggestion->matchup->hasCustomGames = true;
 		}
 
-		$this->suggestionRepo->save($suggestion);
-		$this->matchupRepo->save($suggestion->matchup);
+		$suggestionResult = $this->suggestionRepo->save($suggestion);
+		$matchupResult = $this->matchupRepo->save($suggestion->matchup);
+
+		$return["accepted"] = $suggestionResult->isSuccessful() && $matchupResult->isSuccessful();
+		return $return;
 	}
 
-	public function rejectSuggestion(MatchupChangeSuggestion $suggestion): void {
+	public function rejectSuggestion(MatchupChangeSuggestion $suggestion): array {
+		$return = [
+			"rejected" => false,
+			"alreadyRejected" => false
+		];
+		if ($suggestion->status === SuggestionStatus::REJECTED) {
+			$return["alreadyRejected"] = true;
+			return $return;
+		}
 		$suggestion->reject();
-		$this->suggestionRepo->save($suggestion);
+		$result = $this->suggestionRepo->save($suggestion);
+		$return["rejected"] = $result->isSuccessful();
+		return $return;
 	}
 
-	public function revertSuggestionsForMatchup(Matchup $matchup): void {
+	public function revertSuggestionsForMatchup(Matchup $matchup): array {
+		$return = [
+			"reverted" => false,
+			"wasUnchanged" => false
+		];
+		if (!$matchup->hasCustomChanges() && !$matchup->hasCustomGames) {
+			$return["wasUnchanged"] = true;
+			return $return;
+		}
 		$matchup->hasCustomGames = false;
 		$matchup->hasCustomScore = false;
-		$this->matchupRepo->save($matchup);
+		$result = $this->matchupRepo->save($matchup);
 		$games = $this->gameInMatchRepo->findAllByMatchup($matchup);
 		foreach ($games as $game) {
 			if ($game->oplConfirmed) {
@@ -74,5 +104,8 @@ class MatchupChangeSuggestionService {
 				$this->gameInMatchRepo->delete($game);
 			}
 		}
+
+		$return["reverted"] = $result->isSuccessful();
+		return $return;
 	}
 }
