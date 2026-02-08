@@ -7,9 +7,13 @@ $(document).on('click', 'button.add-suggestion-get-games', function(){
 
     const select = $(this).siblings('label.slct').find('select');
     const playerId = select.val();
-    if (playerId === "") return;
 
     const container = form.find('.add-suggestion-games-list');
+
+    if (playerId === "") {
+        container.empty().append("Wähle einen Spieler aus!");
+        return;
+    }
 
     let loadingIndicator = form.find('.content-loading-indicator');
     if (loadingIndicator.length === 0) form.append('<div class="content-loading-indicator"></div>');
