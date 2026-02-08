@@ -18,7 +18,7 @@ $changePopup = new Popup(
 )
 ?>
 
-<?= new PageLink("https://www.opleague.pro/match/$matchup->id","In OPL öffnen", linkIcon: "open_in_new")?>
+<?= new PageLink("https://www.opleague.pro/match/$matchup->id","In OPL öffnen", linkIcon: "open_in_new", newTab: true)?>
 <div class="divider" style="max-width: 240px; margin-bottom: 8px"></div>
 <div class="mh-popup-buttons">
     <?php if ($matchup->played): ?>

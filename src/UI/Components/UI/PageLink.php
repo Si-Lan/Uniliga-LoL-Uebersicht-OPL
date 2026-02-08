@@ -9,7 +9,8 @@ class PageLink {
 		public string $text,
 		array $additionalClasses = [],
 		public ?string $materialIcon = null,
-		public string $linkIcon = 'chevron_right'
+		public string $linkIcon = 'chevron_right',
+		public bool $newTab = false
 	) {
 		$this->classes = implode(' ', array_filter(["page-link", ($this->materialIcon !== null)?'icon-link':'', ...$additionalClasses]));
 		if ($this->linkIcon === "open_in_new") $this->classes .= " external-link";
