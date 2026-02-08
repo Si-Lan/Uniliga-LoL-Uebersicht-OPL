@@ -61,6 +61,9 @@ class MatchupChangeSuggestionService {
 	}
 
 	public function revertSuggestionsForMatchup(Matchup $matchup): void {
+		$matchup->hasCustomGames = false;
+		$matchup->hasCustomScore = false;
+		$this->matchupRepo->save($matchup);
 		$games = $this->gameInMatchRepo->findAllByMatchup($matchup);
 		foreach ($games as $game) {
 			if ($game->oplConfirmed) {
