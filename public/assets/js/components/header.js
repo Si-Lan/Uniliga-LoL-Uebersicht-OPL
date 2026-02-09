@@ -1,24 +1,51 @@
 import get_material_icon from "../utils/materialIcons";
-import fragmentLoader from "../fragmentLoader";
-import {drawAllBracketLines} from "./brackets";
 
-$(document).ready(() => {
-    $(".settings-option.login").on("click", () => {event.preventDefault(); document.getElementById("login-dialog").showModal(); toggle_settings_menu(false); document.getElementById("keypass").focus();});
+$(document).on('click', '.settings-option.login', function (event) {
+    event.preventDefault();
+    document.getElementById("login-dialog").showModal();
+    toggle_settings_menu(false);
+    document.getElementById("keypass").focus();
+})
+$(document).on('click', 'header .settings-button', function (event) {
+    toggle_settings_menu(null, event)
+});
+$(document).on('click', 'header .notifications-button', function (event) {
+    toggle_notifications_menu(null, event)
 });
 
-function toggle_settings_menu(to_state = null) {
-    event.preventDefault();
+function toggle_settings_menu(to_state = null, event = null) {
+    if (event !== null) event.preventDefault();
+    let notifications = $('.notifications-menu');
     let settings = $('.settings-menu');
     let settings_icon = $('.settings-button.material-symbol');
+
     if (to_state == null) {
         to_state = !settings.hasClass("shown");
     }
     if (to_state) {
+        notifications.removeClass("shown");
         settings.addClass("shown");
         settings_icon.addClass("flipy");
     } else {
         settings.removeClass("shown")
         settings_icon.removeClass("flipy");
+    }
+}
+function toggle_notifications_menu(to_state = null, event = null) {
+    if (event !== null) event.preventDefault();
+    let notifications = $('.notifications-menu');
+    let settings = $('.settings-menu');
+    let settings_icon = $('.settings-button.material-symbol');
+
+    if (to_state == null) {
+        to_state = !notifications.hasClass("shown");
+    }
+    if (to_state) {
+        notifications.addClass("shown");
+        settings.removeClass("shown");
+        settings_icon.removeClass("flipy");
+    } else {
+        notifications.removeClass("shown");
     }
 }
 async function toggle_darkmode() {
@@ -63,20 +90,22 @@ async function toggle_darkmode() {
 }
 
 $(document).ready(function () {
-    $('header .settings-button').on("click",()=>{toggle_settings_menu()});
     $('header .settings-option.toggle-mode').on("click",toggle_darkmode);
     let settings = $('.settings-menu');
+    let notifications = $('.notifications-menu');
     let header = $('header');
     window.addEventListener("click", (event) => {
-        if (settings.hasClass('shown')) {
+        if (settings.hasClass('shown') || notifications.hasClass('shown')) {
             if (!$.contains(header.get(0),$(event.target).get(0)) && event.target !== header[0]) {
                 toggle_settings_menu(false);
+                toggle_notifications_menu(false);
             }
         }
     });
     window.addEventListener("keydown", (event) => {
-        if (event.key === "Escape" && $('header .settings-menu').hasClass('shown')) {
+        if (event.key === "Escape" && ($('header .settings-menu').hasClass('shown') || $('header .notifications-menu').hasClass('shown'))) {
             toggle_settings_menu(false);
+            toggle_notifications_menu(false);
         }
     });
 });

@@ -615,72 +615,228 @@ header {
 	height: 64px;
 	width: 100%;
 	display: grid;
-	grid-template-columns: 60px 240px 1fr 60px;
+	grid-template-columns: 60px 240px 1fr 52px;
 	align-items: center;
 	border-bottom: var(--divider) solid 1px;
 	padding: 0 20px;
 	margin-bottom: 20px;
 	position: relative;
+
+	&.home {
+		grid-template-columns: 280px 280px 1fr 60px;
+	}
+
+	h1 {
+		font-size: 1.5em;
+		white-space: nowrap;
+
+		&.tournament-title {
+			text-align: center;
+			padding: 0 12px;
+			display: flex;
+			overflow: hidden;
+			align-items: center;
+			justify-content: center;
+			gap: 12px;
+		}
+	}
+	&.maintenance h1 {
+		grid-column: 1 / span 3;
+	}
+
+	button,
+	a.button {
+		aspect-ratio: 1/1;
+		background: var(--element-bg);
+		border: none;
+		border-radius: 6px;
+		height: 44px;
+		padding: 0;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		cursor: pointer;
+		transition: background-color 200ms;
+
+		svg {
+			max-width: 24px;
+			max-height: 24px;
+		}
+
+		&:hover {
+			background-color: var(--accent);
+		}
+	}
+
+	&.admin-login {
+		grid-template-columns: 60px 240px 1fr 52px 52px;
+		@media screen and (max-width: 720px) {
+			grid-template-columns: 60px 200px 1fr 52px 52px;
+		}
+		@media screen and (max-width: 400px) {
+			grid-template-columns: 60px 160px 1fr 52px 52px;
+		}
+
+		&.home {
+			grid-template-columns: 280px 280px 1fr 52px 52px;
+			@media screen and (max-width: 720px) {
+				grid-template-columns: 240px 1fr 1fr 52px 52px;
+			}
+		}
+
+		.notifications-button {
+			justify-self: end;
+			grid-column: 4;
+		}
+
+		.settings-button {
+			grid-column: 5;
+		}
+	}
+
+	.settings-button {
+		justify-self: end;
+		grid-column: 4;
+	}
+	div.settings-menu {
+		display: none;
+		flex-direction: column;
+		position: absolute;
+		top: 72px;
+		right: 20px;
+		width: 150px;
+		background-color: var(--bg);
+		border: var(--accent) solid 2px;
+		border-radius: 6px;
+		z-index: 3;
+
+		&.shown {
+			display: flex;
+		}
+
+		svg {
+			width: 24px;
+			height: 24px;
+		}
+
+		a.settings-option {
+			display: flex;
+			flex-direction: row;
+			gap: 5px;
+			align-items: center;
+			justify-content: center;
+			padding: 10px 20px;
+			transition: background-color 200ms linear;
+			border-bottom: var(--accent) 2px solid;
+			border-radius: 0;
+
+			&:last-child {
+				border-bottom: 0;
+			}
+
+			&:hover {
+				background-color: var(--element-bg);
+			}
+		}
+	}
+
+	div.notifications-menu {
+		display: none;
+		flex-direction: column;
+		position: absolute;
+		top: 72px;
+		right: 20px;
+		width: 280px;
+		min-height: 100px;
+		background-color: var(--bg);
+		border: var(--accent) solid 2px;
+		border-radius: 6px;
+		z-index: 3;
+
+		&.shown {
+			display: flex;
+		}
+
+		.notifications-menu-header {
+			display: flex;
+			flex-direction: row;
+			align-items: center;
+			justify-content: space-between;
+			padding: 4px 4px 4px 12px;
+			border-bottom: var(--accent) 2px solid;
+
+			button {
+				height: 36px;
+				background-color: transparent;
+
+				&:hover {
+					background-color: var(--element-bg);
+				}
+
+				svg {
+					max-width: 20px;
+					max-height: 20px;
+				}
+			}
+		}
+
+		.notifications-menu-content {
+			max-height: 280px;
+			overflow: auto;
+		}
+
+		.no-suggestions {
+			display: none;
+			&:only-child {
+				display: flex;
+				text-align: center;
+				justify-content: center;
+				padding: 8px;
+			}
+		}
+
+		a.suggestion-notification {
+			display: flex;
+			flex-direction: column;
+			padding: 4px 12px;
+			border-bottom: var(--accent) 2px solid;
+			border-radius: 0;
+			transition: background-color 100ms linear;
+			&:last-child {
+				border-bottom: 0;
+			}
+			&:hover {
+				background-color: var(--element-bg);
+			}
+		}
+	}
 }
 body.light header {
 	background-color: var(--header-bg);
 	color: var(--bg);
-}
-body.light header * {
-	color: var(--bg);
-}
-body.light header .searchbar * {
-	color: var(--text);
-}
-header.home {
-	grid-template-columns: 280px 280px 1fr 60px;
-}
-header.maintenance h1 {
-	grid-column: 1 / span 3;
-}
-header h1 {
-	font-size: 1.5em;
-	white-space: nowrap;
-}
-header h1.tournament-title {
-	text-align: center;
-	padding: 0 12px;
-	display: flex;
-	overflow: hidden;
-	align-items: center;
-	justify-content: center;
-	gap: 12px;
-}
-body.light header .opl-link svg {
-	fill: var(--bg);
-	transition: fill 200ms;
-}
-body.light header .opl-link:hover svg {
-	fill: var(--text);
-}
-header button, header a.button {
-	aspect-ratio: 1/1;
-	background: var(--element-bg);
-	border: none;
-	border-radius: 6px;
-	height: 44px;
-	padding: 0;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	cursor: pointer;
-	transition: background-color 200ms;
-}
-header button svg, header a.button svg {
-	max-width: 24px;
-	max-height: 24px;
-}
-header button:hover, header a.button:hover {
-	background-color: var(--accent);
-}
-header .settings-button {
-	justify-self: end;
-	grid-column: 4;
+
+	* {
+		color: var(--bg);
+	}
+	.searchbar * {
+		color: var(--text);
+	}
+	.opl-link svg {
+		fill: var(--bg);
+		transition: fill 200ms;
+	}
+	.opl-link:hover svg {
+		fill: var(--text);
+	}
+	div.settings-menu,
+	div.notifications-menu {
+		background-color: var(--header-bg);
+
+		a.settings-option svg,
+		button svg {
+			fill: var(--bg);
+		}
+	}
 }
 @media screen and (max-width: 720px) {
 	header {
@@ -713,48 +869,6 @@ header .settings-button {
 	}
 }
 
-header div.settings-menu {
-	display: none;
-	flex-direction: column;
-	position: absolute;
-	top: 72px;
-	right: 20px;
-	width: 150px;
-	background-color: var(--bg);
-	border: var(--accent) solid 2px;
-	border-radius: 6px;
-	z-index: 3;
-}
-body.light header div.settings-menu {
-	background-color: var(--header-bg);
-}
-body.light header div.settings-menu a.settings-option svg {
-	fill: var(--bg);
-}
-header div.settings-menu a.settings-option {
-	display: flex;
-	flex-direction: row;
-	gap: 5px;
-	align-items: center;
-	justify-content: center;
-	padding: 10px 20px;
-	transition: background-color 200ms linear;
-	border-bottom: var(--accent) 2px solid;
-	border-radius: 0;
-}
-header div.settings-menu.shown {
-	display: flex;
-}
-header div.settings-menu a.settings-option:last-child {
-	border-bottom: 0;
-}
-header div.settings-menu a.settings-option:hover {
-	background-color: var(--element-bg);
-}
-header .settings-menu svg {
-	width: 24px;
-	height: 24px;
-}
 .github-link .material-symbol svg path {
 	transform: scale(0.22);
 	fill: var(--text);
