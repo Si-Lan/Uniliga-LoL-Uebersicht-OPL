@@ -59,8 +59,21 @@ button.open-add-suggestion-form {
     border-radius: 8px;
     padding: 8px 12px;
 
+    @media screen and (max-width: 640px) {
+        grid-template-columns: 1fr;
+        grid-template-rows: 1fr 1px 1fr;
+        grid-auto-rows: 42px;
+
+        label {
+            grid-column: unset;
+        }
+    }
+
     &:has(input[type=checkbox]) {
         padding-right: 4px;
+        @media screen and (max-width: 640px) {
+            padding-right: 12px;
+        }
     }
 
     .team1,
@@ -96,6 +109,12 @@ button.open-add-suggestion-form {
         grid-column: 4;
         padding-left: 2px;
         border-left: 1px solid var(--divider);
+
+        @media screen and (max-width: 640px) {
+            grid-column: unset;
+            border-left: unset;
+            border-top: 1px solid var(--divider);
+        }
 
         input {
             width: 24px;
