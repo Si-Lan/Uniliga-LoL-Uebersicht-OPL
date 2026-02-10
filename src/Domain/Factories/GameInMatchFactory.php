@@ -138,22 +138,22 @@ class GameInMatchFactory extends AbstractFactory {
 
 	/**
 	 * @param Game $game
-	 * @param TeamInTournament $team1
-	 * @param TeamInTournament $team2
+	 * @param TeamInTournament|null $team1
+	 * @param TeamInTournament|null $team2
 	 * @return array{blueTeam: ?TeamInTournament, redTeam: ?TeamInTournament}
 	 */
-	private function matchTeamsToSide(Game $game, TeamInTournament $team1, TeamInTournament $team2): array {
+	private function matchTeamsToSide(Game $game, ?TeamInTournament $team1, ?TeamInTournament $team2): array {
 		if ($game->gameData === null) return ['blueTeam' => null, 'redTeam' => null];
 		$bluePlayers = $game->gameData->blueTeamPlayers;
 		$redPlayers = $game->gameData->redTeamPlayers;
 		$bluePuuids = array_flip(array_map(fn(GamePlayerData $player) => $player->puuid, $bluePlayers));
 		$redPuuids = array_flip(array_map(fn(GamePlayerData $player) => $player->puuid, $redPlayers));
 
-		$team1Players = $this->playerInTeamInTournamentRepo->findAllByTeamInTournament($team1);
-		$team2Players = $this->playerInTeamInTournamentRepo->findAllByTeamInTournament($team2);
+		if ($team1 !== null) $team1Players = $this->playerInTeamInTournamentRepo->findAllByTeamInTournament($team1);
+		if ($team2 !== null) $team2Players = $this->playerInTeamInTournamentRepo->findAllByTeamInTournament($team2);
 
 		$team1Counter = ["blue" => 0, "red" => 0];
-		foreach ($team1Players as $player) {
+		foreach ($team1Players??[] as $player) {
 			if (isset($bluePuuids[$player->player->puuid])) {
 				$team1Counter["blue"]++;
 			}
@@ -163,7 +163,7 @@ class GameInMatchFactory extends AbstractFactory {
 		}
 
 		$team2Counter = ["blue" => 0, "red" => 0];
-		foreach ($team2Players as $player) {
+		foreach ($team2Players??[] as $player) {
 			if (isset($bluePuuids[$player->player->puuid])) {
 				$team2Counter["blue"]++;
 			}
