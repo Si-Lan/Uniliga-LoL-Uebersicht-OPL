@@ -13,7 +13,7 @@ use App\UI\Page\PageMeta;
 
 $tournamentRepo = new TournamentRepository();
 
-$group = $tournamentRepo->findStandingsEventById($_GET["group"]);
+$group = $tournamentRepo->findStandingsEventById($_GET["event"]);
 
 $pageMeta = new PageMeta(
         title: $group->getFullName()." | ".$group->rootTournament->getShortName(),
