@@ -684,6 +684,12 @@ header {
 			}
 		}
 
+		h1 {
+			@media screen and (max-width: 720px) {
+				grid-column: 1 / span 5;
+			}
+		}
+
 		.notifications-button {
 			justify-self: end;
 			grid-column: 4;
