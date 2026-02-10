@@ -1,4 +1,5 @@
 import get_material_icon from "../utils/materialIcons";
+import fragmentLoader from "../fragmentLoader";
 
 $(document).on('click', '.settings-option.login', function (event) {
     event.preventDefault();
@@ -12,6 +13,23 @@ $(document).on('click', 'header .settings-button', function (event) {
 $(document).on('click', 'header .notifications-button', function (event) {
     toggle_notifications_menu(null, event)
 });
+$(document).on('click', '.notifications-menu .refresh-notifications', function (event) {
+    event.preventDefault();
+    const notificationMenu = $('.notifications-menu');
+    const notificationsContent = $('.notifications-menu-content');
+    let loadingIndicator = notificationMenu.find('.content-loading-indicator');
+    if (loadingIndicator.length === 0) notificationMenu.append('<div class="content-loading-indicator"></div>');
+    fragmentLoader("notification-suggestion-list")
+        .then(async content => {
+            notificationsContent.empty().append(content);
+            await new Promise(r => setTimeout(r, 100));
+            notificationMenu.find('.content-loading-indicator').remove();
+        })
+        .catch(error => {
+            console.error(error);
+            notificationMenu.find('.content-loading-indicator').remove();
+        })
+})
 
 function toggle_settings_menu(to_state = null, event = null) {
     if (event !== null) event.preventDefault();

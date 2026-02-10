@@ -5,6 +5,7 @@
 
 use App\Core\Utilities\UserContext;
 use App\UI\Components\Helpers\IconRenderer;
+use App\UI\Components\Navigation\Header\NotificationSuggestionList;
 use App\UI\Components\Popups\Popup;
 
 ?>
@@ -46,16 +47,7 @@ use App\UI\Components\Popups\Popup;
             <button type="button" class="refresh-notifications"><?=IconRenderer::getMaterialIconSpan("refresh")?></button>
         </div>
         <div class="notifications-menu-content">
-            <span class="no-suggestions">Keine Vorschläge</span>
-            <?php foreach ($matchupChangeSuggestions as $suggestion): ?>
-                <a href='<?= $suggestion->getLinkToMatchup()?>' class="suggestion-notification">
-                <span>
-                    <?= $suggestion->matchup->tournamentStage->getRootTournament()->getSplitAndSeason() ?> |
-                    <?= $suggestion->matchup->tournamentStage->getFullName() ?>:
-                </span>
-                    <?=$suggestion->matchup->team1?->nameInTournament?> vs. <?=$suggestion->matchup->team2?->nameInTournament?>
-                </a>
-            <?php endforeach; ?>
+            <?= new NotificationSuggestionList($matchupChangeSuggestions) ?>
         </div>
     </div>
 

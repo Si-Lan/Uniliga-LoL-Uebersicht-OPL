@@ -757,6 +757,15 @@ header {
 			display: flex;
 		}
 
+		.content-loading-indicator {
+			position: absolute;
+			top: 75%;
+			&::before {
+				background: none;
+				box-shadow: none;
+			}
+		}
+
 		.notifications-menu-header {
 			display: flex;
 			flex-direction: row;
