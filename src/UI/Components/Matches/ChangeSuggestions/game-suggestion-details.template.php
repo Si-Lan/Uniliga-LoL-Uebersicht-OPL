@@ -9,6 +9,7 @@ use App\Domain\Entities\Patch;
 ?>
 
 <div class="game-suggestion-details" data-game-id="<?=$gameInMatch->game->id?>">
+    <div class="playdate"><?=$gameInMatch->game->gameData->gameStart?></div>
     <div class="team1" style="display: flex; flex-direction: column;">
         <span class="team-name<?=$gameInMatch->blueTeam ? " existing-team" : " unidentified-team"?>"><?= $gameInMatch->blueTeam?->nameInTournament ?? "unidentifiziert"?></span>
         <span style="text-align: center; color: <?=$gameInMatch->game->gameData->blueTeamWin ? "var(--match-win-green)" : "var(--match-loss-red)"?>;">
