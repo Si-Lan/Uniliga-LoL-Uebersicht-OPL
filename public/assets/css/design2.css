@@ -1587,6 +1587,7 @@ div.standings {
 	& .standing-item-wrapper .score-games {
 		color: var(--text-sec);
 		font-size: 1.05em;
+		white-space: nowrap;
 	}
 }
 .standing-pre.rank {
@@ -1672,11 +1673,11 @@ div.standings {
 }
 @media screen and (max-width: 620px){
 	.standings-table {
-		min-width: 404px;
+		min-width: 380px;
 	}
 	.standing-row {
 		grid-template-columns: 36px calc(100% - 36px);
-		min-width: 388px;
+		min-width: 380px;
 		column-gap: 0;
 	}
 	.standing-item-wrapper,
@@ -1686,12 +1687,18 @@ div.standings {
 	.standings-table.with-single-games {
 		& .standing-item-wrapper,
 		& .standing-item-wrapper-header {
-			grid-template-columns: calc(100% - 36px - 48px - 40px - 36px) 36px 48px 40px 36px;
+			grid-template-columns: calc(100% - 36px - 48px - 48px - 36px) 36px 48px 48px 36px;
 		}
 	}
 	.standing-item.team {
 		justify-content: start;
 		padding-left: 8px;
+		.team-name {
+			font-size: 0.85em;
+		}
+	}
+	.standing-item img {
+		height: 28px;
 	}
 }
 
