@@ -39,7 +39,7 @@ use App\UI\Components\Popups\Popup;
 	<?php endif; ?>
 
     <?php if (UserContext::isLoggedIn()): ?>
-        <button class='notifications-button'><?= IconRenderer::getMaterialIconSpan('notifications')?></button>
+        <button class='notifications-button'><?= count($matchupChangeSuggestions) === 0 ? IconRenderer::getMaterialIconSpan('notifications') : IconRenderer::getMaterialIconSpan('notifications_unread')?></button>
     <?php endif; ?>
     <div class="notifications-menu">
         <div class="notifications-menu-header">
