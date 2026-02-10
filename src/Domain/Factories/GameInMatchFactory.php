@@ -129,6 +129,12 @@ class GameInMatchFactory extends AbstractFactory {
 		);
 	}
 
+	public function confirmTeamsForGameInMatch(GameInMatch $gameInMatch): GameInMatch {
+		$teams = $this->matchTeamsToSide($gameInMatch->game, $gameInMatch->blueTeam, $gameInMatch->redTeam);
+		$gameInMatch->blueTeam = $teams["blueTeam"];
+		$gameInMatch->redTeam = $teams["redTeam"];
+		return $gameInMatch;
+	}
 
 	/**
 	 * @param Game $game

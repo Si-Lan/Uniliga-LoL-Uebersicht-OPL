@@ -82,12 +82,15 @@ class MatchupUpdater {
 		$gameRepo = new GameRepository();
 
 		foreach ($oplGames as $i=>$oplGame) {
-			$gameEntity = $gameRepo->createEmptyFromId($oplGame['metadata']['matchId']);
-			$gameSaveResult = $gameRepo->save($gameEntity, dontOverwriteGameData: true);
-			$gameSaveResults[] = $gameSaveResult;
+			$gameEntity = $gameRepo->findById($oplGame['metadata']['matchId']);
+			if ($gameEntity === null || $gameEntity->gameData === null) {
+				$gameEntity = $gameRepo->createEmptyFromId($oplGame['metadata']['matchId']);
+				$gameSaveResult = $gameRepo->save($gameEntity, dontOverwriteGameData: true);
+				$gameSaveResults[] = $gameSaveResult;
 
-			if ($gameSaveResult->result === SaveResult::FAILED) {
-				continue;
+				if ($gameSaveResult->isFailed()) {
+					continue;
+				}
 			}
 
 			$matchResultSegments = $oplMatchupResults['result_segments'];
@@ -126,6 +129,7 @@ class MatchupUpdater {
 			};
 
 			$gameInMatchEntity = $this->gameInMatchFactory->createFromEntities($gameEntity, $matchup, $blueTeam, $redTeam, oplConfirmed: true);
+			$gameInMatchEntity = $this->gameInMatchFactory->confirmTeamsForGameInMatch($gameInMatchEntity);
 			$gameToMatchResult = $this->gameInMatchRepo->save($gameInMatchEntity);
 			$gameToMatchResults[] = $gameToMatchResult;
 		}

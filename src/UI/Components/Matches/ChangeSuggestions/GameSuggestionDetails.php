@@ -4,10 +4,12 @@ namespace App\UI\Components\Matches\ChangeSuggestions;
 
 use App\Domain\Entities\GameInMatch;
 use App\Domain\Entities\Patch;
+use App\Domain\Factories\GameInMatchFactory;
 use App\Domain\Repositories\PatchRepository;
 
 class GameSuggestionDetails {
 	private Patch $patch;
+	private GameInMatchFactory $gameInMatchFactory;
 	public function __construct(
 		private ?GameInMatch $gameInMatch = null,
 		private bool $selectable = true,
@@ -20,6 +22,9 @@ class GameSuggestionDetails {
 		};
 		if ($this->gameInMatch->game?->gameData === null) {
 			$this->errorMessage = "Keine Spieldaten gefunden";
+		} else {
+			$this->gameInMatchFactory = new GameInMatchFactory();
+			$this->gameInMatch = $this->gameInMatchFactory->confirmTeamsForGameInMatch($this->gameInMatch);
 		}
 		$this->patch = $patchRepo->findLatestPatchByPatchString($this->gameInMatch->game->gameData->gameVersion);
 	}
