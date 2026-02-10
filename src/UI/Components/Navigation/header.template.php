@@ -59,7 +59,7 @@ use App\UI\Components\Popups\Popup;
             <a class='settings-option opl-write' href='/admin'>Admin<?= IconRenderer::getMaterialIconDiv('edit_square')?></a>
             <a class='settings-option rgapi-write' href='/admin/rgapi'>RGAPI<?= IconRenderer::getMaterialIconDiv('videogame_asset')?></a>
         	<a class='settings-option ddragon-write' href='/admin/ddragon'>DDragon<?= IconRenderer::getMaterialIconDiv('photo_library')?></a>
-    	    <a class='settings-option update-log' href='/admin/updates'>Update-Logs</a>
+    	    <a class='settings-option update-log' href='/admin/logs'>Update-Logs</a>
         	<a class='settings-option logout' href='?logout'>Logout<?= IconRenderer::getMaterialIconDiv('logout')?></a>
     <?php else: ?>
 	        <a class='settings-option github-link' href='https://github.com/Si-Lan/Uniliga-LoL-Uebersicht-OPL' target='_blank'>GitHub<?= IconRenderer::getGithubIconDiv()?></a>
