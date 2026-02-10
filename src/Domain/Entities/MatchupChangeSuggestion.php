@@ -43,4 +43,8 @@ class MatchupChangeSuggestion {
 	public function hasScoreChange(): bool {
 		return $this->customTeam1Score !== null || $this->customTeam2Score !== null;
 	}
+
+	public function getLinkToMatchup(): string {
+		return "/turnier/".$this->matchup->tournamentStage->getRootTournament()->id."/".$this->matchup->tournamentStage->getUrlKey()."/".$this->matchup->tournamentStage->id."?match=".$this->matchup->id;
+	}
 }

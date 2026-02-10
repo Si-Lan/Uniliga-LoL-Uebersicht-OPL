@@ -1,9 +1,11 @@
 <?php
 /** @var \App\UI\Enums\HeaderType $type */
 /** @var \App\Domain\Entities\Tournament|null $tournament */
+/** @var array<\App\Domain\Entities\MatchupChangeSuggestion> $matchupChangeSuggestions */
 
 use App\Core\Utilities\UserContext;
 use App\UI\Components\Helpers\IconRenderer;
+use App\UI\Components\Navigation\Header\NotificationSuggestionList;
 use App\UI\Components\Popups\Popup;
 
 ?>
@@ -12,7 +14,7 @@ use App\UI\Components\Popups\Popup;
     <div style='text-align: center; padding: 5px 0; background-color: #7e1616'>Achtung: Wartungsmodus ist aktiviert!</div>
 <?php endif; ?>
 
-<header class='<?= $type->value ?>'>
+<header class='<?= $type->value ?><?=UserContext::isLoggedIn() ? " admin-login" : ""?>'>
 	<?php if ($type->showHomeButton()): ?>
 		<a href='/' class='button material-symbol'><?= IconRenderer::getMaterialIcon('home')?></a>
 	<?php endif; ?>
@@ -35,6 +37,19 @@ use App\UI\Components\Popups\Popup;
 	<?php if ($type->value != 'home'): ?>
 		<h1 class="tournament-title"><?= $type->getTitle($tournament) ?></h1>
 	<?php endif; ?>
+
+    <?php if (UserContext::isLoggedIn()): ?>
+        <button class='notifications-button'><?= count($matchupChangeSuggestions) === 0 ? IconRenderer::getMaterialIconSpan('notifications') : IconRenderer::getMaterialIconSpan('notifications_unread')?></button>
+    <?php endif; ?>
+    <div class="notifications-menu">
+        <div class="notifications-menu-header">
+            <span>Vorgeschlagene Änderungen</span>
+            <button type="button" class="refresh-notifications"><?=IconRenderer::getMaterialIconSpan("refresh")?></button>
+        </div>
+        <div class="notifications-menu-content">
+            <?= new NotificationSuggestionList($matchupChangeSuggestions) ?>
+        </div>
+    </div>
 
 	<button type='button' class='material-symbol settings-button'><?= IconRenderer::getMaterialIcon('tune')?></button>
 

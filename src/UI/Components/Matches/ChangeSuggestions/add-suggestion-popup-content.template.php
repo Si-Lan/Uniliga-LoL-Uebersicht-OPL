@@ -19,7 +19,7 @@ use App\UI\Components\Matches\ChangeSuggestions\GameSuggestionDetails;
 <div style="display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 4px; border-radius: 8px; border: solid 2px var(--game-border-color);">
     <div style="display: flex; flex-direction: row; align-items: center; gap: 8px; font-size: 1.2em;">
         <?=$matchup->team1->nameInTournament?>
-        <span style="font-weight: bold">
+        <span style="font-weight: bold; white-space: nowrap;">
             <?= $suggestion->customTeam1Score ?? $matchup->getTeam1Score() ?>
             :
             <?= $suggestion->customTeam2Score ?? $matchup->getTeam2Score() ?>

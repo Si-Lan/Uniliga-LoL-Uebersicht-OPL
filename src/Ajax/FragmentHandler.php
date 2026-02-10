@@ -4,9 +4,11 @@ namespace App\Ajax;
 
 use App\Core\Utilities\DataParsingHelpers;
 use App\Domain\Entities\Game;
+use App\Domain\Enums\SuggestionStatus;
 use App\Domain\Factories\GameInMatchFactory;
 use App\Domain\Repositories\GameInMatchRepository;
 use App\Domain\Repositories\GameRepository;
+use App\Domain\Repositories\MatchupChangeSuggestionRepository;
 use App\Domain\Repositories\MatchupRepository;
 use App\Domain\Repositories\PlayerInTeamInTournamentRepository;
 use App\Domain\Repositories\PlayerInTeamRepository;
@@ -27,6 +29,7 @@ use App\UI\Components\Matches\MatchButton;
 use App\UI\Components\Matches\MatchButtonList;
 use App\UI\Components\Matches\MatchHistory;
 use App\UI\Components\MultiOpggButton;
+use App\UI\Components\Navigation\Header\NotificationSuggestionList;
 use App\UI\Components\Player\PlayerOverview;
 use App\UI\Components\Player\PlayerSearchCard;
 use App\UI\Components\Popups\MatchPopupContent;
@@ -467,5 +470,11 @@ class FragmentHandler {
 		}
 
 		$this->sendJsonFragment(new AddSuggestionPopupContent($matchup));
+	}
+
+	public function notificationSuggestionList(array $dataGet): void {
+		$matchupSuggestionRepo = new MatchupChangeSuggestionRepository();
+		$matchupChangeSuggestions = $matchupSuggestionRepo->findAllByStatus(SuggestionStatus::PENDING);
+		$this->sendJsonFragment(new NotificationSuggestionList($matchupChangeSuggestions));
 	}
 }
