@@ -1,6 +1,7 @@
 <?php
 
 use App\Domain\Repositories\TournamentRepository;
+use App\UI\Components\EliminationBrackets\EliminationBracket;
 use App\UI\Components\Matches\MatchButtonList;
 use App\UI\Components\Navigation\Header;
 use App\UI\Components\Navigation\TournamentNav;
@@ -36,6 +37,10 @@ $pageMeta = new PageMeta(
     <?php endif; ?>
 </div>
 <main>
-    <?= new StandingsTable($group) ?>
-    <?= new MatchButtonList($group) ?>
+    <?php if ($group->isEventWithEliminationBracket()): ?>
+        <?= new EliminationBracket($group) ?>
+    <?php else: ?>
+        <?= new StandingsTable($group) ?>
+        <?= new MatchButtonList($group) ?>
+    <?php endif; ?>
 </main>
