@@ -362,6 +362,19 @@ body.admin-logs main {
     flex-direction: column;
     overflow: auto;
     min-width: 560px;
+    position: relative;
+
+    .content-loading-indicator {
+        position: absolute;
+        &::before {
+            display: none;
+        }
+    }
+
+    &:has(.content-loading-indicator) .log-content {
+        filter: opacity(0.5);
+        transition: filter 120ms;
+    }
 }
 
 /* Job Details Panel */

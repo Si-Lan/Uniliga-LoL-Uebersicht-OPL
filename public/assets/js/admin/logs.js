@@ -204,6 +204,10 @@ async function loadLogContent(path, tail = false, scrollToBottom = false) {
         ? `/admin/api/logs/content?path=${encodeURIComponent(path)}&tail=100`
         : `/admin/api/logs/content?path=${encodeURIComponent(path)}`;
     
+    const logsViewer = $('.logs-viewer');
+    let loadingIndicator = logsViewer.find('.content-loading-indicator');
+    if (loadingIndicator.length === 0) logsViewer.append('<div class="content-loading-indicator"></div>');
+    
     try {
         const response = await fetch(url);
         if (!response.ok) {
@@ -219,9 +223,11 @@ async function loadLogContent(path, tail = false, scrollToBottom = false) {
             logContent.scrollTop = logContent.scrollHeight;
         }
         
+        logsViewer.find('.content-loading-indicator').remove();
     } catch (error) {
         console.error('Error loading log:', error);
         $('#log-content').text('Error loading log file');
+        logsViewer.find('.content-loading-indicator').remove();
     }
 }
 
@@ -357,6 +363,10 @@ function formatTimestamp(timestamp) {
 }
 
 async function showJobMessage(jobId, type = 'both') {
+    const logsViewer = $('.logs-viewer');
+    let loadingIndicator = logsViewer.find('.content-loading-indicator');
+    if (loadingIndicator.length === 0) logsViewer.append('<div class="content-loading-indicator"></div>');
+    
     try {
         const response = await fetch(`/admin/api/logs/${jobId}/message`);
         if (!response.ok) throw new Error('Failed to load job message');
@@ -394,9 +404,11 @@ async function showJobMessage(jobId, type = 'both') {
         updateLoadFullButton();
         displayLogContent(content);
         
+        logsViewer.find('.content-loading-indicator').remove();
     } catch (error) {
         console.error('Error loading job message:', error);
         $('#log-content').text('Error loading job message');
+        logsViewer.find('.content-loading-indicator').remove();
     }
 }
 
