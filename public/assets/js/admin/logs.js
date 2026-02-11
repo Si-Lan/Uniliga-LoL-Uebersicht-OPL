@@ -3,6 +3,8 @@ let currentContentType = null; // 'general', 'job-message', 'job-logfile'
 let isFullLogLoaded = false;
 let autoRefresh = false;
 let refreshInterval = null;
+let cachedJobDetails = null; // Cache für aktuell geladene Job-Details
+let currentJobId = null; // ID des aktuell geladenen Jobs
 
 $(function() {
     // Restore last active job tab from localStorage
@@ -47,8 +49,10 @@ $(function() {
         updateHeader(logName);
         updateLoadFullButton();
         
-        // Schließe Job-Details wenn General Log ausgewählt wird
+        // Schließe Job-Details und leere Cache wenn General Log ausgewählt wird
         $('#job-details-panel').slideUp(180);
+        cachedJobDetails = null;
+        currentJobId = null;
     });
     
     // Job-Item anklicken (zeigt Details oder schließt sie bei erneutem Klick)
@@ -70,6 +74,8 @@ $(function() {
             $('.job-action-btn').removeClass('active');
             currentLogPath = null;
             currentContentType = null;
+            cachedJobDetails = null;
+            currentJobId = null;
             $('#current-log-name').text('Select a log file');
             $('#log-content').text('No log file selected');
             $('#refresh-log, #load-full-log').prop('disabled', true);
@@ -78,10 +84,12 @@ $(function() {
         
         // Ansonsten zeige Details
         $(this).addClass('active');
-        await showJobDetails(jobId);
+        const jobDetails = await showJobDetails(jobId);
         
         // Automatisch Message oder Log-Datei laden
-        await autoLoadJobContent(jobId, $(this));
+        if (jobDetails) {
+            await autoLoadJobContent(jobDetails, $(this));
+        }
     });
     
     // Job DB-Message anzeigen
@@ -98,8 +106,11 @@ $(function() {
         $('.job-action-btn').removeClass('active');
         $(this).addClass('active');
         
-        await showJobDetails(jobId);
-        await showJobMessage(jobId, 'message');
+        // Lade Job-Details nur wenn es ein anderer Job ist
+        const jobDetails = await showJobDetails(jobId);
+        if (jobDetails) {
+            displayJobMessage(jobDetails, 'message');
+        }
     });
     
     // Job Result-Message anzeigen
@@ -116,8 +127,11 @@ $(function() {
         $('.job-action-btn').removeClass('active');
         $(this).addClass('active');
         
-        await showJobDetails(jobId);
-        await showJobMessage(jobId, 'result');
+        // Lade Job-Details nur wenn es ein anderer Job ist
+        const jobDetails = await showJobDetails(jobId);
+        if (jobDetails) {
+            displayJobMessage(jobDetails, 'result');
+        }
     });
     
     // Tab-Wechsel für Job-Kategorien
@@ -149,15 +163,17 @@ $(function() {
         
         const jobId = $(this).closest('.job-item').data('job-id');
         
-        await showJobDetails(jobId);
-        
-        currentLogPath = $(this).data('path');
-        currentContentType = 'job-logfile';
-        const logName = `Job #${jobId} - Log File`;
-        
-        await loadLogContent(currentLogPath, false, false);
-        updateHeader(logName);
-        updateLoadFullButton();
+        // Lade Job-Details nur wenn es ein anderer Job ist
+        const jobDetails = await showJobDetails(jobId);
+        if (jobDetails) {
+            currentLogPath = jobDetails.logFilePath;
+            currentContentType = 'job-logfile';
+            const logName = `Job #${jobId} - Log File`;
+            
+            await loadLogContent(currentLogPath, false, false);
+            updateHeader(logName);
+            updateLoadFullButton();
+        }
     });
     
     // Job-Details schließen
@@ -167,6 +183,8 @@ $(function() {
         $('.job-action-btn').removeClass('active');
         currentLogPath = null;
         currentContentType = null;
+        cachedJobDetails = null;
+        currentJobId = null;
         $('#current-log-name').text('Select a log file');
         $('#log-content').text('No log file selected');
         $('#refresh-log, #load-full-log').prop('disabled', true);
@@ -278,11 +296,24 @@ function updateLoadFullButton() {
 }
 
 async function showJobDetails(jobId) {
+    // Wenn bereits geladen und gleicher Job, nutze Cache
+    if (currentJobId === jobId && cachedJobDetails) {
+        return cachedJobDetails;
+    }
+    
+    const logsViewer = $('.logs-viewer');
+    let loadingIndicator = logsViewer.find('.content-loading-indicator');
+    if (loadingIndicator.length === 0) logsViewer.append('<div class="content-loading-indicator"></div>');
+    
     try {
         const response = await fetch(`/admin/api/logs/${jobId}`);
         if (!response.ok) throw new Error('Failed to load job details');
         
         const job = await response.json();
+        
+        // Cache Job-Details
+        cachedJobDetails = job;
+        currentJobId = jobId;
         
         // Fülle Job-Details Panel
         $('#detail-job-id').text(job.jobId);
@@ -328,10 +359,14 @@ async function showJobDetails(jobId) {
         // Zeige Panel
         $('#job-details-panel').slideDown(180);
         
-        return job;
+        logsViewer.find('.content-loading-indicator').remove();
+        return cachedJobDetails;
         
     } catch (error) {
         console.error('Error loading job details:', error);
+        logsViewer.find('.content-loading-indicator').remove();
+        cachedJobDetails = null;
+        currentJobId = null;
         return null;
     }
 }
@@ -362,78 +397,56 @@ function formatTimestamp(timestamp) {
     });
 }
 
-async function showJobMessage(jobId, type = 'both') {
-    const logsViewer = $('.logs-viewer');
-    let loadingIndicator = logsViewer.find('.content-loading-indicator');
-    if (loadingIndicator.length === 0) logsViewer.append('<div class="content-loading-indicator"></div>');
+function displayJobMessage(jobDetails, type = 'both') {
+    currentLogPath = null;
+    currentContentType = 'job-message';
     
-    try {
-        const response = await fetch(`/admin/api/logs/${jobId}/message`);
-        if (!response.ok) throw new Error('Failed to load job message');
-        
-        const data = await response.json();
-        
-        currentLogPath = null;
-        currentContentType = 'job-message';
-        
-        let content = '';
-        let headerText = '';
-        
-        if (type === 'message' && data.message) {
-            headerText = `Job #${jobId} - Message`;
-            content = data.message;
-        } else if (type === 'result' && data.resultMessage) {
-            headerText = `Job #${jobId} - Result Message`;
-            content = data.resultMessage;
-        } else if (type === 'both') {
-            headerText = `Job #${jobId} - DB Messages`;
-            if (data.message) {
-                content += '=== JOB MESSAGE ===\n\n' + data.message + '\n\n';
-            }
-            if (data.resultMessage) {
-                content += '=== RESULT MESSAGE ===\n\n' + data.resultMessage;
-            }
+    let content = '';
+    let headerText = '';
+    
+    if (type === 'message' && jobDetails.message) {
+        headerText = `Job #${jobDetails.jobId} - Message`;
+        content = jobDetails.message;
+    } else if (type === 'result' && jobDetails.resultMessage) {
+        headerText = `Job #${jobDetails.jobId} - Result Message`;
+        content = jobDetails.resultMessage;
+    } else if (type === 'both') {
+        headerText = `Job #${jobDetails.jobId} - DB Messages`;
+        if (jobDetails.message) {
+            content += '=== JOB MESSAGE ===\n\n' + jobDetails.message + '\n\n';
         }
-        
-        if (!content) {
-            content = 'No messages available for this job';
-            headerText = headerText || `Job #${jobId} - No Messages`;
+        if (jobDetails.resultMessage) {
+            content += '=== RESULT MESSAGE ===\n\n' + jobDetails.resultMessage;
         }
-        
-        updateHeader(headerText);
-        updateLoadFullButton();
-        displayLogContent(content);
-        
-        logsViewer.find('.content-loading-indicator').remove();
-    } catch (error) {
-        console.error('Error loading job message:', error);
-        $('#log-content').text('Error loading job message');
-        logsViewer.find('.content-loading-indicator').remove();
     }
+    
+    if (!content) {
+        content = 'No messages available for this job';
+        headerText = headerText || `Job #${jobDetails.jobId} - No Messages`;
+    }
+    
+    updateHeader(headerText);
+    updateLoadFullButton();
+    displayLogContent(content);
 }
 
-async function autoLoadJobContent(jobId, $jobItem) {
+async function autoLoadJobContent(jobDetails, $jobItem) {
     // Entferne alle aktiven Button-Zustände
     $('.job-action-btn').removeClass('active');
     
     // Prüfe zuerst ob Messages existieren (priorisiere resultMessage)
-    try {
-        const messageResponse = await fetch(`/admin/api/logs/${jobId}/message`);
-        if (messageResponse.ok) {
-            const data = await messageResponse.json();
-            // Priorisiere resultMessage über message
-            if (data.resultMessage) {
-                $jobItem.find('.view-result-message-btn').addClass('active');
-                await showJobMessage(jobId, 'result');
-                return;
-            } else if (data.message) {
-                $jobItem.find('.view-job-message-btn').addClass('active');
-                await showJobMessage(jobId, 'message');
-                return;
-            }
-        }
-    } catch (error) {
-        console.error('Error checking job message:', error);
+    if (jobDetails.hasResultMessage) {
+        const $resultBtn = $jobItem.find('.view-result-message-btn');
+        $resultBtn.addClass('active');
+        displayJobMessage(jobDetails, 'result');
+        return;
+    }
+    
+    if (jobDetails.hasDbMessage) {
+        const $messageBtn = $jobItem.find('.view-job-message-btn');
+        $messageBtn.addClass('active');
+        displayJobMessage(jobDetails, 'message');
+        return;
     }
     
     // Keine Message, prüfe Log-Datei
@@ -442,7 +455,7 @@ async function autoLoadJobContent(jobId, $jobItem) {
         $logFileBtn.addClass('active');
         currentLogPath = $logFileBtn.data('path');
         currentContentType = 'job-logfile';
-        const logName = `Job #${jobId} - Log File`;
+        const logName = `Job #${jobDetails.jobId} - Log File`;
         await loadLogContent(currentLogPath, false, false);
         updateHeader(logName);
         updateLoadFullButton();
@@ -452,7 +465,7 @@ async function autoLoadJobContent(jobId, $jobItem) {
     // Keine Message und kein Log, leere den Viewer
     currentLogPath = null;
     currentContentType = null;
-    $('#current-log-name').text(`Job #${jobId} - No logs available`);
+    $('#current-log-name').text(`Job #${jobDetails.jobId} - No logs available`);
     $('#log-content').text('No logs available for this job');
     $('#refresh-log, #load-full-log').prop('disabled', true);
 }

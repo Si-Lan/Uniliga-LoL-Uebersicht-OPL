@@ -178,22 +178,6 @@ class LogViewer {
     }
     
     /**
-     * Holt die DB-Message eines Jobs
-     */
-    public function getJobMessage(int $jobId): ?string {
-        $job = $this->jobRepo->findById($jobId);
-        return $job?->message;
-    }
-    
-    /**
-     * Holt die Result-Message eines Jobs
-     */
-    public function getJobResultMessage(int $jobId): ?string {
-        $job = $this->jobRepo->findById($jobId);
-        return $job?->resultMessage;
-    }
-    
-    /**
      * Holt vollständige Job-Details
      */
     public function getJobDetails(int $jobId): ?array {

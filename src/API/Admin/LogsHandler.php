@@ -39,19 +39,6 @@ class LogsHandler extends AbstractHandler {
         echo json_encode(['content' => $content]);
     }
     
-    public function getLogsMessage($jobId): void {
-        if (!$jobId) {
-            $this->sendErrorResponse(400, 'Missing jobId parameter');
-        }
-        
-        $message = $this->logViewer->getJobMessage((int)$jobId);
-        $resultMessage = $this->logViewer->getJobResultMessage((int)$jobId);
-        
-        echo json_encode([
-            'message' => $message,
-            'resultMessage' => $resultMessage
-        ]);
-    }    
     public function getLogs($jobId): void {
         if (!$jobId) {
             $this->sendErrorResponse(400, 'Missing jobId parameter');
