@@ -2,6 +2,7 @@ import JobsStream from './jobsStream.js';
 
 let currentLogPath = null;
 let currentContentType = null; // 'general', 'job-message', 'job-logfile'
+let currentMessageType = null; // 'message', 'result' - nur relevant wenn currentContentType === 'job-message'
 let isFullLogLoaded = false;
 let cachedJobDetails = null; // Cache für aktuell geladene Job-Details
 let currentJobId = null; // ID des aktuell geladenen Jobs
@@ -172,6 +173,7 @@ $(function() {
         if (isAlreadyActive) {
             currentLogPath = null;
             currentContentType = null;
+            currentMessageType = null;
             $('#current-log-name').text('Select a log file');
             $('#log-content').text('No log file selected');
             $('#refresh-log, #load-full-log').prop('disabled', true);
@@ -214,6 +216,7 @@ $(function() {
             $('.job-action-btn').removeClass('active');
             currentLogPath = null;
             currentContentType = null;
+            currentMessageType = null;
             cachedJobDetails = null;
             currentJobId = null;
             $('#current-log-name').text('Select a log file');
@@ -323,20 +326,27 @@ $(function() {
         $('.job-action-btn').removeClass('active');
         currentLogPath = null;
         currentContentType = null;
+        currentMessageType = null;
         cachedJobDetails = null;
         currentJobId = null;
         $('#current-log-name').text('Select a log file');
-        $('#log-content').text('No log file selected');
+        $('#log-content').text('No log-content selected');
         $('#refresh-log, #load-full-log').prop('disabled', true);
     });
     
     // Refresh Button
-    $('#refresh-log').on('click', () => {
+    $('#refresh-log').on('click', async () => {
         if (currentLogPath && currentContentType === 'general') {
             // Behalte aktuellen Zustand (tail oder full)
             loadLogContent(currentLogPath, !isFullLogLoaded, !isFullLogLoaded);
-        } else if (currentLogPath) {
+        } else if (currentLogPath && currentContentType === 'job-logfile') {
             loadLogContent(currentLogPath, false, false);
+        } else if (currentContentType === 'job-message' && currentJobId) {
+            // Lade Job-Details neu und zeige Message erneut
+            const jobDetails = await refreshJobDetails(currentJobId);
+            if (jobDetails && currentMessageType) {
+                displayJobMessage(jobDetails, currentMessageType);
+            }
         }
     });
     
@@ -540,6 +550,7 @@ function formatTimestamp(timestamp) {
 function displayJobMessage(jobDetails, type = 'both') {
     currentLogPath = null;
     currentContentType = 'job-message';
+    currentMessageType = type; // Speichere den Message-Typ für Refresh
     
     let content = '';
     let headerText = '';
@@ -605,7 +616,18 @@ async function autoLoadJobContent(jobDetails, $jobItem) {
     // Keine Message und kein Log, leere den Viewer
     currentLogPath = null;
     currentContentType = null;
+    currentMessageType = null;
     $('#current-log-name').text(`Job #${jobDetails.jobId} - No logs available`);
     $('#log-content').text('No logs available for this job');
     $('#refresh-log, #load-full-log').prop('disabled', true);
+}
+
+// Lädt Job-Details neu und leert den Cache
+async function refreshJobDetails(jobId) {
+    // Leere Cache um Neuladung zu erzwingen
+    cachedJobDetails = null;
+    currentJobId = null;
+    
+    // Lade Job-Details neu
+    return await showJobDetails(jobId);
 }
