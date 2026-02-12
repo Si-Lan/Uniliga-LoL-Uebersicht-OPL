@@ -393,7 +393,9 @@ ALTER TABLE `updates_user_team`
   ADD KEY `OPL_ID_team` (`OPL_ID_team`);
 
 ALTER TABLE update_jobs
-    ADD KEY tournament_idx (tournament_id);
+    ADD KEY tournament_idx (tournament_id),
+    ADD KEY idx_updated_at (updated_at),
+    ADD KEY idx_started_at (started_at);
 
 
 -- Views
