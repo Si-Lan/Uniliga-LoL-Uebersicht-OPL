@@ -198,6 +198,38 @@ class UpdateJobRepository extends AbstractRepository {
 		return $jobs;
 	}
 
+	/**
+	 * Finde alle Jobs, die seit einem bestimmten Zeitpunkt gestartet wurden
+	 * @param \DateTimeInterface $since
+	 * @return array<UpdateJob>
+	 */
+	public function findStartedSince(\DateTimeInterface $since): array {
+		$query = 'SELECT * FROM update_jobs WHERE started_at >= ? ORDER BY started_at';
+		$result = $this->dbcn->execute_query($query, [$since->format('Y-m-d H:i:s')]);
+		$data = $result->fetch_all(MYSQLI_ASSOC);
+		$jobs = [];
+		foreach ($data as $jobData) {
+			$jobs[] = $this->mapToEntity($jobData);
+		}
+		return $jobs;
+	}
+
+	/**
+	 * Finde alle Jobs, die seit einem bestimmten Zeitpunkt aktualisiert wurden
+	 * @param \DateTimeInterface $since
+	 * @return array<UpdateJob>
+	 */
+	public function findUpdatedSince(\DateTimeInterface $since): array {
+		$query = 'SELECT * FROM update_jobs WHERE updated_at > ? ORDER BY updated_at';
+		$result = $this->dbcn->execute_query($query, [$since->format('Y-m-d H:i:s')]);
+		$data = $result->fetch_all(MYSQLI_ASSOC);
+		$jobs = [];
+		foreach ($data as $jobData) {
+			$jobs[] = $this->mapToEntity($jobData);
+		}
+		return $jobs;
+	}
+
 	public function createJob(UpdateJobType $type, UpdateJobAction $action, ?UpdateJobContextType $contextType = null, ?int $contextId = null, ?int $tournamentId = null, ?string $contextName = null): UpdateJob {
 		$query = 'INSERT INTO update_jobs (type, action, context_type, context_id, context_name, tournament_id) VALUES (?, ?, ?, ?, ?, ?)';
 		$params = [$type->value, $action->value, $contextType?->value, $contextId, $contextName, $tournamentId];

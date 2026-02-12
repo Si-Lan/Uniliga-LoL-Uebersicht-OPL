@@ -11,6 +11,8 @@ use App\UI\Components\Admin\RankedSplit\RankedSplitRow;
 use App\UI\Components\Admin\RelatedTournamentButtonList;
 use App\UI\Components\Admin\TournamentEdit\TournamentEditForm;
 use App\UI\Components\Admin\TournamentEdit\TournamentEditList;
+use App\UI\Components\Admin\JobItem;
+use App\Service\LogViewer;
 use App\UI\Page\AssetManager;
 
 class FragmentHandler {
@@ -105,5 +107,26 @@ class FragmentHandler {
 	public function PatchesList(array $dataGet): void {
 		$patchesList = new PatchDataRows();
 		echo json_encode(["html" => $patchesList->render()]);
+	}
+
+	public function JobItem(array $dataGet): void {
+		$jobId = $this->intOrNull($dataGet['jobId'] ?? null);
+		if ($jobId === null) {
+			http_response_code(400);
+			echo json_encode(['error' => 'Missing jobId parameter']);
+			return;
+		}
+
+		$logViewer = new LogViewer();
+		$jobDetails = $logViewer->getJobDetails($jobId);
+
+		if ($jobDetails === null) {
+			http_response_code(404);
+			echo json_encode(['error' => 'Job not found']);
+			return;
+		}
+
+		$jobItem = new JobItem($jobDetails);
+		echo json_encode(["html" => $jobItem->render()]);
 	}
 }

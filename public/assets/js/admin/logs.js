@@ -1,10 +1,132 @@
+import JobsStream from './jobsStream.js';
+
 let currentLogPath = null;
 let currentContentType = null; // 'general', 'job-message', 'job-logfile'
 let isFullLogLoaded = false;
-let autoRefresh = false;
-let refreshInterval = null;
 let cachedJobDetails = null; // Cache für aktuell geladene Job-Details
 let currentJobId = null; // ID des aktuell geladenen Jobs
+
+async function handleJobUpdate(job) {
+    const jobId = job.jobId;
+    const $existing = $(`.job-item[data-job-id="${jobId}"]`);
+
+    let category = 'admin_updates';
+    if (job.type === 'user') category = 'user_updates';
+    else if (job.type === 'cron') category = 'cron_updates';
+    else if (job.type === 'admin' && typeof job.action === 'string' && job.action.startsWith('download_')) category = 'ddragon_updates';
+
+    if ($existing.length > 0) {
+        const needsReload = checkIfJobNeedsReload($existing, job);
+        
+        if (needsReload) {
+            try {
+                const response = await fetch(`/admin/ajax/fragment/job-item?jobId=${jobId}`);
+                if (!response.ok) {
+                    console.error(`Failed to fetch job item HTML for job ${jobId}`);
+                    return;
+                }
+                const data = await response.json();
+                const $newItem = $(data.html);
+                const wasActive = $existing.hasClass('active');
+                $existing.replaceWith($newItem);
+                if (wasActive) {
+                    $newItem.addClass('active');
+                }
+            } catch (error) {
+                console.error('Error reloading job item:', error);
+            }
+        } else {
+            updateJobInPlace($existing, job);
+        }
+    } else {
+        try {
+            const response = await fetch(`/admin/ajax/fragment/job-item?jobId=${jobId}`);
+            if (!response.ok) {
+                console.error(`Failed to fetch job item HTML for job ${jobId}`);
+                return;
+            }
+            const data = await response.json();
+            const $newItem = $(data.html);
+            
+            const $list = $(`.job-logs[data-type="${category}"]`);
+            if ($list.length === 0) return;
+            $list.prepend($newItem);
+
+            const $tab = $(`.job-tab[data-type="${category}"]`);
+            if ($tab.length) {
+                const $count = $tab.find('.job-count');
+                if ($count.length) {
+                    const n = parseInt($count.text()||'0', 10) + 1;
+                    $count.text(n);
+                }
+            }
+        } catch (error) {
+            console.error('Error adding new job item:', error);
+        }
+    }
+}
+
+function checkIfJobNeedsReload($item, job) {
+    const statusClasses = ['job-success', 'job-error', 'job-running', 'job-queued', 'job-cancelled', 'job-abandoned'];
+    const currentStatusClass = statusClasses.find(cls => $item.hasClass(cls)) || '';
+    const newStatusClass = {
+        'success': 'job-success',
+        'error': 'job-error',
+        'running': 'job-running',
+        'queued': 'job-queued',
+        'cancelled': 'job-cancelled',
+        'abandoned': 'job-abandoned'
+    }[job.status] || '';
+    
+    if (currentStatusClass !== newStatusClass) {
+        return true; // Status changed, need new icon
+    }
+    
+    // Check if buttons changed (new message/result/logfile appeared)
+    const hasMessageBtn = $item.find('.view-job-message-btn').length > 0;
+    const hasResultBtn = $item.find('.view-result-message-btn').length > 0;
+    const hasLogFileBtn = $item.find('.view-log-file-btn').length > 0;
+    
+    if (job.hasDbMessage !== hasMessageBtn ||
+        job.hasResultMessage !== hasResultBtn ||
+        job.hasLogFile !== hasLogFileBtn) {
+        return true; // Buttons changed
+    }
+    
+    return false; // Only progress/time changed
+}
+
+function updateJobInPlace($item, job) {
+    const $meta = $item.find('.job-meta');
+    
+    if (job.status === 'running') {
+        // Update progress bar and percentage
+        const $progress = $meta.find('.job-progress');
+        const $progressFill = $meta.find('.job-progress-fill');
+        
+        if ($progress.length && $progressFill.length) {
+            $progress.text(Math.round(job.progress) + '%');
+            $progressFill.css('width', job.progress + '%');
+        } else {
+            // Running job but no progress bar yet, need to reload
+            $meta.html(
+                `<span class="job-progress">${Math.round(job.progress)}%</span>` +
+                `<div class="job-progress-bar">` +
+                    `<div class="job-progress-fill" style="width: ${job.progress}%"></div>` +
+                `</div>`
+            );
+        }
+    } else {
+        // Update timestamp
+        const timestamp = job.finishedAt || job.updatedAt;
+        const $time = $meta.find('.job-time');
+        if ($time.length) {
+            $time.text(timestamp);
+        } else {
+            $meta.html(`<span class="job-time">${timestamp}</span>`);
+        }
+    }
+}
 
 $(function() {
     // Restore last active job tab from localStorage
@@ -18,6 +140,24 @@ $(function() {
             $('.job-logs').removeClass('active');
             $(`.job-logs[data-type="${savedJobTab}"]`).addClass('active');
         }
+    }
+
+    // start Jobs SSE stream to receive live job updates
+    try {
+        const jobsStream = new JobsStream({
+            url: '/admin/api/events/jobs',
+            onInitial: (jobs) => {
+                if (!Array.isArray(jobs)) return;
+                jobs.forEach(j => handleJobUpdate(j));
+            },
+            onUpdate: (job) => handleJobUpdate(job),
+            onHeartbeat: () => {},
+            onError: (e) => { console.warn('JobsStream error', e); }
+        });
+        jobsStream.start();
+        window.addEventListener('beforeunload', () => jobsStream.close());
+    } catch (err) {
+        console.warn('Failed to start JobsStream', err);
     }
     
     // Log-Datei auswählen (General Logs)
