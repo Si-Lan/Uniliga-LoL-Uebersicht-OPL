@@ -18,6 +18,8 @@ class Router {
 			'apiAdmin' => self::handleApi('admin/api', 'App\\API\\Admin'),
 			'apiOpl' => self::handleApi('admin/api/opl', 'App\\API\\Admin\\ImportOpl'),
 			'apiRgapi' => self::handleApi('admin/api/rgapi', 'App\\API\\Admin\\ImportRgapi'),
+			'events' => self::handleEventStream('api/events', 'App\\API\\Events'),
+			'eventsAdmin' => self::handleEventStream('admin/api/events', 'App\\API\\Admin\\Events'),
 			'ajax' => self::handleAjax('ajax', 'App\\Ajax'),
 			'ajaxAdmin' => self::handleAjax('admin/ajax', 'App\\Ajax\\Admin'),
 			default => self::trigger404()
@@ -243,5 +245,39 @@ class Router {
 		$requestPath = trim(parse_url($_SERVER['REQUEST_URI']??'',PHP_URL_PATH),'/');
 		$requestPath = preg_replace("#^$basePath#", '', $requestPath);
 		return trim($requestPath, '/');
+	}
+
+	private static function handleEventStream(string $basePath, string $namespace):void {
+		if (str_starts_with($basePath, 'admin') && !UserContext::isLoggedIn()) {
+			exit();
+		}
+		header('Content-Type: text/event-stream');
+		header('Cache-Control: no-cache');
+		header('Connection: keep-alive');
+		header('X-Accel-Buffering: no');
+
+		@ini_set('output_buffering', 'off');
+		@ini_set('zlib.output_compression', 'off');
+		while (ob_get_level() > 0) { ob_end_flush(); }
+		ob_implicit_flush(true);
+		set_time_limit(0);
+
+		session_write_close();
+
+		$requestPath = self::getRequestPath($basePath);
+
+		$segments = explode('/', $requestPath);
+		if (empty($segments[0])) {
+			exit();
+		}
+
+		$controller = array_shift($segments);
+		$controllerClass = "$namespace\\" . ucfirst($controller) . 'StreamHandler';
+
+		if (!class_exists($controllerClass)) {
+			exit();
+		}
+		$handler = new $controllerClass();
+		$handler->handleEventStream();
 	}
 }
