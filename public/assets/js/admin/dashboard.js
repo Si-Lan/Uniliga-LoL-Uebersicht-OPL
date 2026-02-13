@@ -67,3 +67,13 @@ $(document).on("keydown", "div[role='button'].dashboard-card", function (e) {
 		$(this).trigger('click');
 	}
 });
+
+$(document).on('click', 'a.dashboard-card', function () {
+	$(this).append('<div class="content-loading-indicator" style="position: absolute"></div>');
+});
+window.addEventListener('pageshow', function() {
+	document.querySelectorAll('a.dashboard-card .content-loading-indicator').forEach(el => el.remove());
+});
+window.addEventListener('load', function() {
+	document.querySelectorAll('a.dashboard-card .content-loading-indicator').forEach(el => el.remove());
+});
