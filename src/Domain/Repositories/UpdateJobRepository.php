@@ -134,7 +134,7 @@ class UpdateJobRepository extends AbstractRepository {
 	 * @param int|null $tournamentId
 	 * @return array<UpdateJob>
 	 */
-	public function findAll(?UpdateJobType $type = null, ?UpdateJobAction $action = null, ?UpdateJobStatus $status = null, ?UpdateJobContextType $contextType = null, ?int $contextId = null, ?string $contextName = null, ?int $tournamentId = null): array {
+	public function findAll(?UpdateJobType $type = null, ?UpdateJobAction $action = null, ?UpdateJobStatus $status = null, ?UpdateJobContextType $contextType = null, ?int $contextId = null, ?string $contextName = null, ?int $tournamentId = null, ?int $limit = null): array {
 		/** @noinspection SqlConstantExpression */
 		$query = 'SELECT * FROM update_jobs WHERE 1 = 1';
 		$params = [];
@@ -167,6 +167,10 @@ class UpdateJobRepository extends AbstractRepository {
 			$params[] = $tournamentId;
 		}
 		$query .= ' ORDER BY id DESC';
+		if ($limit !== null) {
+			$query .= ' LIMIT ?';
+			$params[] = $limit;
+		}
 
 		$result = $this->dbcn->execute_query($query, $params);
 		$data = $result->fetch_all(MYSQLI_ASSOC);
