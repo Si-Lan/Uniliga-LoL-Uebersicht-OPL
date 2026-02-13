@@ -3,12 +3,14 @@
 namespace App\UI\Components\Admin\RankedSplit;
 
 use App\Domain\Repositories\RankedSplitRepository;
+use App\UI\Page\AssetManager;
 
 class RankedSplitList {
 	public function __construct(
 		private ?RankedSplitRepository $rankedSplitRepo = null
 	) {
 		$this->rankedSplitRepo = $this->rankedSplitRepo ?? new RankedSplitRepository();
+		AssetManager::addJsModule('admin/rankedSplits');
 	}
 
 	public function render(): string {
