@@ -11,7 +11,8 @@ $(()=>{
 	$("dialog.modalopen_auto").get().forEach(element => element.showModal());
 })
 
-$(document).on("click", "[data-dialog-id]", function() {
+$(document).on("click", "[data-dialog-id]", function(event) {
+	event.preventDefault();
 	let dialog = $(`dialog#${this.dataset.dialogId}:not(.page-popup)`);
 	if (dialog.length === 0) {
 		return;
