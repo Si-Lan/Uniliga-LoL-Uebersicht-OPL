@@ -12,7 +12,6 @@ use App\UI\Page\PageMeta;
 
 $pageMeta = new PageMeta('Admin-Panel', bodyClass: 'admin opl');
 AssetManager::addJsModule('admin/oplImport');
-AssetManager::addJsModule('admin/rankedSplits');
 AssetManager::addJsModule('admin/generalAdmin');
 
 echo new Header(HeaderType::ADMIN);
@@ -20,7 +19,6 @@ echo new Header(HeaderType::ADMIN);
 ?>
 
 <main>
-    <button type="button" id="maintenance-mode" class="maintenance-<?= UserContext::isMaintenanceMode() ? 'on' : 'off' ?>">Maintenance Mode</button>
     <h2>Neues Turnier hinzufügen:</h2>
     <div id="main-selection">
         <span class="searchbar"> <label for="input-tournament-id"></label><input id="input-tournament-id" name="tournament-id" placeholder="Tournament ID" type="number"> </span>
@@ -37,11 +35,6 @@ echo new Header(HeaderType::ADMIN);
             <div class="clear-button">Clear</div>
             <div class="result-content"></div>
         </div>
-        <div class="divider" style="margin-bottom: 4px"></div>
-        <button class="open_ranked_split_popup" data-dialog-id="ranked-split-popup">
-            <span>LoL Ranked Splits<?= IconRenderer::getMaterialIconSpan('ad_group')?></span>
-        </button>
-        <?=new Popup("ranked-split-popup", content: new RankedSplitList())?>
     </div>
 
     <h2>Turniere in Datenbank:</h2>
