@@ -2,6 +2,7 @@
 
 namespace App\Ajax\Admin;
 
+use App\Ajax\AbstractFragmentHandler;
 use App\Core\Utilities\DataParsingHelpers;
 use App\Domain\Repositories\RankedSplitRepository;
 use App\Domain\Repositories\TournamentRepository;
@@ -13,22 +14,19 @@ use App\UI\Components\Admin\TournamentEdit\TournamentEditForm;
 use App\UI\Components\Admin\TournamentEdit\TournamentEditList;
 use App\UI\Components\Admin\JobItem;
 use App\Service\LogViewer;
-use App\UI\Page\AssetManager;
 
-class FragmentHandler {
+class FragmentHandler extends AbstractFragmentHandler{
 	use DataParsingHelpers;
 	public function TournamentEditList(array $dataGet):void {
 		$openAccordeons = [];
 		if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 			$openAccordeons = json_decode(file_get_contents('php://input'), true);
 			if (json_last_error() !== JSON_ERROR_NONE || !$openAccordeons) {
-				http_response_code(400);
-				echo json_encode(['error' => 'Missing Data on POST or invalid JSON received']);
-				exit;
+				$this->sendJsonError('Missing Data on POST or invalid JSON received', 400);
 			}
 		}
 		$tournamentEditList = new TournamentEditList($openAccordeons);
-		echo json_encode(["html"=>$tournamentEditList->render()]);
+		$this->sendJsonFragment($tournamentEditList->render());
 	}
 	public function TournamentEditForm(array $dataGet):void {
 		$tournamentRepo = new TournamentRepository();
@@ -45,33 +43,27 @@ class FragmentHandler {
 			$tournament = $tournamentRepo->findById($dataGet['tournamentId']);
 			$newTournament = false;
 		} else {
-			http_response_code(400);
-			echo '{"error": "TournamentId or TournamentData missing"}';
-			exit();
+			$this->sendJsonError('TournamentId or TournamentData missing', 400);
 		}
 
 		$tournamentForm = new TournamentEditForm($tournament,$newTournament, $parentIds, $childrenIds);
 
-		echo json_encode(["html"=>$tournamentForm->render(), "js"=>AssetManager::getJsFiles(), "css"=>AssetManager::getCssFiles()]);
+		$this->sendJsonFragment($tournamentForm->render());
 	}
 
 	public function RelatedTournamentList(array $dataGet):void {
 		if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 			$tournamentData = json_decode(file_get_contents('php://input'), true);
 			if (json_last_error() !== JSON_ERROR_NONE || !$tournamentData) {
-				http_response_code(400);
-				echo json_encode(['error' => 'Missing Data or invalid JSON received']);
-				exit;
+				$this->sendJsonError('Missing Data or invalid JSON received', 400);
 			}
 		} else {
-			http_response_code(400);
-			echo '{"error": "TournamentData missing"}';
-			exit();
+			$this->sendJsonError('TournamentData missing', 400);
 		}
 
 		$tournamentButtonList = new RelatedTournamentButtonList($tournamentData);
 
-		echo json_encode(["html"=>$tournamentButtonList->render()]);
+		$this->sendJsonFragment($tournamentButtonList->render());
 	}
 
 	public function RankedSplitRows(): void {
@@ -81,7 +73,7 @@ class FragmentHandler {
 		foreach ($rankedSplits as $rankedSplit) {
 			$rankedSplitRows .= new RankedSplitRow($rankedSplit);
 		}
-		echo json_encode(["html"=>$rankedSplitRows]);
+		$this->sendJsonFragment($rankedSplitRows);
 	}
 
 	public function RankedSplitRow(array $dataGet): void {
@@ -89,44 +81,40 @@ class FragmentHandler {
 		$split = $this->intOrNull($dataGet['split']??null);
 		if ($season === null || $split === null) {
 			$rankedSplitRow = new RankedSplitRow();
-			echo json_encode(["html" => $rankedSplitRow->render()]);
+			$this->sendJsonFragment($rankedSplitRow->render());
 			return;
 		}
 
 		$rankedSplitRepo = new RankedSplitRepository();
 		$rankedSplit = $rankedSplitRepo->findBySeasonAndSplit($season, $split);
 		$rankedSplitRow = new RankedSplitRow($rankedSplit);
-		echo json_encode(["html" => $rankedSplitRow->render()]);
+		$this->sendJsonFragment($rankedSplitRow->render());
 	}
 
 	public function addPatchesRows(array $dataGet): void {
 		$type = $this->stringOrNull($dataGet['type'] ?? "new");
 		$patchView = new AddPatchesView(type: $type, onlyRows: true);
-		echo json_encode(["html" => $patchView->render()]);
+		$this->sendJsonFragment($patchView->render());
 	}
 	public function PatchesList(array $dataGet): void {
 		$patchesList = new PatchDataRows();
-		echo json_encode(["html" => $patchesList->render()]);
+		$this->sendJsonFragment($patchesList->render());
 	}
 
 	public function JobItem(array $dataGet): void {
 		$jobId = $this->intOrNull($dataGet['jobId'] ?? null);
 		if ($jobId === null) {
-			http_response_code(400);
-			echo json_encode(['error' => 'Missing jobId parameter']);
-			return;
+			$this->sendJsonError('Missing jobId parameter', 400);
 		}
 
 		$logViewer = new LogViewer();
 		$jobDetails = $logViewer->getJobDetails($jobId);
 
 		if ($jobDetails === null) {
-			http_response_code(404);
-			echo json_encode(['error' => 'Job not found']);
-			return;
+			$this->sendJsonError('Job not found', 404);
 		}
 
 		$jobItem = new JobItem($jobDetails);
-		echo json_encode(["html" => $jobItem->render()]);
+		$this->sendJsonFragment($jobItem->render());
 	}
 }
