@@ -176,3 +176,38 @@ $(document).on('click', 'button.reject-suggestion', function(){
             existingSuggestions.find('.content-loading-indicator').remove();
         });
 })
+
+$(document).on('click', 'button.revert-suggestions', async function () {
+    const matchupId = this.dataset.matchupId;
+    const suggestionsPopup = $(this).closest('dialog');
+    const matchPopup = suggestionsPopup.closest('dialog.match-popup');
+    const matchPopupContent = matchPopup.find('.dialog-content');
+
+    let loadingIndicator = suggestionsPopup.find('.content-loading-indicator');
+    if (loadingIndicator.length === 0) suggestionsPopup.append('<div class="content-loading-indicator"></div>');
+
+    await fetch(`/admin/api/suggestions/${matchupId}/revert`, {method: 'POST'})
+        .then(res => {
+            if (res.ok) {
+                return res.json()
+            } else {
+                return {"error": "Fehler beim Laden der Daten"};
+            }
+        })
+        .then(async response => {
+            if (response.error) {
+                alert(response.error);
+                suggestionsPopup.find('.content-loading-indicator').remove();
+                return;
+            }
+
+            await fragmentLoader(`match-popup?matchId=${matchupId}`)
+                .then(content => {
+                    matchPopupContent.empty().append(content);
+                })
+                .catch(e => console.error(e));
+            suggestionsPopup.find('.content-loading-indicator').remove();
+        })
+        .catch(e => console.error(e));
+    suggestionsPopup.find('.content-loading-indicator').remove();
+})
