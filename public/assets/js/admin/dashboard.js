@@ -1,3 +1,5 @@
+import {adminFragmentLoader} from "../fragmentLoader";
+
 // Maintenance Mode Toggle
 function toggle_maintenance_mode(turn_on = true) {
 	const confirmtext = turn_on ? "Wartungsmodus aktivieren?" : "Wartungsmodus deaktivieren?";
@@ -77,3 +79,128 @@ window.addEventListener('pageshow', function() {
 window.addEventListener('load', function() {
 	document.querySelectorAll('a.dashboard-card .content-loading-indicator').forEach(el => el.remove());
 });
+
+
+// Click on suggestion item to show details
+$(document).on('click', '.suggestion-item', async function() {
+	const matchupId = $(this).data('matchup-id');
+	const dialogContent = $(this).closest('.dialog-content');
+
+	// Add loading indicator
+	const loadingIndicator = $('<div class="content-loading-indicator"></div>');
+	dialogContent.append(loadingIndicator);
+
+	try {
+		const content = await adminFragmentLoader(`admin-suggestion-details?matchupId=${matchupId}`);
+		dialogContent.html(content);
+	} catch (error) {
+		console.error('Error loading suggestion details:', error);
+		loadingIndicator.remove();
+	}
+});
+
+// Back button to suggestions list
+$(document).on('click', '#back-to-suggestions-list', async function() {
+	const dialogContent = $(this).closest('.dialog-content');
+
+	const loadingIndicator = $('<div class="content-loading-indicator"></div>');
+	dialogContent.append(loadingIndicator);
+
+	try {
+		const content = await adminFragmentLoader('admin-suggestions-popup-content');
+		dialogContent.html(content);
+	} catch (error) {
+		console.error('Error loading suggestions list:', error);
+		loadingIndicator.remove();
+	}
+});
+
+// Accept suggestion in admin view
+$(document).on('click', 'button.accept-suggestion-admin', async function() {
+	const suggestionId = $(this).data('suggestion-id');
+	const matchupId = $(this).data('matchup-id');
+	const dialogContent = $(this).closest('.dialog-content');
+
+	const loadingIndicator = $('<div class="content-loading-indicator"></div>');
+	dialogContent.append(loadingIndicator);
+
+	try {
+		const response = await fetch(`/admin/api/suggestions/${suggestionId}/accept`, {method: 'POST'});
+
+		if (!response.ok) {
+			throw new Error('Fehler beim Akzeptieren des Vorschlags');
+		}
+
+		const result = await response.json();
+
+		if (result.error) {
+			alert(result.error);
+			loadingIndicator.remove();
+			return;
+		}
+
+		// Reload the details or go back to list
+		const content = await adminFragmentLoader(`admin-suggestion-details?matchupId=${matchupId}`);
+		dialogContent.html(content);
+		updateSuggestionCard();
+	} catch (error) {
+		console.error('Error accepting suggestion:', error);
+		alert('Fehler beim Akzeptieren des Vorschlags');
+		loadingIndicator.remove();
+	}
+});
+
+// Reject suggestion in admin view
+$(document).on('click', 'button.reject-suggestion-admin', async function() {
+	const suggestionId = $(this).data('suggestion-id');
+	const matchupId = $(this).data('matchup-id');
+	const dialogContent = $(this).closest('.dialog-content');
+
+	const loadingIndicator = $('<div class="content-loading-indicator"></div>');
+	dialogContent.append(loadingIndicator);
+
+	try {
+		const response = await fetch(`/admin/api/suggestions/${suggestionId}/reject`, {method: 'POST'});
+
+		if (!response.ok) {
+			throw new Error('Fehler beim Ablehnen des Vorschlags');
+		}
+
+		const result = await response.json();
+
+		if (result.error) {
+			alert(result.error);
+			loadingIndicator.remove();
+			return;
+		}
+
+		// Reload the details or go back to list
+		const content = await adminFragmentLoader(`admin-suggestion-details?matchupId=${matchupId}`);
+		dialogContent.html(content);
+		updateSuggestionCard();
+	} catch (error) {
+		console.error('Error rejecting suggestion:', error);
+		alert('Fehler beim Ablehnen des Vorschlags');
+		loadingIndicator.remove();
+	}
+});
+
+function updateSuggestionCard() {
+	fetch(`/admin/api/suggestions/amount`)
+		.then(res => {
+			if (res.ok) {
+				res.text().then(amount => {
+					const card = $('div.suggestions-card');
+					const stat = card.find('.card-stats .stat:first-child');
+					stat.find('.stat-value').text(amount);
+					if (amount === '0') {
+						card.removeClass('has-suggestions');
+						stat.removeClass('highlight');
+					} else {
+						card.addClass('has-suggestions');
+						stat.addClass('highlight');
+					}
+				})
+			}
+		})
+}

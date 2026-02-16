@@ -45,6 +45,6 @@ class MatchupChangeSuggestion {
 	}
 
 	public function getLinkToMatchup(): string {
-		return "/turnier/".$this->matchup->tournamentStage->getRootTournament()->id."/".$this->matchup->tournamentStage->getUrlKey()."/".$this->matchup->tournamentStage->id."?match=".$this->matchup->id;
+		return $this->matchup->getLink();
 	}
 }

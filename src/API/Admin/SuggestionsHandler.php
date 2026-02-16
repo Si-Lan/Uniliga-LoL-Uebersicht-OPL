@@ -3,6 +3,7 @@
 namespace App\API\Admin;
 
 use App\API\AbstractHandler;
+use App\Domain\Enums\SuggestionStatus;
 use App\Domain\Factories\MatchupChangeSuggestionFactory;
 use App\Domain\Repositories\MatchupChangeSuggestionRepository;
 use App\Domain\Repositories\MatchupRepository;
@@ -17,6 +18,11 @@ class SuggestionsHandler extends AbstractHandler {
 		$this->suggestionRepo = new MatchupChangeSuggestionRepository();
 		$this->suggestionService = new MatchupChangeSuggestionService();
 		$this->matchupRepo = new MatchupRepository();
+	}
+
+	public function getSuggestionsAmountAll(): void {
+		$suggestions = $this->suggestionRepo->findAllByStatus(SuggestionStatus::PENDING);
+		echo count($suggestions);
 	}
 
 	public function postSuggestionsAccept(int $suggestionId): void {

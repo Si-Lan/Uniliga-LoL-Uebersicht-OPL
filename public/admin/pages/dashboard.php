@@ -8,6 +8,7 @@ use App\Domain\Repositories\RankedSplitRepository;
 use App\Domain\Repositories\MatchupChangeSuggestionRepository;
 use App\Domain\Enums\Jobs\UpdateJobStatus;
 use App\Domain\Enums\SuggestionStatus;
+use App\UI\Components\Admin\Suggestions\AdminSuggestionsPopupContent;
 use App\UI\Components\Navigation\Header;
 use App\UI\Enums\HeaderType;
 use App\UI\Page\AssetManager;
@@ -144,7 +145,7 @@ $openSuggestions = $suggestionRepo->findAllByStatus(SuggestionStatus::PENDING);
         </div>
 
         <!-- Match Change Suggestions Card -->
-        <div role="button" tabindex="0" class="dashboard-card suggestions-card <?= count($openSuggestions) > 0 ? 'has-suggestions' : '' ?>" id="suggestions-card">
+        <div role="button" tabindex="0" data-dialog-id="admin-suggestions-dialog" class="dashboard-card suggestions-card <?= count($openSuggestions) > 0 ? 'has-suggestions' : '' ?>" id="suggestions-card">
             <div class="card-header">
                 <div class="card-icon"><?= IconRenderer::getMaterialIconDiv('edit_note')?></div>
                 <h2>Match-Änderungen</h2>
@@ -189,4 +190,5 @@ use App\UI\Components\Admin\RankedSplit\RankedSplitList;
 use App\UI\Components\Popups\Popup;
 
 echo new Popup("ranked-split-popup", content: new RankedSplitList());
+echo new Popup("admin-suggestions-dialog", noCloseButton: true, content: new AdminSuggestionsPopupContent($openSuggestions))
 ?>

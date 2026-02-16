@@ -83,4 +83,8 @@ class Matchup {
 	public function hasCustomChanges(): bool {
 		return $this->hasCustomScore || $this->hasCustomGames;
 	}
+
+	public function getLink(): string {
+		return "/turnier/".$this->tournamentStage->getRootTournament()->id."/".$this->tournamentStage->getUrlKey()."/".$this->tournamentStage->id."?match=".$this->id;
+	}
 }

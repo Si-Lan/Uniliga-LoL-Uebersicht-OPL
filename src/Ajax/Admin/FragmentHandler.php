@@ -4,12 +4,17 @@ namespace App\Ajax\Admin;
 
 use App\Ajax\AbstractFragmentHandler;
 use App\Core\Utilities\DataParsingHelpers;
+use App\Domain\Enums\SuggestionStatus;
+use App\Domain\Repositories\MatchupChangeSuggestionRepository;
+use App\Domain\Repositories\MatchupRepository;
 use App\Domain\Repositories\RankedSplitRepository;
 use App\Domain\Repositories\TournamentRepository;
 use App\UI\Components\Admin\PatchData\AddPatchesView;
 use App\UI\Components\Admin\PatchData\PatchDataRows;
 use App\UI\Components\Admin\RankedSplit\RankedSplitRow;
 use App\UI\Components\Admin\RelatedTournamentButtonList;
+use App\UI\Components\Admin\Suggestions\AdminSuggestionDetails;
+use App\UI\Components\Admin\Suggestions\AdminSuggestionsPopupContent;
 use App\UI\Components\Admin\TournamentEdit\TournamentEditForm;
 use App\UI\Components\Admin\TournamentEdit\TournamentEditList;
 use App\UI\Components\Admin\JobItem;
@@ -116,5 +121,29 @@ class FragmentHandler extends AbstractFragmentHandler{
 
 		$jobItem = new JobItem($jobDetails);
 		$this->sendJsonFragment($jobItem->render());
+	}
+
+	public function adminSuggestionsPopupContent(array $dataGet): void {
+		$matchupSuggestionRepo = new MatchupChangeSuggestionRepository();
+		$suggestions = $matchupSuggestionRepo->findAllByStatus(SuggestionStatus::PENDING);
+		$this->sendJsonFragment(new AdminSuggestionsPopupContent($suggestions));
+	}
+
+	public function adminSuggestionDetails(array $dataGet): void {
+		$matchupId = $this->stringOrNull($dataGet['matchupId'] ?? null);
+		if ($matchupId === null) {
+			$this->sendJsonError('missing matchupId', 400);
+		}
+
+		$matchupRepo = new MatchupRepository();
+		$matchup = $matchupRepo->findById($matchupId);
+		if (is_null($matchup)) {
+			$this->sendJsonError('Matchup not found', 404);
+		}
+
+		$matchupSuggestionRepo = new MatchupChangeSuggestionRepository();
+		$suggestions = $matchupSuggestionRepo->findAllByMatchupIdAndStatus($matchupId, SuggestionStatus::PENDING);
+
+		$this->sendJsonFragment(new AdminSuggestionDetails($matchup, $suggestions));
 	}
 }
