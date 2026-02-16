@@ -62,6 +62,7 @@ $nonRootDisableAttribute = $tournament->eventType === EventType::TOURNAMENT ? ''
 				</span>
 			</label>
             <?php endif; ?>
+            <label style="display: none" class="write_tournament_lastcronupdate"><input type="datetime-local" name="last_cron_update" value="<?=$tournament->lastCronUpdate?->format('Y-m-d H:i:s')?>"></label>
 		</div>
 		<div class="write_tournament_row wtrow-3">
 			<label class="write_tournament_show">Anzeigen:<input type="checkbox" name="deactivated" value="false" <?=$tournament->deactivated ? '' : 'checked'?>></label>

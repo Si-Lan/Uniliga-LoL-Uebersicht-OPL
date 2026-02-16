@@ -203,7 +203,7 @@ class Tournament {
 				}
 			}
 		}
-		if ($this->lastCronUpdate !== $tournament->lastCronUpdate) $diff['lastCronUpdate'] = $this->lastCronUpdate?->format('Y-m-d H:i:s');
+		if ($this->lastCronUpdate?->format('Y-m-d H:i:s') !== $tournament->lastCronUpdate?->format('Y-m-d H:i:s')) $diff['lastCronUpdate'] = $this->lastCronUpdate?->format('Y-m-d H:i:s');
 		return $diff;
 	}
 }
