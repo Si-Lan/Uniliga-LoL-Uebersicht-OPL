@@ -12,7 +12,10 @@ use App\UI\Components\Helpers\IconRenderer;
 use App\UI\Components\Matches\ChangeSuggestions\GameSuggestionDetails;
 
 ?>
-
+<?php if (UserContext::isLoggedIn()): ?>
+<button type="button" class="revert-suggestions" data-matchup-id="<?=$matchup->id?>" style="display: flex; flex-direction: row; align-items: center; gap: 4px"><?= IconRenderer::getMaterialIconSpan("restart") ?>Änderungen zurücksetzen</button>
+<div class="divider"></div>
+<?php endif; ?>
 <div><?= count($suggestions) ?: "keine" ?> <?= count($suggestions) === 1 ? "Vorschlag wartet":"Vorschläge warten"?> auf eine Bestätigung</div>
 <div class="existing-suggestions">
 <?php foreach ($suggestions as $suggestion): ?>

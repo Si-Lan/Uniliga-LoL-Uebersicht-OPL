@@ -73,7 +73,7 @@ class MatchupChangeSuggestionFactory extends AbstractFactory {
 			customTeam2Score: $this->stringOrNull($data['customTeam2Score']),
 			games: $games,
 			status: SuggestionStatus::tryFrom($data['status']??''),
-			createdAt: $this->DateTimeImmutableOrNull($data['createdAt']??''),
+			createdAt: $this->DateTimeImmutableOrNull($data['created_at']??''),
 			finishedAt: $this->DateTimeImmutableOrNull($data['finished_at']??'')
 		);
 	}

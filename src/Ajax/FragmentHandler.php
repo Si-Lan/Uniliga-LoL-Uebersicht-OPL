@@ -36,36 +36,21 @@ use App\UI\Components\Popups\MatchPopupContent;
 use App\UI\Components\Popups\TeamPopupContent;
 use App\UI\Components\Standings\StandingsTable;
 use App\UI\Enums\EloListView;
-use App\UI\Page\AssetManager;
 
-class FragmentHandler {
+class FragmentHandler extends AbstractFragmentHandler {
 	use DataParsingHelpers;
-	private function sendJsonFragment(string $html): void {
-		echo json_encode([
-			'html' => $html,
-			'js' => AssetManager::getJsModules(),
-			'css' => AssetManager::getCssFiles()
-		]);
-	}
-	private function sendJsonError(string $message, int $code): void {
-		http_response_code($code);
-		echo json_encode(['error'=>$message]);
-		exit;
-	}
 	public function standingsTable(array $dataGet): void {
 		$tournamentId = $this->IntOrNull($dataGet['tournamentId'] ?? null);
 		$teamId = $this->IntOrNull($dataGet['teamId'] ?? null);
 
 		if (is_null($tournamentId)) {
 			$this->sendJsonError('Missing tournamentId',400);
-			return;
 		}
 
 		$tournamentRepo = new TournamentRepository();
 		$tournament = $tournamentRepo->findStandingsEventById($tournamentId);
 		if (is_null($tournament)) {
 			$this->sendJsonError('Tournament not found',404);
-			return;
 		}
 
 		$teamRepo = new TeamRepository();
@@ -82,13 +67,11 @@ class FragmentHandler {
 
 		if (is_null($teamId)) {
 			$this->sendJsonError('Missing teamId',400);
-			return;
 		}
 		$teamRepo = new TeamRepository();
 		$team = $teamRepo->findById($teamId);
 		if (is_null($team)) {
 			$this->sendJsonError('Team not found',404);
-			return;
 		}
 
 		$tournamentRepo = new TournamentRepository();
@@ -133,14 +116,12 @@ class FragmentHandler {
 
 		if (is_null($matchupId)) {
 			$this->sendJsonError('Missing matchupId',400);
-			return;
 		}
 
 		$matchupRepo = new MatchupRepository();
 		$matchup = $matchupRepo->findById($matchupId);
 		if (is_null($matchup)) {
 			$this->sendJsonError('Matchup not found',404);
-			return;
 		}
 
 		$teamRepo = new TeamRepository();
@@ -155,14 +136,12 @@ class FragmentHandler {
 
 		if (is_null($tournamentId)) {
 			$this->sendJsonError('Missing tournamentId',400);
-			return;
 		}
 
 		$tournamentRepo = new TournamentRepository();
 		$tournamentStage = $tournamentRepo->findById($tournamentId);
 		if (is_null($tournamentStage)) {
 			$this->sendJsonError('Tournament not found',404);
-			return;
 		}
 
 		$teamInTournamentRepo = new TeamInTournamentRepository();
@@ -178,13 +157,11 @@ class FragmentHandler {
 
 		if (is_null($gameId)) {
 			$this->sendJsonError('Missing gameId',400);
-			return;
 		}
 		$gameRepo = new GameRepository();
 		$game = $gameRepo->findById($gameId);
 		if (is_null($game)) {
 			$this->sendJsonError('Game not found',404);
-			return;
 		}
 
 		$teamRepo = new TeamRepository();
@@ -196,7 +173,6 @@ class FragmentHandler {
 			$gameInMatch = $gameInMatchRepo->findByGameIdAndMatchupId($gameId, $matchupId);
 			if (is_null($gameInMatch)) {
 				$this->sendJsonError('GameInMatch not found for given matchupId',404);
-				return;
 			}
 		}
 
@@ -211,11 +187,9 @@ class FragmentHandler {
 
 		if (is_null($teamId)) {
 			$this->sendJsonError('Missing teamId',400);
-			return;
 		}
 		if (is_null($tournamentStageId)) {
 			$this->sendJsonError('Missing tournamentStageId',400);
-			return;
 		}
 
 		$tournamentRepo = new TournamentRepository();
@@ -232,13 +206,11 @@ class FragmentHandler {
 
 		if (is_null($playerId)) {
 			$this->sendJsonError('Missing playerId',400);
-			return;
 		}
 		$playerRepo = new PlayerRepository();
 		$player = $playerRepo->findById($playerId);
 		if (is_null($player)) {
 			$this->sendJsonError('Player not found',404);
-			return;
 		}
 
 		$this->sendJsonFragment(new PlayerOverview($player));
@@ -249,7 +221,6 @@ class FragmentHandler {
 
 		if (count($playerIds) == 0) {
 			$this->sendJsonError('no playerIds given',400);
-			return;
 		}
 
 		$playerRepo = new PlayerRepository();
@@ -271,7 +242,6 @@ class FragmentHandler {
 
 		if (is_null($searchString)) {
 			$this->sendJsonError('missing Search String',400);
-			return;
 		}
 
 		$playerRepo = new PlayerRepository();
@@ -292,18 +262,15 @@ class FragmentHandler {
 
 		if (is_null($tournamentId)) {
 			$this->sendJsonError('missing tournamentId',400);
-			return;
 		}
 		if (is_null($view)) {
 			$this->sendJsonError('missing view',400);
-			return;
 		}
 
 		$tournamentRepo = new TournamentRepository();
 		$tournament = $tournamentRepo->findById($tournamentId);
 		if (is_null($tournament)) {
 			$this->sendJsonError('Tournament not found',404);
-			return;
 		}
 
 		$this->sendJsonFragment(new EloLists($tournament,$view));
@@ -314,18 +281,15 @@ class FragmentHandler {
 		$tournamentId = $this->intOrNull($dataGet['tournamentId'] ?? null);
 		if (is_null($teamId)) {
 			$this->sendJsonError('missing teamId',400);
-			return;
 		}
 		if (is_null($tournamentId)) {
 			$this->sendJsonError('missing tournamentId',400);
-			return;
 		}
 
 		$teamInTournamentRepo = new TeamInTournamentRepository();
 		$teamInTournament = $teamInTournamentRepo->findByTeamIdAndTournamentId($teamId, $tournamentId);
 		if (is_null($teamInTournament)) {
 			$this->sendJsonError('Team not found',404);
-			return;
 		}
 
 		$this->sendJsonFragment(new TeamPopupContent($teamInTournament));
@@ -335,14 +299,12 @@ class FragmentHandler {
 		$teamId = $this->intOrNull($dataGet['teamId'] ?? null);
 		if (is_null($matchId)) {
 			$this->sendJsonError('missing matchId',400);
-			return;
 		}
 
 		$matchupRepo = new MatchupRepository();
 		$matchup = $matchupRepo->findById($matchId);
 		if (is_null($matchup)) {
 			$this->sendJsonError('Match not found',404);
-			return;
 		}
 		$teamRepo = new TeamRepository();
 		$team = $teamId ? $teamRepo->findById($teamId) : null;
@@ -356,14 +318,12 @@ class FragmentHandler {
 
 		if (is_null($tournamentId)) {
 			$this->sendJsonError('missing tournamentId',400);
-			return;
 		}
 
 		$tournamentRepo = new TournamentRepository();
 		$tournamentStage = $tournamentRepo->findStandingsEventById($tournamentId);
 		if (is_null($tournamentStage)) {
 			$this->sendJsonError('Tournament not found',404);
-			return;
 		}
 
 		$teamInTournamentRepo = new TeamInTournamentRepository();
@@ -387,11 +347,9 @@ class FragmentHandler {
 
 		if (is_null($matchupId)) {
 			$this->sendJsonError('missing matchupId',400);
-			return;
 		}
 		if (is_null($playerId)) {
 			$this->sendJsonError('missing playerId',400);
-			return;
 		}
 
 		$matchupRepo = new MatchupRepository();
@@ -407,7 +365,6 @@ class FragmentHandler {
 
 		if (!$apiResult->isSuccess()) {
 			$this->sendJsonError('Anfrage an Riot API fehlgeschlagen',500);
-			return;
 		}
 
 		$gameRepo = new GameRepository();
@@ -459,14 +416,12 @@ class FragmentHandler {
 		$matchupId = $this->stringOrNull($dataGet['matchupId'] ?? null);
 		if ($matchupId === null) {
 			$this->sendJsonError('missing matchupId',400);
-			return;
 		}
 
 		$matchupRepo = new MatchupRepository();
 		$matchup = $matchupRepo->findById($matchupId);
 		if (is_null($matchup)) {
 			$this->sendJsonError('Matchup not found',404);
-			return;
 		}
 
 		$this->sendJsonFragment(new AddSuggestionPopupContent($matchup));

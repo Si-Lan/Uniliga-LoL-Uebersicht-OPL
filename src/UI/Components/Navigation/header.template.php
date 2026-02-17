@@ -54,19 +54,18 @@ use App\UI\Components\Popups\Popup;
 	<button type='button' class='material-symbol settings-button'><?= IconRenderer::getMaterialIcon('tune')?></button>
 
     <div class='settings-menu'>
-        <a class='settings-option toggle-mode' href=''><?= IconRenderer::getMaterialIconDiv((UserContext::isLightMode()?'light':'dark').'_mode')?></a>
         <?php if (UserContext::isLoggedIn()): ?>
-            <a class='settings-option opl-write' href='/admin'>Admin<?= IconRenderer::getMaterialIconDiv('edit_square')?></a>
-            <a class='settings-option rgapi-write' href='/admin/rgapi'>RGAPI<?= IconRenderer::getMaterialIconDiv('videogame_asset')?></a>
-        	<a class='settings-option ddragon-write' href='/admin/ddragon'>DDragon<?= IconRenderer::getMaterialIconDiv('photo_library')?></a>
-    	    <a class='settings-option update-log' href='/admin/logs'>Update-Logs</a>
-        	<a class='settings-option logout' href='?logout'>Logout<?= IconRenderer::getMaterialIconDiv('logout')?></a>
-    <?php else: ?>
-	        <a class='settings-option github-link' href='https://github.com/Si-Lan/Uniliga-LoL-Uebersicht-OPL' target='_blank'>GitHub<?= IconRenderer::getGithubIconDiv()?></a>
-    	    <a class='settings-option' href='https://ko-fi.com/silencelol' target='_blank'>Spenden<?= IconRenderer::getMaterialIconDiv('payments')?></a>
-        	<a class='settings-option feedback' href=''>Feedback<?= IconRenderer::getMaterialIconDiv('mail')?></a>
-        	<a class='settings-option login' href='?login'>Login<?= IconRenderer::getMaterialIconDiv('login')?></a>
-    <?php endif; ?>
+            <a class='settings-option opl-write' style="border-bottom-width: 4px" href='/admin'>Admin<?= IconRenderer::getMaterialIconDiv('edit_square')?></a>
+        <?php endif; ?>
+        <a class='settings-option toggle-mode' href=''><?= IconRenderer::getMaterialIconDiv((UserContext::isLightMode()?'light':'dark').'_mode')?></a>
+        <a class='settings-option github-link' href='https://github.com/Si-Lan/Uniliga-LoL-Uebersicht-OPL' target='_blank'>GitHub<?= IconRenderer::getGithubIconDiv()?></a>
+    	<a class='settings-option' href='https://ko-fi.com/silencelol' target='_blank'>Spenden<?= IconRenderer::getMaterialIconDiv('payments')?></a>
+        <a class='settings-option feedback' href=''>Feedback<?= IconRenderer::getMaterialIconDiv('mail')?></a>
+        <?php if (UserContext::isLoggedIn()): ?>
+            <a class='settings-option logout' href='?logout'>Logout<?= IconRenderer::getMaterialIconDiv('logout')?></a>
+        <?php else: ?>
+            <a class='settings-option login' href='?login'>Login<?= IconRenderer::getMaterialIconDiv('login')?></a>
+        <?php endif; ?>
     </div>
 </header>
 

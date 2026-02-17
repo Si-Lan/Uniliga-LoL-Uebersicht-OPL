@@ -5,6 +5,7 @@
 	--text: #d5dfe2;
 	--text-sec: #8aaeb2;
 	--accent: #375765;
+	--accent-sec: #487e95;
 	--element-bg-sec: #1f232a;
 	--match-win-green: #19a300;
 	--match-loss-red: #d50000;
@@ -20,6 +21,7 @@ body.light {
 	--text: #242829;
 	--text-sec: #4c595b;
 	--accent: #487e95;
+	--accent-sec: #243b4a;
 	--element-bg-sec: #ced7e7;
 	--match-win-green: #19a300;
 	--match-loss-red: #d50000;
@@ -3291,9 +3293,6 @@ body.admin main {
 	margin: auto auto 20px;
 }
 body.admin {
-	text-align: center;
-}
-body.admin {
     h2 {
         font-size: 1.8em;
     }
@@ -3920,14 +3919,12 @@ button.button-updating::before {
 
 
 /*rgapi*/
-.deprecated-admin-btn {
-	color: #ff6161;
-}
 body.admin div.writing-wrapper {
 	display: flex;
 	flex-direction: column;
 	gap: 8px;
 	align-items: stretch;
+	text-align: center;
 	& button.write {
 		width: 101%;
 	}
@@ -3947,6 +3944,7 @@ body.admin div.writing-wrapper.hidden {
 	display: flex;
 	flex-direction: column;
 	gap: 16px;
+	text-align: center;
 }
 .patch-header,
 .patch-row {

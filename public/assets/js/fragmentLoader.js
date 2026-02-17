@@ -1,9 +1,15 @@
 export default async function fragmentLoader(fragment, signal = null, onError = null, warnOnlyOnError = false){
+	return await internalFragmentLoader(`/ajax/fragment/${fragment}`, signal, onError, warnOnlyOnError);
+}
+export async function adminFragmentLoader(fragment, signal = null, onError = null, warnOnlyOnError = false){
+	return await internalFragmentLoader(`/admin/ajax/fragment/${fragment}`, signal, onError, warnOnlyOnError);
+}
+async function internalFragmentLoader(fragmentUrl, signal = null, onError = null, warnOnlyOnError = false){
 	let requestInit = {method: "GET"}
 	if (signal !== null) {
 		requestInit.signal = signal;
 	}
-	return fetch(`/ajax/fragment/${fragment}`, requestInit)
+	return fetch(fragmentUrl, requestInit)
 		.then(res => {
 			if (res.ok) {
 				return res.json()

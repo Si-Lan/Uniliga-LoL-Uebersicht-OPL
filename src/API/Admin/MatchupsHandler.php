@@ -29,4 +29,9 @@ class MatchupsHandler extends AbstractHandler {
 
 		echo json_encode($result);
 	}
+
+	public function getMatchupsChangedAmountAll(): void {
+		$matchups = $this->matchupRepo->findAllWithCustomChanges();
+		echo count($matchups);
+	}
 }

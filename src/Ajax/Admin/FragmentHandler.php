@@ -2,31 +2,36 @@
 
 namespace App\Ajax\Admin;
 
+use App\Ajax\AbstractFragmentHandler;
 use App\Core\Utilities\DataParsingHelpers;
+use App\Domain\Enums\SuggestionStatus;
+use App\Domain\Repositories\MatchupChangeSuggestionRepository;
+use App\Domain\Repositories\MatchupRepository;
 use App\Domain\Repositories\RankedSplitRepository;
 use App\Domain\Repositories\TournamentRepository;
 use App\UI\Components\Admin\PatchData\AddPatchesView;
 use App\UI\Components\Admin\PatchData\PatchDataRows;
 use App\UI\Components\Admin\RankedSplit\RankedSplitRow;
 use App\UI\Components\Admin\RelatedTournamentButtonList;
+use App\UI\Components\Admin\Suggestions\AdminSuggestionDetails;
+use App\UI\Components\Admin\Suggestions\AdminSuggestionsPopupContent;
 use App\UI\Components\Admin\TournamentEdit\TournamentEditForm;
 use App\UI\Components\Admin\TournamentEdit\TournamentEditList;
-use App\UI\Page\AssetManager;
+use App\UI\Components\Admin\JobItem;
+use App\Service\LogViewer;
 
-class FragmentHandler {
+class FragmentHandler extends AbstractFragmentHandler{
 	use DataParsingHelpers;
 	public function TournamentEditList(array $dataGet):void {
 		$openAccordeons = [];
 		if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 			$openAccordeons = json_decode(file_get_contents('php://input'), true);
 			if (json_last_error() !== JSON_ERROR_NONE || !$openAccordeons) {
-				http_response_code(400);
-				echo json_encode(['error' => 'Missing Data on POST or invalid JSON received']);
-				exit;
+				$this->sendJsonError('Missing Data on POST or invalid JSON received', 400);
 			}
 		}
 		$tournamentEditList = new TournamentEditList($openAccordeons);
-		echo json_encode(["html"=>$tournamentEditList->render()]);
+		$this->sendJsonFragment($tournamentEditList->render());
 	}
 	public function TournamentEditForm(array $dataGet):void {
 		$tournamentRepo = new TournamentRepository();
@@ -43,33 +48,27 @@ class FragmentHandler {
 			$tournament = $tournamentRepo->findById($dataGet['tournamentId']);
 			$newTournament = false;
 		} else {
-			http_response_code(400);
-			echo '{"error": "TournamentId or TournamentData missing"}';
-			exit();
+			$this->sendJsonError('TournamentId or TournamentData missing', 400);
 		}
 
 		$tournamentForm = new TournamentEditForm($tournament,$newTournament, $parentIds, $childrenIds);
 
-		echo json_encode(["html"=>$tournamentForm->render(), "js"=>AssetManager::getJsFiles(), "css"=>AssetManager::getCssFiles()]);
+		$this->sendJsonFragment($tournamentForm->render());
 	}
 
 	public function RelatedTournamentList(array $dataGet):void {
 		if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 			$tournamentData = json_decode(file_get_contents('php://input'), true);
 			if (json_last_error() !== JSON_ERROR_NONE || !$tournamentData) {
-				http_response_code(400);
-				echo json_encode(['error' => 'Missing Data or invalid JSON received']);
-				exit;
+				$this->sendJsonError('Missing Data or invalid JSON received', 400);
 			}
 		} else {
-			http_response_code(400);
-			echo '{"error": "TournamentData missing"}';
-			exit();
+			$this->sendJsonError('TournamentData missing', 400);
 		}
 
 		$tournamentButtonList = new RelatedTournamentButtonList($tournamentData);
 
-		echo json_encode(["html"=>$tournamentButtonList->render()]);
+		$this->sendJsonFragment($tournamentButtonList->render());
 	}
 
 	public function RankedSplitRows(): void {
@@ -79,7 +78,7 @@ class FragmentHandler {
 		foreach ($rankedSplits as $rankedSplit) {
 			$rankedSplitRows .= new RankedSplitRow($rankedSplit);
 		}
-		echo json_encode(["html"=>$rankedSplitRows]);
+		$this->sendJsonFragment($rankedSplitRows);
 	}
 
 	public function RankedSplitRow(array $dataGet): void {
@@ -87,23 +86,73 @@ class FragmentHandler {
 		$split = $this->intOrNull($dataGet['split']??null);
 		if ($season === null || $split === null) {
 			$rankedSplitRow = new RankedSplitRow();
-			echo json_encode(["html" => $rankedSplitRow->render()]);
+			$this->sendJsonFragment($rankedSplitRow->render());
 			return;
 		}
 
 		$rankedSplitRepo = new RankedSplitRepository();
 		$rankedSplit = $rankedSplitRepo->findBySeasonAndSplit($season, $split);
 		$rankedSplitRow = new RankedSplitRow($rankedSplit);
-		echo json_encode(["html" => $rankedSplitRow->render()]);
+		$this->sendJsonFragment($rankedSplitRow->render());
 	}
 
 	public function addPatchesRows(array $dataGet): void {
 		$type = $this->stringOrNull($dataGet['type'] ?? "new");
 		$patchView = new AddPatchesView(type: $type, onlyRows: true);
-		echo json_encode(["html" => $patchView->render()]);
+		$this->sendJsonFragment($patchView->render());
 	}
 	public function PatchesList(array $dataGet): void {
 		$patchesList = new PatchDataRows();
-		echo json_encode(["html" => $patchesList->render()]);
+		$this->sendJsonFragment($patchesList->render());
+	}
+
+	public function JobItem(array $dataGet): void {
+		$jobId = $this->intOrNull($dataGet['jobId'] ?? null);
+		if ($jobId === null) {
+			$this->sendJsonError('Missing jobId parameter', 400);
+		}
+
+		$logViewer = new LogViewer();
+		$jobDetails = $logViewer->getJobDetails($jobId);
+
+		if ($jobDetails === null) {
+			$this->sendJsonError('Job not found', 404);
+		}
+
+		$jobItem = new JobItem($jobDetails);
+		$this->sendJsonFragment($jobItem->render());
+	}
+
+	public function adminSuggestionsPopupContent(array $dataGet): void {
+		$matchupSuggestionRepo = new MatchupChangeSuggestionRepository();
+		$matchupRepo = new MatchupRepository();
+
+		$suggestions = $matchupSuggestionRepo->findAllByStatus(SuggestionStatus::PENDING);
+		$changedMatchups = $matchupRepo->findAllWithCustomChanges();
+
+		$openTab = $dataGet['openTab'] ?? 'suggestions';
+		$this->sendJsonFragment(new AdminSuggestionsPopupContent($suggestions, $changedMatchups, $openTab));
+	}
+
+	public function adminSuggestionDetails(array $dataGet): void {
+		$matchupId = $this->stringOrNull($dataGet['matchupId'] ?? null);
+		if ($matchupId === null) {
+			$this->sendJsonError('missing matchupId', 400);
+		}
+
+		$matchupRepo = new MatchupRepository();
+		$matchup = $matchupRepo->findById($matchupId);
+		if (is_null($matchup)) {
+			$this->sendJsonError('Matchup not found', 404);
+		}
+
+		$matchupSuggestionRepo = new MatchupChangeSuggestionRepository();
+		if (isset($dataGet['oplCompare']) && $dataGet['oplCompare'] === 'true') {
+			$suggestions = null;
+		} else {
+			$suggestions = $matchupSuggestionRepo->findAllByMatchupIdAndStatus($matchupId, SuggestionStatus::PENDING);
+		}
+
+		$this->sendJsonFragment(new AdminSuggestionDetails($matchup, $suggestions));
 	}
 }

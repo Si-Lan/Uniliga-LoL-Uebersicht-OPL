@@ -22,10 +22,11 @@ $routes = [
 	'spieler/{player}' => BASE_PATH.'/public/pages/player-details.php',
 ];
 $adminRoutes = [
-	'admin' => BASE_PATH.'/public/admin/pages/admin.php',
+	'admin/opl' => BASE_PATH.'/public/admin/pages/opl-updates.php',
 	'admin/rgapi' => BASE_PATH.'/public/admin/pages/rgapi.php',
 	'admin/ddragon' => BASE_PATH.'/public/admin/pages/ddragon-updates.php',
 	'admin/logs' => BASE_PATH.'/public/admin/pages/logs.php',
+	'admin' => BASE_PATH.'/public/admin/pages/dashboard.php',
 ];
 
 

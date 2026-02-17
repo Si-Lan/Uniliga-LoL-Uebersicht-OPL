@@ -124,6 +124,7 @@ function writeTournamentFromForm(button) {
 	data.finished = wrapper.find(`input[name=finished]`).prop("checked") ? 1 : 0;
 	data.deactivated = wrapper.find(`input[name=deactivated]`).prop("checked") ? 0 : 1;
 	data.archived = wrapper.find(`input[name=archived]`).prop("checked") ? 1 : 0;
+	data.last_cron_update = wrapper.find(`input[name=last_cron_update]`).val();
 	data.ranked_splits = [];
 
 	const selectedSplitElements = wrapper.find(`label.write_tournament_ranked_splits .multi-select-options label>input:checked`);

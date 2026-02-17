@@ -134,7 +134,7 @@ class UpdateJobRepository extends AbstractRepository {
 	 * @param int|null $tournamentId
 	 * @return array<UpdateJob>
 	 */
-	public function findAll(?UpdateJobType $type = null, ?UpdateJobAction $action = null, ?UpdateJobStatus $status = null, ?UpdateJobContextType $contextType = null, ?int $contextId = null, ?string $contextName = null, ?int $tournamentId = null): array {
+	public function findAll(?UpdateJobType $type = null, ?UpdateJobAction $action = null, ?UpdateJobStatus $status = null, ?UpdateJobContextType $contextType = null, ?int $contextId = null, ?string $contextName = null, ?int $tournamentId = null, ?int $limit = null): array {
 		/** @noinspection SqlConstantExpression */
 		$query = 'SELECT * FROM update_jobs WHERE 1 = 1';
 		$params = [];
@@ -167,6 +167,10 @@ class UpdateJobRepository extends AbstractRepository {
 			$params[] = $tournamentId;
 		}
 		$query .= ' ORDER BY id DESC';
+		if ($limit !== null) {
+			$query .= ' LIMIT ?';
+			$params[] = $limit;
+		}
 
 		$result = $this->dbcn->execute_query($query, $params);
 		$data = $result->fetch_all(MYSQLI_ASSOC);
@@ -190,6 +194,38 @@ class UpdateJobRepository extends AbstractRepository {
 	public function findOldJobsWithMessage(): array	 {
 		$query = 'SELECT * FROM update_jobs WHERE message IS NOT NULL AND updated_at < NOW() - INTERVAL 14 DAY';
 		$result = $this->dbcn->execute_query($query);
+		$data = $result->fetch_all(MYSQLI_ASSOC);
+		$jobs = [];
+		foreach ($data as $jobData) {
+			$jobs[] = $this->mapToEntity($jobData);
+		}
+		return $jobs;
+	}
+
+	/**
+	 * Finde alle Jobs, die seit einem bestimmten Zeitpunkt gestartet wurden
+	 * @param \DateTimeInterface $since
+	 * @return array<UpdateJob>
+	 */
+	public function findStartedSince(\DateTimeInterface $since): array {
+		$query = 'SELECT * FROM update_jobs WHERE started_at >= ? ORDER BY started_at';
+		$result = $this->dbcn->execute_query($query, [$since->format('Y-m-d H:i:s')]);
+		$data = $result->fetch_all(MYSQLI_ASSOC);
+		$jobs = [];
+		foreach ($data as $jobData) {
+			$jobs[] = $this->mapToEntity($jobData);
+		}
+		return $jobs;
+	}
+
+	/**
+	 * Finde alle Jobs, die seit einem bestimmten Zeitpunkt aktualisiert wurden
+	 * @param \DateTimeInterface $since
+	 * @return array<UpdateJob>
+	 */
+	public function findUpdatedSince(\DateTimeInterface $since): array {
+		$query = 'SELECT * FROM update_jobs WHERE updated_at > ? ORDER BY updated_at';
+		$result = $this->dbcn->execute_query($query, [$since->format('Y-m-d H:i:s')]);
 		$data = $result->fetch_all(MYSQLI_ASSOC);
 		$jobs = [];
 		foreach ($data as $jobData) {
