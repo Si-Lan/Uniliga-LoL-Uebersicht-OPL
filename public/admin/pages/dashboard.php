@@ -1,6 +1,7 @@
 <?php
 
 use App\Core\Utilities\UserContext;
+use App\Domain\Repositories\MatchupRepository;
 use App\Domain\Repositories\UpdateJobRepository;
 use App\Domain\Repositories\PatchRepository;
 use App\Domain\Repositories\TournamentRepository;
@@ -26,6 +27,7 @@ $patchRepo = new PatchRepository();
 $tournamentRepo = new TournamentRepository();
 $rankedSplitRepo = new RankedSplitRepository();
 $suggestionRepo = new MatchupChangeSuggestionRepository();
+$matchupRepo = new MatchupRepository();
 
 $runningJobs = $jobRepo->findAll(status: UpdateJobStatus::RUNNING);
 $recentFailedJobs = $jobRepo->findAll(status: UpdateJobStatus::ERROR, limit: 5);
@@ -40,6 +42,7 @@ $runningTournaments = array_filter($allTournaments, fn($t) => $t->isRunning());
 $activeTournaments = array_filter($allTournaments, fn($t) => !$t->archived);
 $allSplits = $rankedSplitRepo->findAll();
 $openSuggestions = $suggestionRepo->findAllByStatus(SuggestionStatus::PENDING);
+$changedMatchups = $matchupRepo->findAllWithCustomChanges();
 ?>
 
 <main class="admin-dashboard">
@@ -151,17 +154,14 @@ $openSuggestions = $suggestionRepo->findAllByStatus(SuggestionStatus::PENDING);
                 <h2>Match-Änderungen</h2>
             </div>
             <div class="card-stats">
-                <?php if (count($openSuggestions) > 0): ?>
-                <div class="stat highlight">
+                <div class="stat<?=count($openSuggestions) > 0 ? ' highlight' : ''?>">
                     <span class="stat-value"><?= count($openSuggestions) ?></span>
                     <span class="stat-label">Offene Vorschläge</span>
                 </div>
-                <?php else: ?>
-                <div class="stat">
-                    <span class="stat-value">0</span>
-                    <span class="stat-label">Offene Vorschläge</span>
+                <div class="stat secondary">
+                    <span class="stat-value"><?= count($changedMatchups) ?></span>
+                    <span class="stat-label">geänderte Spiele</span>
                 </div>
-                <?php endif; ?>
             </div>
         </div>
 
@@ -190,5 +190,5 @@ use App\UI\Components\Admin\RankedSplit\RankedSplitList;
 use App\UI\Components\Popups\Popup;
 
 echo new Popup("ranked-split-popup", content: new RankedSplitList());
-echo new Popup("admin-suggestions-dialog", noCloseButton: true, content: new AdminSuggestionsPopupContent($openSuggestions))
+echo new Popup("admin-suggestions-dialog", noCloseButton: true, content: new AdminSuggestionsPopupContent($openSuggestions, $changedMatchups))
 ?>

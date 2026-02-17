@@ -125,8 +125,13 @@ class FragmentHandler extends AbstractFragmentHandler{
 
 	public function adminSuggestionsPopupContent(array $dataGet): void {
 		$matchupSuggestionRepo = new MatchupChangeSuggestionRepository();
+		$matchupRepo = new MatchupRepository();
+
 		$suggestions = $matchupSuggestionRepo->findAllByStatus(SuggestionStatus::PENDING);
-		$this->sendJsonFragment(new AdminSuggestionsPopupContent($suggestions));
+		$changedMatchups = $matchupRepo->findAllWithCustomChanges();
+
+		$openTab = $dataGet['openTab'] ?? 'suggestions';
+		$this->sendJsonFragment(new AdminSuggestionsPopupContent($suggestions, $changedMatchups, $openTab));
 	}
 
 	public function adminSuggestionDetails(array $dataGet): void {
@@ -142,7 +147,11 @@ class FragmentHandler extends AbstractFragmentHandler{
 		}
 
 		$matchupSuggestionRepo = new MatchupChangeSuggestionRepository();
-		$suggestions = $matchupSuggestionRepo->findAllByMatchupIdAndStatus($matchupId, SuggestionStatus::PENDING);
+		if (isset($dataGet['oplCompare']) && $dataGet['oplCompare'] === 'true') {
+			$suggestions = null;
+		} else {
+			$suggestions = $matchupSuggestionRepo->findAllByMatchupIdAndStatus($matchupId, SuggestionStatus::PENDING);
+		}
 
 		$this->sendJsonFragment(new AdminSuggestionDetails($matchup, $suggestions));
 	}

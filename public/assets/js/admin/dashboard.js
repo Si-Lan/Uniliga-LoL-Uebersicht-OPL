@@ -85,13 +85,14 @@ window.addEventListener('load', function() {
 $(document).on('click', '.suggestion-item', async function() {
 	const matchupId = $(this).data('matchup-id');
 	const dialogContent = $(this).closest('.dialog-content');
+	const queryAddition = $(this).hasClass('accepted') ? '&oplCompare=true' : '';
 
 	// Add loading indicator
 	const loadingIndicator = $('<div class="content-loading-indicator"></div>');
 	dialogContent.append(loadingIndicator);
 
 	try {
-		const content = await adminFragmentLoader(`admin-suggestion-details?matchupId=${matchupId}`);
+		const content = await adminFragmentLoader(`admin-suggestion-details?matchupId=${matchupId}${queryAddition}`);
 		dialogContent.html(content);
 	} catch (error) {
 		console.error('Error loading suggestion details:', error);
@@ -102,12 +103,13 @@ $(document).on('click', '.suggestion-item', async function() {
 // Back button to suggestions list
 $(document).on('click', '#back-to-suggestions-list', async function() {
 	const dialogContent = $(this).closest('.dialog-content');
+	const toList = $(this).data('to');
 
 	const loadingIndicator = $('<div class="content-loading-indicator"></div>');
 	dialogContent.append(loadingIndicator);
 
 	try {
-		const content = await adminFragmentLoader('admin-suggestions-popup-content');
+		const content = await adminFragmentLoader(`admin-suggestions-popup-content?openTab=${toList}`);
 		dialogContent.html(content);
 	} catch (error) {
 		console.error('Error loading suggestions list:', error);
@@ -203,4 +205,65 @@ function updateSuggestionCard() {
 				})
 			}
 		})
+	fetch(`/admin/api/matchups/changed/amount`)
+		.then(res => {
+			if (res.ok) {
+				res.text().then(amount => {
+					const card = $('div.suggestions-card');
+					const stat = card.find('.card-stats .stat:nth-child(2)');
+					stat.find('.stat-value').text(amount);
+				})
+			}
+		})
 }
+
+// Tab-Navigation für Suggestions-Popup
+$(document).on('click', '.suggestions-tab-btn', function() {
+	const tab = $(this).data('tab');
+	const popup = $(this).closest('.admin-suggestions-list');
+
+	// Update active tab button
+	popup.find('.suggestions-tab-btn').removeClass('active');
+	$(this).addClass('active');
+
+	// Update active tab content
+	popup.find('.suggestions-tab-content').removeClass('active');
+	popup.find(`.suggestions-tab-content[data-tab-content="${tab}"]`).addClass('active');
+});
+
+$(document).on('click', 'button.revert-matchup-admin', async function() {
+	const matchupId = $(this).data('matchup-id');
+	const dialogContent = $(this).closest('.dialog-content');
+
+	const cont = confirm('Matchup wirklich zurücksetzen?');
+	if (!cont) return;
+
+	const loadingIndicator = $('<div class="content-loading-indicator"></div>');
+	dialogContent.append(loadingIndicator);
+
+	try {
+		const response = await fetch(`/admin/api/suggestions/${matchupId}/revert`, {method: 'POST'});
+
+		if (!response.ok) {
+			console.error('Error reverting matchup:', response);
+			dialogContent.find('.content-loading-indicator').remove();
+			return;
+		}
+
+		const result = await response.json();
+
+		if (result.error) {
+			alert(result.error);
+			dialogContent.find('.content-loading-indicator').remove();
+			return;
+		}
+
+		const content = await adminFragmentLoader(`admin-suggestion-details?matchupId=${matchupId}`);
+		dialogContent.html(content);
+		updateSuggestionCard();
+	} catch (error) {
+		console.error('Error reverting matchup:', error);
+		alert('Fehler beim zurücksetzen des Spiels');
+		dialogContent.find('.content-loading-indicator').remove();
+	}
+})

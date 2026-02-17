@@ -12,7 +12,7 @@ class AdminSuggestionDetails {
 	 */
 	public function __construct(
 		private Matchup $matchup,
-		private array $suggestions
+		private ?array $suggestions = null
 	) {}
 
 	public function render(): string {

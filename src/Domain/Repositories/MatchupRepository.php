@@ -121,6 +121,11 @@ class MatchupRepository extends AbstractRepository {
 		return $this->findAllInternalByQuery($query, $queryParams);
 	}
 
+	public function findAllWithCustomChanges(): array {
+		$query = "SELECT * FROM matchups WHERE has_custom_games = 1 OR has_custom_score = 1";
+		return $this->findAllInternalByQuery($query, []);
+	}
+
 	public function matchupExists(int $matchupId): bool {
 		$query = "SELECT * FROM matchups WHERE OPL_ID = ?";
 		$result = $this->dbcn->execute_query($query,[$matchupId]);

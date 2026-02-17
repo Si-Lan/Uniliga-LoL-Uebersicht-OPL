@@ -1,6 +1,6 @@
 <?php
 /** @var \App\Domain\Entities\Matchup $matchup */
-/** @var array<\App\Domain\Entities\MatchupChangeSuggestion> $suggestions */
+/** @var array<\App\Domain\Entities\MatchupChangeSuggestion>|null $suggestions */
 
 use App\Domain\Repositories\GameInMatchRepository;
 use App\UI\Components\Helpers\IconRenderer;
@@ -9,11 +9,12 @@ use App\UI\Components\UI\PageLink;
 
 $gameInMatchRepo = new GameInMatchRepository();
 $currentGames = $gameInMatchRepo->findAllActiveByMatchup($matchup);
+$originalGames = $gameInMatchRepo->findAllOplByMatchup($matchup);
 ?>
 
 <div class="admin-suggestion-details">
     <div class="details-header">
-        <button class="back-button" id="back-to-suggestions-list">
+        <button class="back-button" id="back-to-suggestions-list" data-to="<?= $suggestions===null ? 'matchups' : 'suggestions'?>">
             <?= IconRenderer::getMaterialIconSpan('chevron_left') ?>
             Zurück zur Liste
         </button>
@@ -65,6 +66,7 @@ $currentGames = $gameInMatchRepo->findAllActiveByMatchup($matchup);
             </div>
         </div>
 
+        <?php if ($suggestions !== null): ?>
         <!-- Vorgeschlagene Änderungen -->
         <div class="suggested-data">
             <?php foreach ($suggestions as $index => $suggestion): ?>
@@ -131,6 +133,43 @@ $currentGames = $gameInMatchRepo->findAllActiveByMatchup($matchup);
                 <?php endif; ?>
             <?php endforeach; ?>
         </div>
+        <?php else: ?>
+            <!-- Aktuelle OPL-Daten -->
+            <div class="current-data">
+                <h4><?= IconRenderer::getMaterialIconSpan('sports_esports') ?> Original von OPL</h4>
+
+                <?php if ($matchup->played): ?>
+                    <div class="score-display current">
+                        <span class="score-label">Ergebnis:</span>
+                        <span class="score"><?= $matchup->team1Score ?>:<?= $matchup->team2Score ?></span>
+                    </div>
+                <?php else: ?>
+                    <div class="not-played-message">
+                        <?= IconRenderer::getMaterialIconSpan('warning') ?>
+                        <span>Match noch nicht gespielt</span>
+                    </div>
+                <?php endif; ?>
+
+                <div class="games-section">
+                    <h5>Eingetragene Spiele (<?= count($currentGames) ?>)</h5>
+                    <?php if (empty($originalGames)): ?>
+                        <div class="no-games-message">Keine Spiele eingetragen</div>
+                    <?php else: ?>
+                        <div class="games-list current">
+                            <?php foreach ($originalGames as $gameInMatch): ?>
+                                <?= new GameSuggestionDetails($gameInMatch, selectable: false) ?>
+                            <?php endforeach; ?>
+                        </div>
+                    <?php endif; ?>
+                </div>
+                <div class="suggestion-actions">
+                    <button class="revert-matchup-admin" data-matchup-id="<?= $matchup->id ?>">
+                        <?= IconRenderer::getMaterialIconSpan('restart') ?>
+                        Matchup zurücksetzen
+                    </button>
+                </div>
+            </div>
+        <?php endif; ?>
     </div>
 </div>
 

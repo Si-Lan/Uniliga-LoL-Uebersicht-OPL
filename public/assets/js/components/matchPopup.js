@@ -183,6 +183,9 @@ $(document).on('click', 'button.revert-suggestions', async function () {
     const matchPopup = suggestionsPopup.closest('dialog.match-popup');
     const matchPopupContent = matchPopup.find('.dialog-content');
 
+    const cont = confirm('Matchup wirklich zurücksetzen?');
+    if (!cont) return;
+
     let loadingIndicator = suggestionsPopup.find('.content-loading-indicator');
     if (loadingIndicator.length === 0) suggestionsPopup.append('<div class="content-loading-indicator"></div>');
 
