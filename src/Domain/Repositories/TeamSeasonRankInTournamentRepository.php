@@ -123,6 +123,9 @@ class TeamSeasonRankInTournamentRepository extends AbstractRepository {
 	 * @return array<int, TeamSeasonRankInTournament>
 	 */
 	public function getIndexedSeasonRanksForTournamentByTeams(Tournament $tournament, array $teams): array {
+		if (count($teams) == 0) {
+			return [];
+		}
 		$query = '
 				SELECT *
 				FROM teams_season_rank_in_tournament
