@@ -11,7 +11,8 @@ use App\UI\Components\Popups\Popup;
 use App\UI\Components\UI\PageLink;
 use App\UI\Components\UpdateButton;
 
-$changePopup = new Popup(
+$matchupTBD = $matchup->team1 === null || $matchup->team2 === null;
+$changePopup = $matchupTBD ? null : new Popup(
         "match_change_popup_{$matchup->id}",
         uniqueId: true,
         content: new AddSuggestionPopupContent($matchup)
@@ -21,7 +22,7 @@ $changePopup = new Popup(
 <?= new PageLink("https://www.opleague.pro/match/$matchup->id","In OPL öffnen", linkIcon: "open_in_new", newTab: true)?>
 <div class="divider" style="max-width: 240px; margin-bottom: 8px"></div>
 <div class="mh-popup-buttons">
-    <?php if ($matchup->played): ?>
+    <?php if ($matchup->played && !$matchupTBD): ?>
     <div style="display: flex;flex-direction: column; align-items: center;:">
         <button class="suggest-match-changes" data-dialog-id="<?=$changePopup->getId()?>" data-team-id="<?=$team?->id?>" type="button" style="display: flex;flex-direction: row; align-items: center; gap: 8px"><?= IconRenderer::getMaterialIconSpan("edit_square")?><span>Änderungen vorschlagen</span></button>
         <?php if ($matchup->hasCustomChanges()): ?>
