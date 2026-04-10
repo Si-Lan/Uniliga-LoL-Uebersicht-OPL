@@ -15,7 +15,9 @@ $tournamentRepo = new TournamentRepository();
 
 $tournament = $tournamentRepo->findById($_GET["tournament"]);
 $leagues = $tournamentRepo->findAllByRootTournamentAndType($tournament, EventType::LEAGUE);
+$leagues = array_values(array_filter($leagues, function($league) {return !$league->deactivated;}));
 $wildcards = $tournamentRepo->findAllByRootTournamentAndType($tournament, EventType::WILDCARD);
+$wildcards = array_values(array_filter($wildcards, function($wildcard) {return !$wildcard->deactivated;}));
 
 $pageMeta = new PageMeta("Elo-Übersicht - {$tournament->getShortName()}", bodyClass: 'elo-overview');
 AssetManager::addCssAsset('elo-rank-colors.css');
