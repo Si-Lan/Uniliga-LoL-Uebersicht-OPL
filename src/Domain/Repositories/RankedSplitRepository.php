@@ -95,7 +95,7 @@ class RankedSplitRepository extends AbstractRepository {
 		$firstSplit = $this->findFirstSplitForTournament($tournament);
 		$nextSplit = $this->findNextSplit($firstSplit);
 
-		if (($tournament->dateEnd == null) || $nextSplit->dateStart < $tournament->dateEnd) {
+		if (($tournament->dateEnd == null) || $nextSplit?->dateStart < $tournament->dateEnd) {
 			return $nextSplit;
 		} else {
 			return null;
