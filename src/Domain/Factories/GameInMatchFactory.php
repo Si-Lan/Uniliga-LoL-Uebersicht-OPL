@@ -130,6 +130,7 @@ class GameInMatchFactory extends AbstractFactory {
 	}
 
 	public function confirmTeamsForGameInMatch(GameInMatch $gameInMatch): GameInMatch {
+		if ($gameInMatch->game->gameData === null) return $gameInMatch; // wenn keine gameData vorhanden ist, kann keine Zuordnung bestätigt werden und es wird der bisherigen vertraut
 		$teams = $this->matchTeamsToSide($gameInMatch->game, $gameInMatch->blueTeam, $gameInMatch->redTeam);
 		$gameInMatch->blueTeam = $teams["blueTeam"];
 		$gameInMatch->redTeam = $teams["redTeam"];

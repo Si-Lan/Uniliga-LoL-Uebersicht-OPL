@@ -153,6 +153,8 @@ class MatchupUpdater {
         foreach ($gamesInMatch as $gameInMatch) {
             try {
                 $gameResults[] = $this->gameUpdater->updateGameData($gameInMatch->game->id);
+				$gameInMatch = $this->gameInMatchFactory->confirmTeamsForGameInMatch($gameInMatch);
+				$this->gameInMatchRepo->save($gameInMatch);
             } catch (\Exception $e) {
 				$gameResults[] = new RepositorySaveResult(SaveResult::FAILED, entity: $gameInMatch->game, additionalData: ['error'=>$e->getMessage()]);
             }
