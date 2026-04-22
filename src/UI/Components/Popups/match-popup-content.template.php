@@ -32,7 +32,7 @@ $changePopup = $matchupTBD ? null : new Popup(
     <?= $changePopup->render() ?>
     <?php endif; ?>
 
-    <?php if (!$matchup->hasCustomChanges()): ?>
+    <?php if (!$matchup->hasCustomChanges() && !$matchup->tournamentStage->getRootTournament()->archived): ?>
         <?= new UpdateButton($matchup, teamContext: $team)?>
     <?php endif; ?>
 </div>

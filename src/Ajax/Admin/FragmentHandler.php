@@ -26,7 +26,7 @@ class FragmentHandler extends AbstractFragmentHandler{
 		$openAccordeons = [];
 		if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 			$openAccordeons = json_decode(file_get_contents('php://input'), true);
-			if (json_last_error() !== JSON_ERROR_NONE || !$openAccordeons) {
+			if (json_last_error() !== JSON_ERROR_NONE) {
 				$this->sendJsonError('Missing Data on POST or invalid JSON received', 400);
 			}
 		}

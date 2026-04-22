@@ -229,6 +229,7 @@ class PatchUpdater {
 			$downloads[$champion["id"]] = $this->downloadAndConvertImg($ddragonSourceUrl . $champion["image"]["full"], $targetDir, $champion["id"], $overwrite);
 			if ($job !== null) {
 				$job->progress = $i / count($champions) * 100;
+				$this->addImgDownloadMessage($downloads[$champion["id"]], $champion["id"], $job);
 				$this->updateJobRepo->save($job);
 			}
 			$i++;
@@ -264,6 +265,7 @@ class PatchUpdater {
 			$downloads[$item_id] = $this->downloadAndConvertImg($ddragonSourceUrl . $item["image"]["full"], $targetDir, $item_id, $overwrite);
 			if ($job !== null) {
 				$job->progress = $i / count($items) * 100;
+				$this->addImgDownloadMessage($downloads[$item_id], $item_id, $job);
 				$this->updateJobRepo->save($job);
 			}
 			$i++;
@@ -299,6 +301,7 @@ class PatchUpdater {
 			$downloads[$summoner_id] = $this->downloadAndConvertImg($ddragonSourceUrl . $summoner['image']['full'], $targetDir, $summoner_id, $overwrite);
 			if ($job !== null) {
 				$job->progress = $i / count($summoners['data']) * 100;
+				$this->addImgDownloadMessage($downloads[$summoner_id], $summoner_id, $job);
 				$this->updateJobRepo->save($job);
 			}
 			$i++;
@@ -335,16 +338,21 @@ class PatchUpdater {
 			$imageName = explode("/",$runeTree["icon"]);
 			$imageName = explode(".", end($imageName))[0];
 			$downloads[$imageName] = $this->downloadAndConvertImg($ddragonSourceUrl . $runeTree["icon"], $targetDir . $runeTreeSubdir, $imageName, $overwrite);
+			$currentDownloads = [$downloads[$imageName]];
 
 			foreach ($runeTree["slots"][0]["runes"] as $keystone) {
 				$keystoneSubdir = implode("/",explode("/",$keystone["icon"],-1));
 				$imageName = explode("/",$keystone["icon"]);
 				$imageName = explode(".", end($imageName))[0];
 				$downloads[$imageName] = $this->downloadAndConvertImg($ddragonSourceUrl . $keystone["icon"], $targetDir . $keystoneSubdir, $imageName, $overwrite);
+				$currentDownloads[$imageName] = $downloads[$imageName];
 			}
 
 			if ($job !== null) {
 				$job->progress = $i / count($runes) * 100;
+				foreach ($currentDownloads as $imageName=>$download) {
+					$this->addImgDownloadMessage($download, $imageName, $job);
+				}
 				$this->updateJobRepo->save($job);
 			}
 			$i++;
@@ -362,24 +370,41 @@ class PatchUpdater {
 	 * @param string $targetDir
 	 * @param string $targetFilename
 	 * @param bool $overwrite
-	 * @return bool|string the path to the downloaded file or false if the file already exists and $overwrite is false
+	 * @return array{path: string|false, skipped: bool}
 	 */
-	private function downloadAndConvertImg(string $sourceUrl, string $targetDir, string $targetFilename, bool $overwrite): bool|string {
+	private function downloadAndConvertImg(string $sourceUrl, string $targetDir, string $targetFilename, bool $overwrite): array {
+		$return = ['path' => false, 'skipped' => false];
 		if (!file_exists($targetDir)) {
 			mkdir($targetDir, 0777, true);
 		}
 		$targetPath = realpath($targetDir)."/$targetFilename.webp";
 		if (file_exists($targetPath) && !$overwrite) {
-			return false;
+			$return['path'] = $targetPath;
+			$return['skipped'] = true;
+			return $return;
 		}
 
-		$img = imagecreatefrompng($sourceUrl);
+		$imageData = @file_get_contents($sourceUrl);
+		if ($imageData === false || $imageData === '') {
+			return $return;
+		}
+		if (@getimagesizefromstring($imageData) === false) {
+			return $return;
+		}
+		$img = imagecreatefromstring($imageData);
+		if ($img === false) {
+			return $return;
+		}
+
 		imagepalettetotruecolor($img);
 		imagealphablending($img, true);
 		imagesavealpha($img, true);
-		imagewebp($img, $targetPath, 50);
+
+		if (imagewebp($img, $targetPath, 50)) {
+			$return['path'] = $targetPath;
+		}
 		imagedestroy($img);
-		return $targetPath;
+		return $return;
 	}
 
 	/**
@@ -500,5 +525,21 @@ class PatchUpdater {
 		$patch->spellWebp = $spellCheck;
 		$patch->runesWebp = $runesCheck;
 		return $this->patchRepo->save($patch);
+	}
+
+	/**
+	 * @param $download array{path: string|false, skipped: bool}
+	 * @param int|string $img_id
+	 * @param UpdateJob $job
+	 * @return void
+	 */
+	private function addImgDownloadMessage(array $download, int|string $img_id, UpdateJob $job): void {
+		if ($download['skipped']) {
+			$job->addMessage("Skipped: " . $download['path']);
+		} elseif ($download['path'] !== false) {
+			$job->addMessage("Downloaded: " . $download['path']);
+		} else {
+			$job->addMessage("Error with file id: $img_id");
+		}
 	}
 }
