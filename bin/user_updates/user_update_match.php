@@ -103,7 +103,7 @@ $jobRepo->save($job);
 $gameUpdater = new GameUpdater();
 $gameAmount = count($matchResultSaveResult['games']);
 if ($gameAmount > 0) {
-	foreach ($matchResultSaveResult['games'] as $i=>$game) {
+	foreach (($matchResultSaveResult['games']??[]) as $i=>$game) {
 		if ($game->entity->gameData === null) {
 			tryAndLog(fn() => $gameUpdater->updateGameData($game->entity->id));
 		}
@@ -131,11 +131,11 @@ $logger->info("Finished job $job->id");
 
 
 function tryAndLog(callable $callback): mixed {
-	global $logger, $group;
+	global $logger, $match;
 	try {
 		return $callback();
 	} catch (Exception $e) {
-		$logger->error("Error updating group $group->id: \n".$e->getMessage()."\n".$e->getTraceAsString());
+		$logger->error("Error updating match $match->id: \n".$e->getMessage()."\n".$e->getTraceAsString());
 		return false;
 	}
 }

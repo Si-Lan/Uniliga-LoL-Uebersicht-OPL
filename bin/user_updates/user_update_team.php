@@ -168,11 +168,9 @@ foreach ($teamInTournamentStages as $i=>$teamInTournamentStage) {
 	$matchups = $matchupRepo->findAllByTournamentStageAndTeam($teamInTournamentStage->tournamentStage, $teamInTournamentStage->teamInRootTournament);
 	foreach ($matchups as $matchup) {
 		$matchresultSaveResult = tryAndLog(fn() => $matchupUpdater->updateMatchupResults($matchup->id));
-		if (count($matchresultSaveResult['games']) > 0) {
-			foreach ($matchresultSaveResult['games'] as $game) {
-				if ($game->entity->gameData === null) {
-					tryAndLog(fn() => $gameUpdater->updateGameData($game->entity->id));
-				}
+		foreach (($matchresultSaveResult['games']??[]) as $game) {
+			if ($game->entity->gameData === null) {
+				tryAndLog(fn() => $gameUpdater->updateGameData($game->entity->id));
 			}
 		}
 		usleep(500000);
@@ -198,11 +196,11 @@ $logger->info("Finished job $job->id");
 
 
 function tryAndLog(callable $callback): mixed {
-	global $logger, $group;
+	global $logger, $team;
 	try {
 		return $callback();
 	} catch (Exception $e) {
-		$logger->error("Error updating group $group->id: \n".$e->getMessage()."\n".$e->getTraceAsString());
+		$logger->error("Error updating team $team->id: \n".$e->getMessage()."\n".$e->getTraceAsString());
 		return false;
 	}
 }
