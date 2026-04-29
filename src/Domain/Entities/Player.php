@@ -36,4 +36,11 @@ class Player {
 		$this->riotIdName = $riotId[0];
 		$this->riotIdTag = $riotId[1] ?? null;
 	}
+
+	public function getSlug(): string {
+		$name = transliterator_transliterate('Any-Latin; Latin-ASCII;', $this->name);
+		$name = preg_replace('/[^a-z0-9]+/i', '-', $name);
+		$name = trim($name, '-');
+		return $this->id."-".strtolower($name);
+	}
 }

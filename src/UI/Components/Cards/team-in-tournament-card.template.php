@@ -68,7 +68,7 @@ $classes = implode(' ', array_filter(['team-card', $teamInTournamentStage->tourn
                 }
                 ?>
                 <?= new PageLinkWrapper(
-                        href: "/spieler/{$playerInTeamInTournament->player->id}",
+                        href: "/spieler/{$playerInTeamInTournament->player->getSlug()}",
                         content: $roleHtml.PageLinkWrapper::makeTarget($playerInTeamInTournament->player->name, true)
                 )?>
             <?php endforeach; ?>
