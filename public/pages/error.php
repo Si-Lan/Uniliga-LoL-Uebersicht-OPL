@@ -16,18 +16,10 @@ switch($errortype) {
 				$errortext = "Kein Turnier unter der angegebenen ID gefunden!";
 				$title = "404 - Turnier nicht gefunden";
 				break;
-			case "group":
-				$errortext = "Keine Gruppe unter der angegebenen ID gefunden!";
-				$title = "404 - Gruppe nicht gefunden";
-				break;
-			case "wildcard":
-				$errortext = "Kein Wildcard-Turnier unter der angegebenen ID gefunden!";
-				$title = "404 - Wildcard-Turnier nicht gefunden";
-				break;
-			case "playoffs":
-				$errortext = "Keine Playoffs unter der angegebenen ID gefunden!";
-				$title = "404 - Playoffs nicht gefunden";
-				break;
+            case "event":
+                $errortext = "Keine Turnierphase unter der angegebenen ID gefunden!";
+                $title = "404 - Event nicht gefunden";
+                break;
 			case "team":
 				$errortext = "Kein Team unter der angegebenen ID gefunden!";
 				$title = "404 - Team nicht gefunden";

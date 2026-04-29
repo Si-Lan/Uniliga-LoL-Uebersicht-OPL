@@ -196,9 +196,7 @@ class Router {
 		$playerRepo = new PlayerRepository();
 
 		self::validateIntId($params, 'tournament', fn($id)=>$tournamentRepo->tournamentExists($id, EventType::TOURNAMENT));
-		self::validateIntId($params, 'group', fn($id)=>$tournamentRepo->standingEventExists($id));
-		self::validateIntId($params, 'wildcard', fn($id)=>$tournamentRepo->tournamentExists($id, EventType::WILDCARD));
-		self::validateIntId($params, 'playoffs', fn($id)=>$tournamentRepo->tournamentExists($id, EventType::PLAYOFFS));
+		self::validateIntId($params, 'event', fn($id)=>$tournamentRepo->standingEventExists($id));
 		self::validateIntId($params, 'team', fn($id)=>$teamRepo->teamExists($id));
 		self::validateIntId($params, 'player', fn($id)=>$playerRepo->playerExists($id));
 
@@ -208,6 +206,8 @@ class Router {
 		if (!isset($params[$param])) {
 			return;
 		}
+
+		$params[$param] = explode('-', $params[$param])[0];
 		$params[$param] = filter_var($params[$param], FILTER_VALIDATE_INT);
 
 		if (!$params[$param] || !$existsCallback($params[$param])) {

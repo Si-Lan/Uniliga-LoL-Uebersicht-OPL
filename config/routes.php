@@ -9,6 +9,7 @@ $routes = [
 	'turnier/{tournament}/gruppe/{event}' => BASE_PATH.'/public/pages/group-details.php',
 	'turnier/{tournament}/wildcard/{event}' => BASE_PATH.'/public/pages/group-details.php',
 	'turnier/{tournament}/playoffs/{event}' => BASE_PATH.'/public/pages/group-details.php',
+	'turnier/{tournament}/phase/{event}' => BASE_PATH.'/public/pages/group-details.php',
 	'turnier/{tournament}/team/{team}' => BASE_PATH.'/public/pages/teams-tournament-details.php',
 	'turnier/{tournament}/team/{team}/matchhistory' => BASE_PATH.'/public/pages/teams-tournament-matchhistory.php',
 	'turnier/{tournament}/team/{team}/stats' => BASE_PATH.'/public/pages/teams-tournament-statistics.php',
