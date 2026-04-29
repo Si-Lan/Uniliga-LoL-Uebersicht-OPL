@@ -7,7 +7,8 @@ class PageMeta {
 	public function __construct(
 		public string $title = '',
 		public string $bodyClass = '',
-		public string $bodyDataId = ''
+		public string $bodyDataId = '',
+		public string $canonicalPath = ''
 	) {
 		if ($title) {
 			$this->shortTitle = $title;
@@ -20,5 +21,9 @@ class PageMeta {
 		AssetManager::addJsAsset('jquery-3.7.1.min.js');
 		AssetManager::addJsModuleAsset('main.js');
 		$this->bodyDataId = "data-id='{$this->bodyDataId}'";
+	}
+
+	public function getCanonicalUrl(): string {
+		return 'https://'.$_SERVER['SERVER_NAME'] . '/' . ltrim($this->canonicalPath, '/');
 	}
 }

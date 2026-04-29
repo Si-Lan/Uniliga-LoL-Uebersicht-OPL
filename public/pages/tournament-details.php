@@ -14,7 +14,11 @@ $tournamentRepo = new TournamentRepository();
 
 $tournament = $tournamentRepo->findById($_GET['tournament']);
 
-$pageMeta = new PageMeta($tournament->getShortName(),bodyClass: 'tournament');
+$pageMeta = new PageMeta(
+        $tournament->getShortName(),
+        bodyClass: 'tournament',
+        canonicalPath: $tournament->getHref()
+);
 AssetManager::addJsModule('components/switchTournamentEvents');
 
 ?>
