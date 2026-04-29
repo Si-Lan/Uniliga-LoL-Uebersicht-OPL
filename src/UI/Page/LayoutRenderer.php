@@ -33,6 +33,9 @@ class LayoutRenderer {
             <meta property="og:description" content="Turnierübersicht, Matchhistory und Statistiken zu Teams und Spielern für die League of Legends Uniliga">
             <meta property="og:image" content="https://silence.lol/storage/img/silence_s_logo_bg_250.png">
             <meta name="theme-color" content="#e7e7e7">
+            <?php if($_ENV["UMAMI_ENABLED"]): ?>
+                <script defer src="<?=$_ENV["UMAMI_URL"]?>/script.js" data-website-id="<?=$_ENV["UMAMI_WEBSITE_ID"]?>"></script>
+            <?php endif; ?>
 		</head>
         <?php $classes = implode(' ', array_filter([$meta->bodyClass, UserContext::getLightModeClass()])) ?>
         <body class="<?= $classes ?>"<?= $meta->bodyDataId == "" ? "" : " {$meta->bodyDataId}" ?>>
