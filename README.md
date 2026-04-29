@@ -21,6 +21,7 @@ Alternativ: Docker-Setup, siehe unten
 .env aus .env.template erstellen und _Datenbank-Informationen_, _API-Keys_, _User-Agent_ und _Admin-Passwort_ setzen.
 - (User-Agent ist notwendig, da OPL für Anfragen einen sinnvollen User-Agent benötigt. Bspw. in meinem Fall: ```'UniligaLoL-Übersicht/1.0 (+https://uniliga.silence.lol)'```)
 - (Admin-Passwort ist das Passwort, das benötigt wird, um sich auf der Seite in den Admin-Bereich (/admin) einzuloggen)
+- (Umami-Analytics sind optional und standardmäßig deaktiviert. Wenn `UMAMI_ENABLED=true` gesetzt ist, kann ein Umami-Tracking-Skript eingebunden werden.)
 ```
 DB_HOST=
 DB_DATABASE=
@@ -31,6 +32,9 @@ RIOT_API_KEY=
 OPL_BEARER_TOKEN=
 USER_AGENT=
 ADMIN_PASS=
+UMAMI_ENABLED=false
+UMAMI_URL=
+UMAMI_WEBSITE_ID=
 ```
 
 ### Datenbank erstellen:
@@ -53,6 +57,11 @@ Im Verzeichnis `cron` liegen cron-jobs. Diese sollten manuell als crontab angele
 
 ### LoL-Game-Updates:
 Updates der verwendeten Bilder für Champions, Items, etc. können wie oben beschrieben unter _/admin/ddragon_ aktualisiert werden, automatische Aktualisierung über Cron-Jobs ist geplant
+
+## Analytics
+Diese Seite unterstützt [Umami-Analytics](https://umami.is/), eine datenschutzfreundliche, selbst hostbare Alternative zu Google Analytics.  
+Wenn aktiviert, werden nur anonymisierte Daten gesammelt (z. B. Seitenaufrufe, Verweildauer, Gerät/Browser). Keine personenbezogenen Daten, keine IP-Adressen, keine Cookies.  
+Auf [uniliga.silence.lol](https://uniliga.silence.lol) ist Analytics aktiv, weil mich interessiert, wie stark die Seite von der Community genutzt wird und wo sie sich verbessern lässt.
 
 ---
 <details>
