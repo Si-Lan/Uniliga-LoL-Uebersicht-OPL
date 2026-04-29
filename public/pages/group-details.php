@@ -18,7 +18,8 @@ $group = $tournamentRepo->findStandingsEventById($_GET["event"]);
 $pageMeta = new PageMeta(
         title: $group->getFullName()." | ".$group->rootTournament->getShortName(),
         bodyClass: 'group',
-        bodyDataId: $group->id
+        bodyDataId: $group->id,
+        canonicalPath: $group->rootTournament->getHref()."/phase/".$group->getSlug()
 );
 
 ?>

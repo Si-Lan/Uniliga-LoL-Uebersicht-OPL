@@ -21,7 +21,11 @@ $team = $teamRepo->findById($_GET["team"]);
 $teamInTournaments = $teamInTournamentRepo->findAllByTeam($team);
 $teamInTournaments = EntitySorter::sortTeamInTournamentsByStartDate($teamInTournaments);
 
-$pageMeta = new PageMeta($team->name, bodyClass: 'team general-team');
+$pageMeta = new PageMeta(
+        $team->name,
+        bodyClass: 'team general-team',
+        canonicalPath: 'team/'.$team->getSlug()
+);
 
 ?>
 

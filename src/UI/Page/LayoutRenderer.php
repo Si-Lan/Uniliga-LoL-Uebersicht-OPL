@@ -16,6 +16,9 @@ class LayoutRenderer {
 			<title>
 				<?= $meta->title ?>
 			</title>
+            <?php if ($meta->canonicalPath !== ''): ?>
+                <link rel="canonical" href="<?= $meta->getCanonicalUrl() ?>">
+            <?php endif; ?>
             <?php foreach(AssetManager::getCssFiles() as $css): ?>
                 <link rel="stylesheet" href="<?= $css ?>">
             <?php endforeach; ?>

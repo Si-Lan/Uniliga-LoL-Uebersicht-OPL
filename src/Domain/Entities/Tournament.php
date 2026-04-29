@@ -88,25 +88,26 @@ class Tournament {
 		return (is_null($this->dateEnd) || $this->dateEnd > $today);
 	}
 
-	public function getUrlKey():string {
-		return match ($this->eventType) {
-			EventType::TOURNAMENT => "turnier",
-			EventType::LEAGUE => "liga",
-			EventType::GROUP => "gruppe",
-			EventType::WILDCARD => "wildcard",
-			EventType::PLAYOFFS => "playoffs",
-			default => "",
-		};
-	}
 	public function getHref(): string {
 		if ($this->eventType == EventType::TOURNAMENT) {
-			return "/turnier/".$this->id;
+			return "/turnier/".$this->getSlug();
 		}
-		$urlKey = $this->getUrlKey();
-		if ($this->eventType === EventType::LEAGUE && $this->format === EventFormat::SWISS) {
-			$urlKey = 'gruppe';
-		}
-		return "/turnier/{$this->rootTournament->id}/$urlKey/{$this->id}";
+		return "/turnier/{$this->rootTournament->getSlug()}/phase/{$this->getSlug()}";
+	}
+
+	public function getSlug():string {
+		$id = $this->id;
+		$name = match ($this->eventType) {
+			EventType::TOURNAMENT => $this->split."-".$this->season,
+			EventType::LEAGUE, EventType::PLAYOFFS, EventType::WILDCARD => $this->getShortName(),
+			EventType::GROUP => $this->directParentTournament->getShortName()."-".$this->getShortName(),
+			default => "",
+		};
+
+		$namePart = transliterator_transliterate("Any-Latin; Latin-ASCII", $name);
+		$namePart = preg_replace("/[^a-z0-9]+/i", "-", $namePart);
+		$namePart = trim($namePart, "-");
+		return $id."-".strtolower($namePart);
 	}
 
 	public function getNumberFormatted():string {
@@ -134,10 +135,9 @@ class Tournament {
 		}
 		return match ($this->eventType) {
 			EventType::TOURNAMENT => preg_replace("/LoL\s/i","",$this->name),
-			EventType::LEAGUE => $this->getFullName(),
+			EventType::LEAGUE, EventType::PLAYOFFS => $this->getFullName(),
 			EventType::GROUP => "Gruppe ".$this->getNumberFormatted(),
 			EventType::WILDCARD => "Wildcard Liga ".$this->getNumberFormatted(),
-			EventType::PLAYOFFS => $this->getFullName(),
 			default => "",
 		};
 	}

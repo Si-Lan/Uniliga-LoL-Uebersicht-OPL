@@ -20,7 +20,11 @@ $teamInTournamentStageRepo = new TeamInTournamentStageRepository();
 
 $tournament = $tournamentRepo->findById($_GET['tournament']);
 
-$pageMeta = new PageMeta("Team-Liste - {$tournament->getShortName()}", bodyClass: 'teamlist');
+$pageMeta = new PageMeta(
+        "Team-Liste - {$tournament->getShortName()}",
+        bodyClass: 'teamlist',
+        canonicalPath: $tournament->getHref()."/teams"
+);
 AssetManager::addJsModule('components/teamsList');
 
 echo new Header(HeaderType::TOURNAMENT, $tournament);

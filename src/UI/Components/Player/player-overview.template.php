@@ -12,7 +12,7 @@ use App\UI\Components\UI\PageLink;
 
 <?php if ($showPlayerPageLink): ?>
 <?= new PageLink(
-	href: "/spieler/{$player->id}",
+	href: "/spieler/{$player->getSlug()}",
 	text: 'Zur Spielerseite',
 	materialIcon: 'person'
 )?>

@@ -85,6 +85,6 @@ class Matchup {
 	}
 
 	public function getLink(): string {
-		return "/turnier/".$this->tournamentStage->getRootTournament()->id."/".$this->tournamentStage->getUrlKey()."/".$this->tournamentStage->id."?match=".$this->id;
+		return $this->tournamentStage->getHref()."?match=".$this->id;
 	}
 }

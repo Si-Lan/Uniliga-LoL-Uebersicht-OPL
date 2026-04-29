@@ -10,7 +10,11 @@ $playerRepo = new PlayerRepository();
 
 $player = $playerRepo->findById($_GET["player"]);
 
-$pageMeta = new PageMeta($player->name, bodyClass: 'player');
+$pageMeta = new PageMeta(
+        $player->name,
+        bodyClass: 'player',
+        canonicalPath: 'spieler/'.$player->getSlug()
+);
 
 ?>
 

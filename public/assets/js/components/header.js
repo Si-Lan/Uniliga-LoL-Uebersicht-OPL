@@ -177,10 +177,10 @@ function header_search() {
                 let ac_class = (i===0) ? `class="autocomplete-active"` : "";
                 if (search_results[i]["type"] === "team") {
                     icon = `<span class='material-symbol'>${get_material_icon("groups",true)}</span>`;
-                    link = `/team/${search_results[i]["id"]}`;
+                    link = `/team/${search_results[i]["slug"]}`;
                 } else if (search_results[i]["type"] === "player") {
                     icon = `<span class='material-symbol'>${get_material_icon("person",true)}</span>`;
-                    link = `/spieler/${search_results[i]["id"]}`;
+                    link = `/spieler/${search_results[i]["slug"]}`;
                     additional = (search_results[i]["riotIdName"] !== null) ? `<br>(${search_results[i]["riotIdName"]}#${search_results[i]["riotIdTag"]})` : "";
                 }
                 ac.append($(`<a href="${link}" ${ac_class}>${icon}${search_results[i]["name"]}${additional}</a>`));

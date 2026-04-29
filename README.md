@@ -78,8 +78,9 @@ FROM php:8.3-apache
 RUN apt-get update
 
 # Install PHP extensions
-RUN docker-php-ext-install pdo pdo_mysql mysqli \
-    && docker-php-ext-enable pdo_mysql mysqli
+RUN apt-get install -y libicu-dev \
+    && docker-php-ext-install pdo pdo_mysql mysqli intl \
+    && docker-php-ext-enable pdo_mysql mysqli intl
 
 RUN apt-get install -y \
         libpng-dev \

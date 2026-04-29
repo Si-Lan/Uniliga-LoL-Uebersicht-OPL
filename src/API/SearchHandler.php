@@ -32,10 +32,23 @@ class SearchHandler {
 		$searchResults = [];
 		foreach ($resultEntities as $entity) {
 			if ($entity instanceof Player) {
-				$searchResults[] = ["type"=>"player","id"=>$entity->id,"name"=>$entity->name,"riotIdName"=>$entity->riotIdName,"riotIdTag"=>$entity->riotIdTag];
+				$searchResults[] = [
+					"type"=>"player",
+					"id"=>$entity->id,
+					"slug"=>$entity->getSlug(),
+					"name"=>$entity->name,
+					"riotIdName"=>$entity->riotIdName,
+					"riotIdTag"=>$entity->riotIdTag
+				];
 			}
 			if ($entity instanceof Team) {
-				$searchResults[] = ["type"=>"team","id"=>$entity->id,"name"=>$entity->name,"shortName"=>$entity->shortName];
+				$searchResults[] = [
+					"type"=>"team",
+					"id"=>$entity->id,
+					"slug"=>$entity->getSlug(),
+					"name"=>$entity->name,
+					"shortName"=>$entity->shortName
+				];
 			}
 		}
 

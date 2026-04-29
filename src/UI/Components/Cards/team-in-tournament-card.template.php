@@ -16,7 +16,7 @@ $classes = implode(' ', array_filter(['team-card', $teamInTournamentStage->tourn
 
 <div class="<?=$classes?>">
     <?= new PageLinkWrapper(
-            href: "/turnier/{$teamInTournamentStage->tournamentStage->rootTournament->id}",
+            href: $teamInTournamentStage->tournamentStage->rootTournament->getHref(),
             additionalClasses: ['team-card-div','team-card-tournament'],
             content: $tournamentImg.PageLinkWrapper::makeTarget($teamInTournamentStage->tournamentStage->rootTournament->getSplitAndSeason(), withoutIcon: true)
     )?>
@@ -28,7 +28,7 @@ $classes = implode(' ', array_filter(['team-card', $teamInTournamentStage->tourn
     )?>
 
     <?= new PageLinkWrapper(
-            href: $teamInTournamentStage->tournamentStage->rootTournament->getHref()."/team/".$teamInTournamentStage->team->id,
+            href: $teamInTournamentStage->tournamentStage->rootTournament->getHref()."/team/".$teamInTournamentStage->team->getSlug(),
             additionalClasses: ['team-card-div','team-card-teampage'],
             content: $teamImg.PageLinkWrapper::makeTarget($teamInTournamentStage->teamInRootTournament->nameInTournament,true)
     )?>
@@ -68,7 +68,7 @@ $classes = implode(' ', array_filter(['team-card', $teamInTournamentStage->tourn
                 }
                 ?>
                 <?= new PageLinkWrapper(
-                        href: "/spieler/{$playerInTeamInTournament->player->id}",
+                        href: "/spieler/{$playerInTeamInTournament->player->getSlug()}",
                         content: $roleHtml.PageLinkWrapper::makeTarget($playerInTeamInTournament->player->name, true)
                 )?>
             <?php endforeach; ?>

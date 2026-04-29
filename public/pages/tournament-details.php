@@ -14,7 +14,11 @@ $tournamentRepo = new TournamentRepository();
 
 $tournament = $tournamentRepo->findById($_GET['tournament']);
 
-$pageMeta = new PageMeta($tournament->getShortName(),bodyClass: 'tournament');
+$pageMeta = new PageMeta(
+        $tournament->getShortName(),
+        bodyClass: 'tournament',
+        canonicalPath: $tournament->getHref()
+);
 AssetManager::addJsModule('components/switchTournamentEvents');
 
 ?>
@@ -64,9 +68,9 @@ $playoffs_active = (count($wildcards)==0 && count($leagues)==0 && count($playoff
                             <div class='group'>
                                 <span class="group-title">Gruppe</span>
                                 <div class="divider-vert-acc"></div>
-                                <?= new PageLink("/turnier/{$tournament->id}/gruppe/{$league->id}",'Details')?>
+                                <?= new PageLink($league->getHref(),'Details')?>
                                 <div class="divider-vert-acc"></div>
-                                <?= new PageLink("/turnier/{$tournament->id}/teams?liga={$league->id}", 'Teams', materialIcon: 'group')?>
+                                <?= new PageLink($tournament->getHref()."/teams?liga={$league->id}", 'Teams', materialIcon: 'group')?>
                             </div>
                         </div>
                     </div>
@@ -91,9 +95,9 @@ $playoffs_active = (count($wildcards)==0 && count($leagues)==0 && count($playoff
                             <div class="group">
                                 <span class="group-title"><?= $group->getShortName() ?></span>
                                 <div class="divider-vert-acc"></div>
-                                <?= new PageLink("/turnier/{$tournament->id}/gruppe/{$group->id}",'Details') ?>
+                                <?= new PageLink($group->getHref(),'Details') ?>
                                 <div class="divider-vert-acc"></div>
-                                <?= new PageLink("/turnier/{$tournament->id}/teams?liga={$league->id}&gruppe={$group->id}", 'Teams', materialIcon: 'group') ?>
+                                <?= new PageLink($tournament->getHref()."/teams?liga={$league->id}&gruppe={$group->id}", 'Teams', materialIcon: 'group') ?>
                             </div>
                         <?php endforeach; ?>
                     </div>
@@ -114,9 +118,9 @@ $playoffs_active = (count($wildcards)==0 && count($leagues)==0 && count($playoff
                         <div class="group">
                             <span class="group-title"><?= $wildcard->getShortName() ?></span>
                             <div class="divider-vert-acc"></div>
-							<?= new PageLink("/turnier/{$tournament->id}/wildcard/{$wildcard->id}",'Details') ?>
+							<?= new PageLink($wildcard->getHref(),'Details') ?>
                             <div class="divider-vert-acc"></div>
-							<?= new PageLink("/turnier/{$tournament->id}/teams?liga={$wildcard->id}", 'Teams', materialIcon: 'group') ?>
+							<?= new PageLink($tournament->getHref()."/teams?liga={$wildcard->id}", 'Teams', materialIcon: 'group') ?>
                         </div>
                     <?php endforeach; ?>
                 </div>
@@ -136,9 +140,9 @@ $playoffs_active = (count($wildcards)==0 && count($leagues)==0 && count($playoff
                         <div class="group">
                             <span class="group-title"><?= $playoff->getShortName() ?></span>
                             <div class="divider-vert-acc"></div>
-							<?= new PageLink("/turnier/{$tournament->id}/playoffs/{$playoff->id}",'Details') ?>
+							<?= new PageLink($playoff->getHref(),'Details') ?>
                             <div class="divider-vert-acc"></div>
-							<?= new PageLink("/turnier/{$tournament->id}/teams?liga={$playoff->id}", 'Teams', materialIcon: 'group') ?>
+							<?= new PageLink($tournament->getHref()."/teams?liga={$playoff->id}", 'Teams', materialIcon: 'group') ?>
                         </div>
                     <?php endforeach; ?>
                 </div>
