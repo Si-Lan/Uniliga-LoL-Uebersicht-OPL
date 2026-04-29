@@ -4,8 +4,7 @@
 			Standings
 			<?php
             if ($this->selectedTeam !== null) {
-                $groupLinkUrl = "/turnier/".$this->tournamentStage->rootTournament->id."/".$this->tournamentStage->getUrlKey()."/".$this->tournamentStage->id;
-                echo new \App\UI\Components\UI\PageLink($groupLinkUrl, $this->tournamentStage->getFullName());
+                echo new \App\UI\Components\UI\PageLink($this->tournamentStage->getHref(), $this->tournamentStage->getFullName());
             }
             ?>
 		</h3>

@@ -1,5 +1,6 @@
 <?php
 
+use App\Domain\Entities\Tournament;
 use App\Domain\Repositories\TournamentRepository;
 use App\Domain\Services\EntitySorter;
 use App\UI\Components\Navigation\Header;
@@ -12,6 +13,7 @@ $pageMeta = new PageMeta(bodyClass: 'home');
 $tournamentRepo = new TournamentRepository();
 $tournaments = $tournamentRepo->findAllRootTournaments();
 $tournaments = EntitySorter::sortTournamentsByStartDate($tournaments);
+/** @var Tournament[] $tournaments */
 $tournaments = array_values(array_filter($tournaments, function($tournament) {return !$tournament->deactivated;}));
 
 echo new Header(HeaderType::HOME);
@@ -23,7 +25,7 @@ echo new Header(HeaderType::HOME);
 		    <h2>Turniere</h2>
             <?php foreach ($tournaments as $i=>$tournament):?>
 				<?= ($i != 0) ? '<div class="divider"></div>' : '' ?>
-                <a href="/turnier/<?= $tournament->id ?>" class="turnier-button <?= $tournament->id ?>">
+                <a href="<?= $tournament->getHref() ?>" class="turnier-button <?= $tournament->id ?>">
                     <?php if($tournament->getLogoUrl()): ?>
                         <img class='color-switch' alt src='<?= $tournament->getLogoUrl() ?>'>
                     <?php else: ?>

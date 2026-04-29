@@ -31,15 +31,15 @@ use App\UI\Components\UpdateButton;
 ?>
 </div>
 <nav class='team-titlebutton-wrapper'>
-	<a href='/turnier/<?=$teamInTournament->tournament->id?>/team/<?=$teamInTournament->team->id?>' class='<?= $activeTab === 'details' ? 'active' : ''?>'>
+	<a href='<?=$teamInTournament->tournament->getHref()?>/team/<?=$teamInTournament->team->id?>' class='<?= $activeTab === 'details' ? 'active' : ''?>'>
         <?= IconRenderer::getMaterialIconDiv('info')?>
 		Team-Übersicht
 	</a>
-	<a href='/turnier/<?=$teamInTournament->tournament->id?>/team/<?=$teamInTournament->team->id?>/matchhistory' class='<?= $activeTab === 'matchhistory' ? 'active' : ''?>'>
+	<a href='<?=$teamInTournament->tournament->getHref()?>/team/<?=$teamInTournament->team->id?>/matchhistory' class='<?= $activeTab === 'matchhistory' ? 'active' : ''?>'>
         <?= IconRenderer::getMaterialIconDiv('manage_search')?>
 		Match-History
 	</a>
-	<a href='/turnier/<?=$teamInTournament->tournament->id?>/team/<?=$teamInTournament->team->id?>/stats' class='<?= $activeTab === 'stats' ? 'active' : ''?>'>
+	<a href='<?=$teamInTournament->tournament->getHref()?>/team/<?=$teamInTournament->team->id?>/stats' class='<?= $activeTab === 'stats' ? 'active' : ''?>'>
         <?= IconRenderer::getMaterialIconDiv('monitoring')?>
 		Statistiken
 	</a>

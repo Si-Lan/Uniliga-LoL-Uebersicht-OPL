@@ -9,17 +9,17 @@ use App\UI\Components\Helpers\IconRenderer;
 <nav class='turnier-bonus-buttons'>
 	<div class='turnier-nav-buttons'>
         <?php $classes = implode(' ', array_filter(['button', ($activeTab === 'overview')?'active':'']))?>
-		<a href='/turnier/<?= $tournament->id?>' class='<?=$classes?>'>
+		<a href='<?= $tournament->getHref()?>' class='<?=$classes?>'>
             <?= IconRenderer::getMaterialIconDiv('sports_esports')?>
 			Turnier
 		</a>
 		<?php $classes = implode(' ', array_filter(['button', ($activeTab === 'teamlist')?'active':'']))?>
-		<a href='/turnier/<?= $tournament->id?>/teams' class='<?=$classes?>'>
+		<a href='<?= $tournament->getHref()?>/teams' class='<?=$classes?>'>
 			<?= IconRenderer::getMaterialIconDiv('group')?>
 			Teams
 		</a>
 		<?php $classes = implode(' ', array_filter(['button', ($activeTab === 'elo')?'active':'']))?>
-		<a href='/turnier/<?= $tournament->id?>/elo' class='<?=$classes?>'>
+		<a href='<?= $tournament->getHref()?>/elo' class='<?=$classes?>'>
 			<?= IconRenderer::getMaterialIconDiv('stars')?>
 			Eloverteilung
 		</a>

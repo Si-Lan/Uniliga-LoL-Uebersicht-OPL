@@ -53,7 +53,7 @@ if ($teamFocus && $winningTeamExists && $currentTeam->equals($gameInMatch->getWi
 
         <?php if ($blueTeamExists): ?>
         <?php $classes = implode(' ', array_filter(['team', $blueTeamScoreClass, $currentTeamIsBlueClass])) ?>
-        <a class="<?=$classes?>" href="/turnier/<?= $gameInMatch->matchup->tournamentStage->rootTournament->id ?>/team/<?= $gameInMatch->blueTeam->team->id ?>">
+        <a class="<?=$classes?>" href="<?= $gameInMatch->matchup->tournamentStage->rootTournament->getHref() ?>/team/<?= $gameInMatch->blueTeam->team->id ?>">
 			<?php if ($gameInMatch->blueTeam->getLogoUrl(true)): ?>
                 <img class="color-switch" alt="" src="<?= $gameInMatch->blueTeam->getLogoUrl(true) ?>">
 			<?php endif; ?>
@@ -84,7 +84,7 @@ if ($teamFocus && $winningTeamExists && $currentTeam->equals($gameInMatch->getWi
 
         <?php if ($redTeamExists): ?>
 		<?php $classes = implode(' ', array_filter(['team', $redTeamScoreClass, $currentTeamIsRedClass])) ?>
-        <a class="<?=$classes?>" href="/turnier/<?= $gameInMatch->matchup->tournamentStage->rootTournament->id ?>/team/<?= $gameInMatch->redTeam->team->id ?>">
+        <a class="<?=$classes?>" href="<?= $gameInMatch->matchup->tournamentStage->rootTournament->getHref() ?>/team/<?= $gameInMatch->redTeam->team->id ?>">
             <?php if ($gameInMatch->redTeam->getLogoUrl(true)): ?>
                 <img class="color-switch" alt="" src="<?= $gameInMatch->redTeam->getLogoUrl(true) ?>">
             <?php endif; ?>
@@ -106,7 +106,7 @@ if ($teamFocus && $winningTeamExists && $currentTeam->equals($gameInMatch->getWi
 			foreach ([$gameInMatch->blueTeam, $gameInMatch->redTeam] as $index=> $team): ?>
                 <?php if (!is_null($team)): ?>
 				<?php $classes = implode(' ', array_filter(['team', $index+1, $teamScoreClasses[$index], $currentTeamClasses[$index]])) ?>
-                <a class="<?=$classes?>" href="/turnier/<?= $gameInMatch->matchup->tournamentStage->rootTournament->id ?>/team/<?= $team->team->id ?>">
+                <a class="<?=$classes?>" href="<?= $gameInMatch->matchup->tournamentStage->rootTournament->getHref() ?>/team/<?= $team->team->id ?>">
                     <div class="name">
 						<?php if ($team->getLogoUrl(true)): ?>
                             <img class="color-switch" alt="" src="<?= $team->getLogoUrl(true) ?>">

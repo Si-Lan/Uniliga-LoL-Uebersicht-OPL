@@ -24,7 +24,7 @@ $classes = implode(' ', array_filter(['player-card', $tournament->isRunning() ? 
 
 <div class="<?=$classes?>" data-details="<?=$detailAmount?>">
 	<?= new PageLinkWrapper(
-		href: "/turnier/{$tournament->id}",
+		href: $tournament->getHref(),
 		additionalClasses: ['player-card-div','player-card-tournament'],
 		content: $tournamentImg.PageLinkWrapper::makeTarget($tournament->getSplitAndSeason(), withoutIcon: true)
 	)?>

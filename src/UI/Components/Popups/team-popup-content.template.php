@@ -27,7 +27,7 @@ use App\UI\Components\UI\SummonerCardCollapseButton;
 </div>
 
 <?= new PageLink(
-        href: "/turnier/{$teamInTournament->tournament->id}/team/{$teamInTournament->team->id}",
+        href: "{$teamInTournament->tournament->getHref()}/team/{$teamInTournament->team->id}",
         text: "Team-Übersicht"
 )?>
 
