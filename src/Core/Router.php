@@ -43,6 +43,12 @@ class Router {
 
 		$requestPath = trim(parse_url($_SERVER['REQUEST_URI'],PHP_URL_PATH),'/');
 
+		if ($requestPath === 'sitemap.xml') {
+			$sitemap = new SitemapHandler();
+			$sitemap->getSitemap();
+			exit();
+		}
+
 		/** @var array<string,string> $routes */
 		/** @var array<string,string> $adminRoutes */
 		require_once BASE_PATH."/config/routes.php";
