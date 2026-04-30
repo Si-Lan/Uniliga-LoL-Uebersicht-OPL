@@ -222,8 +222,42 @@ class Router {
 		if (!isset($pageMeta) || !$pageMeta instanceof PageMeta) {
 			$pageMeta = new PageMeta();
 		}
+		self::redirectToCanonicalPathIfNeeded($pageMeta);
 		LayoutRenderer::render($pageMeta, $pageContent);
 	}
+	private static function redirectToCanonicalPathIfNeeded(PageMeta $pageMeta): void {
+		if ($pageMeta->canonicalPath === null || $pageMeta->canonicalPath === '') return;
+		$method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
+		if (!in_array($method, ['GET', 'HEAD'], true)) return;
+
+		$currentPath = $_SERVER['REQUEST_URI'] ?? '/';
+		$currentPath = parse_url($currentPath,PHP_URL_PATH);
+		$currentPath = self::normalizePath($currentPath);
+
+		$canonicalPath = $pageMeta->canonicalPath;
+		$canonicalPath = parse_url($canonicalPath,PHP_URL_PATH);
+		$canonicalPath = self::normalizePath($canonicalPath);
+
+		if ($currentPath === $canonicalPath) return;
+
+		$queryString = $_SERVER['QUERY_STRING'] ?? '';
+		$target = $canonicalPath;
+
+		if ($queryString !== '') {
+			$target .= '?' . $queryString;
+		}
+
+		http_response_code(301);
+		header('Location: ' . $target);
+		exit();
+	}
+
+	private static function normalizePath(string $path): string {
+		$path = '/' . trim($path, '/');
+		$path = preg_replace('#/+#', '/', $path) ?? '/';
+		return $path === '/' ? '/' : rtrim($path, '/');
+	}
+
 	public static function trigger404(string $type = ''):void {
 		$_GET["error"] = "404";
 		$_GET["404type"] = $type;
