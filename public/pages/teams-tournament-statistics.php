@@ -35,7 +35,7 @@ $teamInTournamentStage = end($teamInTournamentStages);
 $pageMeta = new PageMeta(
 	title: "$teamInTournament->nameInTournament - Statistiken | ".$teamInTournament->tournament->getShortName(),
 	bodyClass: 'statistics',
-	canonicalPath: $teamInTournament->tournament->getHref()."/team/".$teamInTournament->team->getSlug()."/stats"
+	canonicalPath: $teamInTournament->tournament->getHref()."/team/".$teamInTournament->getSlug()."/stats"
 );
 AssetManager::addJsModule('components/statistics');
 

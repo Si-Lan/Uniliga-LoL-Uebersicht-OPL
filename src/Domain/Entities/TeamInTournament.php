@@ -47,4 +47,11 @@ class TeamInTournament {
 			return $baseUrl."logo$squareAddition.webp";
 		}
 	}
+
+	public function getSlug(): string {
+		$name = transliterator_transliterate('Any-Latin; Latin-ASCII;', $this->nameInTournament);
+		$name = preg_replace('/[^a-z0-9]+/i', '-', $name);
+		$name = trim($name, '-');
+		return $this->team->id."-".strtolower($name);
+	}
 }

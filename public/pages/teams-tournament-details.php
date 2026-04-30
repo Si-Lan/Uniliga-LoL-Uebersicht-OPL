@@ -46,7 +46,7 @@ foreach ($teamInTournamentStages as $teamInTournamentStageInLoop) {
 $pageMeta = new PageMeta(
 	title: $teamInTournament->nameInTournament." | ".$teamInTournament->tournament->getShortName(),
 	bodyClass: 'team',
-    canonicalPath: $teamInTournament->tournament->getHref()."/team/".$teamInTournament->team->getSlug()
+    canonicalPath: $teamInTournament->tournament->getHref()."/team/".$teamInTournament->getSlug()
 );
 
 ?>
