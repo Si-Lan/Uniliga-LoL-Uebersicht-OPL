@@ -114,6 +114,7 @@ class Patch {
     }
 	public function getChampionUrlById(int $championId): ?string {
 		$this->getChampionData();
+		if (!isset($this->championData[$championId])) return "data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs%3D";
 		return $this->imgUrl.'/champion/'.$this->championData[$championId].'.webp';
 	}
 }
