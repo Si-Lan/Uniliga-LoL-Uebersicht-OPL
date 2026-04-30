@@ -15,7 +15,7 @@ class TeamLinkInRow {
 	public function __construct(
 		public TeamInTournamentStage $teamInTournamentStage
 	) {
-		$this->href = "{$teamInTournamentStage->tournamentStage->rootTournament->getHref()}/team/{$teamInTournamentStage->team->getSlug()}";
+		$this->href = "{$teamInTournamentStage->tournamentStage->rootTournament->getHref()}/team/{$teamInTournamentStage->teamInRootTournament->getSlug()}";
 
 		$this->teamNameTargetHtml = PageLinkWrapper::makeTarget(
 			"<span class='team-name' title='{$teamInTournamentStage->teamInRootTournament->nameInTournament}'>{$teamInTournamentStage->teamInRootTournament->nameInTournament}</span>"

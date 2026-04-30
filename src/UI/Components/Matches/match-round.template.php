@@ -12,7 +12,7 @@ $team2Name = (is_null($matchup->team2)) ? "TBD" : $matchup->team2->nameInTournam
     	<span class="round">Runde <?=$matchup->playday?>: &nbsp;</span>
     <?php endif; ?>
     <?= new PageLink(
-            href: "{$matchup->tournamentStage->rootTournament->getHref()}/team/{$matchup->team1?->team->getSlug()}",
+            href: "{$matchup->tournamentStage->rootTournament->getHref()}/team/{$matchup->team1?->getSlug()}",
             text: $team1Name,
             additionalClasses: ["team", $matchup->getTeam1Result()],
             linkIcon: false
@@ -25,7 +25,7 @@ $team2Name = (is_null($matchup->team2)) ? "TBD" : $matchup->team2->nameInTournam
         <span class="score">vs.</span>
     <?php endif; ?>
 	<?= new PageLink(
-		href: "{$matchup->tournamentStage->rootTournament->getHref()}/team/{$matchup->team2?->team->getSlug()}",
+		href: "{$matchup->tournamentStage->rootTournament->getHref()}/team/{$matchup->team2?->getSlug()}",
 		text: $team2Name,
 		additionalClasses: ["team", $matchup->getTeam2Result()],
 		linkIcon: false

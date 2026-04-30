@@ -28,7 +28,7 @@ $classes = implode(' ', array_filter(['team-card', $teamInTournamentStage->tourn
     )?>
 
     <?= new PageLinkWrapper(
-            href: $teamInTournamentStage->tournamentStage->rootTournament->getHref()."/team/".$teamInTournamentStage->team->getSlug(),
+            href: $teamInTournamentStage->tournamentStage->rootTournament->getHref()."/team/".$teamInTournamentStage->teamInRootTournament->getSlug(),
             additionalClasses: ['team-card-div','team-card-teampage'],
             content: $teamImg.PageLinkWrapper::makeTarget($teamInTournamentStage->teamInRootTournament->nameInTournament,true)
     )?>

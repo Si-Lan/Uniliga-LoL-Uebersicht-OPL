@@ -39,7 +39,7 @@ class SitemapHandler {
 
 			$teamsInTournament = $teamInTournamentRepo->findAllByRootTournament($tournament);
 			foreach ($teamsInTournament as $teamInTournament) {
-				$this->addUrl("{$teamInTournament->tournament->getHref()}/team/{$teamInTournament->team->getSlug()}");
+				$this->addUrl("{$teamInTournament->tournament->getHref()}/team/{$teamInTournament->getSlug()}");
 			}
 		}
 
