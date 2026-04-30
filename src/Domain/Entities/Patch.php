@@ -49,7 +49,7 @@ class Patch {
 				}
 			}
 		}
-		return null;
+		return "data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs%3D";
 	}
 	public function getRuneNameById(int $runeId): ?string {
 		$this->getRuneData();
@@ -79,6 +79,7 @@ class Patch {
     }
 	public function getSummonerSpellUrlById(int $summonerSpellId): ?string {
 		$this->getSummonerSpellData();
+		if (!isset($this->summonerSpellData[$summonerSpellId])) return "data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs%3D";
 		return $this->imgUrl.'/spell/'.$this->summonerSpellData[$summonerSpellId].'.webp';
 	}
 
@@ -94,10 +95,13 @@ class Patch {
         return $this->itemData;
     }
 	public function getItemUrlById(int $itemId): ?string {
+		$this->getItemData();
+		if (!isset($this->itemData[$itemId])) return "data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs%3D";
 		return $this->imgUrl."/item/$itemId.webp";
 	}
 	public function getItemNameById(int $itemId): ?string {
 		$this->getItemData();
+		if (!isset($this->itemData[$itemId])) return "Item $itemId";
 		return $this->itemData[$itemId]['name'];
 	}
 
