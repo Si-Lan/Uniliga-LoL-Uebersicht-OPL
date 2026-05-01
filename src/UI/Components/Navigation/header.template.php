@@ -40,16 +40,16 @@ use App\UI\Components\Popups\Popup;
 
     <?php if (UserContext::isLoggedIn()): ?>
         <button class='notifications-button'><?= count($matchupChangeSuggestions) === 0 ? IconRenderer::getMaterialIconSpan('notifications') : IconRenderer::getMaterialIconSpan('notifications_unread')?></button>
+        <div class="notifications-menu">
+            <div class="notifications-menu-header">
+                <span>Vorgeschlagene Änderungen</span>
+                <button type="button" class="refresh-notifications"><?=IconRenderer::getMaterialIconSpan("refresh")?></button>
+            </div>
+            <div class="notifications-menu-content">
+                <?= new NotificationSuggestionList($matchupChangeSuggestions) ?>
+            </div>
+        </div>
     <?php endif; ?>
-    <div class="notifications-menu">
-        <div class="notifications-menu-header">
-            <span>Vorgeschlagene Änderungen</span>
-            <button type="button" class="refresh-notifications"><?=IconRenderer::getMaterialIconSpan("refresh")?></button>
-        </div>
-        <div class="notifications-menu-content">
-            <?= new NotificationSuggestionList($matchupChangeSuggestions) ?>
-        </div>
-    </div>
 
 	<button type='button' class='material-symbol settings-button'><?= IconRenderer::getMaterialIcon('tune')?></button>
 
