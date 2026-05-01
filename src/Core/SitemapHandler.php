@@ -16,8 +16,8 @@ class SitemapHandler {
 		$teamRepo = new TeamRepository();
 		$playerRepo = new PlayerRepository();
 
-		echo '<?xml version="1.0" encoding="UTF-8"?>';
-		echo '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">';
+		echo '<?xml version="1.0" encoding="UTF-8"?>'.PHP_EOL;
+		echo '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'.PHP_EOL;
 
 		// Startseite
 		$this->addUrl('/');
@@ -60,8 +60,8 @@ class SitemapHandler {
 	}
 
 	private function addUrl(string $path): void {
-		echo '<url>';
-		echo '<loc>' . htmlspecialchars("https://" . ($_SERVER['SERVER_NAME']) . $path) . '</loc>';
-		echo '</url>';
+		echo '<url>'.PHP_EOL;
+		echo '<loc>' . htmlspecialchars("https://" . ($_SERVER['SERVER_NAME']) . $path, ENT_XML1 | ENT_COMPAT, 'UTF-8') . '</loc>'.PHP_EOL;
+		echo '</url>'.PHP_EOL;
 	}
 }
