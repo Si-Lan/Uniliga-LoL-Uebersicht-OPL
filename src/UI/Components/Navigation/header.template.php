@@ -62,9 +62,9 @@ use App\UI\Components\Popups\Popup;
     	<a class='settings-option' href='https://ko-fi.com/silencelol' target='_blank'>Spenden<?= IconRenderer::getMaterialIconDiv('payments')?></a>
         <a class='settings-option feedback' href=''>Feedback<?= IconRenderer::getMaterialIconDiv('mail')?></a>
         <?php if (UserContext::isLoggedIn()): ?>
-            <a class='settings-option logout' href='?logout'>Logout<?= IconRenderer::getMaterialIconDiv('logout')?></a>
+            <a class='settings-option logout' href='?logout' rel="nofollow">Logout<?= IconRenderer::getMaterialIconDiv('logout')?></a>
         <?php else: ?>
-            <a class='settings-option login' href='?login'>Login<?= IconRenderer::getMaterialIconDiv('login')?></a>
+            <a class='settings-option login' href='?login' rel="nofollow">Login<?= IconRenderer::getMaterialIconDiv('login')?></a>
         <?php endif; ?>
     </div>
 </header>
