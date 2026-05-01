@@ -40,16 +40,16 @@ use App\UI\Components\Popups\Popup;
 
     <?php if (UserContext::isLoggedIn()): ?>
         <button class='notifications-button'><?= count($matchupChangeSuggestions) === 0 ? IconRenderer::getMaterialIconSpan('notifications') : IconRenderer::getMaterialIconSpan('notifications_unread')?></button>
+        <div class="notifications-menu">
+            <div class="notifications-menu-header">
+                <span>Vorgeschlagene Änderungen</span>
+                <button type="button" class="refresh-notifications"><?=IconRenderer::getMaterialIconSpan("refresh")?></button>
+            </div>
+            <div class="notifications-menu-content">
+                <?= new NotificationSuggestionList($matchupChangeSuggestions) ?>
+            </div>
+        </div>
     <?php endif; ?>
-    <div class="notifications-menu">
-        <div class="notifications-menu-header">
-            <span>Vorgeschlagene Änderungen</span>
-            <button type="button" class="refresh-notifications"><?=IconRenderer::getMaterialIconSpan("refresh")?></button>
-        </div>
-        <div class="notifications-menu-content">
-            <?= new NotificationSuggestionList($matchupChangeSuggestions) ?>
-        </div>
-    </div>
 
 	<button type='button' class='material-symbol settings-button'><?= IconRenderer::getMaterialIcon('tune')?></button>
 
@@ -62,9 +62,9 @@ use App\UI\Components\Popups\Popup;
     	<a class='settings-option' href='https://ko-fi.com/silencelol' target='_blank'>Spenden<?= IconRenderer::getMaterialIconDiv('payments')?></a>
         <a class='settings-option feedback' href=''>Feedback<?= IconRenderer::getMaterialIconDiv('mail')?></a>
         <?php if (UserContext::isLoggedIn()): ?>
-            <a class='settings-option logout' href='?logout'>Logout<?= IconRenderer::getMaterialIconDiv('logout')?></a>
+            <a class='settings-option logout' href='?logout' rel="nofollow">Logout<?= IconRenderer::getMaterialIconDiv('logout')?></a>
         <?php else: ?>
-            <a class='settings-option login' href='?login'>Login<?= IconRenderer::getMaterialIconDiv('login')?></a>
+            <a class='settings-option login' href='?login' rel="nofollow">Login<?= IconRenderer::getMaterialIconDiv('login')?></a>
         <?php endif; ?>
     </div>
 </header>
